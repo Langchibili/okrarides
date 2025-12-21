@@ -1,0 +1,88 @@
+{
+  "kind": "collectionType",
+  "collectionName": "subscription_plans",
+  "info": {
+    "singularName": "subscription-plan",
+    "pluralName": "subscription-plans",
+    "displayName": "Subscription Plan",
+    "name": "subscriptionPlan"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "planId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "price": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::currency.currency"
+    },
+    "durationType": {
+      "type": "enumeration",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "required": true
+    },
+    "durationValue": {
+      "type": "integer",
+      "default": 1
+    },
+    "features": {
+      "type": "json",
+      "default": []
+    },
+    "maxRidesPerDay": {
+      "type": "integer"
+    },
+    "maxRidesPerPeriod": {
+      "type": "integer"
+    },
+    "hasFreeTrial": {
+      "type": "boolean",
+      "default": false
+    },
+    "freeTrialDays": {
+      "type": "integer",
+      "default": 0
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "isPopular": {
+      "type": "boolean",
+      "default": false
+    },
+    "displayOrder": {
+      "type": "integer",
+      "default": 0
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

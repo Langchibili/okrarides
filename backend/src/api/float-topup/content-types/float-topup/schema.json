@@ -1,0 +1,90 @@
+{
+  "kind": "collectionType",
+  "collectionName": "float_topups",
+  "info": {
+    "singularName": "float-topup",
+    "pluralName": "float-topups",
+    "displayName": "Float Topup",
+    "name": "floatTopup"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "topupId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "amount": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::currency.currency"
+    },
+    "paymentMethod": {
+      "type": "enumeration",
+      "enum": [
+        "okrapay",
+        "mobile_money",
+        "bank_transfer",
+        "cash"
+      ],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "gatewayReference": {
+      "type": "string"
+    },
+    "gatewayResponse": {
+      "type": "json"
+    },
+    "floatBalanceBefore": {
+      "type": "decimal"
+    },
+    "floatBalanceAfter": {
+      "type": "decimal"
+    },
+    "requestedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "completedAt": {
+      "type": "datetime"
+    },
+    "processedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "notes": {
+      "type": "text"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

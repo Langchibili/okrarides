@@ -1,0 +1,45 @@
+{
+    "kind":  "collectionType",
+    "collectionName":  "languages",
+    "info":  {
+                 "singularName":  "language",
+                 "pluralName":  "languages",
+                 "displayName":  "Language",
+                 "name":  "language"
+             },
+    "options":  {
+                    "draftAndPublish":  false
+                },
+    "attributes":  {
+                       "name":  {
+                                    "type":  "string",
+                                    "required":  true
+                                },
+                       "code":  {
+                                    "type":  "string",
+                                    "required":  true,
+                                    "unique":  true,
+                                    "maxLength":  5
+                                },
+                       "isRTL":  {
+                                     "type":  "boolean",
+                                     "default":  false
+                                 },
+                       "isActive":  {
+                                        "type":  "boolean",
+                                        "default":  true
+                                    },
+                       "isDefault":  {
+                                         "type":  "boolean",
+                                         "default":  false
+                                     }
+                   },
+    "pluginOptions":  {
+                          "content-manager":  {
+                                                  "visible":  true
+                                              },
+                          "content-type-builder":  {
+                                                       "visible":  true
+                                                   }
+                      }
+}

@@ -1,0 +1,60 @@
+{
+  "kind": "collectionType",
+  "collectionName": "route_pricings",
+  "info": {
+    "singularName": "route-pricing",
+    "pluralName": "route-pricings",
+    "displayName": "Route Pricing",
+    "name": "routePricing"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "busRoute": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-route.bus-route",
+      "required": true
+    },
+    "startStation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-station.bus-station",
+      "required": true
+    },
+    "endStation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-station.bus-station",
+      "required": true
+    },
+    "price": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::currency.currency"
+    },
+    "distance": {
+      "type": "decimal"
+    },
+    "estimatedDuration": {
+      "type": "integer"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

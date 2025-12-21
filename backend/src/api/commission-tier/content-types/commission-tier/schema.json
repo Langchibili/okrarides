@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "commission_tiers",
+  "info": {
+    "singularName": "commission-tier",
+    "pluralName": "commission-tiers",
+    "displayName": "Commission Tier",
+    "name": "commissionTier"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "minFare": {
+      "type": "decimal",
+      "required": true
+    },
+    "maxFare": {
+      "type": "decimal"
+    },
+    "commissionPercentage": {
+      "type": "decimal",
+      "required": true
+    },
+    "commissionFlat": {
+      "type": "decimal"
+    },
+    "taxiType": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::taxi-type.taxi-type"
+    },
+    "rideClass": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride-class.ride-class"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "displayOrder": {
+      "type": "integer",
+      "default": 0
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "collectionName": "components_rider_profiles_rider_profiles",
+  "info": {
+    "displayName": "Rider Profile",
+    "icon": "user"
+  },
+  "options": {},
+  "attributes": {
+    "totalRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "completedRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "cancelledRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalSpent": {
+      "type": "decimal",
+      "default": 0
+    },
+    "averageRating": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalRatings": {
+      "type": "integer",
+      "default": 0
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "paymentMethods": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::payment-method.payment-method"
+    },
+    "defaultPaymentMethod": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::payment-method.payment-method"
+    },
+    "savedLocations": {
+      "type": "json",
+      "default": []
+    },
+    "ridePreferences": {
+      "type": "json",
+      "default": {}
+    },
+    "blocked": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

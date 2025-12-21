@@ -1,0 +1,94 @@
+{
+  "collectionName": "components_delivery_profiles_delivery_profiles",
+  "info": {
+    "displayName": "Delivery Profile",
+    "icon": "box"
+  },
+  "options": {},
+  "attributes": {
+    "verificationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected",
+        "suspended"
+      ],
+      "default": "not_started"
+    },
+    "verificationNotes": {
+      "type": "text"
+    },
+    "verifiedAt": {
+      "type": "datetime"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "isAvailable": {
+      "type": "boolean",
+      "default": false
+    },
+    "taxi": {
+      "type": "component",
+      "repeatable": false,
+      "component": "delivery-vehicles.taxi"
+    },
+    "motorbike": {
+      "type": "component",
+      "repeatable": false,
+      "component": "delivery-vehicles.motorbike"
+    },
+    "motorcycle": {
+      "type": "component",
+      "repeatable": false,
+      "component": "delivery-vehicles.motorcycle"
+    },
+    "truck": {
+      "type": "component",
+      "repeatable": false,
+      "component": "delivery-vehicles.truck"
+    },
+    "activeVehicleType": {
+      "type": "enumeration",
+      "enum": [
+        "none",
+        "taxi",
+        "motorbike",
+        "motorcycle",
+        "truck"
+      ],
+      "default": "none"
+    },
+    "totalDeliveries": {
+      "type": "integer",
+      "default": 0
+    },
+    "completedDeliveries": {
+      "type": "integer",
+      "default": 0
+    },
+    "cancelledDeliveries": {
+      "type": "integer",
+      "default": 0
+    },
+    "averageRating": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalEarnings": {
+      "type": "decimal",
+      "default": 0
+    },
+    "currentBalance": {
+      "type": "decimal",
+      "default": 0
+    },
+    "blocked": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

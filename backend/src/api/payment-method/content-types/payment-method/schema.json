@@ -1,0 +1,58 @@
+{
+  "kind": "collectionType",
+  "collectionName": "payment_methods",
+  "info": {
+    "singularName": "payment-method",
+    "pluralName": "payment-methods",
+    "displayName": "Payment Method",
+    "name": "paymentMethod"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "okrapay",
+        "mobile_money",
+        "bank_card"
+      ],
+      "required": true
+    },
+    "provider": {
+      "type": "string"
+    },
+    "accountNumber": {
+      "type": "string"
+    },
+    "accountName": {
+      "type": "string"
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false
+    },
+    "isVerified": {
+      "type": "boolean",
+      "default": false
+    },
+    "metadata": {
+      "type": "json"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

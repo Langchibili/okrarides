@@ -1,0 +1,42 @@
+{
+  "name": "okra-rides-rider",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.0",
+    "@mui/lab": "^5.0.0-alpha.158",
+    "@mui/material": "^5.15.0",
+    "@react-google-maps/api": "^2.19.0",
+    "@use-gesture/react": "^10.3.0",
+    "date-fns": "^3.0.0",
+    "framer-motion": "^11.0.0",
+    "html2canvas": "^1.4.1",
+    "lodash": "^4.17.21",
+    "next": "^14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-spring": "^9.7.0",
+    "react-spring-bottom-sheet": "^3.4.1",
+    "react-swipeable-views": "^0.14.0",
+    "react-virtuoso": "^4.6.0",
+    "socket.io-client": "^4.6.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.23",
+    "critters": "^0.0.23",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4",
+    "next-pwa": "^5.6.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "workbox-window": "^7.0.0"
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "kind": "collectionType",
+  "collectionName": "driver_subscriptions",
+  "info": {
+    "singularName": "driver-subscription",
+    "pluralName": "driver-subscriptions",
+    "displayName": "Driver Subscription",
+    "name": "driverSubscription"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "subscriptionId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "subscriptionPlan": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::subscription-plan.subscription-plan",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "trial",
+        "active",
+        "expired",
+        "cancelled",
+        "suspended"
+      ],
+      "required": true
+    },
+    "startedAt": {
+      "type": "datetime"
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "cancelledAt": {
+      "type": "datetime"
+    },
+    "suspendedAt": {
+      "type": "datetime"
+    },
+    "isFreeTrial": {
+      "type": "boolean",
+      "default": false
+    },
+    "trialEndsAt": {
+      "type": "datetime"
+    },
+    "lastPaymentDate": {
+      "type": "datetime"
+    },
+    "lastPaymentAmount": {
+      "type": "decimal"
+    },
+    "lastPaymentTransactionId": {
+      "type": "string"
+    },
+    "nextPaymentDue": {
+      "type": "datetime"
+    },
+    "autoRenew": {
+      "type": "boolean",
+      "default": true
+    },
+    "ridesThisPeriod": {
+      "type": "integer",
+      "default": 0
+    },
+    "ridesToday": {
+      "type": "integer",
+      "default": 0
+    },
+    "previousSubscriptions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::driver-subscription.driver-subscription"
+    },
+    "renewalCount": {
+      "type": "integer",
+      "default": 0
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

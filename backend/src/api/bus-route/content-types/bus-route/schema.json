@@ -1,0 +1,70 @@
+{
+  "kind": "collectionType",
+  "collectionName": "bus_routes",
+  "info": {
+    "singularName": "bus-route",
+    "pluralName": "bus-routes",
+    "displayName": "Bus Route",
+    "name": "busRoute"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "routeCode": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "startStation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-station.bus-station",
+      "required": true
+    },
+    "endStation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-station.bus-station",
+      "required": true
+    },
+    "intermediateStations": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::bus-station.bus-station"
+    },
+    "routePolyline": {
+      "type": "text"
+    },
+    "estimatedDuration": {
+      "type": "integer"
+    },
+    "totalDistance": {
+      "type": "decimal"
+    },
+    "baseFare": {
+      "type": "decimal",
+      "required": true
+    },
+    "isIntercity": {
+      "type": "boolean",
+      "default": false
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

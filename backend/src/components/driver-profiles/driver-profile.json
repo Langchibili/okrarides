@@ -1,0 +1,326 @@
+{
+  "collectionName": "components_driver_profiles_driver_profiles",
+  "info": {
+    "displayName": "Driver Profile",
+    "icon": "car"
+  },
+  "options": {},
+  "attributes": {
+    "verificationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected",
+        "suspended"
+      ],
+      "default": "not_started"
+    },
+    "verificationNotes": {
+      "type": "text"
+    },
+    "verifiedAt": {
+      "type": "datetime"
+    },
+    "verifiedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "driverLicenseNumber": {
+      "type": "string",
+      "unique": true
+    },
+    "licenseExpiryDate": {
+      "type": "date"
+    },
+    "nationalIdNumber": {
+      "type": "string",
+      "unique": true
+    },
+    "driverLicenseFront": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "driverLicenseBack": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "nationalIdFront": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "nationalIdBack": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "proofOfAddress": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "taxiDriver": {
+      "type": "component",
+      "repeatable": false,
+      "component": "driver-profiles.taxi-driver"
+    },
+    "busDriver": {
+      "type": "component",
+      "repeatable": false,
+      "component": "driver-profiles.bus-driver"
+    },
+    "motorbikeRider": {
+      "type": "component",
+      "repeatable": false,
+      "component": "driver-profiles.motorbike-rider"
+    },
+    "activeSubProfile": {
+      "type": "enumeration",
+      "enum": [
+        "none",
+        "taxi",
+        "bus",
+        "motorbike"
+      ],
+      "default": "none"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "isAvailable": {
+      "type": "boolean",
+      "default": false
+    },
+    "isOnline": {
+      "type": "boolean",
+      "default": false
+    },
+    "currentRide": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride.ride"
+    },
+    "subscriptionStatus": {
+      "type": "enumeration",
+      "enum": [
+        "inactive",
+        "trial",
+        "active",
+        "expired",
+        "cancelled",
+        "suspended"
+      ],
+      "default": "inactive"
+    },
+    "subscriptionPlan": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::subscription-plan.subscription-plan"
+    },
+    "currentSubscription": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::driver-subscription.driver-subscription"
+    },
+    "subscriptionHistory": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::driver-subscription.driver-subscription"
+    },
+    "floatBalance": {
+      "type": "decimal",
+      "default": 0
+    },
+    "floatLimit": {
+      "type": "decimal"
+    },
+    "allowedNegativeBalance": {
+      "type": "boolean",
+      "default": false
+    },
+    "negativeBalanceLimit": {
+      "type": "decimal",
+      "default": 0
+    },
+    "assignedVehicle": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::vehicle.vehicle"
+    },
+    "allowedCountries": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::country.country"
+    },
+    "allowedGeofenceZones": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::geofence-zone.geofence-zone"
+    },
+    "acceptedTaxiTypes": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::taxi-type.taxi-type"
+    },
+    "acceptedRideClasses": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::ride-class.ride-class"
+    },
+    "isBusDriver": {
+      "type": "boolean",
+      "default": false
+    },
+    "currentRoute": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-route.bus-route"
+    },
+    "conductor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "averageRating": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalRatings": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalEarnings": {
+      "type": "decimal",
+      "default": 0
+    },
+    "currentBalance": {
+      "type": "decimal",
+      "default": 0
+    },
+    "pendingWithdrawal": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "completedRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "cancelledRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalDistance": {
+      "type": "decimal",
+      "default": 0
+    },
+    "completionRate": {
+      "type": "decimal",
+      "default": 100
+    },
+    "cancellationRate": {
+      "type": "decimal",
+      "default": 0
+    },
+    "acceptanceRate": {
+      "type": "decimal",
+      "default": 100
+    },
+    "deviceIMEI": {
+      "type": "string",
+      "unique": true
+    },
+    "deviceUnlocked": {
+      "type": "boolean",
+      "default": false
+    },
+    "ridesCompletedForUnlock": {
+      "type": "integer",
+      "default": 0
+    },
+    "targetRidesForUnlock": {
+      "type": "integer"
+    },
+    "pushNotifications": {
+      "type": "boolean",
+      "default": true
+    },
+    "smsNotifications": {
+      "type": "boolean",
+      "default": true
+    },
+    "emailNotifications": {
+      "type": "boolean",
+      "default": false
+    },
+    "rideRequestSound": {
+      "type": "boolean",
+      "default": true
+    },
+    "autoAcceptRides": {
+      "type": "boolean",
+      "default": false
+    },
+    "maxDistanceForPickup": {
+      "type": "integer",
+      "default": 10
+    },
+    "autoWithdrawEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "autoWithdrawThreshold": {
+      "type": "decimal"
+    },
+    "preferredWithdrawalMethod": {
+      "type": "enumeration",
+      "enum": [
+        "okrapay"
+      ],
+      "default": "okrapay"
+    },
+    "preferredNavigationApp": {
+      "type": "enumeration",
+      "enum": [
+        "google_maps",
+        "waze"
+      ],
+      "default": "google_maps"
+    },
+    "voiceNavigationEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "lastCancellation": {
+      "type": "datetime"
+    },
+    "blocked": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

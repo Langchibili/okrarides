@@ -1,0 +1,92 @@
+{
+  "kind": "collectionType",
+  "collectionName": "notifications",
+  "info": {
+    "singularName": "notification",
+    "pluralName": "notifications",
+    "displayName": "Notification",
+    "name": "notification"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "ride_request",
+        "ride_accepted",
+        "ride_started",
+        "ride_completed",
+        "ride_cancelled",
+        "payment_received",
+        "subscription_expiring",
+        "subscription_expired",
+        "subscription_renewed",
+        "promo_code",
+        "system_announcement",
+        "account_update"
+      ],
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "text",
+      "required": true
+    },
+    "data": {
+      "type": "json"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    },
+    "readAt": {
+      "type": "datetime"
+    },
+    "channel": {
+      "type": "enumeration",
+      "enum": [
+        "push",
+        "sms",
+        "email",
+        "in_app"
+      ],
+      "default": "in_app"
+    },
+    "sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "sentAt": {
+      "type": "datetime"
+    },
+    "ride": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride.ride"
+    },
+    "subscription": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::driver-subscription.driver-subscription"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

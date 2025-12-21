@@ -1,0 +1,121 @@
+{
+  "kind": "collectionType",
+  "collectionName": "support_tickets",
+  "info": {
+    "singularName": "support-ticket",
+    "pluralName": "support-tickets",
+    "displayName": "Support Ticket",
+    "name": "supportTicket"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "ticketId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "ride_issue",
+        "payment_issue",
+        "subscription_issue",
+        "account_issue",
+        "technical_issue",
+        "feature_request",
+        "complaint",
+        "other"
+      ],
+      "required": true
+    },
+    "subject": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "open",
+        "in_progress",
+        "waiting_for_user",
+        "resolved",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "ride": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride.ride"
+    },
+    "subscription": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::driver-subscription.driver-subscription"
+    },
+    "assignedTo": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "attachments": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos"
+      ]
+    },
+    "responses": {
+      "type": "component",
+      "repeatable": true,
+      "component": "support.ticket-response"
+    },
+    "resolvedAt": {
+      "type": "datetime"
+    },
+    "resolutionTime": {
+      "type": "integer"
+    },
+    "satisfactionRating": {
+      "type": "integer",
+      "min": 1,
+      "max": 5
+    },
+    "tags": {
+      "type": "json",
+      "default": []
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

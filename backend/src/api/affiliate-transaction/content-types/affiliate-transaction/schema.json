@@ -1,0 +1,72 @@
+{
+  "kind": "collectionType",
+  "collectionName": "affiliate_transactions",
+  "info": {
+    "singularName": "affiliate-transaction",
+    "pluralName": "affiliate-transactions",
+    "displayName": "Affiliate Transaction",
+    "name": "affiliateTransaction"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "transactionId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "affiliate": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "referredUser": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "type": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "referral_signup",
+        "referral_first_ride_as_rider",
+        "referral_first_ride_as_driver",
+        "points_redemption",
+        "bonus",
+        "adjustment"
+      ]
+    },
+    "points": {
+      "type": "integer",
+      "default": 0
+    },
+    "amount": {
+      "type": "decimal",
+      "default": 0
+    },
+    "affiliate_transaction_status": {
+      "type": "enumeration",
+      "default": "pending",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "ride": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride.ride"
+    },
+    "description": {
+      "type": "text"
+    },
+    "processedAt": {
+      "type": "datetime"
+    }
+  }
+}

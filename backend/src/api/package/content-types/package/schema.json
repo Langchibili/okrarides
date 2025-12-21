@@ -1,0 +1,108 @@
+{
+    "kind":  "collectionType",
+    "collectionName":  "packages",
+    "info":  {
+                 "singularName":  "package",
+                 "pluralName":  "packages",
+                 "displayName":  "Package",
+                 "name":  "package"
+             },
+    "options":  {
+                    "draftAndPublish":  false
+                },
+    "attributes":  {
+                       "packageCode":  {
+                                           "type":  "string",
+                                           "required":  true,
+                                           "unique":  true
+                                       },
+                       "sender":  {
+                                      "type":  "relation",
+                                      "relation":  "manyToOne",
+                                      "target":  "plugin::users-permissions.user",
+                                      "required":  true
+                                  },
+                       "recipient":  {
+                                         "type":  "component",
+                                         "repeatable":  false,
+                                         "component":  "packages.recipient-details",
+                                         "required":  true
+                                     },
+                       "packageType":  {
+                                           "type":  "enumeration",
+                                           "enum":  [
+                                                        "document",
+                                                        "parcel",
+                                                        "food",
+                                                        "groceries",
+                                                        "other"
+                                                    ],
+                                           "required":  true
+                                       },
+                       "description":  {
+                                           "type":  "text"
+                                       },
+                       "weight":  {
+                                      "type":  "decimal"
+                                  },
+                       "dimensions":  {
+                                          "type":  "json"
+                                      },
+                       "fragile":  {
+                                       "type":  "boolean",
+                                       "default":  false
+                                   },
+                       "packagePhotos":  {
+                                             "type":  "media",
+                                             "multiple":  true,
+                                             "allowedTypes":  [
+                                                                  "images"
+                                                              ]
+                                         },
+                       "specialInstructions":  {
+                                                   "type":  "text"
+                                               },
+                       "deliveryFee":  {
+                                           "type":  "decimal",
+                                           "required":  true
+                                       },
+                       "status":  {
+                                      "type":  "enumeration",
+                                      "enum":  [
+                                                   "pending_pickup",
+                                                   "picked_up",
+                                                   "in_transit",
+                                                   "delivered",
+                                                   "cancelled"
+                                               ],
+                                      "default":  "pending_pickup"
+                                  },
+                       "pickupVerificationCode":  {
+                                                      "type":  "string"
+                                                  },
+                       "deliveryVerificationCode":  {
+                                                        "type":  "string"
+                                                    },
+                       "pickedUpAt":  {
+                                          "type":  "datetime"
+                                      },
+                       "deliveredAt":  {
+                                           "type":  "datetime"
+                                       },
+                       "recipientSignature":  {
+                                                  "type":  "media",
+                                                  "multiple":  false,
+                                                  "allowedTypes":  [
+                                                                       "images"
+                                                                   ]
+                                              }
+                   },
+    "pluginOptions":  {
+                          "content-manager":  {
+                                                  "visible":  true
+                                              },
+                          "content-type-builder":  {
+                                                       "visible":  true
+                                                   }
+                      }
+}

@@ -1,0 +1,91 @@
+{
+  "kind": "collectionType",
+  "collectionName": "push_notification_logs",
+  "info": {
+    "singularName": "push-notification-log",
+    "pluralName": "push-notification-logs",
+    "displayName": "Push Notification Log",
+    "name": "pushNotificationLog"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "notificationId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "recipient": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "deviceToken": {
+      "type": "string",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "text",
+      "required": true
+    },
+    "data": {
+      "type": "json"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "sent",
+        "delivered",
+        "opened",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "platform": {
+      "type": "enumeration",
+      "enum": [
+        "android",
+        "ios",
+        "web"
+      ],
+      "required": true
+    },
+    "provider": {
+      "type": "string",
+      "default": "fcm"
+    },
+    "providerMessageId": {
+      "type": "string"
+    },
+    "providerResponse": {
+      "type": "json"
+    },
+    "sentAt": {
+      "type": "datetime"
+    },
+    "deliveredAt": {
+      "type": "datetime"
+    },
+    "openedAt": {
+      "type": "datetime"
+    },
+    "failureReason": {
+      "type": "text"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "verifyotps",
+  "info": {
+    "singularName": "verifyotp",
+    "pluralName": "verifyotps",
+    "displayName": "verifyotp"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "identifier": {
+      "type": "string"
+    },
+    "identifierType": {
+      "type": "enumeration",
+      "enum": [
+        "phoneNumber",
+        "email"
+      ]
+    },
+    "otp": {
+      "type": "string"
+    }
+  }
+}

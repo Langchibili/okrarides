@@ -1,0 +1,102 @@
+{
+  "kind": "collectionType",
+  "collectionName": "transactions",
+  "info": {
+    "singularName": "transaction",
+    "pluralName": "transactions",
+    "displayName": "Transaction",
+    "name": "transaction"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "transactionId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "ride_payment",
+        "float_topup",
+        "withdrawal",
+        "subscription_payment",
+        "commission",
+        "refund",
+        "affiliate_payout"
+      ],
+      "required": true
+    },
+    "amount": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::currency.currency"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "cancelled",
+        "refunded"
+      ],
+      "required": true,
+      "default": "pending"
+    },
+    "paymentMethod": {
+      "type": "enumeration",
+      "enum": [
+        "cash",
+        "okrapay",
+        "mobile_money",
+        "bank_transfer"
+      ]
+    },
+    "gatewayReference": {
+      "type": "string"
+    },
+    "gatewayResponse": {
+      "type": "json"
+    },
+    "ride": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride.ride"
+    },
+    "subscription": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::driver-subscription.driver-subscription"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "processedAt": {
+      "type": "datetime"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "kind": "collectionType",
+  "collectionName": "app_versions",
+  "info": {
+    "singularName": "app-version",
+    "pluralName": "app-versions",
+    "displayName": "App Version",
+    "name": "appVersion"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "platform": {
+      "type": "enumeration",
+      "enum": [
+        "android",
+        "ios",
+        "web"
+      ],
+      "required": true
+    },
+    "appType": {
+      "type": "enumeration",
+      "enum": [
+        "rider",
+        "driver",
+        "conductor",
+        "delivery",
+        "admin"
+      ],
+      "required": true
+    },
+    "versionNumber": {
+      "type": "string",
+      "required": true
+    },
+    "versionCode": {
+      "type": "integer",
+      "required": true
+    },
+    "releaseDate": {
+      "type": "datetime",
+      "required": true
+    },
+    "isForceUpdate": {
+      "type": "boolean",
+      "default": false
+    },
+    "minimumSupportedVersion": {
+      "type": "string"
+    },
+    "downloadUrl": {
+      "type": "string"
+    },
+    "releaseNotes": {
+      "type": "text"
+    },
+    "changelog": {
+      "type": "json",
+      "default": []
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

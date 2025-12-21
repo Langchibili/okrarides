@@ -1,0 +1,76 @@
+{
+  "kind": "collectionType",
+  "collectionName": "surge_pricings",
+  "info": {
+    "singularName": "surge-pricing",
+    "pluralName": "surge-pricings",
+    "displayName": "Surge Pricing",
+    "name": "surgePricing"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "geofenceZone": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::geofence-zone.geofence-zone",
+      "required": true
+    },
+    "multiplier": {
+      "type": "decimal",
+      "required": true,
+      "min": 1
+    },
+    "startTime": {
+      "type": "datetime",
+      "required": true
+    },
+    "endTime": {
+      "type": "datetime",
+      "required": true
+    },
+    "daysOfWeek": {
+      "type": "json",
+      "default": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "reason": {
+      "type": "text"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "isRecurring": {
+      "type": "boolean",
+      "default": false
+    },
+    "applicableRideTypes": {
+      "type": "json",
+      "default": [
+        "taxi",
+        "bus"
+      ]
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

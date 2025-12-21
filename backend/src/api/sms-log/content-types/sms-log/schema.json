@@ -1,0 +1,81 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sms_logs",
+  "info": {
+    "singularName": "sms-log",
+    "pluralName": "sms-logs",
+    "displayName": "SMS Log",
+    "name": "smsLog"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "messageId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "recipient": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "phoneNumber": {
+      "type": "string",
+      "required": true
+    },
+    "message": {
+      "type": "text",
+      "required": true
+    },
+    "template": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "sent",
+        "delivered",
+        "failed",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "provider": {
+      "type": "string",
+      "default": "africas_talking"
+    },
+    "providerMessageId": {
+      "type": "string"
+    },
+    "providerResponse": {
+      "type": "json"
+    },
+    "cost": {
+      "type": "decimal"
+    },
+    "sentAt": {
+      "type": "datetime"
+    },
+    "deliveredAt": {
+      "type": "datetime"
+    },
+    "failureReason": {
+      "type": "text"
+    },
+    "retryCount": {
+      "type": "integer",
+      "default": 0
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

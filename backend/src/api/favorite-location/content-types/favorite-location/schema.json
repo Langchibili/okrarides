@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "favorite_locations",
+  "info": {
+    "singularName": "favorite-location",
+    "pluralName": "favorite-locations",
+    "displayName": "Favorite Location",
+    "name": "favoriteLocation"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "address": {
+      "type": "text",
+      "required": true
+    },
+    "location": {
+      "type": "json",
+      "required": true
+    },
+    "placeId": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "enumeration",
+      "enum": [
+        "home",
+        "work",
+        "school",
+        "gym",
+        "other"
+      ],
+      "default": "other"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

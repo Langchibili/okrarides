@@ -1,0 +1,72 @@
+{
+  "collectionName": "components_conductor_profiles_conductor_profiles",
+  "info": {
+    "displayName": "Conductor Profile",
+    "icon": "clipboard"
+  },
+  "options": {},
+  "attributes": {
+    "verificationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected",
+        "suspended"
+      ],
+      "default": "not_started"
+    },
+    "verificationNotes": {
+      "type": "text"
+    },
+    "verifiedAt": {
+      "type": "datetime"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "assignedDriver": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "nationalIdNumber": {
+      "type": "string",
+      "unique": true
+    },
+    "nationalIdFront": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "nationalIdBack": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "totalRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalEarnings": {
+      "type": "decimal",
+      "default": 0
+    },
+    "currentBalance": {
+      "type": "decimal",
+      "default": 0
+    },
+    "blocked": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

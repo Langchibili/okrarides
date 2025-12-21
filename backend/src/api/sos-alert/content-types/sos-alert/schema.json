@@ -1,0 +1,114 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sos_alerts",
+  "info": {
+    "singularName": "sos-alert",
+    "pluralName": "sos-alerts",
+    "displayName": "SOS Alert",
+    "name": "sosAlert"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "alertId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "ride": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride.ride"
+    },
+    "location": {
+      "type": "json",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "emergency",
+        "safety_concern",
+        "accident",
+        "harassment",
+        "other"
+      ],
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "open",
+        "acknowledged",
+        "in_progress",
+        "resolved",
+        "false_alarm"
+      ],
+      "default": "open"
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "high"
+    },
+    "respondedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "acknowledgedAt": {
+      "type": "datetime"
+    },
+    "resolvedAt": {
+      "type": "datetime"
+    },
+    "resolutionNotes": {
+      "type": "text"
+    },
+    "emergencyContactsNotified": {
+      "type": "boolean",
+      "default": false
+    },
+    "policeNotified": {
+      "type": "boolean",
+      "default": false
+    },
+    "audioRecording": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "audios"
+      ]
+    },
+    "photos": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

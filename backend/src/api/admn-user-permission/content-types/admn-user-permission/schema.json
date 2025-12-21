@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "admn_user_permissions",
+  "info": {
+    "name": "admnUserPermission",
+    "singularName": "admn-user-permission",
+    "pluralName": "admn-user-permissions",
+    "displayName": "Admin User Permission"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "code": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "category": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "users",
+        "drivers",
+        "riders",
+        "rides",
+        "vehicles",
+        "subscriptions",
+        "finance",
+        "settings",
+        "reports",
+        "support"
+      ]
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

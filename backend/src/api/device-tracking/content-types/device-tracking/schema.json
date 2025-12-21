@@ -1,0 +1,86 @@
+{
+  "kind": "collectionType",
+  "collectionName": "device_trackings",
+  "info": {
+    "singularName": "device-tracking",
+    "pluralName": "device-trackings",
+    "displayName": "Device Tracking",
+    "name": "deviceTracking"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "deviceIMEI": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "deviceModel": {
+      "type": "string"
+    },
+    "deviceManufacturer": {
+      "type": "string"
+    },
+    "purchaseDate": {
+      "type": "date"
+    },
+    "purchasePrice": {
+      "type": "decimal"
+    },
+    "assignedDate": {
+      "type": "date",
+      "required": true
+    },
+    "unlockStatus": {
+      "type": "enumeration",
+      "enum": [
+        "locked",
+        "unlocked",
+        "suspended"
+      ],
+      "default": "locked"
+    },
+    "ridesCompleted": {
+      "type": "integer",
+      "default": 0
+    },
+    "targetRides": {
+      "type": "integer",
+      "required": true
+    },
+    "unlockedAt": {
+      "type": "datetime"
+    },
+    "suspendedAt": {
+      "type": "datetime"
+    },
+    "suspensionReason": {
+      "type": "text"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "lastSeen": {
+      "type": "datetime"
+    },
+    "notes": {
+      "type": "text"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

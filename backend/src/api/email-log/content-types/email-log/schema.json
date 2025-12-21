@@ -1,0 +1,86 @@
+{
+  "kind": "collectionType",
+  "collectionName": "email_logs",
+  "info": {
+    "singularName": "email-log",
+    "pluralName": "email-logs",
+    "displayName": "Email Log",
+    "name": "emailLog"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "messageId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "recipient": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "emailAddress": {
+      "type": "email",
+      "required": true
+    },
+    "subject": {
+      "type": "string",
+      "required": true
+    },
+    "body": {
+      "type": "text",
+      "required": true
+    },
+    "template": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "sent",
+        "delivered",
+        "opened",
+        "clicked",
+        "failed",
+        "bounced"
+      ],
+      "default": "pending"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "providerMessageId": {
+      "type": "string"
+    },
+    "providerResponse": {
+      "type": "json"
+    },
+    "sentAt": {
+      "type": "datetime"
+    },
+    "deliveredAt": {
+      "type": "datetime"
+    },
+    "openedAt": {
+      "type": "datetime"
+    },
+    "failureReason": {
+      "type": "text"
+    },
+    "attachments": {
+      "type": "json",
+      "default": []
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "kind": "collectionType",
+  "collectionName": "promo_codes",
+  "info": {
+    "singularName": "promo-code",
+    "pluralName": "promo-codes",
+    "displayName": "Promo Code",
+    "name": "promoCode"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "code": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "discountType": {
+      "type": "enumeration",
+      "enum": [
+        "percentage",
+        "fixed_amount"
+      ],
+      "required": true
+    },
+    "discountValue": {
+      "type": "decimal",
+      "required": true
+    },
+    "maxDiscountAmount": {
+      "type": "decimal"
+    },
+    "minimumOrderValue": {
+      "type": "decimal"
+    },
+    "validFrom": {
+      "type": "datetime",
+      "required": true
+    },
+    "validUntil": {
+      "type": "datetime",
+      "required": true
+    },
+    "maxUsageCount": {
+      "type": "integer"
+    },
+    "maxUsagePerUser": {
+      "type": "integer",
+      "default": 1
+    },
+    "currentUsageCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "applicableFor": {
+      "type": "enumeration",
+      "enum": [
+        "all_users",
+        "new_users",
+        "specific_users"
+      ],
+      "default": "all_users"
+    },
+    "specificUsers": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user"
+    },
+    "applicableRideTypes": {
+      "type": "json",
+      "default": [
+        "taxi",
+        "bus",
+        "delivery"
+      ]
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

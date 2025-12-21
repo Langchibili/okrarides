@@ -1,0 +1,260 @@
+{
+  "kind": "collectionType",
+  "collectionName": "rides",
+  "info": {
+    "singularName": "ride",
+    "pluralName": "rides",
+    "displayName": "Ride",
+    "name": "ride"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "rideCode": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "rider": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "rideType": {
+      "type": "enumeration",
+      "enum": [
+        "taxi",
+        "bus",
+        "delivery"
+      ],
+      "required": true
+    },
+    "taxiType": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::taxi-type.taxi-type"
+    },
+    "rideClass": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride-class.ride-class"
+    },
+    "vehicle": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::vehicle.vehicle"
+    },
+    "pickupLocation": {
+      "type": "json",
+      "required": true
+    },
+    "dropoffLocation": {
+      "type": "json",
+      "required": true
+    },
+    "pickupStation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-station.bus-station"
+    },
+    "dropoffStation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-station.bus-station"
+    },
+    "busRoute": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bus-route.bus-route"
+    },
+    "isPassengerBehindBus": {
+      "type": "boolean",
+      "default": false
+    },
+    "behindBusDistance": {
+      "type": "decimal"
+    },
+    "behindBusSurcharge": {
+      "type": "decimal",
+      "default": 0
+    },
+    "scheduledFor": {
+      "type": "datetime"
+    },
+    "passengerCount": {
+      "type": "integer",
+      "default": 1
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "accepted",
+        "arrived",
+        "passenger_onboard",
+        "completed",
+        "cancelled",
+        "no_drivers_available"
+      ],
+      "required": true
+    },
+    "requestedDrivers": {
+      "type": "json",
+      "default": []
+    },
+    "requestedAt": {
+      "type": "datetime"
+    },
+    "acceptedAt": {
+      "type": "datetime"
+    },
+    "arrivedAt": {
+      "type": "datetime"
+    },
+    "tripStartedAt": {
+      "type": "datetime"
+    },
+    "tripCompletedAt": {
+      "type": "datetime"
+    },
+    "cancelledAt": {
+      "type": "datetime"
+    },
+    "baseFare": {
+      "type": "decimal"
+    },
+    "distanceFare": {
+      "type": "decimal"
+    },
+    "timeFare": {
+      "type": "decimal"
+    },
+    "surgeFare": {
+      "type": "decimal",
+      "default": 0
+    },
+    "subtotal": {
+      "type": "decimal"
+    },
+    "promoDiscount": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalFare": {
+      "type": "decimal",
+      "required": true
+    },
+    "commission": {
+      "type": "decimal",
+      "default": 0
+    },
+    "driverEarnings": {
+      "type": "decimal"
+    },
+    "commissionDeducted": {
+      "type": "boolean",
+      "default": false
+    },
+    "wasSubscriptionRide": {
+      "type": "boolean",
+      "default": false
+    },
+    "subscriptionId": {
+      "type": "string"
+    },
+    "estimatedDistance": {
+      "type": "decimal"
+    },
+    "estimatedDuration": {
+      "type": "integer"
+    },
+    "actualDistance": {
+      "type": "decimal"
+    },
+    "actualDuration": {
+      "type": "integer"
+    },
+    "paymentMethod": {
+      "type": "enumeration",
+      "enum": [
+        "cash",
+        "okrapay"
+      ],
+      "required": true
+    },
+    "paymentStatus": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ]
+    },
+    "transaction": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::transaction.transaction"
+    },
+    "specialRequests": {
+      "type": "json",
+      "default": []
+    },
+    "notes": {
+      "type": "text"
+    },
+    "promoCode": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::promo-code.promo-code"
+    },
+    "riderRating": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::rating.rating"
+    },
+    "driverRating": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::rating.rating"
+    },
+    "cancelledBy": {
+      "type": "enumeration",
+      "enum": [
+        "rider",
+        "driver",
+        "system"
+      ]
+    },
+    "cancellationReason": {
+      "type": "text"
+    },
+    "cancellationFee": {
+      "type": "decimal",
+      "default": 0
+    },
+    "isDelivery": {
+      "type": "boolean",
+      "default": false
+    },
+    "package": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::package.package"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

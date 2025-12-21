@@ -1,0 +1,91 @@
+{
+  "kind": "collectionType",
+  "collectionName": "system_announcements",
+  "info": {
+    "singularName": "system-announcement",
+    "pluralName": "system-announcements",
+    "displayName": "System Announcement",
+    "name": "systemAnnouncement"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "message": {
+      "type": "text",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "info",
+        "warning",
+        "maintenance",
+        "feature",
+        "promotion"
+      ],
+      "default": "info"
+    },
+    "targetAudience": {
+      "type": "enumeration",
+      "enum": [
+        "all",
+        "riders",
+        "drivers",
+        "delivery",
+        "conductors"
+      ],
+      "default": "all"
+    },
+    "priority": {
+      "type": "enumeration",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "showFrom": {
+      "type": "datetime",
+      "required": true
+    },
+    "showUntil": {
+      "type": "datetime",
+      "required": true
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "isDismissible": {
+      "type": "boolean",
+      "default": true
+    },
+    "icon": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "linkUrl": {
+      "type": "string"
+    },
+    "linkText": {
+      "type": "string"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

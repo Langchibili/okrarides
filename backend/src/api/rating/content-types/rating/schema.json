@@ -1,0 +1,54 @@
+{
+    "kind": "collectionType",
+    "collectionName": "ratings",
+    "info": {
+        "singularName": "rating",
+        "pluralName": "ratings",
+        "displayName": "Rating",
+        "name": "rating"
+    },
+    "options": {
+        "draftAndPublish": false
+    },
+    "attributes": {
+        "ride": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::ride.ride",
+            "required": true
+        },
+        "ratedBy": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user",
+            "required": true
+        },
+        "ratedUser": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "plugin::users-permissions.user",
+            "required": true
+        },
+        "rating": {
+            "type": "integer",
+            "required": true,
+            "min": 1,
+            "max": 5
+        },
+        "review": {
+            "type": "text"
+        },
+        "tags": {
+            "type": "json",
+            "default": []
+        }
+    },
+    "pluginOptions": {
+        "content-manager": {
+            "visible": true
+        },
+        "content-type-builder": {
+            "visible": true
+        }
+    }
+}

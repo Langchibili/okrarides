@@ -1,0 +1,306 @@
+# # Dependencies
+# /node_modules
+# /.pnp
+# .pnp.js
+
+# # Testing
+# /coverage
+
+# /.next/
+# /out/
+
+# # Production
+# /build
+
+# # Misc
+# .DS_Store
+# *.pem
+
+# # Debug
+# npm-debug.log*
+# yarn-debug.log*
+# yarn-error.log*
+
+# # Local env files
+# .env*.local
+# .env
+
+# # Vercel
+# .vercel
+
+# # Typescript
+# *.tsbuildinfo
+# next-env.d.ts
+
+# # PWA
+# /public/sw.js
+# /public/workbox-*.js
+# /public/sw.js.map
+# /public/workbox-*.js.map
+
+# # IDE
+# .vscode/
+# .idea/
+
+# # Secrets
+# Secrets.js
+
+
+backend/node_modules
+backend/src-old
+backend-err
+backend-old-stuff
+backend/.strapi
+backend/.strapi-updater.json
+backend/build
+backend/.env
+backend/config-old
+
+rider/Secrets.js
+rider/mvp-and-mmp-features.txt
+rider/logic.txt
+yarn-error.log
+
+
+# dependencies
+rider/node_modules
+rider/.pnp
+rider/.pnp.js
+rider/.yarn/install-state.gz
+
+
+# testing
+/coverage
+
+# next.js
+rider/.next/
+rider/out/
+
+# production
+rider/build
+
+# misc
+rider/.DS_Store
+rider/*.pem
+
+# debug
+rider/npm-debug.log*
+rider/yarn-debug.log*
+rider/yarn-error.log*
+bugslog.txt
+# local env files
+rider/.env*.local
+
+# vercel
+rider/.vercel
+
+# typescript
+rider/*.tsbuildinfo
+rider/next-env.d.ts
+
+driver/Secrets.js
+driver/mvp-and-mmp-features.txt
+driver/logic.txt
+yarn-error.log
+
+
+# dependencies
+driver/node_modules
+driver/.pnp
+driver/.pnp.js
+driver/.yarn/install-state.gz
+
+
+# testing
+/coverage
+
+# next.js
+driver/.next/
+driver/out/
+
+# production
+driver/build
+
+# misc
+driver/.DS_Store
+driver/*.pem
+
+# debug
+driver/npm-debug.log*
+driver/yarn-debug.log*
+driver/yarn-error.log*
+bugslog.txt
+# local env files
+driver/.env*.local
+
+# vercel
+driver/.vercel
+
+# typescript
+driver/*.tsbuildinfo
+driver/next-env.d.ts
+delivery/Secrets.js
+delivery/mvp-and-mmp-features.txt
+delivery/logic.txt
+yarn-error.log
+
+
+# dependencies
+delivery/node_modules
+delivery/.pnp
+delivery/.pnp.js
+delivery/.yarn/install-state.gz
+
+
+# testing
+/coverage
+
+# next.js
+delivery/.next/
+delivery/out/
+
+# production
+delivery/build
+
+# misc
+delivery/.DS_Store
+delivery/*.pem
+
+# debug
+delivery/npm-debug.log*
+delivery/yarn-debug.log*
+delivery/yarn-error.log*
+bugslog.txt
+# local env files
+delivery/.env*.local
+
+# vercel
+delivery/.vercel
+
+# typescript
+delivery/*.tsbuildinfo
+delivery/next-env.d.ts
+conductor/Secrets.js
+conductor/mvp-and-mmp-features.txt
+conductor/logic.txt
+yarn-error.log
+
+
+# dependencies
+conductor/node_modules
+conductor/.pnp
+conductor/.pnp.js
+conductor/.yarn/install-state.gz
+
+
+# testing
+/coverage
+
+# next.js
+conductor/.next/
+conductor/out/
+
+# production
+conductor/build
+
+# misc
+conductor/.DS_Store
+conductor/*.pem
+
+# debug
+conductor/npm-debug.log*
+conductor/yarn-debug.log*
+conductor/yarn-error.log*
+bugslog.txt
+# local env files
+conductor/.env*.local
+
+# vercel
+conductor/.vercel
+
+# typescript
+conductor/*.tsbuildinfo
+conductor/next-env.d.ts
+admin/Secrets.js
+admin/mvp-and-mmp-features.txt
+admin/logic.txt
+yarn-error.log
+
+
+# dependencies
+admin/node_modules
+admin/.pnp
+admin/.pnp.js
+admin/.yarn/install-state.gz
+
+
+# testing
+/coverage
+
+# next.js
+admin/.next/
+admin/out/
+
+# production
+admin/build
+
+# misc
+admin/.DS_Store
+admin/*.pem
+
+# debug
+admin/npm-debug.log*
+admin/yarn-debug.log*
+admin/yarn-error.log*
+bugslog.txt
+# local env files
+admin/.env*.local
+
+# vercel
+admin/.vercel
+
+# typescript
+admin/*.tsbuildinfo
+admin/next-env.d.ts
+frontend/Secrets.js
+frontend/mvp-and-mmp-features.txt
+frontend/logic.txt
+yarn-error.log
+
+
+# dependencies
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.js
+frontend/.yarn/install-state.gz
+
+
+# testing
+/coverage
+
+# next.js
+frontend/.next/
+frontend/out/
+
+# production
+frontend/build
+
+# misc
+frontend/.DS_Store
+frontend/*.pem
+
+# debug
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+bugslog.txt
+# local env files
+frontend/.env*.local
+
+# vercel
+frontend/.vercel
+
+# typescript
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+

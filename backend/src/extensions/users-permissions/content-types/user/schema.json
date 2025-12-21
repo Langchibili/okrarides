@@ -1,0 +1,236 @@
+{
+  "kind": "collectionType",
+  "collectionName": "up_users",
+  "info": {
+    "name": "user",
+    "singularName": "user",
+    "pluralName": "users",
+    "displayName": "User",
+    "description": "Extended user with multi-profile system"
+  },
+  "options": {
+    "draftAndPublish": false,
+    "timestamps": true
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "required": true,
+      "unique": true
+    },
+
+    "email": {
+      "type": "email",
+      "minLength": 6,
+      "required": true,
+      "unique": true
+    },
+
+    "provider": {
+      "type": "string"
+    },
+
+    "password": {
+      "type": "password",
+      "private": true,
+      "minLength": 6
+    },
+
+    "resetPasswordToken": {
+      "type": "string",
+      "private": true
+    },
+
+    "confirmationToken": {
+      "type": "string",
+      "private": true
+    },
+
+    "confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "blocked": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "role": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.role"
+    },
+
+    "phoneNumber": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "regex": "^\\+260[0-9]{9}$"
+    },
+
+    "phoneVerified": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "firstName": {
+      "type": "string"
+    },
+
+    "lastName": {
+      "type": "string"
+    },
+
+    "dateOfBirth": {
+      "type": "date"
+    },
+
+    "gender": {
+      "type": "enumeration",
+      "enum": [
+        "male",
+        "female",
+        "other",
+        "prefer_not_to_say"
+      ]
+    },
+
+    "profilePicture": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+
+    "riderProfile": {
+      "type": "component",
+      "repeatable": false,
+      "component": "rider-profiles.rider-profile"
+    },
+
+    "driverProfile": {
+      "type": "component",
+      "repeatable": false,
+      "component": "driver-profiles.driver-profile"
+    },
+
+    "deliveryProfile": {
+      "type": "component",
+      "repeatable": false,
+      "component": "delivery-profiles.delivery-profile"
+    },
+
+    "conductorProfile": {
+      "type": "component",
+      "repeatable": false,
+      "component": "conductor-profiles.conductor-profile"
+    },
+
+    "affiliateProfile": {
+      "type": "component",
+      "repeatable": false,
+      "component": "affiliate.affiliate-profile",
+      "required": true
+    },
+
+    "referredBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+
+    "adminType": {
+      "type": "enumeration",
+      "enum": [
+        "noRole",
+        "super_admin",
+        "manager",
+        "fleet_owner",
+        "support",
+        "finance"
+      ],
+      "default": "noRole"
+    },
+
+    "currentLocation": {
+      "type": "json"
+    },
+
+    "address": {
+      "type": "text"
+    },
+
+    "isOnline": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "lastSeen": {
+      "type": "datetime"
+    },
+
+    "deviceToken": {
+      "type": "string"
+    },
+
+    "deviceInfo": {
+      "type": "json"
+    },
+
+    "activeProfile": {
+      "type": "enumeration",
+      "enum": ["none", "rider", "driver", "delivery", "conductor"],
+      "default": "none"
+    },
+
+    "profileActivityStatus": {
+      "type": "json",
+      "default": {
+        "rider": false,
+        "driver": false,
+        "delivery": false,
+        "conductor": false
+      }
+    },
+
+    "refreshToken": {
+      "type": "string",
+      "private": true
+    },
+
+    "refreshTokenExpiry": {
+      "type": "datetime"
+    },
+
+    "sessionExpiry": {
+      "type": "datetime"
+    },
+
+    "favoriteLocations": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::favorite-location.favorite-location",
+      "mappedBy": "user"
+    },
+
+    "emergencyContacts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::emergency-contact.emergency-contact",
+      "mappedBy": "user"
+    },
+
+    "deletedAt": {
+      "type": "datetime"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "kind": "collectionType",
+  "collectionName": "otp_verifications",
+  "info": {
+    "singularName": "otp-verification",
+    "pluralName": "otp-verifications",
+    "displayName": "OTP Verification",
+    "name": "otpVerification"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "phoneNumber": {
+      "type": "string",
+      "required": false,
+      "unique": true
+    },
+    "email": {
+      "type": "email",
+      "unique": true
+    },
+    "otp": {
+      "type": "string",
+      "private": true,
+      "required": false
+    },
+    "purpose": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "registration",
+        "phone_verification",
+        "password_reset",
+        "login"
+      ]
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "required": false
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "verifiedAt": {
+      "type": "datetime"
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "maxAttempts": {
+      "type": "integer",
+      "default": 3
+    },
+    "ipAddress": {
+      "type": "string"
+    }
+  }
+}
