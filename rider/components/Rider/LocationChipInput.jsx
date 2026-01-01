@@ -131,8 +131,12 @@ export const LocationChipInput = ({
             height: 56,
             '& .MuiInputBase-input': {
               paddingLeft: hasValue ? 0 : 1,
-              fontSize: '0.875rem',
-              fontWeight: 500,
+              fontSize: '1rem',
+              fontWeight: 400,
+              fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif",
+              lineHeight: 1.5,
+              letterSpacing: '0.01em',
+              color: '#212121',
             },
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: active ? 'primary.main' : 'divider',
@@ -144,9 +148,26 @@ export const LocationChipInput = ({
           },
         }}
         sx={{
+          display: 'inline-flex',
+          flexDirection: 'column',
+          position: 'relative',
+          minWidth: 0,
+          padding: 0,
+          margin: 0,
+          marginBottom: '16px',
+          border: 0,
+          verticalAlign: 'top',
+          width: '100%',
+          fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto',sans-serif",
+          fontSize: '1rem',
+          fontWeight: 400,
+          color: '#212121',
+          transition: 'background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), border-color 200ms cubic-bezier(0.4, 0, 0.2, 1), color 200ms cubic-bezier(0.4, 0, 0.2, 1), fill 200ms cubic-bezier(0.4, 0, 0.2, 1), stroke 200ms cubic-bezier(0.4, 0, 0.2, 1)',
           '& .MuiOutlinedInput-root': {
             bgcolor: active ? 'action.selected' : 'background.paper',
             pl: hasValue ? 0.5 : 2,
+            lineHeight: 1.5,
+            letterSpacing: '0.01em',
           },
         }}
       />

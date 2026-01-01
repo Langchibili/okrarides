@@ -15,19 +15,22 @@ export const useThemeMode = () => {
 };
 
 export function ThemeProvider({ children }) {
-  // Check system preference and localStorage
-  const [mode, setMode] = useState(() => {
+  // Start with 'light' mode to match server render
+  const [mode, setMode] = useState('light');
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Load theme preference only on client after hydration
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme-mode');
-      if (saved) return saved;
-      
-      // Check system preference
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        return 'dark';
+      if (saved) {
+        setMode(saved);
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setMode('dark');
       }
+      setIsMounted(true);
     }
-    return 'light';
-  });
+  }, []);
   
   // Create theme based on mode
   const theme = useMemo(() => createAppTheme(mode), [mode]);
@@ -76,4 +79,3 @@ export function ThemeProvider({ children }) {
     </ThemeContext.Provider>
   );
 }
-

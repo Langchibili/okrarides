@@ -45,7 +45,8 @@
 # # Secrets
 # Secrets.js
 
-
+*.txt
+*.zip
 backend/node_modules
 backend/src-old
 backend-err
@@ -91,6 +92,8 @@ bugslog.txt
 # local env files
 rider/.env*.local
 rider/.env*
+rider/*.zip
+rider/*.md
 
 # vercel
 rider/.vercel
@@ -98,7 +101,8 @@ rider/.vercel
 # typescript
 rider/*.tsbuildinfo
 rider/next-env.d.ts
-
+rider/collect-source-code.js
+rider/*.txt
 driver/Secrets.js
 driver/mvp-and-mmp-features.txt
 driver/logic.txt
@@ -310,3 +314,49 @@ frontend/.vercel
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
 
+#sockets
+
+# Dependencies
+sockets/node_modules
+sockets/package-lock.json
+sockets/yarn.lock
+
+# Environment files
+sockets/.env
+sockets/.env.local
+sockets/.env.*.local
+
+# Logs
+sockets/logs/
+sockets/*.log
+sockets/npm-debug.log*
+sockets/yarn-debug.log*
+sockets/yarn-error.log*
+
+# Runtime data
+sockets/pids
+sockets/*.pid
+sockets/*.seed
+sockets/*.pid.lock
+
+# Testing
+sockets/coverage/
+sockets/.nyc_output
+
+# IDE
+sockets/.vscode/
+sockets/.idea/
+*sockets/.swp
+sockets/*.swo
+sockets/*~
+
+# OS
+sockets/.DS_Store
+sockets/Thumbs.db
+
+# Build
+sockets/dist/
+sockets/build/
+
+# Docker
+sockets/.dockerignore

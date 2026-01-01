@@ -1,3 +1,7 @@
+
+// ============================================
+// File: components/Map/LocationSearch.jsx
+// ============================================
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -20,120 +24,91 @@ import {
   MyLocation as MyLocationIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { debounce } from '@/Functions';
 
 export const LocationSearch = ({
   onSelectLocation,
   placeholder = "Search location",
   autoFocus = false,
-  currentLocation = null,
+  mapControls,
+  value,
+  onChange,
 }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(value || '');
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const autocompleteService = useRef(null);
-  const placesService = useRef(null);
-  
-  // Initialize Google Places services
+  const [focused, setFocused] = useState(false);
+  const searchTimeout = useRef(null);
+
   useEffect(() => {
-    if (window.google) {
-      autocompleteService.current = new window.google.maps.places.AutocompleteService();
-      placesService.current = new window.google.maps.places.PlacesService(
-        document.createElement('div')
-      );
+    if (value !== undefined) {
+      setQuery(value);
     }
-  }, []);
-  
-  // Debounced search
-  const debouncedSearch = useRef(
-    debounce((value) => {
-      if (!value || value.length < 3) {
-        setPredictions([]);
-        return;
-      }
-      
-      if (!autocompleteService.current) return;
-      
-      setLoading(true);
-      
-      autocompleteService.current.getPlacePredictions(
-        {
-          input: value,
-          componentRestrictions: { country: 'zm' },
-          types: ['geocode', 'establishment'],
-        },
-        (results, status) => {
-          setLoading(false);
-          
-          if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-            setPredictions(results);
-          } else {
-            setPredictions([]);
-          }
-        }
-      );
-    }, 300)
-  ).current;
-  
-  // Handle input change
+  }, [value]);
+
   const handleInputChange = (e) => {
     const value = e.target.value;
     setQuery(value);
-    debouncedSearch(value);
-  };
-  
-  // Handle location selection
-  const handleSelectPrediction = (prediction) => {
-    if (!placesService.current) return;
-    
-    placesService.current.getDetails(
-      {
-        placeId: prediction.place_id,
-        fields: ['geometry', 'formatted_address', 'name'],
-      },
-      (place, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-          const location = {
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-            address: place.formatted_address,
-            name: place.name,
-            placeId: prediction.place_id,
-          };
-          
-          onSelectLocation(location);
-          setQuery(place.formatted_address);
-          setPredictions([]);
-        }
+    onChange?.(value);
+
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+
+    if (!value || value.length < 3) {
+      setPredictions([]);
+      return;
+    }
+
+    setLoading(true);
+    searchTimeout.current = setTimeout(() => {
+      if (mapControls) {
+        mapControls.searchLocation(value, (results) => {
+          setPredictions(results || []);
+          setLoading(false);
+        });
       }
-    );
+    }, 300);
   };
-  
-  // Use current location
+
+  const handleSelectPrediction = (prediction) => {
+    if (mapControls) {
+      mapControls.getPlaceDetails(prediction.place_id, (location) => {
+        if (location) {
+          onSelectLocation(location);
+          setQuery(location.address);
+          setPredictions([]);
+          setFocused(false);
+        }
+      });
+    }
+  };
+
   const handleUseCurrentLocation = () => {
-    if (!currentLocation) return;
-    
-    onSelectLocation({
-      ...currentLocation,
-      address: 'Current Location',
-    });
-    setQuery('Current Location');
-    setPredictions([]);
+    if (mapControls) {
+      mapControls.getCurrentLocation((location) => {
+        if (location) {
+          onSelectLocation(location);
+          setQuery('Current Location');
+          setPredictions([]);
+          setFocused(false);
+        }
+      });
+    }
   };
-  
-  // Clear input
+
   const handleClear = () => {
     setQuery('');
+    onChange?.('');
     setPredictions([]);
   };
-  
+
   return (
     <Box sx={{ position: 'relative', width: '100%' }}>
-      {/* Search Input */}
       <TextField
         fullWidth
+        size="small"
         value={query}
         onChange={handleInputChange}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setTimeout(() => setFocused(false), 200)}
         placeholder={placeholder}
         autoFocus={autoFocus}
         InputProps={{
@@ -157,14 +132,13 @@ export const LocationSearch = ({
         sx={{
           '& .MuiOutlinedInput-root': {
             bgcolor: 'background.paper',
-            boxShadow: 2,
+            borderRadius: 2,
           },
         }}
       />
-      
-      {/* Predictions Dropdown */}
+
       <AnimatePresence>
-        {(predictions.length > 0 || currentLocation) && (
+        {predictions.length > 0 && focused && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -175,65 +149,52 @@ export const LocationSearch = ({
               elevation={4}
               sx={{
                 position: 'absolute',
-                top: '100%',
+                top: 'calc(100% + 8px)',
                 left: 0,
                 right: 0,
-                mt: 1,
                 maxHeight: 300,
                 overflow: 'auto',
                 zIndex: 1000,
-                borderRadius: 3,
+                borderRadius: 2,
               }}
             >
-              <List>
-                {/* Current Location Option */}
-                {currentLocation && (
-                  <ListItem
-                    button
-                    onClick={handleUseCurrentLocation}
-                    sx={{
-                      '&:hover': {
-                        bgcolor: 'action.hover',
-                      },
+              <List sx={{ py: 1 }}>
+                <ListItem
+                  button
+                  onClick={handleUseCurrentLocation}
+                  sx={{
+                    '&:hover': { bgcolor: 'action.hover' },
+                  }}
+                >
+                  <ListItemIcon>
+                    <MyLocationIcon color="primary" />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Use Current Location"
+                    primaryTypographyProps={{
+                      fontWeight: 600,
+                      color: 'primary.main',
                     }}
-                  >
-                    <ListItemIcon>
-                      <MyLocationIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary="Use Current Location"
-                      primaryTypographyProps={{
-                        fontWeight: 600,
-                        color: 'primary.main',
-                      }}
-                    />
-                  </ListItem>
-                )}
-                
-                {/* Predictions */}
+                  />
+                </ListItem>
+
                 {predictions.map((prediction) => (
                   <ListItem
                     key={prediction.place_id}
                     button
                     onClick={() => handleSelectPrediction(prediction)}
                     sx={{
-                      '&:hover': {
-                        bgcolor: 'action.hover',
-                      },
+                      '&:hover': { bgcolor: 'action.hover' },
                     }}
                   >
                     <ListItemIcon>
                       <LocationIcon />
                     </ListItemIcon>
                     <ListItemText
-                      primary={prediction.structured_formatting.main_text}
-                      secondary={prediction.structured_formatting.secondary_text}
-                      primaryTypographyProps={{
-                        fontWeight: 500,
-                      }}
-                      secondaryTypographyProps={{
-                        variant: 'caption',
-                      }}
+                      primary={prediction.main_text}
+                      secondary={prediction.secondary_text}
+                      primaryTypographyProps={{ fontWeight: 500 }}
+                      secondaryTypographyProps={{ variant: 'caption' }}
                     />
                   </ListItem>
                 ))}
@@ -247,4 +208,3 @@ export const LocationSearch = ({
 };
 
 export default LocationSearch;
-

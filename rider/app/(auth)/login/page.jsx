@@ -96,7 +96,7 @@ export default function LoginPage() {
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="972 612 345"
+              placeholder="97x xxx xxx"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

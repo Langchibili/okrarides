@@ -1,16 +1,13 @@
-// import { factories } from '@strapi/strapi';
-
-// export default factories.createCoreRouter('api::ride.ride');
 // ============================================
-// src/api/ride/routes/ride.ts
+// src/api/ride/routes/custom-routes.ts
 // ============================================
 
-const defaultRoutes = {
+export default {
   routes: [
     {
-      method: 'GET',
-      path: '/rides',
-      handler: 'ride.find',
+      method: 'POST',
+      path: '/rides/estimate',
+      handler: 'ride.estimate',
       config: {
         policies: [],
         middlewares: [],
@@ -18,8 +15,26 @@ const defaultRoutes = {
     },
     {
       method: 'GET',
-      path: '/rides/:id',
-      handler: 'ride.findOne',
+      path: '/rides/:id/driver-location',
+      handler: 'ride.getDriverLocation',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/rides/:id/track',
+      handler: 'ride.trackRide',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/rides/:id/receipt',
+      handler: 'ride.getReceipt',
       config: {
         policies: [],
         middlewares: [],
@@ -27,26 +42,8 @@ const defaultRoutes = {
     },
     {
       method: 'POST',
-      path: '/rides',
-      handler: 'ride.create',
-      config: {
-        policies: [],
-        middlewares: [],
-      },
-    },
-    {
-      method: 'PUT',
-      path: '/rides/:id',
-      handler: 'ride.update',
-      config: {
-        policies: [],
-        middlewares: [],
-      },
-    },
-    {
-      method: 'DELETE',
-      path: '/rides/:id',
-      handler: 'ride.delete',
+      path: '/rides/:id/share-tracking',
+      handler: 'ride.shareTracking',
       config: {
         policies: [],
         middlewares: [],
@@ -54,5 +51,3 @@ const defaultRoutes = {
     },
   ],
 };
-
-export default defaultRoutes;

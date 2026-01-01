@@ -1,5 +1,6 @@
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
+import '@/styles/google-maps-fix.css'; // google map layout breaking fixes
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/lib/hooks/useAuth';
 
