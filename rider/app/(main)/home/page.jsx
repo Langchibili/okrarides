@@ -780,10 +780,10 @@ export default function HomePage() {
       });
       return;
     }
-
     const rideData = {
       taxiType: 'taxi',
       rideType: 'taxi',
+      rider: user,
       rideClass: selectedRideClass.rideClassId || selectedRideClass.id,
       rideClassId: selectedRideClass.rideClassId || selectedRideClass.id,
       pickupLocation,

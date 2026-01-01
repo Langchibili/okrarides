@@ -6,6 +6,7 @@
 // ============================================
 
 import { factories } from '@strapi/strapi';
+import { generateUniqueRideCode }  from '../../../services/generateUniqueRideCode';
 
 interface Location {
   lat: number;
@@ -36,8 +37,51 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
     return { data, meta };
   },
 
+//   async create(ctx) {
+//     console.log('ctx.request.body',ctx.request.body)
+//     ctx.request.body.data.rideCode = ctx.request.body.data.rideCode? ctx.request.body.data.rideCode : await generateUniqueRideCode(); // generate the unique ride code here if not sent from the request
+//     // Add custom logic before/after creation
+    
+//     const response = await super.create(ctx);
+    
+//     // Emit event for driver matching
+//     strapi.eventHub.emit('ride.created', { ride: response.data });
+    
+//     return response;
+//   }
   async create(ctx) {
-    // Add custom logic before/after creation
+    console.log('ctx.request.body', ctx.request.body);
+    
+    const { data } = ctx.request.body;
+    
+    // Generate ride code if not present
+    data.rideCode = data.rideCode ? data.rideCode : await generateUniqueRideCode();
+    
+    // Convert taxiType string to ID if needed
+    if (data.taxiType && typeof data.taxiType === 'string') {
+        const taxiTypeRecord = await strapi.db.query('api::taxi-type.taxi-type').findOne({
+        where: { name: data.taxiType } // or whatever field contains "taxi"
+        });
+        
+        if (taxiTypeRecord) {
+        data.taxiType = taxiTypeRecord.id;
+        } else {
+        // Handle case when taxi type doesn't exist
+        return ctx.badRequest('Invalid taxi type');
+        }
+    }
+    
+    // Same for rideClass if it might be a string
+    if (data.rideClass && typeof data.rideClass === 'string') {
+        const rideClassRecord = await strapi.db.query('api::ride-class.ride-class').findOne({
+        where: { name: data.rideClass } // adjust field as needed
+        });
+        
+        if (rideClassRecord) {
+        data.rideClass = rideClassRecord.id;
+        }
+    }
+    
     const response = await super.create(ctx);
     
     // Emit event for driver matching
@@ -74,7 +118,6 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
         rideTypes = ['taxi'],
         passengerCount = 1,
       }: EstimateRequest = ctx.request.body;
-      console.log('ctx.request.body',ctx.request.body)
       // Validate input
       if (!pickupLocation || !dropoffLocation) {
         return ctx.badRequest('Pickup and dropoff locations are required');

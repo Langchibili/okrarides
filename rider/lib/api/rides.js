@@ -345,6 +345,8 @@ class RideAPI {
     try {
       const response = await apiClient.post('/rides', {
         data: {
+          rider: rideData.rider?.id,
+          rideType: rideData.rideType || rideData.taxiType,
           taxiType: rideData.taxiType || rideData.rideType,
           rideClass: rideData.rideClass || rideData.rideClassId,
           pickupLocation: rideData.pickupLocation,
