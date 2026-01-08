@@ -49,5 +49,41 @@ export default {
         middlewares: [],
       },
     },
+    {
+      method: 'POST',
+      path: '/rides/:id/accept',
+      handler: 'ride.acceptRide',
+      config: { policies: [] }
+    },
+    {
+      method: 'POST',
+      path: '/rides/:id/decline',
+      handler: 'ride.declineRide',
+      config: { policies: [] }
+    },
+    {
+      method: 'POST',
+      path: '/rides/:id/confirm-arrival',
+      handler: 'ride.confirmArrival',
+      config: { policies: [] }
+    },
+    {
+      method: 'POST',
+      path: '/rides/:id/start',
+      handler: 'ride.startTrip',
+      config: { policies: [] }
+    },
+    {
+      method: 'POST',
+      path: '/rides/:id/complete',
+      handler: 'ride.completeTrip',
+      config: { policies: [] }
+    },
+    {
+      method: 'POST',
+      path: '/rides/:id/cancel',
+      handler: 'ride.cancelRide',
+      config: { policies: [] }
+    }
   ],
 };

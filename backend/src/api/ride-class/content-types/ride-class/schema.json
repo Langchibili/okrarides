@@ -10,6 +10,14 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
   "attributes": {
     "name": {
       "type": "string",
@@ -21,8 +29,7 @@
     "taxiType": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "api::taxi-type.taxi-type",
-      "required": true
+      "target": "api::taxi-type.taxi-type"
     },
     "baseFare": {
       "type": "decimal",
@@ -57,14 +64,12 @@
     "displayOrder": {
       "type": "integer",
       "default": 0
-    }
-  },
-  "pluginOptions": {
-    "content-manager": {
-      "visible": true
     },
-    "content-type-builder": {
-      "visible": true
+    "vehicles": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::vehicle.vehicle",
+      "inversedBy": "rideClasses"
     }
   }
 }

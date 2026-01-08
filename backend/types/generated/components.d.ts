@@ -302,6 +302,7 @@ export interface DriverProfilesDriverProfile extends Struct.ComponentSchema {
     totalEarnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     totalRatings: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     totalRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    vehicles: Schema.Attribute.Relation<'oneToMany', 'api::vehicle.vehicle'>;
     verificationNotes: Schema.Attribute.Text;
     verificationStatus: Schema.Attribute.Enumeration<
       ['not_started', 'pending', 'approved', 'rejected', 'suspended']

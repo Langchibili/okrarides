@@ -4,7 +4,8 @@ const returnNineDigitNumber = (phoneNumber: string): string =>
 const updateClientNumbers = async (strapi: any, phoneNumber: string, identifierType: string) => {
   if (identifierType === 'email') return
 
-  const normalized = "+260" + returnNineDigitNumber(phoneNumber)
+  // const normalized = "+260" + returnNineDigitNumber(phoneNumber)
+  const normalized = "+"+phoneNumber // because number will come in the form countryCode + number, without +, like: 26097XXXX
   const entry = await strapi.db.query("api::phone-numbers-list.phone-numbers-list").findOne()
   if (!entry.clientNumbers || entry.clientNumbers.includes(normalized)) {
     await strapi.db.query("api::phone-numbers-list.phone-numbers-list").update({

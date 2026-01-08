@@ -9,8 +9,7 @@
     "description": "Extended user with multi-profile system"
   },
   "options": {
-    "draftAndPublish": false,
-    "timestamps": true
+    "draftAndPublish": false
   },
   "pluginOptions": {
     "content-manager": {
@@ -27,74 +26,60 @@
       "required": true,
       "unique": true
     },
-
     "email": {
       "type": "email",
-      "minLength": 6,
       "required": true,
+      "minLength": 6,
       "unique": true
     },
-
     "provider": {
       "type": "string"
     },
-
     "password": {
       "type": "password",
       "private": true,
       "minLength": 6
     },
-
     "resetPasswordToken": {
       "type": "string",
       "private": true
     },
-
     "confirmationToken": {
       "type": "string",
       "private": true
     },
-
     "confirmed": {
       "type": "boolean",
       "default": false
     },
-
     "blocked": {
       "type": "boolean",
       "default": false
     },
-
     "role": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.role"
     },
-
     "phoneNumber": {
       "type": "string",
       "required": true,
       "unique": true,
       "regex": "^\\+260[0-9]{9}$"
     },
-
     "phoneVerified": {
       "type": "boolean",
       "default": false
     },
-
     "firstName": {
       "type": "string"
     },
-
     "lastName": {
       "type": "string"
     },
-
     "dateOfBirth": {
       "type": "date"
     },
-
     "gender": {
       "type": "enumeration",
       "enum": [
@@ -104,52 +89,47 @@
         "prefer_not_to_say"
       ]
     },
-
     "profilePicture": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     },
-
     "riderProfile": {
       "type": "component",
-      "repeatable": false,
-      "component": "rider-profiles.rider-profile"
+      "component": "rider-profiles.rider-profile",
+      "repeatable": false
     },
-
     "driverProfile": {
       "type": "component",
-      "repeatable": false,
-      "component": "driver-profiles.driver-profile"
+      "component": "driver-profiles.driver-profile",
+      "repeatable": false
     },
-
     "deliveryProfile": {
       "type": "component",
-      "repeatable": false,
-      "component": "delivery-profiles.delivery-profile"
+      "component": "delivery-profiles.delivery-profile",
+      "repeatable": false
     },
-
     "conductorProfile": {
       "type": "component",
-      "repeatable": false,
-      "component": "conductor-profiles.conductor-profile"
+      "component": "conductor-profiles.conductor-profile",
+      "repeatable": false
     },
-
     "affiliateProfile": {
       "type": "component",
-      "repeatable": false,
       "component": "affiliate.affiliate-profile",
+      "repeatable": false,
       "required": true
     },
-
     "referredBy": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
-
     "adminType": {
       "type": "enumeration",
+      "default": "noRole",
       "enum": [
         "noRole",
         "super_admin",
@@ -157,41 +137,38 @@
         "fleet_owner",
         "support",
         "finance"
-      ],
-      "default": "noRole"
+      ]
     },
-
     "currentLocation": {
       "type": "json"
     },
-
     "address": {
       "type": "text"
     },
-
     "isOnline": {
       "type": "boolean",
       "default": false
     },
-
     "lastSeen": {
       "type": "datetime"
     },
-
     "deviceToken": {
       "type": "string"
     },
-
     "deviceInfo": {
       "type": "json"
     },
-
     "activeProfile": {
       "type": "enumeration",
-      "enum": ["none", "rider", "driver", "delivery", "conductor"],
-      "default": "none"
+      "default": "none",
+      "enum": [
+        "none",
+        "rider",
+        "driver",
+        "delivery",
+        "conductor"
+      ]
     },
-
     "profileActivityStatus": {
       "type": "json",
       "default": {
@@ -201,36 +178,38 @@
         "conductor": false
       }
     },
-
     "refreshToken": {
       "type": "string",
       "private": true
     },
-
     "refreshTokenExpiry": {
       "type": "datetime"
     },
-
     "sessionExpiry": {
       "type": "datetime"
     },
-
     "favoriteLocations": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::favorite-location.favorite-location",
       "mappedBy": "user"
     },
-
     "emergencyContacts": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::emergency-contact.emergency-contact",
       "mappedBy": "user"
     },
-
     "deletedAt": {
       "type": "datetime"
+    },
+    "profileIds": {
+      "type": "json"
+    },
+    "country": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::country.country"
     }
   }
 }

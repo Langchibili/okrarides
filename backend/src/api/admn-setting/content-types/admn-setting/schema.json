@@ -10,15 +10,16 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {},
   "attributes": {
     "paymentSystemType": {
       "type": "enumeration",
+      "default": "float_based",
       "enum": [
         "float_based",
         "subscription_based",
         "hybrid"
-      ],
-      "default": "float_based"
+      ]
     },
     "floatSystemEnabled": {
       "type": "boolean",
@@ -82,12 +83,12 @@
     },
     "commissionType": {
       "type": "enumeration",
+      "default": "percentage",
       "enum": [
         "percentage",
         "flat_rate",
         "tiered"
-      ],
-      "default": "percentage"
+      ]
     },
     "defaultCommissionPercentage": {
       "type": "decimal",
@@ -107,8 +108,7 @@
       "default": false
     },
     "commissionTiers": {
-      "type": "json",
-      "default": []
+      "type": "json"
     },
     "affiliateSystemEnabled": {
       "type": "boolean",
@@ -227,6 +227,10 @@
     },
     "supportPhone": {
       "type": "string"
+    },
+    "requireVehicleRegistration": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

@@ -10,12 +10,20 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
   "attributes": {
     "user": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
-      "required": true
+      "inversedBy": "favoriteLocations"
     },
     "label": {
       "type": "string",
@@ -42,14 +50,6 @@
         "other"
       ],
       "default": "other"
-    }
-  },
-  "pluginOptions": {
-    "content-manager": {
-      "visible": true
-    },
-    "content-type-builder": {
-      "visible": true
     }
   }
 }

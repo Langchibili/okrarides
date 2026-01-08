@@ -10,16 +10,24 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
   "attributes": {
     "vehicleType": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "taxi",
         "bus",
         "motorcycle",
         "truck"
-      ],
-      "required": true
+      ]
     },
     "numberPlate": {
       "type": "string",
@@ -55,13 +63,13 @@
     },
     "verificationStatus": {
       "type": "enumeration",
+      "default": "not_started",
       "enum": [
         "not_started",
         "pending",
         "approved",
         "rejected"
-      ],
-      "default": "not_started"
+      ]
     },
     "registrationDocument": {
       "type": "media",
@@ -120,18 +128,11 @@
       "relation": "manyToOne",
       "target": "api::taxi-type.taxi-type"
     },
-    "rideClass": {
+    "rideClasses": {
       "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::ride-class.ride-class"
-    }
-  },
-  "pluginOptions": {
-    "content-manager": {
-      "visible": true
-    },
-    "content-type-builder": {
-      "visible": true
+      "relation": "manyToMany",
+      "target": "api::ride-class.ride-class",
+      "mappedBy": "vehicles"
     }
   }
 }

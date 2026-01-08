@@ -295,8 +295,12 @@ class APIClient {
       config.headers['Authorization'] = `Bearer ${this.token}`;
     }
 
+    // // Handle body serialization
+    // if (config.body && typeof config.body === 'object') {
+    //   config.body = JSON.stringify(config.body);
+    // }
     // Handle body serialization
-    if (config.body && typeof config.body === 'object') {
+    if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData)) {
       config.body = JSON.stringify(config.body);
     }
 

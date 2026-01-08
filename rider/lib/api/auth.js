@@ -1,31 +1,70 @@
 import { returnNineDigitNumber } from '@/Functions';
 import { apiClient } from './client';
+import { affiliateAPI } from './affiliate'; // Import the new API
 
 export const authAPI = {
   // Register new user with phone number
   async register(data) {
     const { phoneNumber, firstName, lastName, referralCode } = data;
+    
+    let affiliateUserId = null;
+
+    // 1. If a code is provided, look up the actual User ID
+    if (referralCode) {
+      try {
+        const affiliateData = await affiliateAPI.getByCode(referralCode);
+        if (affiliateData && affiliateData.id) {
+          affiliateUserId = affiliateData.id;
+        }
+      } catch (err) {
+        console.warn("Referral code lookup failed, proceeding without referral.");
+      }
+    }
+
+    // 2. Register the user
     const response = await apiClient.post('/auth/local/register', {
-      username: phoneNumber.replace(/\D/g, ''), // Remove non-digits
+      username: phoneNumber.replace(/\D/g, ''),
       email: `unset_${phoneNumber.replace(/\D/g, '')}@email.com`,
-      password: phoneNumber.replace(/\D/g, ''), // Remove non-digits
+      password: phoneNumber.replace(/\D/g, ''),
     });
 
-    if (response.hasOwnProperty('user')) {
+    if (response?.user) {
+      apiClient.setToken(response.jwt);
+
+      // 3. Update the user profile with the numeric affiliate ID
       await apiClient.put(`/users/${response.user.id}`, {
         phoneNumber: phoneNumber.replace(/\D/g, ''),
         firstName,
         lastName,
-        referredBy: referralCode || null,
-      }, {
-        headers: {
-          Authorization: `Bearer ${response.jwt}`
-        }
+        referredBy: affiliateUserId, // Use the numeric ID found above
       });
     }
-
+    
     return response;
   },
+  // async register(data) {
+  //   const { phoneNumber, firstName, lastName, referralCode } = data;
+  //   const response = await apiClient.post('/auth/local/register', {
+  //     username: phoneNumber.replace(/\D/g, ''), // Remove non-digits
+  //     email: `unset_${phoneNumber.replace(/\D/g, '')}@email.com`,
+  //     password: phoneNumber.replace(/\D/g, ''), // Remove non-digits
+  //   });
+
+  //   if (response.hasOwnProperty('user')) {
+  //     await apiClient.put(`/users/${response.user.id}`, {
+  //       phoneNumber: phoneNumber.replace(/\D/g, ''),
+  //       firstName,
+  //       lastName,
+  //       referredBy: referralCode || null,
+  //     }, {
+  //       headers: {
+  //         Authorization: `Bearer ${response.jwt}`
+  //       }
+  //     });
+  //   }
+
+  //   return response;
+  // },
 
   // Send OTP for verification
   async sendOTP(phoneNumber, purpose = 'registration') {

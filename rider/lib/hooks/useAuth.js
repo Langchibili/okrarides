@@ -54,7 +54,10 @@ export function AuthProvider({ children }) {
       const response = await authAPI.register(data);
       return response;
     } catch (err) {
-      setError(err.message);
+      if(err.message === "Error: Email or Username are already taken" || err.message === "Email or Username are already taken"){
+         setError("Oops! Account Exists Already, Log In Instead.");
+      }
+      
       throw err;
     } finally {
       setLoading(false);

@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "finances",
+  "info": {
+    "singularName": "finance",
+    "pluralName": "finances",
+    "displayName": "finance"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "aboutRoute": {
+      "type": "string"
+    }
+  }
+}

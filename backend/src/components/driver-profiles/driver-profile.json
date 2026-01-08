@@ -168,6 +168,12 @@
       "relation": "manyToOne",
       "target": "api::vehicle.vehicle"
     },
+    "vehicles": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::vehicle.vehicle",
+      "mappedBy": "driverProfile"
+    },
     "allowedCountries": {
       "type": "relation",
       "relation": "manyToMany",

@@ -455,7 +455,7 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
     blockCashRidesOnInsufficientFloat: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
     cashEnabled: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
-    commissionTiers: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
+    commissionTiers: Schema.Attribute.JSON;
     commissionType: Schema.Attribute.Enumeration<
       ['percentage', 'flat_rate', 'tiered']
     > &
@@ -532,6 +532,8 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
     requireProofOfAddress: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
     requireRoadTax: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    requireVehicleRegistration: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     rideCompletionProximity: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<100>;
     rideRequestTimeoutSeconds: Schema.Attribute.Integer &
@@ -663,6 +665,63 @@ export interface ApiAffiliateTransactionAffiliateTransaction
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiAffiliateAffiliate extends Struct.CollectionTypeSchema {
+  collectionName: 'affiliates';
+  info: {
+    displayName: 'Affiliate';
+    pluralName: 'affiliates';
+    singularName: 'affiliate';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    aboutRoute: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::affiliate.affiliate'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiAllowedVehicleYearAllowedVehicleYear
+  extends Struct.SingleTypeSchema {
+  collectionName: 'allowed_vehicle_years';
+  info: {
+    displayName: 'allowedVehicleYears';
+    pluralName: 'allowed-vehicle-years';
+    singularName: 'allowed-vehicle-year';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::allowed-vehicle-year.allowed-vehicle-year'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    years: Schema.Attribute.JSON;
   };
 }
 
@@ -1198,6 +1257,31 @@ export interface ApiDeviceTrackingDeviceTracking
   };
 }
 
+export interface ApiDocDoc extends Struct.CollectionTypeSchema {
+  collectionName: 'docs';
+  info: {
+    displayName: 'doc';
+    pluralName: 'docs';
+    singularName: 'doc';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    aboutRoute: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::doc.doc'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiDriverSubscriptionDriverSubscription
   extends Struct.CollectionTypeSchema {
   collectionName: 'driver_subscriptions';
@@ -1264,6 +1348,34 @@ export interface ApiDriverSubscriptionDriverSubscription
       Schema.Attribute.Required;
     suspendedAt: Schema.Attribute.DateTime;
     trialEndsAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDriverDriver extends Struct.CollectionTypeSchema {
+  collectionName: 'drivers';
+  info: {
+    displayName: 'driver';
+    pluralName: 'drivers';
+    singularName: 'driver';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    aboutRoute: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::driver.driver'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1400,8 +1512,7 @@ export interface ApiEmergencyContactEmergencyContact
     user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
   };
 }
 
@@ -1450,8 +1561,35 @@ export interface ApiFavoriteLocationFavoriteLocation
     user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
+    >;
+  };
+}
+
+export interface ApiFinanceFinance extends Struct.CollectionTypeSchema {
+  collectionName: 'finances';
+  info: {
+    displayName: 'finance';
+    pluralName: 'finances';
+    singularName: 'finance';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    aboutRoute: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::finance.finance'
     > &
-      Schema.Attribute.Required;
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -2208,11 +2346,11 @@ export interface ApiRideClassRideClass extends Struct.CollectionTypeSchema {
     taxiType: Schema.Attribute.Relation<
       'manyToOne',
       'api::taxi-type.taxi-type'
-    > &
-      Schema.Attribute.Required;
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    vehicles: Schema.Attribute.Relation<'manyToMany', 'api::vehicle.vehicle'>;
   };
 }
 
@@ -2597,6 +2735,35 @@ export interface ApiSubscriptionPlanSubscriptionPlan
   };
 }
 
+export interface ApiSubscriptionSubscription
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'subscriptions';
+  info: {
+    displayName: 'subscription';
+    pluralName: 'subscriptions';
+    singularName: 'subscription';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    aboutRoute: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::subscription.subscription'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSupportTicketSupportTicket
   extends Struct.CollectionTypeSchema {
   collectionName: 'support_tickets';
@@ -2964,6 +3131,35 @@ export interface ApiTranslationTranslation extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiVehicleMakesAndModelVehicleMakesAndModel
+  extends Struct.SingleTypeSchema {
+  collectionName: 'vehicle_makes_and_models';
+  info: {
+    displayName: 'vehicleMakesAndModels';
+    pluralName: 'vehicle-makes-and-models';
+    singularName: 'vehicle-makes-and-model';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    list: Schema.Attribute.JSON;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::vehicle-makes-and-model.vehicle-makes-and-model'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiVehicleVehicle extends Struct.CollectionTypeSchema {
   collectionName: 'vehicles';
   info: {
@@ -3014,8 +3210,8 @@ export interface ApiVehicleVehicle extends Struct.CollectionTypeSchema {
     >;
     publishedAt: Schema.Attribute.DateTime;
     registrationDocument: Schema.Attribute.Media<'images' | 'files'>;
-    rideClass: Schema.Attribute.Relation<
-      'manyToOne',
+    rideClasses: Schema.Attribute.Relation<
+      'manyToMany',
       'api::ride-class.ride-class'
     >;
     roadTaxCertificate: Schema.Attribute.Media<'images' | 'files'>;
@@ -3591,7 +3787,6 @@ export interface PluginUsersPermissionsUser
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   pluginOptions: {
     'content-manager': {
@@ -3623,6 +3818,7 @@ export interface PluginUsersPermissionsUser
     >;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    country: Schema.Attribute.Relation<'oneToOne', 'api::country.country'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -3682,6 +3878,7 @@ export interface PluginUsersPermissionsUser
         driver: false;
         rider: false;
       }>;
+    profileIds: Schema.Attribute.JSON;
     profilePicture: Schema.Attribute.Media<'images'>;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
@@ -3727,6 +3924,8 @@ declare module '@strapi/strapi' {
       'api::admn-setting.admn-setting': ApiAdmnSettingAdmnSetting;
       'api::admn-user-permission.admn-user-permission': ApiAdmnUserPermissionAdmnUserPermission;
       'api::affiliate-transaction.affiliate-transaction': ApiAffiliateTransactionAffiliateTransaction;
+      'api::affiliate.affiliate': ApiAffiliateAffiliate;
+      'api::allowed-vehicle-year.allowed-vehicle-year': ApiAllowedVehicleYearAllowedVehicleYear;
       'api::analytics-snapshot.analytics-snapshot': ApiAnalyticsSnapshotAnalyticsSnapshot;
       'api::app-version.app-version': ApiAppVersionAppVersion;
       'api::audit-log.audit-log': ApiAuditLogAuditLog;
@@ -3737,11 +3936,14 @@ declare module '@strapi/strapi' {
       'api::country.country': ApiCountryCountry;
       'api::currency.currency': ApiCurrencyCurrency;
       'api::device-tracking.device-tracking': ApiDeviceTrackingDeviceTracking;
+      'api::doc.doc': ApiDocDoc;
       'api::driver-subscription.driver-subscription': ApiDriverSubscriptionDriverSubscription;
+      'api::driver.driver': ApiDriverDriver;
       'api::email-addresses-list.email-addresses-list': ApiEmailAddressesListEmailAddressesList;
       'api::email-log.email-log': ApiEmailLogEmailLog;
       'api::emergency-contact.emergency-contact': ApiEmergencyContactEmergencyContact;
       'api::favorite-location.favorite-location': ApiFavoriteLocationFavoriteLocation;
+      'api::finance.finance': ApiFinanceFinance;
       'api::float-topup.float-topup': ApiFloatTopupFloatTopup;
       'api::geofence-zone.geofence-zone': ApiGeofenceZoneGeofenceZone;
       'api::language.language': ApiLanguageLanguage;
@@ -3761,12 +3963,14 @@ declare module '@strapi/strapi' {
       'api::sms-log.sms-log': ApiSmsLogSmsLog;
       'api::sos-alert.sos-alert': ApiSosAlertSosAlert;
       'api::subscription-plan.subscription-plan': ApiSubscriptionPlanSubscriptionPlan;
+      'api::subscription.subscription': ApiSubscriptionSubscription;
       'api::support-ticket.support-ticket': ApiSupportTicketSupportTicket;
       'api::surge-pricing.surge-pricing': ApiSurgePricingSurgePricing;
       'api::system-announcement.system-announcement': ApiSystemAnnouncementSystemAnnouncement;
       'api::taxi-type.taxi-type': ApiTaxiTypeTaxiType;
       'api::transaction.transaction': ApiTransactionTransaction;
       'api::translation.translation': ApiTranslationTranslation;
+      'api::vehicle-makes-and-model.vehicle-makes-and-model': ApiVehicleMakesAndModelVehicleMakesAndModel;
       'api::vehicle.vehicle': ApiVehicleVehicle;
       'api::verifyotp.verifyotp': ApiVerifyotpVerifyotp;
       'api::withdrawal.withdrawal': ApiWithdrawalWithdrawal;

@@ -1,7 +1,14 @@
 {
   "compilerOptions": {
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/app/*": ["./app/*"],
+      "@/public/*": ["./public/*"]
     }
-  }
+  },
+  "exclude": ["node_modules", ".next"]
 }

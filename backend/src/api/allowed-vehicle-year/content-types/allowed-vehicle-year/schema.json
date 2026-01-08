@@ -1,0 +1,18 @@
+{
+  "kind": "singleType",
+  "collectionName": "allowed_vehicle_years",
+  "info": {
+    "singularName": "allowed-vehicle-year",
+    "pluralName": "allowed-vehicle-years",
+    "displayName": "allowedVehicleYears"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "years": {
+      "type": "json"
+    }
+  }
+}

@@ -41,7 +41,7 @@ module.exports = factories.createCoreController(
       if (!isValid) {
         return { message: "Invalid OTP", status: false }
       }
-
+      console.log('identifier',identifier)
       // 1. Find user
       const user = await strapi
         .query('plugin::users-permissions.user')
