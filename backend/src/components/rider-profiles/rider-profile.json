@@ -45,16 +45,20 @@
       "target": "api::payment-method.payment-method"
     },
     "savedLocations": {
-      "type": "json",
-      "default": []
+      "type": "json"
     },
     "ridePreferences": {
-      "type": "json",
-      "default": {}
+      "type": "json"
     },
     "blocked": {
       "type": "boolean",
       "default": false
+    },
+    "blockedDrivers": {
+      "type": "json"
+    },
+    "tempBlockedDrivers": {
+      "type": "json"
     }
   }
 }

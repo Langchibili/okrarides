@@ -94,6 +94,78 @@ export const RIDE_STATUS_COLORS = {
   [RIDE_STATUS.NO_DRIVERS]: '#9E9E9E',
 };
 
+// ============= WebSocket Events =============
+export const SOCKET_EVENTS = {
+  // Rider Events
+  RIDER: {
+    JOIN: 'rider:join',
+    CONNECTED: 'rider:connected',
+    SESSION_REPLACED: 'rider:session-replaced',
+    LOCATION_UPDATE: 'rider:location:update',
+  },
+  
+  // Ride Lifecycle Events
+  RIDE: {
+    REQUEST_CREATED: 'ride:request:created',
+    REQUEST_SENT: 'ride:request:sent',
+    ACCEPTED: 'ride:accepted',
+    DECLINED: 'ride:declined',
+    CANCELLED: 'ride:cancelled',
+    DRIVER_ARRIVED: 'ride:driver:arrived',
+    TRIP_STARTED: 'ride:trip:started',
+    TRIP_COMPLETED: 'ride:trip:completed',
+    TAKEN: 'ride:taken',
+  },
+  
+  // Driver Location Events
+  DRIVER: {
+    LOCATION_UPDATED: 'driver:location:updated',
+    ARRIVED: 'ride:driver:arrived',
+  },
+  
+  // Payment Events
+  PAYMENT: {
+    SUCCESS: 'payment:success',
+    FAILED: 'payment:failed',
+  },
+  
+  // Rating Events
+  RATING: {
+    REQUEST: 'rating:request',
+    SUBMITTED: 'rating:submitted',
+  },
+  
+  // Notification Events
+  NOTIFICATION: {
+    NEW: 'notification:new',
+    BROADCAST: 'notification:broadcast',
+  },
+  
+  // SOS Events
+  SOS: {
+    TRIGGER: 'sos:trigger',
+    TRIGGERED: 'sos:triggered',
+    ACKNOWLEDGED: 'sos:acknowledged',
+  },
+  
+  // Affiliate Events
+  AFFILIATE: {
+    REFERRAL_SIGNUP: 'affiliate:referral:signup',
+    COMMISSION_EARNED: 'affiliate:commission:earned',
+  },
+  
+  // System Events
+  SYSTEM: {
+    ANNOUNCEMENT: 'system:announcement',
+  },
+  
+  // Connection Events
+  CONNECTION: {
+    PING: 'ping',
+    PONG: 'pong',
+    ERROR: 'error',
+  },
+};
 // ============= Payment Methods =============
 
 export const PAYMENT_METHODS = {

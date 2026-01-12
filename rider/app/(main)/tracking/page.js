@@ -213,7 +213,7 @@ export default function TrackingPage() {
 
   // Get current ride
   const currentRide = activeRide || ride;
-  const rideStatus = currentRide?.status;
+  const rideStatus = currentRide?.rideStatus;
   const driver = currentRide?.driver;
   const vehicle = currentRide?.vehicle;
   const statusConfig = RIDE_STATUS_CONFIG[rideStatus] || RIDE_STATUS_CONFIG.accepted;
@@ -274,12 +274,12 @@ export default function TrackingPage() {
     if (!currentRide) return;
 
     // Navigate to trip summary when completed
-    if (currentRide.status === 'completed') {
+    if (currentRide.rideStatus === 'completed') {
       stopTracking();
       router.push(`/trip-summary?rideId=${currentRide.id}`);
     }
     // Handle cancelled rides
-    else if (currentRide.status === 'cancelled') {
+    else if (currentRide.rideStatus === 'cancelled') {
       stopTracking();
       setSnackbar({
         open: true,
@@ -291,14 +291,14 @@ export default function TrackingPage() {
       }, 2000);
     }
     // Show notification when driver arrives
-    else if (currentRide.status === 'arrived') {
+    else if (currentRide.rideStatus === 'arrived') {
       setSnackbar({
         open: true,
         message: 'Your driver has arrived!',
         severity: 'success',
       });
     }
-  }, [currentRide?.status, router, stopTracking]);
+  }, [currentRide?.rideStatus, router, stopTracking]);
 
   // ============================================
   // Handle Confirm Pickup

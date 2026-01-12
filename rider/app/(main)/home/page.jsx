@@ -612,13 +612,13 @@ export default function HomePage() {
   // ============================================
   useEffect(() => {
     if (activeRide) {
-      const { status, id } = activeRide;
+      const { rideStatus, id } = activeRide;
       
-      if (status === 'pending') {
+      if (rideStatus === 'pending') {
         router.push(`/finding-driver?rideId=${id}`);
-      } else if (['accepted', 'arrived', 'passenger_onboard'].includes(status)) {
+      } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
         router.push(`/tracking?rideId=${id}`);
-      } else if (status === 'completed') {
+      } else if (rideStatus === 'completed') {
         router.push(`/trip-summary?rideId=${id}`);
       }
     }

@@ -28,6 +28,28 @@ export const RIDE_STATUS = {
   NO_DRIVERS_AVAILABLE: 'no_drivers_available',
 };
 
+// Ride Status Labels (Human-readable)
+export const RIDE_STATUS_LABELS = {
+  pending: 'Pending',
+  accepted: 'Accepted',
+  arrived: 'Driver Arrived',
+  passenger_onboard: 'In Progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  no_drivers_available: 'No Drivers Available',
+};
+
+// Ride Status Colors
+export const RIDE_STATUS_COLORS = {
+  pending: '#FFA000',
+  accepted: '#2196F3',
+  arrived: '#9C27B0',
+  passenger_onboard: '#4CAF50',
+  completed: '#4CAF50',
+  cancelled: '#F44336',
+  no_drivers_available: '#757575',
+};
+
 // Verification Status
 export const VERIFICATION_STATUS = {
   NOT_STARTED: 'not_started',
@@ -123,18 +145,95 @@ export const COLORS = {
   onRide: '#2196F3',
 };
 
-// WebSocket Events
+// ============= WebSocket Events =============
 export const SOCKET_EVENTS = {
-  RIDE_REQUEST_NEW: 'ride:request:new',
-  RIDE_ACCEPTED: 'ride:accepted',
-  RIDE_CANCELLED: 'ride:cancelled',
-  RIDE_COMPLETED: 'ride:completed',
-  DRIVER_STATUS_CHANGED: 'driver:status:changed',
-  LOCATION_UPDATE: 'location:update',
-  SUBSCRIPTION_EXPIRING: 'subscription:expiring:warning',
-  SUBSCRIPTION_EXPIRED: 'subscription:expired',
-  FORCED_OFFLINE: 'driver:forced:offline',
-};
+  // Driver Events
+  DRIVER: {
+    JOIN: 'driver:join',
+    CONNECTED: 'driver:connected',
+    SESSION_REPLACED: 'driver:session-replaced',
+    LOCATION_UPDATE: 'driver:location:update',
+    ONLINE: 'driver:online',
+    OFFLINE: 'driver:offline',
+    ONLINE_SUCCESS: 'driver:online:success',
+    OFFLINE_SUCCESS: 'driver:offline:success',
+    FORCED_OFFLINE: 'driver:forced:offline',
+  },
+  
+  // Ride Request Events
+  RIDE: {
+    REQUEST_NEW: 'ride:request:new',
+    REQUEST_RECEIVED: 'ride:request:received',
+    ACCEPT: 'ride:accept',
+    ACCEPT_SUCCESS: 'ride:accept:success',
+    DECLINE: 'ride:decline',
+    DECLINE_SUCCESS: 'ride:decline:success',
+    CANCELLED: 'ride:cancelled',
+    TAKEN: 'ride:taken',
+    DRIVER_ARRIVED: 'ride:driver:arrived',
+    TRIP_STARTED: 'ride:trip:started',
+    TRIP_COMPLETED: 'ride:trip:completed',
+  },
+  
+  // Rider Location Events
+  RIDER: {
+    LOCATION_UPDATED: 'rider:location:updated',
+  },
+  
+  // Subscription Events
+  SUBSCRIPTION: {
+    EXPIRING_WARNING: 'subscription:expiring:warning',
+    EXPIRED: 'subscription:expired',
+    ACTIVATED: 'subscription:activated',
+  },
+  
+  // Payment Events
+  PAYMENT: {
+    SUCCESS: 'payment:success',
+    FAILED: 'payment:failed',
+  },
+  
+  // Withdrawal Events
+  WITHDRAWAL: {
+    PROCESSED: 'withdrawal:processed',
+  },
+  
+  // Rating Events
+  RATING: {
+    REQUEST: 'rating:request',
+    SUBMITTED: 'rating:submitted',
+  },
+  
+  // Notification Events
+  NOTIFICATION: {
+    NEW: 'notification:new',
+    BROADCAST: 'notification:broadcast',
+  },
+  
+  // SOS Events
+  SOS: {
+    ALERT: 'sos:alert',
+    ACKNOWLEDGED: 'sos:acknowledged',
+  },
+  
+  // Bus Route Events (if applicable)
+  BUS: {
+    ROUTE_STARTED: 'bus:route:started',
+    LOCATION_UPDATED: 'bus:location:updated',
+  },
+  
+  // System Events
+  SYSTEM: {
+    ANNOUNCEMENT: 'system:announcement',
+  },
+  
+  // Connection Events
+  CONNECTION: {
+    PING: 'ping',
+    PONG: 'pong',
+    ERROR: 'error',
+  },
+}
 
 // Storage Keys
 export const STORAGE_KEYS = {

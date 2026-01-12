@@ -107,3 +107,6 @@ export default function PendingPage() {
             Back to Home
           </Button>
         </motion.div>
+        </Box>
+      </Box>)
+}

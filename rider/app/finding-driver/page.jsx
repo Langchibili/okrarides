@@ -414,11 +414,14 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRide } from '@/lib/hooks/useRide';
 import ClientOnly from '@/components/ClientOnly';
+import { useSocket } from '@/lib/socket/SocketProvider';
+import { SOCKET_EVENTS } from '@/Constants';
 
 export default function FindingDriverPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const rideId = searchParams.get('rideId');
+  const { on, off } = useSocket();
 
   // Ride hook with polling
   const { 
@@ -460,7 +463,7 @@ export default function FindingDriverPage() {
     if (!currentRide) return;
 
     // Driver accepted the ride
-    if (currentRide.status === 'accepted' && currentRide.driver) {
+    if (currentRide.rideStatus === 'accepted' && currentRide.driver) {
       setSearchStage('found');
       stopPollingRideStatus();
       
@@ -477,12 +480,12 @@ export default function FindingDriverPage() {
       }, 3000);
     }
     // No drivers available
-    else if (currentRide.status === 'no_drivers_available') {
+    else if (currentRide.rideStatus === 'no_drivers_available') {
       setSearchStage('timeout');
       stopPollingRideStatus();
     }
     // Ride was cancelled
-    else if (currentRide.status === 'cancelled') {
+    else if (currentRide.rideStatus === 'cancelled') {
       setSnackbar({
         open: true,
         message: 'Ride was cancelled',
@@ -514,6 +517,22 @@ export default function FindingDriverPage() {
 
     return () => clearInterval(timer);
   }, [searchStage, stopPollingRideStatus]);
+
+  // Add socket listener
+useEffect(() => {
+  const handleRideAccepted = (data) => {
+    if (data.rideId === rideId) {
+      setSearchStage('found');
+      stopPollingRideStatus();
+    }
+  };
+
+  on(SOCKET_EVENTS.RIDE.ACCEPTED, handleRideAccepted);
+
+  return () => {
+    off(SOCKET_EVENTS.RIDE.ACCEPTED);
+  };
+}, [rideId, on, off, stopPollingRideStatus]);
 
   // ============================================
   // Handle Cancel Request

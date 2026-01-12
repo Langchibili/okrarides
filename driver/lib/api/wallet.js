@@ -12,11 +12,11 @@ export const walletAPI = {
 
   // Get transactions history
   async getTransactions(params = {}) {
-    const { page = 1, limit = 20, type, status } = params;
+    const { page = 1, limit = 20, type, transactionStatus } = params;
     
     const filters = {};
     if (type) filters.type = { $eq: type };
-    if (status) filters.status = { $eq: status };
+    if (transactionStatus) filters.transactionStatus = { $eq: transactionStatus };
 
     const query = new URLSearchParams({
       'populate': '*',
@@ -37,7 +37,7 @@ export const walletAPI = {
       data: {
         amount,
         paymentMethod,
-        status: 'pending',
+        floatStatus: 'pending',
       },
     });
 
@@ -99,7 +99,7 @@ export const walletAPI = {
         amount,
         method,
         accountDetails,
-        status: 'pending',
+        withdrawalStatus: 'pending',
       },
     });
     
@@ -130,4 +130,4 @@ export const walletAPI = {
 };
 
 export default walletAPI;
-
+

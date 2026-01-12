@@ -30,11 +30,12 @@ export const useAuthGuard = (options = {}) => {
     }
 
     if (requireVerification) {
-      if(user?.driverProfile?.verificationStatus !== "approved"){
+      if(user?.driverProfile?.verificationStatus !== VERIFICATION_STATUS.APPROVED){
          router.push('/onboarding/setup-driver');
          return;
       }
       if (requireAuth && isAuthenticated() && !user?.driverProfile) {
+        console.log('here',requireAuth , isAuthenticated() , !user?.driverProfile)
         router.push('/onboarding/setup-driver');
         return;
       }

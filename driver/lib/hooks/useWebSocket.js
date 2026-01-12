@@ -9,7 +9,7 @@ export const useWebSocket = (url = null) => {
   const socketRef = useRef(null);
   const eventHandlersRef = useRef({});
 
-  const socketUrl = url || process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
+  const socketUrl = url || process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3005';
 
   useEffect(() => {
     // Initialize socket connection
@@ -93,4 +93,4 @@ export const useWebSocket = (url = null) => {
 };
 
 export default useWebSocket;
-
+

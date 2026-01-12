@@ -56,7 +56,7 @@ export default function DriverHomePage() {
     requireVerification: true,
     redirectTo: '/home' // Custom redirect for verification
   });
-  const { incomingRide, acceptRide, declineRide } = useRide();
+  const { incomingRide, currentRide, acceptRide, declineRide } = useRide();
 
   const [stats, setStats] = useState({
     todayEarnings: 0,
@@ -65,6 +65,20 @@ export default function DriverHomePage() {
     acceptance: 0,
   });
   const [loading, setLoading] = useState(true);
+
+   // ============================================
+  // Redirect Logic for Active Rides
+  // ============================================
+  useEffect(() => {
+    if (currentRide) {
+      const { rideStatus, id } = currentRide;
+      if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
+        router.push(`/rides/${id}`);
+      } else if (rideStatus === 'completed') {
+        router.push(`/rides/${id}`);
+      }
+    }
+  }, [currentRide, router]);
 
   useEffect(() => {
     loadDriverStats();

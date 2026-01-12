@@ -37,7 +37,7 @@
     "data": {
       "type": "json"
     },
-    "status": {
+    "pushNoteLogStatus": {
       "type": "enumeration",
       "enum": [
         "pending",

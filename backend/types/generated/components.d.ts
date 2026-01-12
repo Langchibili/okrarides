@@ -73,6 +73,7 @@ export interface DeliveryProfilesDeliveryProfile
     currentBalance: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     isAvailable: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    isEnroute: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     motorbike: Schema.Attribute.Component<'delivery-vehicles.motorbike', false>;
     motorcycle: Schema.Attribute.Component<
       'delivery-vehicles.motorcycle',
@@ -251,6 +252,7 @@ export interface DriverProfilesDriverProfile extends Struct.ComponentSchema {
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     isAvailable: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     isBusDriver: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    isEnroute: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     isOnline: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     lastCancellation: Schema.Attribute.DateTime;
     licenseExpiryDate: Schema.Attribute.Date;
@@ -378,6 +380,7 @@ export interface RiderProfilesRiderProfile extends Struct.ComponentSchema {
   attributes: {
     averageRating: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    blockedDrivers: Schema.Attribute.JSON;
     cancelledRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     completedRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     defaultPaymentMethod: Schema.Attribute.Relation<
@@ -389,8 +392,9 @@ export interface RiderProfilesRiderProfile extends Struct.ComponentSchema {
       'oneToMany',
       'api::payment-method.payment-method'
     >;
-    ridePreferences: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<{}>;
-    savedLocations: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
+    ridePreferences: Schema.Attribute.JSON;
+    savedLocations: Schema.Attribute.JSON;
+    tempBlockedDrivers: Schema.Attribute.JSON;
     totalRatings: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     totalRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     totalSpent: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;

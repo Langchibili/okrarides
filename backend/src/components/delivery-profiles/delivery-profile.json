@@ -89,6 +89,10 @@
     "blocked": {
       "type": "boolean",
       "default": false
+    },
+    "isEnroute": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

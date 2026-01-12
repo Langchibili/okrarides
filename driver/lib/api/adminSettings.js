@@ -181,6 +181,9 @@ export const isRoadTaxRequired = (settings) => {
 export const isFitnessDocumentRequired = (settings) => {
   return settings?.requireFitnessDocument ?? true
 }
+export const isVehicleRegistrationRequired  = (settings) => {
+  return settings?.requireVehicleRegistration ?? true
+}
 
 // Device Unlock
 export const getTargetRidesForUnlock = (settings) => {
@@ -229,6 +232,10 @@ export const getSupportPhone = (settings) => {
 // Default Currency
 export const getDefaultCurrency = (settings) => {
   return settings?.defaultCurrency || null
+}
+
+export const getRideBookingRadius = (settings) => {
+  return settings?.rideBookingRadius || 10;
 }
 
 /**
@@ -354,6 +361,7 @@ export default {
   isInsuranceRequired,
   isRoadTaxRequired,
   isFitnessDocumentRequired,
+  isVehicleRegistrationRequired,
   getTargetRidesForUnlock,
   isSmsEnabled,
   isEmailEnabled,
@@ -371,4 +379,5 @@ export default {
   convertMoneyToPoints,
   canRedeemPoints,
   canDriverReceiveCashRide,
+  getRideBookingRadius
 }

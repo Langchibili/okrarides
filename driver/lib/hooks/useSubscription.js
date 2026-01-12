@@ -33,7 +33,7 @@ export const useSubscription = () => {
       // Update subscription status
       setCurrentSubscription((prev) => ({
         ...prev,
-        status: 'expired',
+        subscriptionStatus: 'expired',
       }));
       updateUser({
         driverProfile: {
@@ -171,7 +171,7 @@ export const useSubscription = () => {
       if (response.success) {
         setCurrentSubscription((prev) => ({
           ...prev,
-          status: 'cancelled',
+          subscriptionStatus: 'cancelled',
           autoRenew: false,
         }));
         setError(null);
@@ -224,9 +224,9 @@ export const useSubscription = () => {
     renewSubscription,
     cancelSubscription,
     toggleAutoRenew,
-    isActive: currentSubscription?.status === 'active',
-    isTrial: currentSubscription?.status === 'trial',
-    isExpired: currentSubscription?.status === 'expired',
+    isActive: currentSubscription?.subscriptionStatus === 'active',
+    isTrial: currentSubscription?.subscriptionStatus === 'trial',
+    isExpired: currentSubscription?.subscriptionStatus === 'expired',
     daysRemaining: currentSubscription ? 
       Math.ceil((new Date(currentSubscription.expiresAt) - new Date()) / (1000 * 60 * 60 * 24)) : 
       0,

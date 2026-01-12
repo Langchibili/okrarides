@@ -66,7 +66,7 @@
                                            "type":  "decimal",
                                            "required":  true
                                        },
-                       "status":  {
+                       "packageStatus":  {
                                       "type":  "enumeration",
                                       "enum":  [
                                                    "pending_pickup",

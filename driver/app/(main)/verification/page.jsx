@@ -209,7 +209,7 @@ export default function VerificationPage() {
         )}
 
         {/* Verification Steps */}
-        <Paper elevation={2} sx={{ p: 3, borderRadius: 3, mb: 3 }}>
+        {driverProfile?.verificationStatus === VERIFICATION_STATUS.PENDING? null : <Paper elevation={2} sx={{ p: 3, borderRadius: 3, mb: 3 }}>
           <Stepper activeStep={activeStep} orientation="vertical">
             {/* Step 1: Upload Documents */}
             <Step>
@@ -388,7 +388,7 @@ export default function VerificationPage() {
               </StepContent>
             </Step>
           </Stepper>
-        </Paper>
+        </Paper>}
 
         {/* Help Section */}
         <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
@@ -406,4 +406,4 @@ export default function VerificationPage() {
     </Box>
   );
 }
-
+

@@ -1,9 +1,11 @@
-
+//driver/lib/hooks/useDriver.js
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
+import { useSocket } from '@/lib/socket/SocketProvider';
+import { SOCKET_EVENTS } from '@/Constants';
 
 export const useDriver = () => {
   const { user, updateUser } = useAuth();
@@ -11,6 +13,8 @@ export const useDriver = () => {
   const [driverProfile, setDriverProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Socket integration
+  const { on, off, emit, updateLocation: socketUpdateLocation } = useSocket();
 
   useEffect(() => {
     const getDriver = async () => {
@@ -46,15 +50,24 @@ export const useDriver = () => {
     }
   }, [updateUser]);
 
-  const toggleOnline = useCallback(async (goOnline) => {
+  const toggleOnline = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.post('/driver/toggle-online', {
-        isOnline: goOnline,
-      });
+      const response = await apiClient.post('/driver/toggle-online');
       
       if (response.success) {
         await refreshDriverProfile();
+        // Emit socket event
+        if (newOnlineStatus) {
+          emit(SOCKET_EVENTS.DRIVER.ONLINE, {
+            driverId: user.id,
+            location: user.currentLocation,
+          });
+        } else {
+          emit(SOCKET_EVENTS.DRIVER.OFFLINE, {
+            driverId: user.id,
+          });
+        }
         return response;
       } else {
         throw new Error(response.error || 'Failed to toggle online status');
@@ -94,6 +107,55 @@ export const useDriver = () => {
       setLoading(false);
     }
   }, [refreshDriverProfile]);
+ 
+  // Socket Event Listeners
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Listen for forced offline
+    const handleForcedOffline = (data) => {
+      setDriverProfile((prev) => ({
+        ...prev,
+        isOnline: false,
+        isAvailable: false,
+      }));
+      
+      // Show alert
+      if (typeof window !== 'undefined') {
+        alert(data.message || 'You have been taken offline');
+      }
+    };
+
+    // Listen for subscription expiring
+    const handleSubscriptionExpiring = (data) => {
+      console.warn('Subscription expiring:', data);
+      // You can show a snackbar/toast here
+    };
+
+    // Listen for subscription expired
+    const handleSubscriptionExpired = (data) => {
+      setDriverProfile((prev) => ({
+        ...prev,
+        subscriptionStatus: 'expired',
+        isOnline: false,
+        isAvailable: false,
+      }));
+      
+      if (typeof window !== 'undefined') {
+        alert(data.message || 'Your subscription has expired');
+      }
+    };
+
+    on(SOCKET_EVENTS.DRIVER.FORCED_OFFLINE, handleForcedOffline);
+    on(SOCKET_EVENTS.SUBSCRIPTION.EXPIRING_WARNING, handleSubscriptionExpiring);
+    on(SOCKET_EVENTS.SUBSCRIPTION.EXPIRED, handleSubscriptionExpired);
+
+    return () => {
+      off(SOCKET_EVENTS.DRIVER.FORCED_OFFLINE);
+      off(SOCKET_EVENTS.SUBSCRIPTION.EXPIRING_WARNING);
+      off(SOCKET_EVENTS.SUBSCRIPTION.EXPIRED);
+    };
+  }, [user?.id, on, off]);
 
   return {
     driverProfile,

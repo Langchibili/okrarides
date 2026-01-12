@@ -64,8 +64,7 @@
     "phoneNumber": {
       "type": "string",
       "required": true,
-      "unique": true,
-      "regex": "^\\+260[0-9]{9}$"
+      "unique": true
     },
     "phoneVerified": {
       "type": "boolean",

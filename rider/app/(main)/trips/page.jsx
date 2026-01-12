@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -47,22 +46,29 @@ export default function TripsPage() {
   const loadRides = async (pageNum = 1) => {
     try {
       setLoading(true);
-      const response = await ridesAPI.getMyRides({
+      const response = await ridesAPI.getRideHistory({
         page: pageNum,
         limit: 20,
-        status: currentFilter,
+        rideStatus: currentFilter, // CHANGED from 'status'
       });
 
-      if (pageNum === 1) {
-        setRides(response.data);
-      } else {
-        setRides(prev => [...prev, ...response.data]);
-      }
+      console.log('Rides response:', response);
 
-      setHasMore(response.data.length === 20);
-      setPage(pageNum);
+      if (response.success || response?.data) {
+        if (pageNum === 1) {
+          setRides(response.data || []);
+        } else {
+          setRides(prev => [...prev, ...(response.data || [])]);
+        }
+        setHasMore((response.data || []).length === 20);
+        setPage(pageNum);
+      } else {
+        console.error('Failed to load rides:', response.error);
+        setRides([]);
+      }
     } catch (error) {
       console.error('Error loading rides:', error);
+      setRides([]);
     } finally {
       setLoading(false);
     }
@@ -175,11 +181,11 @@ export default function TripsPage() {
                         }}
                       >
                         <Chip
-                          label={RIDE_STATUS_LABELS[ride.status]}
+                          label={RIDE_STATUS_LABELS[ride.rideStatus] || ride.rideStatus}
                           size="small"
                           sx={{
-                            bgcolor: `${RIDE_STATUS_COLORS[ride.status]}20`,
-                            color: RIDE_STATUS_COLORS[ride.status],
+                            bgcolor: `${RIDE_STATUS_COLORS[ride.rideStatus] || '#9E9E9E'}20`,
+                            color: RIDE_STATUS_COLORS[ride.rideStatus] || '#9E9E9E',
                             fontWeight: 600,
                             borderRadius: 2,
                           }}
@@ -189,71 +195,74 @@ export default function TripsPage() {
                         </Typography>
                       </Box>
 
-                      {/* Locations */}
-                      <Box sx={{ mb: 2 }}>
-                        {/* Pickup */}
-                        <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
-                          <Box
-                            sx={{
-                              width: 12,
-                              height: 12,
-                              borderRadius: '50%',
-                              bgcolor: 'success.main',
-                              mt: 0.5,
-                              flexShrink: 0,
-                            }}
-                          />
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">
-                              Pickup
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontWeight: 500 }}
-                              noWrap
-                            >
-                              {ride.pickupLocation.address}
-                            </Typography>
-                          </Box>
-                        </Box>
+                    {/* Trip Route */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Paper sx={{ p: 3, mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+              Trip Route
+            </Typography>
+            
+            {/* Pickup */}
+            <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  bgcolor: 'success.main',
+                  mt: 0.5,
+                  flexShrink: 0,
+                }}
+              />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Pickup
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                   {ride.pickupLocation?.address || 'N/A'}
+                </Typography>
+              </Box>
+            </Box>
 
-                        {/* Line */}
-                        <Box
-                          sx={{
-                            width: 2,
-                            height: 16,
-                            bgcolor: 'divider',
-                            ml: '5px',
-                            mb: 1,
-                          }}
-                        />
+            {/* Line */}
+            <Box
+              sx={{
+                width: 2,
+                height: 24,
+                bgcolor: 'divider',
+                ml: '5px',
+                mb: 2,
+              }}
+            />
 
-                        {/* Dropoff */}
-                        <Box sx={{ display: 'flex', gap: 1.5 }}>
-                          <Box
-                            sx={{
-                              width: 12,
-                              height: 12,
-                              borderRadius: 1,
-                              bgcolor: 'error.main',
-                              mt: 0.5,
-                              flexShrink: 0,
-                            }}
-                          />
-                          <Box>
-                            <Typography variant="caption" color="text.secondary">
-                              Dropoff
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontWeight: 500 }}
-                              noWrap
-                            >
-                              {ride.dropoffLocation.address}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </Box>
+            {/* Dropoff */}
+            <Box sx={{ display: 'flex', gap: 1.5 }}>
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 1,
+                  bgcolor: 'error.main',
+                  mt: 0.5,
+                  flexShrink: 0,
+                }}
+              />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Dropoff
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {ride.dropoffLocation.address}
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+        </motion.div>
+
 
                       {/* Footer */}
                       <Box
@@ -273,7 +282,7 @@ export default function TripsPage() {
                           variant="h6"
                           sx={{ fontWeight: 700, color: 'primary.main' }}
                         >
-                          {formatCurrency(ride.totalFare)}
+                          {formatCurrency(ride.totalFare || 0)}
                         </Typography>
                       </Box>
                     </ListItem>
@@ -315,4 +324,3 @@ export default function TripsPage() {
     </Box>
   );
 }
-

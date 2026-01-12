@@ -154,6 +154,7 @@ export function useAdminSettings() {
     isInsuranceRequired: AdminSettingsHelpers.isInsuranceRequired(settings),
     isRoadTaxRequired: AdminSettingsHelpers.isRoadTaxRequired(settings),
     isFitnessDocumentRequired: AdminSettingsHelpers.isFitnessDocumentRequired(settings),
+    isVehicleRegistrationRequired: AdminSettingsHelpers.isVehicleRegistrationRequired(settings),
 
     // Device Unlock
     targetRidesForUnlock: AdminSettingsHelpers.getTargetRidesForUnlock(settings),

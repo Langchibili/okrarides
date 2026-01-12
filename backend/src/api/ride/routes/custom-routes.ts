@@ -50,6 +50,14 @@ export default {
       },
     },
     {
+      method: 'GET',
+      path: '/rides/active',
+      handler: 'ride.getActiveRide',
+      config: {
+        policies: []
+      }
+    },
+    {
       method: 'POST',
       path: '/rides/:id/accept',
       handler: 'ride.acceptRide',
@@ -81,9 +89,49 @@ export default {
     },
     {
       method: 'POST',
+      path: '/rides/:id/rate',
+      handler: 'ride.rateRide',
+      config: {
+        policies: []
+      }
+    },
+    {
+      method: 'POST',
       path: '/rides/:id/cancel',
       handler: 'ride.cancelRide',
       config: { policies: [] }
+    },
+    {
+      method: 'POST',
+      path: '/rider/clean-temp-blocks',
+      handler: 'rider.cleanTempBlocks',
+      config: {
+        policies: []
+      }
+    },
+    {
+      method: 'POST',
+      path: '/rider/block-driver',
+      handler: 'rider.blockDriver',
+      config: {
+        policies: []
+      }
+    },
+    {
+      method: 'POST',
+      path: '/rider/unblock-driver',
+      handler: 'rider.unblockDriver',
+      config: {
+        policies: []
+      }
+    },
+    {
+      method: 'GET',
+      path: '/rider/blocked-drivers',
+      handler: 'rider.getBlockedDrivers',
+      config: {
+        policies: []
+      }
     }
   ],
 };

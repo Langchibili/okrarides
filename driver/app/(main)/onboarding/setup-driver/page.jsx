@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '@/lib/hooks/useAuth'
-
+import { VERIFICATION_STATUS, DOCUMENT_TYPE } from '@/Constants';
 export default function SetupDriverPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
@@ -22,25 +22,25 @@ export default function SetupDriverPage() {
     const driverProfile = user.driverProfile
 
     // If no driver profile, start onboarding
-    if (!driverProfile || driverProfile.verificationStatus === 'not_started') {
+    if (!driverProfile || driverProfile.verificationStatus === VERIFICATION_STATUS.NOT_STARTED) {
       router.push('/onboarding/welcome')
       return
     }
 
     // If verification is pending, show pending screen
-    if (driverProfile.verificationStatus === 'pending') {
+    if (driverProfile.verificationStatus === VERIFICATION_STATUS.PENDING) {
       router.push('/onboarding/pending')
       return
     }
 
     // If approved, go to dashboard
-    if (driverProfile.verificationStatus === 'approved') {
+    if (driverProfile.verificationStatus === VERIFICATION_STATUS.APPROVED) {
       router.push('/home')
       return
     }
 
     // If rejected, go to welcome with error message
-    if (driverProfile.verificationStatus === 'rejected') {
+    if (driverProfile.verificationStatus === VERIFICATION_STATUS.REJECTED) {
       router.push('/onboarding/welcome?status=rejected')
       return
     }

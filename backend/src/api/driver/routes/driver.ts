@@ -153,5 +153,29 @@ export default {
         middlewares: [],
       },
     },
+    {
+      method: 'GET',
+      path: '/driver/vehicle',
+      handler: 'driver.findDriverVehicle',
+      config: { policies: [] }
+    },
+    {
+      method: 'GET',
+      path: '/driver/vehicles',
+      handler: 'driver.findDriverVehicles',
+      config: { policies: [] }
+    },
+    {
+      method: 'POST',
+      path: '/driver/vehicles',
+      handler: 'driver.addVehicle',
+      config: { policies: [] }
+    },
+    {
+      method: 'PUT',
+      path: '/driver/vehicles/assigned-vehicle',
+      handler: 'driver.updateDriverVehicle',
+      config: { policies: [] }
+    }
   ]
 };

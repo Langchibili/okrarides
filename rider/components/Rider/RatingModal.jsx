@@ -330,7 +330,7 @@ export const RatingModal = ({
 };
 
 export default RatingModal;
-
+/*
 # OkraRides Rider App - Implementation Summary
 
 ## ✅ Files Created
@@ -825,4 +825,5 @@ In-app: Help Center in profile
 
 
 Made with ❤️ in Zambia 🇿🇲
-
+
+*/

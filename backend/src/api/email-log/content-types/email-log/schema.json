@@ -36,7 +36,7 @@
     "template": {
       "type": "string"
     },
-    "status": {
+    "logStatus": {
       "type": "enumeration",
       "enum": [
         "pending",

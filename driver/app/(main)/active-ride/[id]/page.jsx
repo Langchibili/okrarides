@@ -24,18 +24,52 @@ import { GoogleMapIframe } from '@/components/Map/GoogleMapIframe';
 import { useRide } from '@/lib/hooks/useRide';
 import { formatCurrency, formatDistance } from '@/Functions';
 import { apiClient } from '@/lib/api/client';
+import { useSocket } from '@/lib/socket/SocketProvider';
+import { SOCKET_EVENTS } from '@/Constants';
 
 export default function ActiveRidePage() {
   const params = useParams();
   const router = useRouter();
   const { currentRide, startTrip, completeTrip, cancelRide, confirmArrival } = useRide();
-  
+  const { updateLocation } = useSocket();
   const [ride, setRide] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadRideDetails();
   }, [params.id]);
+
+  // Add location tracking
+  useEffect(() => {
+    if (!ride || ride.rideStatus === 'completed' || ride.rideStatus === 'cancelled') return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        
+        const heading = position.coords.heading || 0;
+        const speed = position.coords.speed || 0;
+
+        // Update socket
+        updateLocation(location, heading, speed);
+      },
+      (error) => {
+        console.error('Location error:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [ride?.rideStatus, updateLocation]);
 
   const loadRideDetails = async () => {
     try {
@@ -82,7 +116,7 @@ export default function ActiveRidePage() {
   };
 
   const handleNavigate = () => {
-    const destination = ride.status === 'accepted' || ride.status === 'arrived'
+    const destination = ride.rideStatus === 'accepted' || ride.rideStatus === 'arrived'
       ? ride.pickupLocation
       : ride.dropoffLocation;
     
@@ -209,7 +243,7 @@ export default function ActiveRidePage() {
         </Box>
 
         {/* Action Buttons */}
-        {ride.status === 'accepted' && (
+        {ride.rideStatus === 'accepted' && (
           <Button
             fullWidth
             variant="contained"
@@ -221,7 +255,7 @@ export default function ActiveRidePage() {
           </Button>
         )}
 
-        {ride.status === 'arrived' && (
+        {ride.rideStatus === 'arrived' && (
           <Button
             fullWidth
             variant="contained"
@@ -234,7 +268,7 @@ export default function ActiveRidePage() {
           </Button>
         )}
 
-        {ride.status === 'passenger_onboard' && (
+        {ride.rideStatus === 'passenger_onboard' && (
           <Button
             fullWidth
             variant="contained"
@@ -251,4 +285,4 @@ export default function ActiveRidePage() {
     </Box>
   );
 }
-
+

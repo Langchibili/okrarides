@@ -37,16 +37,19 @@ export default function TripDetailPage() {
   }, [params.id]);
 
   const loadRide = async () => {
-    try {
-      setLoading(true);
-      const data = await ridesAPI.getRide(params.id);
-      setRide(data);
-    } catch (error) {
-      console.error('Error loading ride:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const response = await ridesAPI.getRide(params.id);
+    console.log('response',response)
+    // Handle both data structures
+    const rideData = response.success ? response.data : response;
+    setRide(rideData);
+  } catch (error) {
+    console.error('Error loading ride:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleGetReceipt = () => {
     router.push(`/trips/${params.id}/receipt`);
@@ -133,10 +136,10 @@ export default function TripDetailPage() {
               }}
             >
               <Chip
-                label={RIDE_STATUS_LABELS[ride.status]}
+                label={RIDE_STATUS_LABELS[ride.rideStatus]}
                 sx={{
-                  bgcolor: `${RIDE_STATUS_COLORS[ride.status]}20`,
-                  color: RIDE_STATUS_COLORS[ride.status],
+                  bgcolor: `${RIDE_STATUS_COLORS[ride.rideStatus]}20`,
+                  color: RIDE_STATUS_COLORS[ride.rideStatus],
                   fontWeight: 600,
                 }}
               />
@@ -178,7 +181,7 @@ export default function TripDetailPage() {
                   Pickup
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {ride.pickupLocation.address}
+                   {ride.pickupLocation?.address || 'N/A'}
                 </Typography>
               </Box>
             </Box>
@@ -426,4 +429,4 @@ export default function TripDetailPage() {
     </Box>
   );
 }
-
+

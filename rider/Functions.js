@@ -9,8 +9,8 @@ export const formatCurrency = (amount, currency = 'K') => {
 };
 
 export const formatPhoneNumber = (phone) => {
-  const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.length === 9) {
+  const cleaned = phone?.replace(/\D/g, '');
+  if (cleaned?.length === 9) {
     return `+260 ${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
   }
   return phone;

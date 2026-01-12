@@ -10,6 +10,14 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
   "attributes": {
     "topupId": {
       "type": "string",
@@ -19,8 +27,7 @@
     "driver": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
-      "required": true
+      "target": "plugin::users-permissions.user"
     },
     "amount": {
       "type": "decimal",
@@ -33,23 +40,23 @@
     },
     "paymentMethod": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "okrapay",
         "mobile_money",
         "bank_transfer",
         "cash"
-      ],
-      "required": true
+      ]
     },
-    "status": {
+    "floatStatus": {
       "type": "enumeration",
+      "default": "pending",
       "enum": [
         "pending",
         "completed",
         "failed",
         "cancelled"
-      ],
-      "default": "pending"
+      ]
     },
     "gatewayReference": {
       "type": "string"
@@ -77,14 +84,6 @@
     },
     "notes": {
       "type": "text"
-    }
-  },
-  "pluginOptions": {
-    "content-manager": {
-      "visible": true
-    },
-    "content-type-builder": {
-      "visible": true
     }
   }
 }

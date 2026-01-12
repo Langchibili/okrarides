@@ -10,6 +10,14 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
   "attributes": {
     "alertId": {
       "type": "string",
@@ -19,8 +27,7 @@
     "user": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
-      "required": true
+      "target": "plugin::users-permissions.user"
     },
     "ride": {
       "type": "relation",
@@ -33,38 +40,38 @@
     },
     "type": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "emergency",
         "safety_concern",
         "accident",
         "harassment",
         "other"
-      ],
-      "required": true
+      ]
     },
     "description": {
       "type": "text"
     },
-    "status": {
+    "sosStatus": {
       "type": "enumeration",
+      "default": "open",
       "enum": [
         "open",
         "acknowledged",
         "in_progress",
         "resolved",
         "false_alarm"
-      ],
-      "default": "open"
+      ]
     },
     "priority": {
       "type": "enumeration",
+      "default": "high",
       "enum": [
         "low",
         "medium",
         "high",
         "critical"
-      ],
-      "default": "high"
+      ]
     },
     "respondedBy": {
       "type": "relation",
@@ -101,14 +108,6 @@
       "allowedTypes": [
         "images"
       ]
-    }
-  },
-  "pluginOptions": {
-    "content-manager": {
-      "visible": true
-    },
-    "content-type-builder": {
-      "visible": true
     }
   }
 }

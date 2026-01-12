@@ -123,10 +123,20 @@ export const addVehicle = async (vehicleData) => {
   }
 };
 
+export const submitForVerification = async () => {
+  try {
+    const response = await apiClient.post('/driver/onboarding/submit')
+    return response;
+  } catch (error) {
+    console.error('Error adding vehicle:', error);
+    throw error;
+  }
+};
+
 export const updateVehicle = async (vehicleId, vehicleData) => {
   try {
     const response = await apiClient.put(`/vehicles/${vehicleId}`, {data:vehicleData});
-    return response;
+    return response?.data? {vehicle: response?.data, success: true, hasVehicle: true} : {vehicle: null, success: false, hasVehicle: false}
   } catch (error) {
     console.error('Error updating vehicle:', error);
     throw error;

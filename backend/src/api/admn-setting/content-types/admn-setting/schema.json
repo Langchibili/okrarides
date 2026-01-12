@@ -231,6 +231,9 @@
     "requireVehicleRegistration": {
       "type": "boolean",
       "default": false
+    },
+    "rideBookingRadius": {
+      "type": "integer"
     }
   }
 }

@@ -534,6 +534,7 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
     requireRoadTax: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     requireVehicleRegistration: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
+    rideBookingRadius: Schema.Attribute.Integer;
     rideCompletionProximity: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<100>;
     rideRequestTimeoutSeconds: Schema.Attribute.Integer &
@@ -1311,8 +1312,7 @@ export interface ApiDriverSubscriptionDriverSubscription
     driver: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
     expiresAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
     isFreeTrial: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     lastPaymentAmount: Schema.Attribute.Decimal;
@@ -1334,16 +1334,15 @@ export interface ApiDriverSubscriptionDriverSubscription
     ridesThisPeriod: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     ridesToday: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     startedAt: Schema.Attribute.DateTime;
-    status: Schema.Attribute.Enumeration<
-      ['trial', 'active', 'expired', 'cancelled', 'suspended']
-    > &
-      Schema.Attribute.Required;
     subscriptionId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     subscriptionPlan: Schema.Attribute.Relation<
       'manyToOne',
       'api::subscription-plan.subscription-plan'
+    >;
+    subscriptionStatus: Schema.Attribute.Enumeration<
+      ['trial', 'active', 'expired', 'cancelled', 'suspended']
     > &
       Schema.Attribute.Required;
     suspendedAt: Schema.Attribute.DateTime;
@@ -1446,6 +1445,10 @@ export interface ApiEmailLogEmailLog extends Struct.CollectionTypeSchema {
       'api::email-log.email-log'
     > &
       Schema.Attribute.Private;
+    logStatus: Schema.Attribute.Enumeration<
+      ['pending', 'sent', 'delivered', 'opened', 'clicked', 'failed', 'bounced']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
     messageId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
@@ -1459,10 +1462,6 @@ export interface ApiEmailLogEmailLog extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.user'
     >;
     sentAt: Schema.Attribute.DateTime;
-    status: Schema.Attribute.Enumeration<
-      ['pending', 'sent', 'delivered', 'opened', 'clicked', 'failed', 'bounced']
-    > &
-      Schema.Attribute.DefaultTo<'pending'>;
     subject: Schema.Attribute.String & Schema.Attribute.Required;
     template: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
@@ -1622,10 +1621,13 @@ export interface ApiFloatTopupFloatTopup extends Struct.CollectionTypeSchema {
     driver: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
     floatBalanceAfter: Schema.Attribute.Decimal;
     floatBalanceBefore: Schema.Attribute.Decimal;
+    floatStatus: Schema.Attribute.Enumeration<
+      ['pending', 'completed', 'failed', 'cancelled']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
     gatewayReference: Schema.Attribute.String;
     gatewayResponse: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -1645,13 +1647,37 @@ export interface ApiFloatTopupFloatTopup extends Struct.CollectionTypeSchema {
     >;
     publishedAt: Schema.Attribute.DateTime;
     requestedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
-    status: Schema.Attribute.Enumeration<
-      ['pending', 'completed', 'failed', 'cancelled']
-    > &
-      Schema.Attribute.DefaultTo<'pending'>;
     topupId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiFrontendUrlFrontendUrl extends Struct.SingleTypeSchema {
+  collectionName: 'frontend_urls';
+  info: {
+    displayName: 'frontendUrls';
+    pluralName: 'frontend-urls';
+    singularName: 'frontend-url';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::frontend-url.frontend-url'
+    > &
+      Schema.Attribute.Private;
+    paths: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1779,11 +1805,14 @@ export interface ApiLedgerEntryLedgerEntry extends Struct.CollectionTypeSchema {
     driver: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
     entryId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    ledgerStatus: Schema.Attribute.Enumeration<
+      ['pending', 'settled', 'failed', 'cancelled']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1797,10 +1826,6 @@ export interface ApiLedgerEntryLedgerEntry extends Struct.CollectionTypeSchema {
       ['cash', 'okrapay', 'mobile_money', 'bank_transfer', 'system']
     > &
       Schema.Attribute.Required;
-    status: Schema.Attribute.Enumeration<
-      ['pending', 'settled', 'failed', 'cancelled']
-    > &
-      Schema.Attribute.DefaultTo<'pending'>;
     type: Schema.Attribute.Enumeration<
       [
         'fare',
@@ -1982,6 +2007,10 @@ export interface ApiPackagePackage extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     packagePhotos: Schema.Attribute.Media<'images', true>;
+    packageStatus: Schema.Attribute.Enumeration<
+      ['pending_pickup', 'picked_up', 'in_transit', 'delivered', 'cancelled']
+    > &
+      Schema.Attribute.DefaultTo<'pending_pickup'>;
     packageType: Schema.Attribute.Enumeration<
       ['document', 'parcel', 'food', 'groceries', 'other']
     > &
@@ -1998,10 +2027,6 @@ export interface ApiPackagePackage extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Required;
     specialInstructions: Schema.Attribute.Text;
-    status: Schema.Attribute.Enumeration<
-      ['pending_pickup', 'picked_up', 'in_transit', 'delivered', 'cancelled']
-    > &
-      Schema.Attribute.DefaultTo<'pending_pickup'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2198,16 +2223,16 @@ export interface ApiPushNotificationLogPushNotificationLog
     providerMessageId: Schema.Attribute.String;
     providerResponse: Schema.Attribute.JSON;
     publishedAt: Schema.Attribute.DateTime;
+    pushNoteLogStatus: Schema.Attribute.Enumeration<
+      ['pending', 'sent', 'delivered', 'opened', 'failed']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
     recipient: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Required;
     sentAt: Schema.Attribute.DateTime;
-    status: Schema.Attribute.Enumeration<
-      ['pending', 'sent', 'delivered', 'opened', 'failed']
-    > &
-      Schema.Attribute.DefaultTo<'pending'>;
     title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -2396,6 +2421,7 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    declinedDrivers: Schema.Attribute.JSON;
     distanceFare: Schema.Attribute.Decimal;
     driver: Schema.Attribute.Relation<
       'manyToOne',
@@ -2436,7 +2462,7 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
     promoDiscount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
     requestedAt: Schema.Attribute.DateTime;
-    requestedDrivers: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
+    requestedDrivers: Schema.Attribute.JSON;
     rideClass: Schema.Attribute.Relation<
       'manyToOne',
       'api::ride-class.ride-class'
@@ -2447,14 +2473,9 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
     rider: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
     riderRating: Schema.Attribute.Relation<'oneToOne', 'api::rating.rating'>;
-    rideType: Schema.Attribute.Enumeration<['taxi', 'bus', 'delivery']> &
-      Schema.Attribute.Required;
-    scheduledFor: Schema.Attribute.DateTime;
-    specialRequests: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
-    status: Schema.Attribute.Enumeration<
+    rideStatus: Schema.Attribute.Enumeration<
       [
         'pending',
         'accepted',
@@ -2466,6 +2487,10 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
       ]
     > &
       Schema.Attribute.Required;
+    rideType: Schema.Attribute.Enumeration<['taxi', 'bus', 'delivery']> &
+      Schema.Attribute.Required;
+    scheduledFor: Schema.Attribute.DateTime;
+    specialRequests: Schema.Attribute.JSON;
     subscriptionId: Schema.Attribute.String;
     subtotal: Schema.Attribute.Decimal;
     surgeFare: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
@@ -2595,7 +2620,7 @@ export interface ApiSmsLogSmsLog extends Struct.CollectionTypeSchema {
     >;
     retryCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     sentAt: Schema.Attribute.DateTime;
-    status: Schema.Attribute.Enumeration<
+    smsLogStatus: Schema.Attribute.Enumeration<
       ['pending', 'sent', 'delivered', 'failed', 'rejected']
     > &
       Schema.Attribute.DefaultTo<'pending'>;
@@ -2659,7 +2684,7 @@ export interface ApiSosAlertSosAlert extends Struct.CollectionTypeSchema {
       'plugin::users-permissions.user'
     >;
     ride: Schema.Attribute.Relation<'manyToOne', 'api::ride.ride'>;
-    status: Schema.Attribute.Enumeration<
+    sosStatus: Schema.Attribute.Enumeration<
       ['open', 'acknowledged', 'in_progress', 'resolved', 'false_alarm']
     > &
       Schema.Attribute.DefaultTo<'open'>;
@@ -2673,8 +2698,7 @@ export interface ApiSosAlertSosAlert extends Struct.CollectionTypeSchema {
     user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
   };
 }
 
@@ -2830,10 +2854,6 @@ export interface ApiSupportTicketSupportTicket
         },
         number
       >;
-    status: Schema.Attribute.Enumeration<
-      ['open', 'in_progress', 'waiting_for_user', 'resolved', 'closed']
-    > &
-      Schema.Attribute.DefaultTo<'open'>;
     subject: Schema.Attribute.String & Schema.Attribute.Required;
     subscription: Schema.Attribute.Relation<
       'manyToOne',
@@ -2843,6 +2863,10 @@ export interface ApiSupportTicketSupportTicket
     ticketId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    ticketStatus: Schema.Attribute.Enumeration<
+      ['open', 'in_progress', 'waiting_for_user', 'resolved', 'closed']
+    > &
+      Schema.Attribute.DefaultTo<'open'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -3043,11 +3067,6 @@ export interface ApiTransactionTransaction extends Struct.CollectionTypeSchema {
     processedAt: Schema.Attribute.DateTime;
     publishedAt: Schema.Attribute.DateTime;
     ride: Schema.Attribute.Relation<'manyToOne', 'api::ride.ride'>;
-    status: Schema.Attribute.Enumeration<
-      ['pending', 'completed', 'failed', 'cancelled', 'refunded']
-    > &
-      Schema.Attribute.Required &
-      Schema.Attribute.DefaultTo<'pending'>;
     subscription: Schema.Attribute.Relation<
       'manyToOne',
       'api::driver-subscription.driver-subscription'
@@ -3055,6 +3074,11 @@ export interface ApiTransactionTransaction extends Struct.CollectionTypeSchema {
     transactionId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    transactionStatus: Schema.Attribute.Enumeration<
+      ['pending', 'completed', 'failed', 'cancelled', 'refunded']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
     type: Schema.Attribute.Enumeration<
       [
         'ride_payment',
@@ -3073,8 +3097,7 @@ export interface ApiTransactionTransaction extends Struct.CollectionTypeSchema {
     user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
   };
 }
 
@@ -3314,21 +3337,20 @@ export interface ApiWithdrawalWithdrawal extends Struct.CollectionTypeSchema {
     >;
     publishedAt: Schema.Attribute.DateTime;
     requestedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
-    status: Schema.Attribute.Enumeration<
-      ['pending', 'processing', 'completed', 'failed', 'cancelled']
-    > &
-      Schema.Attribute.DefaultTo<'pending'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
     withdrawalId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    withdrawalStatus: Schema.Attribute.Enumeration<
+      ['pending', 'processing', 'completed', 'failed', 'cancelled']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
   };
 }
 
@@ -3945,6 +3967,7 @@ declare module '@strapi/strapi' {
       'api::favorite-location.favorite-location': ApiFavoriteLocationFavoriteLocation;
       'api::finance.finance': ApiFinanceFinance;
       'api::float-topup.float-topup': ApiFloatTopupFloatTopup;
+      'api::frontend-url.frontend-url': ApiFrontendUrlFrontendUrl;
       'api::geofence-zone.geofence-zone': ApiGeofenceZoneGeofenceZone;
       'api::language.language': ApiLanguageLanguage;
       'api::ledger-entry.ledger-entry': ApiLedgerEntryLedgerEntry;

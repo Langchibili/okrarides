@@ -165,13 +165,16 @@
 // };
 
 // export default useRide;
-
+// rider/lib/hooks/useRide.js
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ridesAPI } from '@/lib/api/rides';
+import { useSocket } from '@/lib/socket/SocketProvider';
 import { RIDE_STATUS } from '@/Constants';
-
+import { SOCKET_EVENTS } from '@/Constants';
+import { useRouter } from 'next/navigation';
+ 
 // Optional: Import if you have WebSocket service
 // import realtimeService from '@/lib/services/realtimeService';
 
@@ -186,15 +189,30 @@ export function useRide(initialRideId = null) {
   const [rideHistory, setRideHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+  // Socket integration
+  const { on, off, emit } = useSocket();
   // Refs for cleanup
   const pollingIntervalRef = useRef(null);
   const trackingIntervalRef = useRef(null);
   const mountedRef = useRef(true);
-  
+  const router = useRouter();
   // WebSocket availability check
   const hasWebSocket = useRef(false);
   
+  const stopPollingRideStatus = useCallback(() => {
+        if (pollingIntervalRef.current) {
+          clearInterval(pollingIntervalRef.current);
+          pollingIntervalRef.current = null;
+        }
+  }, [])
+      
+  const stopTracking = useCallback(() => {
+        if (trackingIntervalRef.current) {
+          clearInterval(trackingIntervalRef.current);
+          trackingIntervalRef.current = null;
+        }
+  }, [])
+
   // Check if WebSocket service is available
   useEffect(() => {
     try {
@@ -206,6 +224,100 @@ export function useRide(initialRideId = null) {
       hasWebSocket.current = false;
     }
   }, []);
+
+ // ============================================
+  // Socket Event Listeners
+  // ============================================
+  useEffect(() => {
+    if (!activeRide) return;
+
+    // Listen for ride accepted
+    const handleRideAccepted = (data) => {
+      if (data.rideId === activeRide.id) {
+        setRide((prev) => ({ ...prev, ...data, rideStatus: 'accepted' }));
+        setActiveRide((prev) => ({ ...prev, ...data, rideStatus: 'accepted' }));
+        showNotification('Driver Found!', `${data.driver?.firstName} is on the way`);
+        router.push(`/tracking?rideId=/${data.rideId}`)
+      }
+    };
+
+    // Listen for driver location updates
+    const handleDriverLocationUpdate = (data) => {
+      if (data.rideId === activeRide.id) {
+        setRide((prev) => ({
+          ...prev,
+          currentDriverLocation: data.location,
+          eta: data.eta,
+          distance: data.distance,
+        }));
+        setActiveRide((prev) => ({
+          ...prev,
+          currentDriverLocation: data.location,
+          eta: data.eta,
+          distance: data.distance,
+        }));
+      }
+    };
+
+    // Listen for driver arrived
+    const handleDriverArrived = (data) => {
+      if (data.rideId === activeRide.id) {
+        setRide((prev) => ({ ...prev, rideStatus: 'arrived', arrivedAt: data.arrivedAt }));
+        setActiveRide((prev) => ({ ...prev, rideStatus: 'arrived', arrivedAt: data.arrivedAt }));
+        showNotification('Driver Arrived!', 'Your driver has arrived at the pickup location');
+        
+        // Vibrate if supported
+        if ('vibrate' in navigator) {
+          navigator.vibrate([200, 100, 200]);
+        }
+      }
+    };
+
+    // Listen for trip started
+    const handleTripStarted = (data) => {
+      if (data.rideId === activeRide.id) {
+        setRide((prev) => ({ ...prev, rideStatus: 'passenger_onboard', tripStartedAt: data.tripStartedAt }));
+        setActiveRide((prev) => ({ ...prev, rideStatus: 'passenger_onboard', tripStartedAt: data.tripStartedAt }));
+      }
+    };
+
+    // Listen for trip completed
+    const handleTripCompleted = (data) => {
+      if (data.rideId === activeRide.id) {
+        setRide((prev) => ({ ...prev, rideStatus: 'completed', ...data }));
+        setActiveRide((prev) => ({ ...prev, rideStatus: 'completed', ...data }));
+        stopTracking();
+      }
+    };
+
+    // Listen for ride cancelled
+    const handleRideCancelled = (data) => {
+      if (data.rideId === activeRide.id) {
+        setActiveRide(null);
+        stopPollingRideStatus();
+        stopTracking();
+        showNotification('Ride Cancelled', data.reason || 'Your ride has been cancelled');
+      }
+    };
+
+    // Register listeners
+    on(SOCKET_EVENTS.RIDE.ACCEPTED, handleRideAccepted);
+    on(SOCKET_EVENTS.DRIVER.LOCATION_UPDATED, handleDriverLocationUpdate);
+    on(SOCKET_EVENTS.DRIVER.ARRIVED, handleDriverArrived);
+    on(SOCKET_EVENTS.RIDE.TRIP_STARTED, handleTripStarted);
+    on(SOCKET_EVENTS.RIDE.TRIP_COMPLETED, handleTripCompleted);
+    on(SOCKET_EVENTS.RIDE.CANCELLED, handleRideCancelled);
+
+    // Cleanup
+    return () => {
+      off(SOCKET_EVENTS.RIDE.ACCEPTED);
+      off(SOCKET_EVENTS.DRIVER.LOCATION_UPDATED);
+      off(SOCKET_EVENTS.DRIVER.ARRIVED);
+      off(SOCKET_EVENTS.RIDE.TRIP_STARTED);
+      off(SOCKET_EVENTS.RIDE.TRIP_COMPLETED);
+      off(SOCKET_EVENTS.RIDE.CANCELLED);
+    };
+  }, [activeRide?.id, on, off, stopTracking, stopPollingRideStatus]);
 
   // ============================================
   // STEP 1: Get Fare Estimate
@@ -282,7 +394,7 @@ export function useRide(initialRideId = null) {
       }
       
       // Start polling for driver assignment
-      if (newRide.status === 'pending') {
+      if (newRide.rideStatus === 'pending') {
         startPollingRideStatus(newRide.id);
       }
       
@@ -331,13 +443,13 @@ export function useRide(initialRideId = null) {
           setActiveRide(updatedRide);
           
           // If driver assigned or no drivers available, stop polling
-          if (updatedRide.status === 'accepted' || 
-              updatedRide.status === 'no_drivers_available' ||
-              updatedRide.status === 'cancelled') {
+          if (updatedRide.rideStatus === 'accepted' || 
+              updatedRide.rideStatus === 'no_drivers_available' ||
+              updatedRide.rideStatus === 'cancelled') {
             stopPollingRideStatus();
             
             // Show notification if driver assigned
-            if (updatedRide.status === 'accepted' && updatedRide.driver) {
+            if (updatedRide.rideStatus === 'accepted' && updatedRide.driver) {
               showNotification(
                 'Driver Found!',
                 `${updatedRide.driver.firstName} is on the way`
@@ -359,13 +471,7 @@ export function useRide(initialRideId = null) {
     }, 2000); // Poll every 2 seconds
   }, []);
 
-  const stopPollingRideStatus = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, []);
-
+  
   // ============================================
   // STEP 5: Track Ride (Real-time Location)
   // ============================================
@@ -407,8 +513,8 @@ export function useRide(initialRideId = null) {
           }
           
           // Stop tracking if ride is completed or cancelled
-          const status = trackData.ride?.status || trackData.status;
-          if ([RIDE_STATUS.COMPLETED, RIDE_STATUS.CANCELLED].includes(status)) {
+          const rideStatus = trackData.ride?.rideStatus || trackData.rideStatus;
+          if ([RIDE_STATUS.COMPLETED, RIDE_STATUS.CANCELLED].includes(rideStatus)) {
             stopTracking();
           }
         }
@@ -420,12 +526,6 @@ export function useRide(initialRideId = null) {
     return stopTracking;
   }, []);
 
-  const stopTracking = useCallback(() => {
-    if (trackingIntervalRef.current) {
-      clearInterval(trackingIntervalRef.current);
-      trackingIntervalRef.current = null;
-    }
-  }, []);
 
   // ============================================
   // STEP 6: Cancel Ride
@@ -478,10 +578,10 @@ export function useRide(initialRideId = null) {
     
     try {
       const result = await ridesAPI.confirmPickup(rideId);
-      
+      console.log('confirmPickup',result)
       if (result.success) {
         const updatedData = {
-          status: 'passenger_onboard',
+          rideStatus: 'passenger_onboard',
           tripStartedAt: result.data.tripStartedAt,
         };
         
@@ -594,34 +694,34 @@ export function useRide(initialRideId = null) {
   }, []);
 
   // ============================================
-  // Load Active Ride
-  // ============================================
-  const loadActiveRide = useCallback(async () => {
-    try {
-      const result = await ridesAPI.getActiveRide();
+// Get Active Ride
+// ============================================
+const loadActiveRide = useCallback(async () => {
+  try {
+    const result = await ridesAPI.getActiveRide();
+    
+    if (result.success && result.data) {
+      setActiveRide(result.data);
       
-      if (result.success && result.data) {
-        setActiveRide(result.data);
-        
-        // Join WebSocket room if available
-        if (hasWebSocket.current && window.realtimeService) {
-          window.realtimeService.joinRideRoom(result.data.id);
-        }
-        
-        // Start polling if ride is pending
-        if (result.data.status === 'pending') {
-          startPollingRideStatus(result.data.id);
-        }
-        
-        return result.data;
+      // Join WebSocket room if available
+      if (hasWebSocket.current && window.realtimeService) {
+        window.realtimeService.joinRideRoom(result.data.id);
       }
       
-      return null;
-    } catch (err) {
-      console.error('Error loading active ride:', err);
-      return null;
+      // Start polling if ride is pending
+      if (result.data.rideStatus === 'pending') {
+        startPollingRideStatus(result.data.id);
+      }
+      
+      return result.data;
     }
-  }, [startPollingRideStatus]);
+    
+    return null;
+  } catch (err) {
+    console.error('Error loading active ride:', err);
+    return null;
+  }
+}, [startPollingRideStatus])
 
   // ============================================
   // Load Ride History
@@ -716,7 +816,7 @@ export function useRide(initialRideId = null) {
     const handleDriverAssigned = (data) => {
       if (data.rideId === activeRide.id) {
         const updatedData = {
-          status: 'accepted',
+          rideStatus: 'accepted',
           driver: data.driver,
           vehicle: data.vehicle,
           eta: data.eta,
@@ -753,7 +853,7 @@ export function useRide(initialRideId = null) {
     const handleDriverArrived = (data) => {
       if (data.rideId === activeRide.id) {
         const updatedData = {
-          status: 'arrived',
+          rideStatus: 'arrived',
           arrivedAt: data.arrivedAt,
         };
         
@@ -775,7 +875,7 @@ export function useRide(initialRideId = null) {
     const handleTripStarted = (data) => {
       if (data.rideId === activeRide.id) {
         const updatedData = {
-          status: 'passenger_onboard',
+          rideStatus: 'passenger_onboard',
           tripStartedAt: data.tripStartedAt,
         };
         
@@ -787,7 +887,7 @@ export function useRide(initialRideId = null) {
     const handleTripCompleted = (data) => {
       if (data.rideId === activeRide.id) {
         const updatedData = {
-          status: 'completed',
+          rideStatus: 'completed',
           tripCompletedAt: data.tripCompletedAt,
           finalFare: data.finalFare,
           actualDistance: data.actualDistance,

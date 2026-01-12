@@ -10,6 +10,14 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
   "attributes": {
     "entryId": {
       "type": "string",
@@ -19,8 +27,7 @@
     "driver": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
-      "required": true
+      "target": "plugin::users-permissions.user"
     },
     "ride": {
       "type": "relation",
@@ -29,6 +36,7 @@
     },
     "type": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "fare",
         "commission",
@@ -38,8 +46,7 @@
         "withdrawal",
         "adjustment",
         "refund"
-      ],
-      "required": true
+      ]
     },
     "amount": {
       "type": "decimal",
@@ -47,24 +54,24 @@
     },
     "source": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "cash",
         "okrapay",
         "mobile_money",
         "bank_transfer",
         "system"
-      ],
-      "required": true
+      ]
     },
-    "status": {
+    "ledgerStatus": {
       "type": "enumeration",
+      "default": "pending",
       "enum": [
         "pending",
         "settled",
         "failed",
         "cancelled"
-      ],
-      "default": "pending"
+      ]
     },
     "balanceBefore": {
       "type": "decimal"
@@ -77,14 +84,6 @@
     },
     "metadata": {
       "type": "json"
-    }
-  },
-  "pluginOptions": {
-    "content-manager": {
-      "visible": true
-    },
-    "content-type-builder": {
-      "visible": true
     }
   }
 }

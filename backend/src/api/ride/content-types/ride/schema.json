@@ -10,6 +10,14 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
   "attributes": {
     "rideCode": {
       "type": "string",
@@ -19,8 +27,7 @@
     "rider": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
-      "required": true
+      "target": "plugin::users-permissions.user"
     },
     "driver": {
       "type": "relation",
@@ -29,12 +36,12 @@
     },
     "rideType": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "taxi",
         "bus",
         "delivery"
-      ],
-      "required": true
+      ]
     },
     "taxiType": {
       "type": "relation",
@@ -92,8 +99,9 @@
       "type": "integer",
       "default": 1
     },
-    "status": {
+    "rideStatus": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "pending",
         "accepted",
@@ -102,12 +110,13 @@
         "completed",
         "cancelled",
         "no_drivers_available"
-      ],
-      "required": true
+      ]
     },
     "requestedDrivers": {
-      "type": "json",
-      "default": []
+      "type": "json"
+    },
+    "declinedDrivers": {
+      "type": "json"
     },
     "requestedAt": {
       "type": "datetime"
@@ -183,11 +192,11 @@
     },
     "paymentMethod": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "cash",
         "okrapay"
-      ],
-      "required": true
+      ]
     },
     "paymentStatus": {
       "type": "enumeration",
@@ -203,8 +212,7 @@
       "target": "api::transaction.transaction"
     },
     "specialRequests": {
-      "type": "json",
-      "default": []
+      "type": "json"
     },
     "notes": {
       "type": "text"
@@ -247,14 +255,6 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::package.package"
-    }
-  },
-  "pluginOptions": {
-    "content-manager": {
-      "visible": true
-    },
-    "content-type-builder": {
-      "visible": true
     }
   }
 }

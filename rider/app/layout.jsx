@@ -1,8 +1,9 @@
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
-import '@/styles/google-maps-fix.css'; // google map layout breaking fixes
+import '@/styles/google-maps-fix.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/lib/hooks/useAuth';
+import { SocketProvider } from '@/lib/socket/SocketProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -24,7 +25,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata = {
-  title: 'Okra Rides - Your Journey, Your Way',
+  title: 'OkraRides - Your Journey, Your Way',
   description: 'Multi-modal transport ecosystem for Zambia',
   manifest: '/manifest.json',
   themeColor: '#FFC107',
@@ -38,7 +39,7 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Okra Rides',
+    title: 'OkraRides',
   },
 };
 
@@ -53,11 +54,12 @@ export default function RootLayout({ children }) {
       <body>
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <SocketProvider>
+              {children}
+            </SocketProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
-

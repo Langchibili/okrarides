@@ -32,12 +32,14 @@ import { GoogleMapIframe } from '@/components/Map/GoogleMapIframe';
 import { formatCurrency, formatDateTime } from '@/Functions';
 import { apiClient } from '@/lib/api/client';
 import { RIDE_STATUS } from '@/Constants';
+import { useRide } from '@/lib/hooks/useRide';
 
 export default function RideDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [ride, setRide] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { confirmArrival, startTrip, completeTrip, cancelRide } = useRide();
 
   useEffect(() => {
     loadRideDetails();
@@ -46,8 +48,8 @@ export default function RideDetailPage() {
   const loadRideDetails = async () => {
     try {
       const response = await apiClient.get(`/rides/${params.id}`);
-      if (response.success) {
-        setRide(response.ride);
+      if (response?.data) {
+        setRide(response.data);
       }
     } catch (error) {
       console.error('Error loading ride:', error);
@@ -95,8 +97,8 @@ export default function RideDetailPage() {
             Ride Details
           </Typography>
           <Chip
-            label={ride.status}
-            color={getStatusColor(ride.status)}
+            label={ride.rideStatus}
+            color={getStatusColor(ride.rideStatus)}
             sx={{ color: 'white' }}
           />
         </Toolbar>
@@ -172,6 +174,9 @@ export default function RideDetailPage() {
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {ride.pickupLocation.address}
               </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 300 }}>
+                <strong>{'> '}</strong>{ride.pickupLocation.name}
+              </Typography>
               {ride.acceptedAt && (
                 <Typography variant="caption" color="text.secondary">
                   Accepted: {formatDateTime(ride.acceptedAt)}
@@ -206,6 +211,11 @@ export default function RideDetailPage() {
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {ride.dropoffLocation.address}
               </Typography>
+              <small>
+                <Typography variant="body1" sx={{ fontWeight: 300 }}>
+                 <strong>{'> '}</strong>{ride.dropoffLocation.name}
+              </Typography>
+              </small>
               {ride.tripCompletedAt && (
                 <Typography variant="caption" color="text.secondary">
                   Completed: {formatDateTime(ride.tripCompletedAt)}
@@ -346,7 +356,120 @@ export default function RideDetailPage() {
           </Box>
         </Paper>
       </Box>
+      {/* Action Buttons (if ride is active) */}
+        {ride.rideStatus === 'accepted' && (
+          <Box sx={{ p: 3 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              onClick={async () => {
+                try {
+                  await confirmArrival(ride.id);
+                  loadRideDetails();
+                } catch (error) {
+                  console.error('Error confirming arrival:', error);
+                  alert('Failed to confirm arrival');
+                }
+              }}
+              sx={{
+                height: 56,
+                fontWeight: 700,
+                borderRadius: 3,
+                bgcolor: 'success.main',
+                '&:hover': { bgcolor: 'success.dark' },
+              }}
+            >
+              I've Arrived at Pickup
+            </Button>
+          </Box>
+        )}
+
+        {ride.rideStatus === 'arrived' && (
+          <Box sx={{ p: 3 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              onClick={async () => {
+                try {
+                  await startTrip(ride.id);
+                  loadRideDetails();
+                } catch (error) {
+                  console.error('Error starting trip:', error);
+                  alert('Failed to start trip');
+                }
+              }}
+              sx={{
+                height: 56,
+                fontWeight: 700,
+                borderRadius: 3,
+                bgcolor: 'primary.main',
+              }}
+            >
+              Start Trip
+            </Button>
+          </Box>
+        )}
+
+        {ride.rideStatus === 'passenger_onboard' && (
+          <Box sx={{ p: 3 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              color="success"
+              onClick={async () => {
+                if (window.confirm('Complete this ride?')) {
+                  try {
+                    await completeTrip(ride.id, {
+                      actualDistance: ride.estimatedDistance,
+                      actualDuration: ride.estimatedDuration,
+                    });
+                    router.push('/home');
+                  } catch (error) {
+                    console.error('Error completing trip:', error);
+                    alert('Failed to complete trip');
+                  }
+                }
+              }}
+              sx={{
+                height: 56,
+                fontWeight: 700,
+                borderRadius: 3,
+              }}
+            >
+              Complete Trip
+            </Button>
+          </Box>
+        )}
+
+        {/* Cancel Button (for pending/accepted status) */}
+        {['pending', 'accepted', 'arrived'].includes(ride.rideStatus) && (
+          <Box sx={{ p: 3, pt: 0 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="error"
+              onClick={async () => {
+                const reason = window.prompt('Reason for cancellation:');
+                if (reason) {
+                  try {
+                    await cancelRide(ride.id, reason);
+                    router.push('/home');
+                  } catch (error) {
+                    console.error('Error cancelling ride:', error);
+                    alert('Failed to cancel ride');
+                  }
+                }
+              }}
+              sx={{ height: 48, borderRadius: 3 }}
+            >
+              Cancel Ride
+            </Button>
+          </Box>
+        )}
     </Box>
   );
 }
-
+

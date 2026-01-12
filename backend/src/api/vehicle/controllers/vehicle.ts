@@ -4,7 +4,83 @@
 import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::vehicle.vehicle', ({ strapi }) => ({
-  
+  async find(ctx) {
+    // Add custom query logic if needed
+    return await super.find(ctx);
+  },
+
+  async findOne(ctx) {
+    const { id } = ctx.params;
+
+    // Use db.query to find by the numerical 'id'
+    const entity = await strapi.db.query('api::vehicle.vehicle').findOne({
+      where: { id: id },
+      populate: true, // or specify your relations ['driver', 'user']
+    });
+
+    if (!entity) {
+      return ctx.notFound();
+    }
+
+    // Sanitize the output to remove private fields (passwords, etc)
+    const sanitizedEntity = await this.sanitizeOutput(entity, ctx);
+    
+    return this.transformResponse(sanitizedEntity);
+  },
+
+  async create(ctx) {
+    return await super.create(ctx)
+  },
+  async update(ctx) {
+    const { id } = ctx.params;
+    const { data } = ctx.request.body; // Standard Strapi wrapper { data: { ... } }
+
+    // 1. Perform the update using the low-level db.query
+    // This allows targeting the numerical 'id' directly
+    const updatedEntity = await strapi.db.query('api::vehicle.vehicle').update({
+      where: { id: id },
+      data: data,
+      populate: true, // Populates relations so the response is complete
+    });
+
+    // 2. Handle 404 if record doesn't exist
+    if (!updatedEntity) {
+      return ctx.notFound('Vehicle not found');
+    }
+
+    // 3. Sanitize the output 
+    // This removes sensitive fields based on the Content-Type permissions
+    const sanitizedEntity = await this.sanitizeOutput(updatedEntity, ctx);
+
+    // 4. Transform to standard Strapi JSON API response
+    // This wraps the result in { data: { id, attributes: ... } } (v4) or { data: { ... } } (v5)
+    return this.transformResponse(sanitizedEntity);
+  },
+
+ async delete(ctx) {
+  const { id } = ctx.params;
+
+  // 1. Perform the deletion using the low-level db.query
+  // This targets the numerical 'id' directly. 
+  // We use .delete() which returns the deleted record's data.
+  const deletedEntity = await strapi.db.query('api::vehicle.vehicle').delete({
+    where: { id: id },
+    populate: true, // Optional: populate if you need the response to show relations
+  });
+
+  // 2. Handle 404 if the record didn't exist
+  if (!deletedEntity) {
+    return ctx.notFound('Vehicle not found');
+  }
+
+  // 3. Sanitize the output
+  // Removes sensitive data (like creator information or private fields)
+  const sanitizedEntity = await this.sanitizeOutput(deletedEntity, ctx);
+
+  // 4. Transform to standard Strapi JSON API response
+  // Returns the deleted record wrapped in the standard { data: ... } format
+  return this.transformResponse(sanitizedEntity);
+},
   // Get driver's vehicles
   async findOwn(ctx) {
     try {
@@ -19,127 +95,6 @@ export default factories.createCoreController('api::vehicle.vehicle', ({ strapi 
     } catch (error) {
       strapi.log.error('Find vehicles error:', error);
       return ctx.internalServerError('Failed to get vehicles');
-    }
-  },
-   async findDriverVehicle(ctx) {
-    try {
-      const userId = ctx.state.user.id;
-
-      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-        where: { id: userId },
-        populate: { driverProfile: true }
-      });
-
-      if (!user?.driverProfile) {
-        return ctx.badRequest('Driver profile not found');
-      }
-
-      const driverProfileWithAssignedVehicle = await strapi.db.query('driver-profiles.driver-profile').findOne({
-        where: { id: user.driverProfile.id },
-        populate: { 
-            assignedVehicle: {
-                populate: true 
-            }
-        }
-      })
-
-      return ctx.send({success: true, hasVehicle: true, vehicle:driverProfileWithAssignedVehicle.assignedVehicle});
-    } catch (error) {
-      strapi.log.error('Find vehicles error:', error);
-      return ctx.internalServerError('Failed to get vehicles');
-    }
-  },
-  async findDriverVehicles(ctx) {
-    try {
-      const userId = ctx.state.user.id;
-
-      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-        where: { id: userId },
-        populate: { driverProfile: true }
-      });
-
-      if (!user?.driverProfile) {
-        return ctx.badRequest('Driver profile not found');
-      }
-
-      const driverProfileWithVehicles = await strapi.db.query('driver-profiles.driver-profile').findOne({
-        where: { id: user.driverProfile.id },
-        populate: { 
-            vehicles: {
-                populate: true 
-            }
-        }
-      })
-
-      return ctx.send({success: true, hasVehicle: true, vehicles: driverProfileWithVehicles.vehicles});
-    } catch (error) {
-      strapi.log.error('Find vehicles error:', error);
-      return ctx.internalServerError('Failed to get vehicles');
-    }
-  },
-
-  // Add vehicle
-  async addVehicle(ctx) {
-    try {
-      const userId = ctx.state.user.id;
-      const data = ctx.request.body.data;
-
-      const vehicle = await strapi.db.query('api::vehicle.vehicle').create({
-        data: {
-          ...data,
-          owner: userId,
-          verificationStatus: 'not_started',
-          isActive: false,
-        }
-      });
-
-      return ctx.send(vehicle);
-    } catch (error) {
-      strapi.log.error('Add vehicle error:', error);
-      return ctx.internalServerError('Failed to add vehicle');
-    }
-  },
-
-  // Update vehicle
-  async updateDriverVehicle(ctx) {
-    try {
-      const userId = ctx.state.user.id;
-      const data = ctx.request.body.data;
-
-      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-        where: { id: userId },
-        populate: { driverProfile: true }
-      });
-
-      if (!user?.driverProfile) {
-        return ctx.badRequest('Driver profile not found');
-      }
-
-      const driverProfileWithAssignedVehicle = await strapi.db.query('driver-profiles.driver-profile').findOne({
-        where: { id: user.driverProfile.id },
-        populate: { 
-            assignedVehicle: {
-                populate: true 
-            }
-        }
-      })
-
-      if (!driverProfileWithAssignedVehicle?.assignedVehicle?.id) {
-        return ctx.notFound('Vehicle not found');
-      }
-
-      // Update vehicle - preserving existing data
-      const updated = await strapi.db.query('api::vehicle.vehicle').update({
-        where: { id: driverProfileWithAssignedVehicle.assignedVehicle.id },
-        data: {
-          ...data,
-        }
-      });
-
-      return ctx.send(updated);
-    } catch (error) {
-      strapi.log.error('Update vehicle error:', error);
-      return ctx.internalServerError('Failed to update vehicle');
     }
   },
 }));

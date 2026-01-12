@@ -9,15 +9,6 @@ const defaultRoutes = {
   routes: [
     {
       method: 'GET',
-      path: '/rides',
-      handler: 'ride.find',
-      config: {
-        policies: [],
-        middlewares: [],
-      },
-    },
-    {
-      method: 'GET',
       path: '/rides/:id',
       handler: 'ride.findOne',
       config: {
@@ -25,6 +16,16 @@ const defaultRoutes = {
         middlewares: [],
       },
     },
+    {
+      method: 'GET',
+      path: '/rides',
+      handler: 'ride.find',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    
     {
       method: 'POST',
       path: '/rides',

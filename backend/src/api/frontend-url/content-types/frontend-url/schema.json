@@ -1,0 +1,18 @@
+{
+  "kind": "singleType",
+  "collectionName": "frontend_urls",
+  "info": {
+    "singularName": "frontend-url",
+    "pluralName": "frontend-urls",
+    "displayName": "frontendUrls"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "paths": {
+      "type": "json"
+    }
+  }
+}

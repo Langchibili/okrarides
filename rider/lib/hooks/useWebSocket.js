@@ -1,3 +1,4 @@
+// lib\hooks\useWebSocket.js
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -93,4 +94,4 @@ export const useWebSocket = (url = null) => {
 };
 
 export default useWebSocket;
-
+

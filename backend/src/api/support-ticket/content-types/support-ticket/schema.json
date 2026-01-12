@@ -54,7 +54,7 @@
       ],
       "default": "medium"
     },
-    "status": {
+    "ticketStatus": {
       "type": "enumeration",
       "enum": [
         "open",

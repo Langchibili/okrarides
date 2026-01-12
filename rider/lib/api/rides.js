@@ -39,7 +39,7 @@
 //         specialRequests,
 //         scheduledFor,
 //         passengerCount,
-//         status: 'pending',
+//         rideStatus: 'pending',
 //       },
 //     });
     
@@ -54,10 +54,10 @@
   
 //   // Get rider's rides (history)
 //   async getMyRides(params = {}) {
-//     const { page = 1, limit = 20, status, sort = 'createdAt:desc' } = params;
+//     const { page = 1, limit = 20, rideStatus, sort = 'createdAt:desc' } = params;
     
 //     const filters = {};
-//     if (status) filters.status = { $eq: status };
+//     if (rideStatus) filters.rideStatus = { $eq: rideStatus };
     
 //     const query = new URLSearchParams({
 //       'populate': '*',
@@ -75,7 +75,7 @@
 //   async cancelRide(rideId, reason) {
 //     const response = await apiClient.put(`/rides/${rideId}`, {
 //       data: {
-//         status: 'cancelled',
+//         rideStatus: 'cancelled',
 //         cancelledBy: 'rider',
 //         cancellationReason: reason,
 //         cancelledAt: new Date().toISOString(),
@@ -132,7 +132,7 @@
 //   // Get active ride (if any)
 //   async getActiveRide() {
 //     const response = await apiClient.get(
-//       '/rides?filters[status][$in]=pending,accepted,arrived,passenger_onboard&filters[rider][id][$eq]=me&sort=createdAt:desc&pagination[limit]=1'
+//       '/rides?filters[rideStatus][$in]=pending,accepted,arrived,passenger_onboard&filters[rider][id][$eq]=me&sort=createdAt:desc&pagination[limit]=1'
 //     );
     
 //     return response.data?.[0] || null;
@@ -156,7 +156,7 @@
 //         description,
 //         attachments: photos,
 //         priority: 'high',
-//         status: 'open',
+//         rideStatus: 'open',
 //       },
 //     });
     
@@ -336,7 +336,7 @@ class RideAPI {
       Returns: {
         id: 123,
         rideCode: 'RIDE-ABC123',
-        status: 'pending',
+        rideStatus: 'pending',
         estimatedFare: 25.50,
         createdAt: '2025-01-10T10:30:00Z'
       }
@@ -358,7 +358,7 @@ class RideAPI {
           notes: rideData.notes || '',
           scheduledFor: rideData.scheduledFor || null,
           totalFare: rideData.estimatedFare || rideData.totalFare,
-          status: 'pending',
+          rideStatus: 'pending',
           requestedAt: new Date().toISOString(),
         },
       });
@@ -409,7 +409,7 @@ class RideAPI {
       
       Returns: {
         id: 123,
-        status: 'accepted' | 'pending' | 'no_drivers_available',
+        rideStatus: 'accepted' | 'pending' | 'no_drivers_available',
         driver: {
           id: 45,
           firstName: 'John',
@@ -516,7 +516,7 @@ class RideAPI {
       POST /rides/:id/cancel (Custom endpoint format)
       
       Body: {
-        status: 'cancelled',
+        rideStatus: 'cancelled',
         cancelledBy: 'rider',
         cancellationReason: reason,
         explanation: explanation,
@@ -543,7 +543,7 @@ class RideAPI {
         // Fallback to Strapi update endpoint
         response = await apiClient.put(`/rides/${rideId}`, {
           data: {
-            status: 'cancelled',
+            rideStatus: 'cancelled',
             cancelledBy: 'rider',
             cancellationReason: reason,
             explanation,
@@ -573,7 +573,7 @@ class RideAPI {
       
       Returns: {
         success: true,
-        status: 'passenger_onboard',
+        rideStatus: 'passenger_onboard',
         tripStartedAt: '2025-01-10T10:40:00Z'
       }
     */
@@ -602,7 +602,7 @@ class RideAPI {
       
       Returns: {
         id: 123,
-        status: 'completed',
+        rideStatus: 'completed',
         tripCompletedAt: '2025-01-10T10:55:00Z',
         finalFare: 28.50,
         actualDistance: 5.5,
@@ -685,109 +685,272 @@ class RideAPI {
   // ============================================
   // Get Active Ride
   // ============================================
-  async getActiveRide() {
-    /*
-      GET /rides/active
-      or
-      GET /rides?filters[status][$in]=pending,accepted,arrived,passenger_onboard
+  // async getActiveRide() {
+  //   /*
+  //     GET /rides/active
+  //     or
+  //     GET /rides?filters[rideStatus][$in]=pending,accepted,arrived,passenger_onboard
       
-      Returns: Current active ride or null
-    */
+  //     Returns: Current active ride or null
+  //   */
     
-    try {
-      // Try custom endpoint first
-      let response;
-      try {
-        response = await apiClient.get('/rides/active');
-      } catch (customEndpointError) {
-        // Fallback to filtered query
-        response = await apiClient.get(
-          '/rides?filters[status][$in]=pending,accepted,arrived,passenger_onboard&filters[rider][id][$eq]=me&sort=createdAt:desc&pagination[limit]=1&populate=*'
-        );
+  //   try {
+  //     // Try custom endpoint first
+  //     let response;
+  //     try {
+  //       response = await apiClient.get('/rides/active');
+  //     } catch (customEndpointError) {
+  //       // Fallback to filtered query
+  //       response = await apiClient.get(
+  //         '/rides?filters[rideStatus][$in]=pending,accepted,arrived,passenger_onboard&filters[rider][id][$eq]=me&sort=createdAt:desc&pagination[limit]=1&populate=*'
+  //       );
         
-        // Extract first item if array
-        if (response.data?.data && Array.isArray(response.data.data)) {
-          response.data = response.data.data[0] || null;
-        } else if (Array.isArray(response.data)) {
-          response.data = response.data[0] || null;
-        }
-      }
+  //       // Extract first item if array
+  //       if (response.data?.data && Array.isArray(response.data.data)) {
+  //         response.data = response.data.data[0] || null;
+  //       } else if (Array.isArray(response.data)) {
+  //         response.data = response.data[0] || null;
+  //       }
+  //     }
       
-      return {
-        success: true,
-        data: response.data?.data || response.data || null,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.message || error.message || 'Failed to fetch active ride',
-      };
-    }
+  //     return {
+  //       success: true,
+  //       data: response.data?.data || response.data || null,
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       error: error.response?.message || error.message || 'Failed to fetch active ride',
+  //     };
+  //   }
+  // }
+  // Get active ride
+async getActiveRide() {
+  try {
+    const response = await apiClient.get('/rides/active');
+    return {
+      success: true,
+      data: response.data || null,
+      userRole: response.userRole || null,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message || 'Failed to fetch active ride',
+      data: null,
+    };
   }
+}
 
   // ============================================
   // Get Ride History
   // ============================================
-  async getRideHistory(params = {}) {
-    /*
-      GET /rides?filters[rider][id][$eq]=userId&sort=createdAt:desc
+  // async getRideHistory(params = {}) {
+  //   /*
+  //     GET /rides?filters[rider][id][$eq]=userId&sort=createdAt:desc
       
-      Returns: {
-        data: [ { ride1 }, { ride2 }, ... ],
-        meta: {
-          pagination: {
-            page: 1,
-            pageSize: 20,
-            pageCount: 5,
-            total: 100
-          }
-        }
-      }
-    */
+  //     Returns: {
+  //       data: [ { ride1 }, { ride2 }, ... ],
+  //       meta: {
+  //         pagination: {
+  //           page: 1,
+  //           pageSize: 20,
+  //           pageCount: 5,
+  //           total: 100
+  //         }
+  //       }
+  //     }
+  //   */
     
-    const { 
-      page = 1, 
-      limit = 20, 
-      pageSize = 20,
-      status, 
-      fromDate,
-      toDate,
-      sort = 'createdAt:desc' 
-    } = params;
+  //   const { 
+  //     page = 1, 
+  //     limit = 20, 
+  //     pageSize = 20,
+  //     rideStatus, 
+  //     fromDate,
+  //     toDate,
+  //     sort = 'createdAt:desc' 
+  //   } = params;
     
-    try {
-      const queryParams = new URLSearchParams({
-        'pagination[page]': page,
-        'pagination[pageSize]': limit || pageSize,
-        'sort': sort,
-        'populate': 'driver,vehicle,rideClass',
-      });
+  //   try {
+  //     const queryParams = new URLSearchParams({
+  //       'pagination[page]': page,
+  //       'pagination[pageSize]': limit || pageSize,
+  //       'sort': sort,
+  //       'populate': 'driver,vehicle,rideClass',
+  //     });
       
-      // Add filters
-      if (status) {
-        queryParams.append('filters[status][$eq]', status);
-      }
-      if (fromDate) {
-        queryParams.append('filters[createdAt][$gte]', fromDate);
-      }
-      if (toDate) {
-        queryParams.append('filters[createdAt][$lte]', toDate);
-      }
+  //     // Add filters
+  //     if (rideStatus) {
+  //       queryParams.append('filters[rideStatus][$eq]', rideStatus);
+  //     }
+  //     if (fromDate) {
+  //       queryParams.append('filters[createdAt][$gte]', fromDate);
+  //     }
+  //     if (toDate) {
+  //       queryParams.append('filters[createdAt][$lte]', toDate);
+  //     }
       
-      const response = await apiClient.get(`/rides?${queryParams.toString()}`);
+  //     const response = await apiClient.get(`/rides?${queryParams.toString()}`);
       
-      return {
-        success: true,
-        data: response.data?.data || response.data || [],
-        meta: response.data?.meta || response.meta,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.message || error.message || 'Failed to fetch ride history',
-      };
+  //     return {
+  //       success: true,
+  //       data: response.data?.data || response.data || [],
+  //       meta: response.data?.meta || response.meta,
+  //     };
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       error: error.response?.message || error.message || 'Failed to fetch ride history',
+  //     };
+  //   }
+  // }
+  // ============================================
+// Get Ride History
+// ============================================
+// async getRideHistory(params = {}) {
+//   /*
+//   GET /rides?filters[rider][id][$eq]=userId&sort=createdAt:desc
+//   Returns: {
+//     data: [{ ride1 }, { ride2 }, ...],
+//     meta: {
+//       pagination: {
+//         page: 1,
+//         pageSize: 20,
+//         pageCount: 5,
+//         total: 100
+//       }
+//     }
+//   }
+//   */
+//   const {
+//     page = 1,
+//     limit = 20,
+//     pageSize = 20,
+//     rideStatus, // CHANGED from 'status'
+//     fromDate,
+//     toDate,
+//     sort = 'createdAt:desc'
+//   } = params;
+
+//   try {
+//     const queryParams = new URLSearchParams({
+//       'pagination[page]': page,
+//       'pagination[pageSize]': limit || pageSize,
+//       'sort': sort,
+//     });
+
+//     // Build populate parameter correctly for Strapi
+//     // Use object notation for better control
+//     const populate = {
+//       driver: {
+//         populate: {
+//           driverProfile: {
+//             fields: ['averageRating', 'totalRatings', 'completedRides']
+//           }
+//         },
+//         fields: ['id', 'firstName', 'lastName', 'phoneNumber', 'profilePicture']
+//       },
+//       vehicle: {
+//         fields: ['id', 'numberPlate', 'make', 'model', 'color', 'vehicleType']
+//       },
+//       rideClass: {
+//         fields: ['id', 'name', 'description']
+//       },
+//       taxiType: {
+//         fields: ['id', 'name']
+//       }
+//     };
+
+//     queryParams.append('populate', JSON.stringify(populate));
+
+//     // Add filters
+//     if (rideStatus) {
+//       queryParams.append('filters[rideStatus][$eq]', rideStatus);
+//     }
+//     if (fromDate) {
+//       queryParams.append('filters[createdAt][$gte]', fromDate);
+//     }
+//     if (toDate) {
+//       queryParams.append('filters[createdAt][$lte]', toDate);
+//     }
+
+//     const response = await apiClient.get(`/rides?${queryParams.toString()}`);
+
+//     return {
+//       success: true,
+//       data: response.data?.data || response.data || [],
+//       meta: response.data?.meta || response.meta,
+//     };
+//   } catch (error) {
+//     console.error('getRideHistory error:', error);
+//     return {
+//       success: false,
+//       error: error.response?.message || error.message || 'Failed to fetch ride history',
+//       data: [],
+//       meta: null,
+//     };
+//   }
+// }
+
+// ============================================
+// Get Ride History
+// ============================================
+async getRideHistory(params = {}) {
+  const {
+    page = 1,
+    limit = 20,
+    pageSize = 20,
+    rideStatus,
+    fromDate,
+    toDate,
+    sort = 'createdAt:desc'
+  } = params;
+
+  try {
+    const queryParams = new URLSearchParams({
+      'pagination[page]': page,
+      'pagination[pageSize]': limit || pageSize,
+      'sort': sort,
+    });
+
+    // Strapi v5 populate syntax - use array notation
+    queryParams.append('populate[0]', 'driver');
+    queryParams.append('populate[1]', 'vehicle');
+    queryParams.append('populate[2]', 'rideClass');
+    queryParams.append('populate[3]', 'taxiType');
+    queryParams.append('populate[4]', 'rider');
+    queryParams.append('populate[driver][populate][0]', 'driverProfile');
+    queryParams.append('populate[rider][populate][0]', 'riderProfile');
+
+    // Add filters
+    if (rideStatus) {
+      queryParams.append('filters[rideStatus][$eq]', rideStatus);
     }
+    if (fromDate) {
+      queryParams.append('filters[createdAt][$gte]', fromDate);
+    }
+    if (toDate) {
+      queryParams.append('filters[createdAt][$lte]', toDate);
+    }
+
+    const response = await apiClient.get(`/rides?${queryParams.toString()}`);
+
+    return {
+      success: true,
+      data: response.data?.data || response.data || [],
+      meta: response.data?.meta || response.meta,
+    };
+  } catch (error) {
+    console.error('getRideHistory error:', error);
+    return {
+      success: false,
+      error: error.response?.message || error.message || 'Failed to fetch ride history',
+      data: [],
+      meta: null,
+    };
   }
+}
 
   // Alias for getRideHistory
   async getMyRides(params = {}) {
@@ -865,7 +1028,7 @@ class RideAPI {
         description: 'Detailed description',
         attachments: ['photo1.jpg', 'photo2.jpg'],
         priority: 'high',
-        status: 'open'
+        ticketStatus: 'open'
       }
       
       Returns: Created support ticket
@@ -882,7 +1045,7 @@ class RideAPI {
           description,
           attachments: photos,
           priority: 'high',
-          status: 'open',
+          ticketStatus: 'open',
         },
       });
       
@@ -948,6 +1111,48 @@ class RideAPI {
         success: false,
         error: error.response?.message || error.message || 'Failed to share tracking link',
       };
+    }
+  }
+  async cleanTempBlocks() {
+    try {
+      const response = await apiClient.post('/rider/clean-temp-blocks');
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('Clean temp blocks error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Block a driver permanently
+  async blockDriver(driverId) {
+    try {
+      const response = await apiClient.post('/rider/block-driver', { driverId });
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('Block driver error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Unblock a driver
+  async unblockDriver(driverId) {
+    try {
+      const response = await apiClient.post('/rider/unblock-driver', { driverId });
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('Unblock driver error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Get all blocked drivers
+  async getBlockedDrivers() {
+    try {
+      const response = await apiClient.get('/rider/blocked-drivers');
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('Get blocked drivers error:', error);
+      return { success: false, error: error.message };
     }
   }
 }
