@@ -553,3 +553,867 @@
 {"level":"info","message":"New connection: UqBcDWGmkf1ntmuqAAE6","timestamp":"2026-01-12T02:01:07.282Z"}
 {"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"UqBcDWGmkf1ntmuqAAE6","timestamp":"2026-01-12T02:01:07.289Z"}
 {"level":"info","message":"New connection: XLk3OG1eBWcVJc4PAAE8","timestamp":"2026-01-12T02:03:02.536Z"}
+{"level":"info","message":"New connection: nv2jqr-VzDV6eHeRAAE-","timestamp":"2026-01-12T02:54:45.254Z"}
+{"level":"info","message":"Socket disconnected: UqBcDWGmkf1ntmuqAAE6","reason":"transport close","timestamp":"2026-01-12T02:56:08.212Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T02:56:08.220Z"}
+{"level":"info","message":"New connection: i2RtcJWzaJZLBlRhAAFA","timestamp":"2026-01-12T02:56:21.668Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"i2RtcJWzaJZLBlRhAAFA","timestamp":"2026-01-12T02:56:21.710Z"}
+{"level":"info","message":"Socket disconnected: i2RtcJWzaJZLBlRhAAFA","reason":"client namespace disconnect","timestamp":"2026-01-12T02:56:21.713Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T02:56:21.715Z"}
+{"level":"info","message":"New connection: sHYiN0ummcxexH0AAAFC","timestamp":"2026-01-12T02:56:21.806Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"sHYiN0ummcxexH0AAAFC","timestamp":"2026-01-12T02:56:21.831Z"}
+{"level":"info","message":"New connection: 3XPfZroFALIDihldAAFE","timestamp":"2026-01-12T03:12:24.002Z"}
+{"level":"info","message":"Socket disconnected: sHYiN0ummcxexH0AAAFC","reason":"transport close","timestamp":"2026-01-12T03:13:01.320Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:13:01.322Z"}
+{"level":"info","message":"New connection: TBCGiwSBIwrX8uAPAAFG","timestamp":"2026-01-12T03:13:03.538Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"TBCGiwSBIwrX8uAPAAFG","timestamp":"2026-01-12T03:13:03.553Z"}
+{"level":"info","message":"Socket disconnected: TBCGiwSBIwrX8uAPAAFG","reason":"client namespace disconnect","timestamp":"2026-01-12T03:13:03.554Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:13:03.555Z"}
+{"level":"info","message":"New connection: Ucnm8wYY05e_d8uMAAFI","timestamp":"2026-01-12T03:13:03.570Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"Ucnm8wYY05e_d8uMAAFI","timestamp":"2026-01-12T03:13:03.580Z"}
+{"level":"info","message":"New connection: rF3taRQPWOmpPy_MAAFK","timestamp":"2026-01-12T03:17:03.989Z"}
+{"level":"info","message":"Socket disconnected: Ucnm8wYY05e_d8uMAAFI","reason":"transport close","timestamp":"2026-01-12T03:18:47.735Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:18:47.736Z"}
+{"level":"info","message":"New connection: mdpLpvULyDQ6QEuYAAFM","timestamp":"2026-01-12T03:18:50.717Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"mdpLpvULyDQ6QEuYAAFM","timestamp":"2026-01-12T03:18:50.745Z"}
+{"level":"info","message":"Socket disconnected: mdpLpvULyDQ6QEuYAAFM","reason":"client namespace disconnect","timestamp":"2026-01-12T03:18:50.747Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:18:50.748Z"}
+{"level":"info","message":"New connection: i05CT3Pb_nJCcSHMAAFO","timestamp":"2026-01-12T03:18:50.773Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"i05CT3Pb_nJCcSHMAAFO","timestamp":"2026-01-12T03:18:50.775Z"}
+{"level":"info","message":"Socket disconnected: i05CT3Pb_nJCcSHMAAFO","reason":"client namespace disconnect","timestamp":"2026-01-12T03:19:13.701Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:19:13.702Z"}
+{"level":"info","message":"New connection: fOMfW18xuT_Ksv3YAAFQ","timestamp":"2026-01-12T03:23:59.322Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"fOMfW18xuT_Ksv3YAAFQ","timestamp":"2026-01-12T03:23:59.369Z"}
+{"level":"info","message":"Socket disconnected: fOMfW18xuT_Ksv3YAAFQ","reason":"client namespace disconnect","timestamp":"2026-01-12T03:23:59.373Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:23:59.373Z"}
+{"level":"info","message":"New connection: gMV6XNyaMGMj8XJcAAFV","timestamp":"2026-01-12T03:35:40.448Z"}
+{"level":"info","message":"New connection: Lis8_b95dqX12z_oAAFX","timestamp":"2026-01-12T03:38:14.919Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"Lis8_b95dqX12z_oAAFX","timestamp":"2026-01-12T03:38:14.936Z"}
+{"level":"info","message":"Socket disconnected: Lis8_b95dqX12z_oAAFX","reason":"transport close","timestamp":"2026-01-12T03:38:28.353Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:38:28.354Z"}
+{"level":"info","message":"New connection: XltGvfMGR6yX74dPAAFZ","timestamp":"2026-01-12T03:38:31.354Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"XltGvfMGR6yX74dPAAFZ","timestamp":"2026-01-12T03:38:31.551Z"}
+{"level":"info","message":"Socket disconnected: XltGvfMGR6yX74dPAAFZ","reason":"client namespace disconnect","timestamp":"2026-01-12T03:38:31.589Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:38:31.593Z"}
+{"level":"info","message":"New connection: 1z7cp48yki5WgI1aAAFb","timestamp":"2026-01-12T03:38:31.743Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"1z7cp48yki5WgI1aAAFb","timestamp":"2026-01-12T03:38:31.800Z"}
+{"level":"info","message":"Socket disconnected: 1z7cp48yki5WgI1aAAFb","reason":"transport close","timestamp":"2026-01-12T03:41:25.445Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:41:25.447Z"}
+{"level":"info","message":"New connection: BBUNpAxSwvi7z3ulAAFd","timestamp":"2026-01-12T03:41:26.943Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"BBUNpAxSwvi7z3ulAAFd","timestamp":"2026-01-12T03:41:26.945Z"}
+{"level":"info","message":"Socket disconnected: BBUNpAxSwvi7z3ulAAFd","reason":"client namespace disconnect","timestamp":"2026-01-12T03:41:26.996Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:41:26.996Z"}
+{"level":"info","message":"New connection: cF2a28Kl4zj-V5wbAAFf","timestamp":"2026-01-12T03:41:27.004Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"cF2a28Kl4zj-V5wbAAFf","timestamp":"2026-01-12T03:41:27.005Z"}
+{"level":"info","message":"Socket disconnected: cF2a28Kl4zj-V5wbAAFf","reason":"transport close","timestamp":"2026-01-12T03:41:31.162Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:41:31.162Z"}
+{"level":"info","message":"New connection: wwfiObPeJf30YjFkAAFh","timestamp":"2026-01-12T03:41:32.747Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"wwfiObPeJf30YjFkAAFh","timestamp":"2026-01-12T03:41:32.752Z"}
+{"level":"info","message":"Socket disconnected: wwfiObPeJf30YjFkAAFh","reason":"client namespace disconnect","timestamp":"2026-01-12T03:41:32.777Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T03:41:32.777Z"}
+{"level":"info","message":"New connection: SJFIaIsxe6etAG5pAAFj","timestamp":"2026-01-12T03:41:32.791Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"SJFIaIsxe6etAG5pAAFj","timestamp":"2026-01-12T03:41:32.792Z"}
+{"level":"info","message":"New ride request: 18","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T03:54:44.608Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T03:54:44.644Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"F8R6+88P, Lusaka, Zambia","lat":-15.5091681,"lng":28.3108262,"name":"LILAYI SHOPPING MALL","placeId":"ChIJ97XPlUyTQBkRWU8pwtXtztU"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T03:54:44.649Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T03:54:44.847Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":18,"timestamp":"2026-01-12T03:54:44.849Z"}
+{"dataKeys":["rideId","cancelledBy","reason","cancellationFee"],"event":"ride:cancelled","level":"info","message":"Emitted 'ride:cancelled' to room 'ride:18'","room":"ride:18","timestamp":"2026-01-12T03:55:43.804Z"}
+{"level":"info","message":"Ride 18 cancelled by rider","reason":"CHANGE_OF_PLANS","timestamp":"2026-01-12T03:55:43.814Z"}
+{"level":"info","message":"Socket disconnected: X9ZfLUwc4bl_7jIHAAEo","reason":"transport close","timestamp":"2026-01-12T04:00:28.686Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:00:28.709Z"}
+{"level":"info","message":"New connection: tmT8knktMeqwsMWoAAFl","timestamp":"2026-01-12T04:00:33.408Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"tmT8knktMeqwsMWoAAFl","timestamp":"2026-01-12T04:00:33.414Z"}
+{"level":"info","message":"Socket disconnected: tmT8knktMeqwsMWoAAFl","reason":"client namespace disconnect","timestamp":"2026-01-12T04:00:33.497Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:00:33.498Z"}
+{"level":"info","message":"New connection: L0WXfj-X-LErEo6HAAFn","timestamp":"2026-01-12T04:00:33.531Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"L0WXfj-X-LErEo6HAAFn","timestamp":"2026-01-12T04:00:33.534Z"}
+{"level":"info","message":"Socket disconnected: L0WXfj-X-LErEo6HAAFn","reason":"client namespace disconnect","timestamp":"2026-01-12T04:00:33.714Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:00:33.715Z"}
+{"level":"info","message":"New connection: UFN0J68ozQVX2u5FAAFp","timestamp":"2026-01-12T04:02:14.630Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"UFN0J68ozQVX2u5FAAFp","timestamp":"2026-01-12T04:02:14.636Z"}
+{"level":"info","message":"Socket disconnected: UFN0J68ozQVX2u5FAAFp","reason":"client namespace disconnect","timestamp":"2026-01-12T04:02:14.681Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:02:14.682Z"}
+{"level":"info","message":"New connection: kYqYwhSweXo6HTx5AAFr","timestamp":"2026-01-12T04:02:14.691Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"kYqYwhSweXo6HTx5AAFr","timestamp":"2026-01-12T04:02:14.693Z"}
+{"level":"info","message":"Socket disconnected: kYqYwhSweXo6HTx5AAFr","reason":"client namespace disconnect","timestamp":"2026-01-12T04:02:14.778Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:02:14.778Z"}
+{"level":"info","message":"New connection: qJkGfp3bfs4hT_nAAAFt","timestamp":"2026-01-12T04:02:18.353Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"qJkGfp3bfs4hT_nAAAFt","timestamp":"2026-01-12T04:02:18.358Z"}
+{"level":"info","message":"Socket disconnected: qJkGfp3bfs4hT_nAAAFt","reason":"client namespace disconnect","timestamp":"2026-01-12T04:02:18.381Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:02:18.382Z"}
+{"level":"info","message":"New connection: h5xR6Wk_v8VevUOCAAFv","timestamp":"2026-01-12T04:02:18.398Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"h5xR6Wk_v8VevUOCAAFv","timestamp":"2026-01-12T04:02:18.400Z"}
+{"level":"info","message":"Socket disconnected: h5xR6Wk_v8VevUOCAAFv","reason":"client namespace disconnect","timestamp":"2026-01-12T04:02:18.558Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:02:18.558Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T04:08:12.261Z"}
+{"level":"info","message":"New connection: 8qKtk1bj2Sj3WLSbAAFx","timestamp":"2026-01-12T04:10:38.676Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"8qKtk1bj2Sj3WLSbAAFx","timestamp":"2026-01-12T04:10:38.690Z"}
+{"level":"info","message":"Socket disconnected: 8qKtk1bj2Sj3WLSbAAFx","reason":"client namespace disconnect","timestamp":"2026-01-12T04:10:38.695Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:10:38.699Z"}
+{"level":"info","message":"New connection: rVJXuoqEAVZgL9TaAAFz","timestamp":"2026-01-12T04:10:38.715Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"rVJXuoqEAVZgL9TaAAFz","timestamp":"2026-01-12T04:10:38.719Z"}
+{"level":"info","message":"Socket disconnected: rVJXuoqEAVZgL9TaAAFz","reason":"client namespace disconnect","timestamp":"2026-01-12T04:10:38.808Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:10:38.809Z"}
+{"level":"info","message":"New connection: 4fUAQXX95hgRGmeVAAF1","timestamp":"2026-01-12T04:13:31.267Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"4fUAQXX95hgRGmeVAAF1","timestamp":"2026-01-12T04:13:31.308Z"}
+{"level":"info","message":"Socket disconnected: 4fUAQXX95hgRGmeVAAF1","reason":"client namespace disconnect","timestamp":"2026-01-12T04:13:31.427Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:13:31.428Z"}
+{"level":"info","message":"New connection: ztP1p_WCD0nZTGVKAAF3","timestamp":"2026-01-12T04:13:31.444Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"ztP1p_WCD0nZTGVKAAF3","timestamp":"2026-01-12T04:13:31.449Z"}
+{"level":"info","message":"Socket disconnected: ztP1p_WCD0nZTGVKAAF3","reason":"transport close","timestamp":"2026-01-12T04:13:57.131Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:13:57.132Z"}
+{"level":"info","message":"New connection: 6BSuMQFn3ydU0mHmAAF5","timestamp":"2026-01-12T04:13:58.355Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"6BSuMQFn3ydU0mHmAAF5","timestamp":"2026-01-12T04:13:58.356Z"}
+{"level":"info","message":"Socket disconnected: 6BSuMQFn3ydU0mHmAAF5","reason":"client namespace disconnect","timestamp":"2026-01-12T04:13:58.411Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:13:58.411Z"}
+{"level":"info","message":"New connection: UDfOYcQ9rnmCbjAdAAF7","timestamp":"2026-01-12T04:13:58.419Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"UDfOYcQ9rnmCbjAdAAF7","timestamp":"2026-01-12T04:13:58.421Z"}
+{"level":"info","message":"Socket disconnected: UDfOYcQ9rnmCbjAdAAF7","reason":"transport close","timestamp":"2026-01-12T04:14:59.480Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:14:59.481Z"}
+{"level":"info","message":"New connection: YSck8EQpJz4A4dZMAAF9","timestamp":"2026-01-12T04:15:01.170Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"YSck8EQpJz4A4dZMAAF9","timestamp":"2026-01-12T04:15:01.177Z"}
+{"level":"info","message":"Socket disconnected: YSck8EQpJz4A4dZMAAF9","reason":"client namespace disconnect","timestamp":"2026-01-12T04:15:01.188Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:15:01.189Z"}
+{"level":"info","message":"New connection: yNZ_sdREizhzOHO_AAF_","timestamp":"2026-01-12T04:15:01.213Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"yNZ_sdREizhzOHO_AAF_","timestamp":"2026-01-12T04:15:01.219Z"}
+{"level":"info","message":"Socket disconnected: yNZ_sdREizhzOHO_AAF_","reason":"transport close","timestamp":"2026-01-12T04:15:45.499Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:15:45.499Z"}
+{"level":"info","message":"New connection: zPZCdGAYJs17gbOuAAGB","timestamp":"2026-01-12T04:15:46.354Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"zPZCdGAYJs17gbOuAAGB","timestamp":"2026-01-12T04:15:46.357Z"}
+{"level":"info","message":"Socket disconnected: zPZCdGAYJs17gbOuAAGB","reason":"client namespace disconnect","timestamp":"2026-01-12T04:15:46.406Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:15:46.407Z"}
+{"level":"info","message":"New connection: 2bN_xiVPVLaoJUWhAAGD","timestamp":"2026-01-12T04:15:46.417Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"2bN_xiVPVLaoJUWhAAGD","timestamp":"2026-01-12T04:15:46.418Z"}
+{"level":"info","message":"Socket disconnected: 2bN_xiVPVLaoJUWhAAGD","reason":"transport close","timestamp":"2026-01-12T04:15:48.897Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:15:48.897Z"}
+{"level":"info","message":"New connection: uJUxUnJwWSHfGWFyAAGF","timestamp":"2026-01-12T04:15:50.125Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"uJUxUnJwWSHfGWFyAAGF","timestamp":"2026-01-12T04:15:50.164Z"}
+{"level":"info","message":"Socket disconnected: uJUxUnJwWSHfGWFyAAGF","reason":"client namespace disconnect","timestamp":"2026-01-12T04:15:50.166Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:15:50.166Z"}
+{"level":"info","message":"New connection: rP9uMojBZMsffkiBAAGH","timestamp":"2026-01-12T04:15:50.188Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"rP9uMojBZMsffkiBAAGH","timestamp":"2026-01-12T04:15:50.217Z"}
+{"level":"info","message":"Socket disconnected: SJFIaIsxe6etAG5pAAFj","reason":"client namespace disconnect","timestamp":"2026-01-12T04:17:21.360Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T04:17:21.363Z"}
+{"level":"info","message":"New connection: FjQ60dGHP8YbGfDzAAGJ","timestamp":"2026-01-12T04:18:06.217Z"}
+{"level":"info","message":"Socket disconnected: FjQ60dGHP8YbGfDzAAGJ","reason":"transport close","timestamp":"2026-01-12T04:18:06.221Z"}
+{"level":"info","message":"New connection: 4cGeMWQvLjW8qAvPAAGL","timestamp":"2026-01-12T04:18:06.228Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"4cGeMWQvLjW8qAvPAAGL","timestamp":"2026-01-12T04:18:06.235Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T04:21:12.340Z"}
+{"level":"info","message":"New ride request: 19","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T04:23:15.445Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T04:23:15.454Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"F8R6+88P, Lusaka, Zambia","lat":-15.5091681,"lng":28.3108262,"name":"LILAYI SHOPPING MALL","placeId":"ChIJ97XPlUyTQBkRWU8pwtXtztU"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T04:23:15.455Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T04:23:15.529Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":19,"timestamp":"2026-01-12T04:23:15.531Z"}
+{"level":"info","message":"Socket disconnected: rP9uMojBZMsffkiBAAGH","reason":"transport close","timestamp":"2026-01-12T04:23:39.347Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:23:39.348Z"}
+{"level":"info","message":"New connection: k4ycfTfwmiE1Syj_AAGN","timestamp":"2026-01-12T04:23:42.792Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"k4ycfTfwmiE1Syj_AAGN","timestamp":"2026-01-12T04:23:42.885Z"}
+{"level":"info","message":"Socket disconnected: k4ycfTfwmiE1Syj_AAGN","reason":"client namespace disconnect","timestamp":"2026-01-12T04:23:42.888Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:23:42.888Z"}
+{"level":"info","message":"New connection: Yjc5eetO47lUJGwQAAGP","timestamp":"2026-01-12T04:23:43.006Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"Yjc5eetO47lUJGwQAAGP","timestamp":"2026-01-12T04:23:43.092Z"}
+{"level":"info","message":"Socket disconnected: Yjc5eetO47lUJGwQAAGP","reason":"client namespace disconnect","timestamp":"2026-01-12T04:26:29.184Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:26:29.185Z"}
+{"level":"info","message":"New connection: Hi82OW15wrDgqXllAAGR","timestamp":"2026-01-12T04:26:29.217Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":false,"isOnline":false,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"Hi82OW15wrDgqXllAAGR","timestamp":"2026-01-12T04:26:29.221Z"}
+{"level":"info","message":"Socket disconnected: Hi82OW15wrDgqXllAAGR","reason":"client namespace disconnect","timestamp":"2026-01-12T04:26:32.340Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:26:32.340Z"}
+{"level":"info","message":"New connection: 1lUwkpM2zcLdIhESAAGT","timestamp":"2026-01-12T04:26:32.376Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"1lUwkpM2zcLdIhESAAGT","timestamp":"2026-01-12T04:26:32.377Z"}
+{"level":"info","message":"Socket disconnected: 1lUwkpM2zcLdIhESAAGT","reason":"client namespace disconnect","timestamp":"2026-01-12T04:26:37.454Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:26:37.454Z"}
+{"level":"info","message":"New connection: tugtlths7uVKCd88AAGV","timestamp":"2026-01-12T04:26:37.492Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":false,"isOnline":false,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"tugtlths7uVKCd88AAGV","timestamp":"2026-01-12T04:26:37.494Z"}
+{"level":"info","message":"Socket disconnected: tugtlths7uVKCd88AAGV","reason":"client namespace disconnect","timestamp":"2026-01-12T04:26:41.320Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:26:41.320Z"}
+{"level":"info","message":"New connection: 6WWuQbtA7E57RRgvAAGX","timestamp":"2026-01-12T04:26:41.365Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"6WWuQbtA7E57RRgvAAGX","timestamp":"2026-01-12T04:26:41.368Z"}
+{"level":"info","message":"New ride request: 20","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T04:30:56.780Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T04:30:56.789Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","distance"],"event":"ride:request:new","level":"info","message":"Emitted 'ride:request:new' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T04:30:56.796Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"F8R6+88P, Lusaka, Zambia","lat":-15.5091681,"lng":28.3108262,"name":"LILAYI SHOPPING MALL","placeId":"ChIJ97XPlUyTQBkRWU8pwtXtztU"},"message":"Broadcast to 1 nearby drivers","radius":10,"timestamp":"2026-01-12T04:30:56.797Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T04:30:56.876Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":20,"timestamp":"2026-01-12T04:30:56.876Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:accepted","level":"info","message":"Emitted 'ride:accepted' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T04:31:12.492Z"}
+{"dataKeys":["rideId"],"event":"ride:taken","level":"info","message":"Emitted 'ride:taken' to room 'ride:20:pending'","room":"ride:20:pending","timestamp":"2026-01-12T04:31:12.493Z"}
+{"level":"info","message":"Ride 20 accepted by driver undefined","timestamp":"2026-01-12T04:31:12.493Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T04:32:12.358Z"}
+{"level":"info","message":"Socket disconnected: 4cGeMWQvLjW8qAvPAAGL","reason":"transport close","timestamp":"2026-01-12T04:43:06.118Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T04:43:06.171Z"}
+{"level":"info","message":"New connection: dRzQfexdKl5jvX_LAAGZ","timestamp":"2026-01-12T04:43:09.371Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"dRzQfexdKl5jvX_LAAGZ","timestamp":"2026-01-12T04:43:09.571Z"}
+{"level":"info","message":"Socket disconnected: dRzQfexdKl5jvX_LAAGZ","reason":"client namespace disconnect","timestamp":"2026-01-12T04:43:09.600Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T04:43:09.601Z"}
+{"level":"info","message":"New connection: P6yD2CZTehw-ukg5AAGb","timestamp":"2026-01-12T04:43:09.936Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"P6yD2CZTehw-ukg5AAGb","timestamp":"2026-01-12T04:43:09.960Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:driver:arrived","level":"info","message":"Emitted 'ride:driver:arrived' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T04:43:25.921Z"}
+{"level":"info","message":"Driver undefined arrived for ride 20","timestamp":"2026-01-12T04:43:25.922Z"}
+{"level":"info","message":"Socket disconnected: 6WWuQbtA7E57RRgvAAGX","reason":"transport close","timestamp":"2026-01-12T04:56:24.075Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:56:24.076Z"}
+{"level":"info","message":"Socket disconnected: P6yD2CZTehw-ukg5AAGb","reason":"transport close","timestamp":"2026-01-12T04:56:24.118Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T04:56:24.118Z"}
+{"level":"info","message":"New connection: 9zpJTQVNJZINfEfMAAGd","timestamp":"2026-01-12T04:59:11.766Z"}
+{"level":"info","message":"Socket disconnected: 9zpJTQVNJZINfEfMAAGd","reason":"transport close","timestamp":"2026-01-12T04:59:11.783Z"}
+{"level":"info","message":"New connection: Hf6SV58THc1q_KzYAAGf","timestamp":"2026-01-12T04:59:11.805Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"Hf6SV58THc1q_KzYAAGf","timestamp":"2026-01-12T04:59:11.814Z"}
+{"level":"info","message":"New connection: fsJnfkabP6_GQSS6AAGh","timestamp":"2026-01-12T04:59:22.414Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"fsJnfkabP6_GQSS6AAGh","timestamp":"2026-01-12T04:59:22.422Z"}
+{"level":"info","message":"Socket disconnected: fsJnfkabP6_GQSS6AAGh","reason":"client namespace disconnect","timestamp":"2026-01-12T04:59:22.454Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T04:59:22.455Z"}
+{"level":"info","message":"New connection: OmSoPc5ACqWWT18tAAGj","timestamp":"2026-01-12T04:59:22.478Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"OmSoPc5ACqWWT18tAAGj","timestamp":"2026-01-12T04:59:22.480Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:04:14.878Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:04:14.878Z"}
+{"level":"info","message":"Trip started for ride 20","timestamp":"2026-01-12T05:04:14.878Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T05:05:12.439Z"}
+{"level":"info","message":"Socket disconnected: OmSoPc5ACqWWT18tAAGj","reason":"transport close","timestamp":"2026-01-12T05:09:54.023Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T05:09:54.024Z"}
+{"level":"info","message":"New connection: GpLn7C5XZq2Ixm4FAAGl","timestamp":"2026-01-12T05:09:56.928Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":false,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"GpLn7C5XZq2Ixm4FAAGl","timestamp":"2026-01-12T05:09:56.937Z"}
+{"level":"info","message":"Socket disconnected: GpLn7C5XZq2Ixm4FAAGl","reason":"client namespace disconnect","timestamp":"2026-01-12T05:09:57.028Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T05:09:57.032Z"}
+{"level":"info","message":"New connection: CHE2OcXGZzqgqBFJAAGn","timestamp":"2026-01-12T05:09:57.045Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":false,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"CHE2OcXGZzqgqBFJAAGn","timestamp":"2026-01-12T05:09:57.050Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:10:03.007Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:10:03.007Z"}
+{"distance":null,"duration":null,"finalFare":67.42,"level":"info","message":"Trip completed for ride 20","timestamp":"2026-01-12T05:10:03.008Z"}
+{"dataKeys":["rideId","driverId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'rider:undefined'","room":"rider:undefined","timestamp":"2026-01-12T05:10:03.010Z"}
+{"dataKeys":["rideId","riderId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:10:03.010Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'undefined:undefined'","room":"undefined:undefined","timestamp":"2026-01-12T05:10:28.749Z"}
+{"level":"info","message":"New ride request: 21","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T05:13:17.191Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:13:17.191Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"F8R6+88P, Lusaka, Zambia","lat":-15.5091681,"lng":28.3108262,"name":"LILAYI SHOPPING MALL","placeId":"ChIJ97XPlUyTQBkRWU8pwtXtztU"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T05:13:17.192Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T05:13:17.251Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":21,"timestamp":"2026-01-12T05:13:17.251Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:accepted","level":"info","message":"Emitted 'ride:accepted' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:13:34.405Z"}
+{"dataKeys":["rideId"],"event":"ride:taken","level":"info","message":"Emitted 'ride:taken' to room 'ride:21:pending'","room":"ride:21:pending","timestamp":"2026-01-12T05:13:34.406Z"}
+{"level":"info","message":"Ride 21 accepted by driver undefined","timestamp":"2026-01-12T05:13:34.406Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T05:15:12.486Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:driver:arrived","level":"info","message":"Emitted 'ride:driver:arrived' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:19:20.758Z"}
+{"level":"info","message":"Driver undefined arrived for ride 21","timestamp":"2026-01-12T05:19:20.759Z"}
+{"level":"info","message":"Socket disconnected: CHE2OcXGZzqgqBFJAAGn","reason":"transport close","timestamp":"2026-01-12T05:22:14.050Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T05:22:14.050Z"}
+{"level":"info","message":"New connection: qw2dkKXGf485l9grAAGp","timestamp":"2026-01-12T05:22:16.779Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"qw2dkKXGf485l9grAAGp","timestamp":"2026-01-12T05:22:16.784Z"}
+{"level":"info","message":"Socket disconnected: qw2dkKXGf485l9grAAGp","reason":"client namespace disconnect","timestamp":"2026-01-12T05:22:16.880Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T05:22:16.881Z"}
+{"level":"info","message":"New connection: 2X70aimBFWPLwn5hAAGr","timestamp":"2026-01-12T05:22:16.893Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"2X70aimBFWPLwn5hAAGr","timestamp":"2026-01-12T05:22:16.894Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:22:20.770Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:22:20.770Z"}
+{"level":"info","message":"Trip started for ride 21","timestamp":"2026-01-12T05:22:20.772Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:22:38.023Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:22:38.024Z"}
+{"distance":null,"duration":null,"finalFare":106.01,"level":"info","message":"Trip completed for ride 21","timestamp":"2026-01-12T05:22:38.024Z"}
+{"dataKeys":["rideId","driverId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'rider:undefined'","room":"rider:undefined","timestamp":"2026-01-12T05:22:38.026Z"}
+{"dataKeys":["rideId","riderId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:22:38.027Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'undefined:undefined'","room":"undefined:undefined","timestamp":"2026-01-12T05:22:52.006Z"}
+{"level":"info","message":"New ride request: 22","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T05:24:03.440Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:24:03.440Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","distance"],"event":"ride:request:new","level":"info","message":"Emitted 'ride:request:new' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T05:24:03.442Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Broadcast to 1 nearby drivers","radius":10,"timestamp":"2026-01-12T05:24:03.442Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T05:24:03.518Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":22,"timestamp":"2026-01-12T05:24:03.518Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:accepted","level":"info","message":"Emitted 'ride:accepted' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:24:11.493Z"}
+{"dataKeys":["rideId"],"event":"ride:taken","level":"info","message":"Emitted 'ride:taken' to room 'ride:22:pending'","room":"ride:22:pending","timestamp":"2026-01-12T05:24:11.493Z"}
+{"level":"info","message":"Ride 22 accepted by driver undefined","timestamp":"2026-01-12T05:24:11.494Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:driver:arrived","level":"info","message":"Emitted 'ride:driver:arrived' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:25:45.407Z"}
+{"level":"info","message":"Driver undefined arrived for ride 22","timestamp":"2026-01-12T05:25:45.407Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:25:52.280Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:25:52.281Z"}
+{"level":"info","message":"Trip started for ride 22","timestamp":"2026-01-12T05:25:52.281Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:25:56.231Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:25:56.232Z"}
+{"distance":null,"duration":null,"finalFare":125.41,"level":"info","message":"Trip completed for ride 22","timestamp":"2026-01-12T05:25:56.232Z"}
+{"dataKeys":["rideId","driverId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'rider:undefined'","room":"rider:undefined","timestamp":"2026-01-12T05:25:56.233Z"}
+{"dataKeys":["rideId","riderId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:25:56.234Z"}
+{"level":"info","message":"New connection: JT--w7QLE_kzjSeHAAGt","timestamp":"2026-01-12T05:27:50.412Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T05:28:12.580Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'undefined:undefined'","room":"undefined:undefined","timestamp":"2026-01-12T05:29:15.549Z"}
+{"level":"info","message":"New connection: SsszQC_mLuSVDsIDAAGv","timestamp":"2026-01-12T05:37:58.777Z"}
+{"level":"info","message":"New ride request: 23","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T05:43:20.586Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:43:20.590Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Meanwood Ndeke, Lusaka, Zambia","lat":-15.2902729,"lng":28.4206515,"name":"Meanwood Ndeke","placeId":"ChIJAexihGtiQBkRbW9KBoizf6k"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T05:43:20.592Z"}
+{"level":"info","message":"New ride request: 24","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T05:44:00.367Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:44:00.368Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"FCJV+VJ, Lusaka, Zambia","lat":-15.5178571,"lng":28.4440614,"name":"Shantumbu","placeId":"ChIJq9ynduyRQBkRaY-LqKGhKCc"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T05:44:00.368Z"}
+{"level":"info","message":"New ride request: 25","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T05:44:22.171Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:44:22.172Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T05:44:22.172Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T05:44:22.255Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":25,"timestamp":"2026-01-12T05:44:22.256Z"}
+{"level":"info","message":"Socket disconnected: 2X70aimBFWPLwn5hAAGr","reason":"transport close","timestamp":"2026-01-12T05:44:55.948Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T05:44:55.949Z"}
+{"level":"info","message":"New connection: RQvGm6AxR41OXhEJAAGx","timestamp":"2026-01-12T05:44:59.101Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"RQvGm6AxR41OXhEJAAGx","timestamp":"2026-01-12T05:44:59.120Z"}
+{"level":"info","message":"Socket disconnected: RQvGm6AxR41OXhEJAAGx","reason":"client namespace disconnect","timestamp":"2026-01-12T05:44:59.210Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T05:44:59.210Z"}
+{"level":"info","message":"New connection: 0j3To7kAs-xhFIP1AAGz","timestamp":"2026-01-12T05:44:59.269Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"0j3To7kAs-xhFIP1AAGz","timestamp":"2026-01-12T05:44:59.278Z"}
+{"level":"info","message":"New ride request: 26","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T05:45:52.337Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:45:52.337Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","distance"],"event":"ride:request:new","level":"info","message":"Emitted 'ride:request:new' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T05:45:52.339Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Broadcast to 1 nearby drivers","radius":10,"timestamp":"2026-01-12T05:45:52.340Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T05:45:52.439Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":26,"timestamp":"2026-01-12T05:45:52.440Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:accepted","level":"info","message":"Emitted 'ride:accepted' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:45:57.109Z"}
+{"dataKeys":["rideId"],"event":"ride:taken","level":"info","message":"Emitted 'ride:taken' to room 'ride:26:pending'","room":"ride:26:pending","timestamp":"2026-01-12T05:45:57.109Z"}
+{"level":"info","message":"Ride 26 accepted by driver undefined","timestamp":"2026-01-12T05:45:57.110Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:driver:arrived","level":"info","message":"Emitted 'ride:driver:arrived' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:46:07.265Z"}
+{"level":"info","message":"Driver undefined arrived for ride 26","timestamp":"2026-01-12T05:46:07.265Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:46:09.053Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:46:09.054Z"}
+{"level":"info","message":"Trip started for ride 26","timestamp":"2026-01-12T05:46:09.054Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:46:13.968Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:46:13.969Z"}
+{"distance":null,"duration":null,"finalFare":69.96,"level":"info","message":"Trip completed for ride 26","timestamp":"2026-01-12T05:46:13.969Z"}
+{"dataKeys":["rideId","driverId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'rider:undefined'","room":"rider:undefined","timestamp":"2026-01-12T05:46:13.971Z"}
+{"dataKeys":["rideId","riderId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:46:13.972Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'undefined:undefined'","room":"undefined:undefined","timestamp":"2026-01-12T05:46:21.798Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'undefined:undefined'","room":"undefined:undefined","timestamp":"2026-01-12T05:46:21.872Z"}
+{"level":"info","message":"New connection: Fwqz8HVxVYcIkZH8AAG1","timestamp":"2026-01-12T05:50:12.534Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T05:50:12.743Z"}
+{"level":"info","message":"New ride request: 27","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T05:52:52.172Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:52:52.176Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T05:52:52.176Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T05:52:52.295Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":27,"timestamp":"2026-01-12T05:52:52.295Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:accepted","level":"info","message":"Emitted 'ride:accepted' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:52:55.649Z"}
+{"dataKeys":["rideId"],"event":"ride:taken","level":"info","message":"Emitted 'ride:taken' to room 'ride:27:pending'","room":"ride:27:pending","timestamp":"2026-01-12T05:52:55.649Z"}
+{"level":"info","message":"Ride 27 accepted by driver undefined","timestamp":"2026-01-12T05:52:55.649Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:driver:arrived","level":"info","message":"Emitted 'ride:driver:arrived' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:53:05.717Z"}
+{"level":"info","message":"Driver undefined arrived for ride 27","timestamp":"2026-01-12T05:53:05.717Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:53:07.520Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:53:07.521Z"}
+{"level":"info","message":"Trip started for ride 27","timestamp":"2026-01-12T05:53:07.522Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:53:10.659Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:53:10.659Z"}
+{"distance":null,"duration":null,"finalFare":69.96,"level":"info","message":"Trip completed for ride 27","timestamp":"2026-01-12T05:53:10.660Z"}
+{"dataKeys":["rideId","driverId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'rider:undefined'","room":"rider:undefined","timestamp":"2026-01-12T05:53:10.662Z"}
+{"dataKeys":["rideId","riderId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:53:10.664Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'undefined:undefined'","room":"undefined:undefined","timestamp":"2026-01-12T05:53:23.162Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:53:23.182Z"}
+{"level":"info","message":"New ride request: 28","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T05:58:13.013Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:58:13.013Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T05:58:13.014Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T05:58:13.090Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":28,"timestamp":"2026-01-12T05:58:13.091Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:accepted","level":"info","message":"Emitted 'ride:accepted' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:58:32.632Z"}
+{"dataKeys":["rideId"],"event":"ride:taken","level":"info","message":"Emitted 'ride:taken' to room 'ride:28:pending'","room":"ride:28:pending","timestamp":"2026-01-12T05:58:32.632Z"}
+{"level":"info","message":"Ride 28 accepted by driver undefined","timestamp":"2026-01-12T05:58:32.634Z"}
+{"dataKeys":["rideId","driverId"],"event":"ride:driver:arrived","level":"info","message":"Emitted 'ride:driver:arrived' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:58:54.386Z"}
+{"level":"info","message":"Driver undefined arrived for ride 28","timestamp":"2026-01-12T05:58:54.387Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:59:01.693Z"}
+{"dataKeys":["rideId"],"event":"ride:trip:started","level":"info","message":"Emitted 'ride:trip:started' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:59:01.693Z"}
+{"level":"info","message":"Trip started for ride 28","timestamp":"2026-01-12T05:59:01.694Z"}
+{"level":"info","message":"Socket disconnected: Hf6SV58THc1q_KzYAAGf","reason":"transport close","timestamp":"2026-01-12T05:59:29.798Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T05:59:29.806Z"}
+{"level":"info","message":"New connection: vi5UFYEHtP0ETdl-AAG3","timestamp":"2026-01-12T05:59:33.952Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"vi5UFYEHtP0ETdl-AAG3","timestamp":"2026-01-12T05:59:34.063Z"}
+{"level":"info","message":"Socket disconnected: vi5UFYEHtP0ETdl-AAG3","reason":"client namespace disconnect","timestamp":"2026-01-12T05:59:34.087Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T05:59:34.088Z"}
+{"level":"info","message":"New connection: 26iaYtsNCSyeH2nxAAG5","timestamp":"2026-01-12T05:59:34.232Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"26iaYtsNCSyeH2nxAAG5","timestamp":"2026-01-12T05:59:34.283Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:59:43.238Z"}
+{"dataKeys":["rideId","finalFare","distance","duration"],"event":"ride:trip:completed","level":"info","message":"Emitted 'ride:trip:completed' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:59:43.238Z"}
+{"distance":null,"duration":null,"finalFare":55.83,"level":"info","message":"Trip completed for ride 28","timestamp":"2026-01-12T05:59:43.239Z"}
+{"dataKeys":["rideId","driverId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'rider:undefined'","room":"rider:undefined","timestamp":"2026-01-12T05:59:43.244Z"}
+{"dataKeys":["rideId","riderId","ratingType"],"event":"rating:request","level":"info","message":"Emitted 'rating:request' to room 'driver:undefined'","room":"driver:undefined","timestamp":"2026-01-12T05:59:43.244Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'undefined:undefined'","room":"undefined:undefined","timestamp":"2026-01-12T05:59:57.142Z"}
+{"dataKeys":["rideId","rating"],"event":"rating:submitted","level":"info","message":"Emitted 'rating:submitted' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T05:59:57.158Z"}
+{"level":"info","message":"Socket disconnected: 0j3To7kAs-xhFIP1AAGz","reason":"client namespace disconnect","timestamp":"2026-01-12T06:00:12.982Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:00:12.991Z"}
+{"level":"info","message":"New connection: nBRS6bhwSEwBhc7IAAG7","timestamp":"2026-01-12T06:00:13.027Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":false,"isOnline":false,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"nBRS6bhwSEwBhc7IAAG7","timestamp":"2026-01-12T06:00:13.041Z"}
+{"level":"info","message":"Socket disconnected: nBRS6bhwSEwBhc7IAAG7","reason":"client namespace disconnect","timestamp":"2026-01-12T06:00:14.231Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:00:14.232Z"}
+{"level":"info","message":"New connection: ImWF3H1sW4qwv_IUAAG9","timestamp":"2026-01-12T06:00:14.265Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"ImWF3H1sW4qwv_IUAAG9","timestamp":"2026-01-12T06:00:14.266Z"}
+{"level":"info","message":"New ride request: 29","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T06:05:53.003Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T06:05:53.004Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Meanwood Ndeke, Lusaka, Zambia","lat":-15.2902729,"lng":28.4206515,"name":"Meanwood Ndeke","placeId":"ChIJAexihGtiQBkRbW9KBoizf6k"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T06:05:53.005Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T06:06:12.826Z"}
+{"level":"info","message":"New ride request: 30","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T06:06:59.976Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T06:06:59.977Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Lilayi Road, Lilayi 10101, Zambia","lat":-15.541294,"lng":28.3379252,"name":"Lilayi Lodge","placeId":"ChIJFTmLaASTQBkRxAjcnsN0VdQ"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-12T06:06:59.978Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T06:07:00.038Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":30,"timestamp":"2026-01-12T06:07:00.048Z"}
+{"level":"info","message":"Socket disconnected: ImWF3H1sW4qwv_IUAAG9","reason":"transport close","timestamp":"2026-01-12T06:07:19.686Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:07:19.687Z"}
+{"level":"info","message":"New connection: ma7D2GK0gO6ycANSAAG_","timestamp":"2026-01-12T06:07:23.343Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"ma7D2GK0gO6ycANSAAG_","timestamp":"2026-01-12T06:07:23.457Z"}
+{"level":"info","message":"Socket disconnected: ma7D2GK0gO6ycANSAAG_","reason":"client namespace disconnect","timestamp":"2026-01-12T06:07:23.475Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:07:23.476Z"}
+{"level":"info","message":"New connection: CT69KW6uaXIMKbV1AAHB","timestamp":"2026-01-12T06:07:23.563Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"CT69KW6uaXIMKbV1AAHB","timestamp":"2026-01-12T06:07:23.766Z"}
+{"dataKeys":["rideId","cancelledBy","reason","cancellationFee"],"event":"ride:cancelled","level":"info","message":"Emitted 'ride:cancelled' to room 'ride:30'","room":"ride:30","timestamp":"2026-01-12T06:07:27.516Z"}
+{"level":"info","message":"Ride 30 cancelled by rider","reason":"CHANGE_OF_PLANS","timestamp":"2026-01-12T06:07:27.516Z"}
+{"level":"info","message":"New ride request: 31","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-12T06:07:57.397Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-12T06:07:57.398Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","distance"],"event":"ride:request:new","level":"info","message":"Emitted 'ride:request:new' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T06:07:57.398Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"F8R6+88P, Lusaka, Zambia","lat":-15.5091681,"lng":28.3108262,"name":"LILAYI SHOPPING MALL","placeId":"ChIJ97XPlUyTQBkRWU8pwtXtztU"},"message":"Broadcast to 1 nearby drivers","radius":10,"timestamp":"2026-01-12T06:07:57.399Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-12T06:07:57.502Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":31,"timestamp":"2026-01-12T06:07:57.503Z"}
+{"level":"info","message":"Driver undefined declined ride 31","reason":"Driver declined","timestamp":"2026-01-12T06:08:19.953Z"}
+{"level":"info","message":"Socket disconnected: CT69KW6uaXIMKbV1AAHB","reason":"transport close","timestamp":"2026-01-12T06:11:04.988Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:11:04.989Z"}
+{"level":"info","message":"New connection: 575h7Kmw02q82vZJAAHD","timestamp":"2026-01-12T06:11:06.152Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"575h7Kmw02q82vZJAAHD","timestamp":"2026-01-12T06:11:06.158Z"}
+{"level":"info","message":"Socket disconnected: 575h7Kmw02q82vZJAAHD","reason":"client namespace disconnect","timestamp":"2026-01-12T06:11:06.227Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:11:06.227Z"}
+{"level":"info","message":"New connection: 9YdvDBb9DwEaeBNsAAHF","timestamp":"2026-01-12T06:11:06.235Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"9YdvDBb9DwEaeBNsAAHF","timestamp":"2026-01-12T06:11:06.237Z"}
+{"level":"info","message":"Socket disconnected: 9YdvDBb9DwEaeBNsAAHF","reason":"transport close","timestamp":"2026-01-12T06:11:11.331Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:11:11.331Z"}
+{"level":"info","message":"New connection: rhQGR3-YJFJDrDSXAAHH","timestamp":"2026-01-12T06:11:13.026Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"rhQGR3-YJFJDrDSXAAHH","timestamp":"2026-01-12T06:11:13.077Z"}
+{"level":"info","message":"Socket disconnected: rhQGR3-YJFJDrDSXAAHH","reason":"client namespace disconnect","timestamp":"2026-01-12T06:11:13.080Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:11:13.081Z"}
+{"level":"info","message":"New connection: gDllZm-fqKDOOcDgAAHJ","timestamp":"2026-01-12T06:11:13.129Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"gDllZm-fqKDOOcDgAAHJ","timestamp":"2026-01-12T06:11:13.165Z"}
+{"level":"info","message":"Socket disconnected: 26iaYtsNCSyeH2nxAAG5","reason":"transport close","timestamp":"2026-01-12T06:12:16.861Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T06:12:16.861Z"}
+{"level":"info","message":"New connection: gjEOMARekMvSAj3bAAHL","timestamp":"2026-01-12T06:12:18.387Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"gjEOMARekMvSAj3bAAHL","timestamp":"2026-01-12T06:12:18.391Z"}
+{"level":"info","message":"Socket disconnected: gjEOMARekMvSAj3bAAHL","reason":"client namespace disconnect","timestamp":"2026-01-12T06:12:18.440Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T06:12:18.440Z"}
+{"level":"info","message":"New connection: kJHFKCEtwP3ojLcVAAHN","timestamp":"2026-01-12T06:12:18.447Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"kJHFKCEtwP3ojLcVAAHN","timestamp":"2026-01-12T06:12:18.448Z"}
+{"level":"info","message":"Socket disconnected: kJHFKCEtwP3ojLcVAAHN","reason":"transport close","timestamp":"2026-01-12T06:12:19.328Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T06:12:19.328Z"}
+{"level":"info","message":"New connection: lSnc1zqIQ5UE6YDhAAHQ","timestamp":"2026-01-12T06:12:21.600Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"lSnc1zqIQ5UE6YDhAAHQ","timestamp":"2026-01-12T06:12:21.606Z"}
+{"level":"info","message":"Socket disconnected: lSnc1zqIQ5UE6YDhAAHQ","reason":"transport close","timestamp":"2026-01-12T06:15:05.402Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T06:15:05.403Z"}
+{"level":"info","message":"New connection: lMC8sMZcjDmTgLDGAAHS","timestamp":"2026-01-12T06:15:06.770Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"lMC8sMZcjDmTgLDGAAHS","timestamp":"2026-01-12T06:15:06.773Z"}
+{"level":"info","message":"Socket disconnected: lMC8sMZcjDmTgLDGAAHS","reason":"client namespace disconnect","timestamp":"2026-01-12T06:15:06.840Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T06:15:06.840Z"}
+{"level":"info","message":"New connection: IToS-gfoXPba43xjAAHU","timestamp":"2026-01-12T06:15:06.853Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"IToS-gfoXPba43xjAAHU","timestamp":"2026-01-12T06:15:06.854Z"}
+{"level":"info","message":"Socket disconnected: IToS-gfoXPba43xjAAHU","reason":"transport close","timestamp":"2026-01-12T06:15:07.917Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T06:15:07.918Z"}
+{"level":"info","message":"New connection: oI0OzJm-Ir8PL__tAAHX","timestamp":"2026-01-12T06:15:09.476Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"oI0OzJm-Ir8PL__tAAHX","timestamp":"2026-01-12T06:15:09.479Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T06:17:12.912Z"}
+{"level":"info","message":"Socket disconnected: gDllZm-fqKDOOcDgAAHJ","reason":"transport close","timestamp":"2026-01-12T06:47:06.938Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T06:47:06.971Z"}
+{"level":"info","message":"Socket disconnected: oI0OzJm-Ir8PL__tAAHX","reason":"transport close","timestamp":"2026-01-12T06:47:06.972Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T06:47:06.986Z"}
+{"level":"info","message":"Socket disconnected: Fwqz8HVxVYcIkZH8AAG1","reason":"transport error","timestamp":"2026-01-12T09:47:11.631Z"}
+{"level":"info","message":"Socket disconnected: 4zeyYJVvU2qwDL6RAACk","reason":"transport close","timestamp":"2026-01-12T09:47:12.032Z"}
+{"level":"info","message":"Socket disconnected: EimGZiR0bYgDUxf9AACg","reason":"transport close","timestamp":"2026-01-12T09:47:12.080Z"}
+{"level":"info","message":"New connection: 1Px9l7d1s2eK6ipnAAHZ","timestamp":"2026-01-12T09:47:12.197Z"}
+{"level":"info","message":"New connection: h0o3Z8LQR-pX4_iFAAHb","timestamp":"2026-01-12T09:47:13.444Z"}
+{"level":"info","message":"New connection: POSrmmw3xUEFElybAAHd","timestamp":"2026-01-12T09:47:13.623Z"}
+{"level":"info","message":"Socket disconnected: 1Px9l7d1s2eK6ipnAAHZ","reason":"transport error","timestamp":"2026-01-12T12:08:07.297Z"}
+{"level":"info","message":"Socket disconnected: POSrmmw3xUEFElybAAHd","reason":"transport close","timestamp":"2026-01-12T12:08:07.906Z"}
+{"level":"info","message":"Socket disconnected: h0o3Z8LQR-pX4_iFAAHb","reason":"transport close","timestamp":"2026-01-12T12:08:08.167Z"}
+{"level":"info","message":"New connection: ecJsFwkK7TlRwHgTAAHf","timestamp":"2026-01-12T12:08:08.802Z"}
+{"level":"info","message":"New connection: CKSsbme8lEB2draVAAHh","timestamp":"2026-01-12T12:08:08.967Z"}
+{"level":"info","message":"New connection: 3LE61t7iS0XvFdRSAAHj","timestamp":"2026-01-12T12:08:09.013Z"}
+{"level":"info","message":"New connection: iIX9zGpCFRMbbrnTAAHm","timestamp":"2026-01-12T12:08:18.829Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"iIX9zGpCFRMbbrnTAAHm","timestamp":"2026-01-12T12:08:18.907Z"}
+{"level":"info","message":"New connection: c52t0oH8-RevEORHAAHn","timestamp":"2026-01-12T12:08:18.915Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"c52t0oH8-RevEORHAAHn","timestamp":"2026-01-12T12:08:18.953Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T12:14:07.346Z"}
+{"level":"info","message":"Socket disconnected: iIX9zGpCFRMbbrnTAAHm","reason":"transport close","timestamp":"2026-01-12T12:31:54.859Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T12:31:54.872Z"}
+{"level":"info","message":"Socket disconnected: c52t0oH8-RevEORHAAHn","reason":"transport close","timestamp":"2026-01-12T12:31:54.875Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T12:31:54.875Z"}
+{"level":"info","message":"Socket disconnected: ecJsFwkK7TlRwHgTAAHf","reason":"transport error","timestamp":"2026-01-12T12:39:18.892Z"}
+{"level":"info","message":"New connection: GMyNnpF9U1yZ6HGPAAHp","timestamp":"2026-01-12T12:39:20.594Z"}
+{"level":"info","message":"New connection: zZN14sGNA5ZZyCqfAAHs","timestamp":"2026-01-12T12:39:28.749Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"zZN14sGNA5ZZyCqfAAHs","timestamp":"2026-01-12T12:39:28.862Z"}
+{"level":"info","message":"New connection: GC13QG0B8VyNfMtnAAHt","timestamp":"2026-01-12T12:39:28.957Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"GC13QG0B8VyNfMtnAAHt","timestamp":"2026-01-12T12:39:28.978Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T12:45:18.911Z"}
+{"level":"info","message":"Socket disconnected: zZN14sGNA5ZZyCqfAAHs","reason":"transport close","timestamp":"2026-01-12T13:34:15.040Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T13:34:15.059Z"}
+{"level":"info","message":"Socket disconnected: GC13QG0B8VyNfMtnAAHt","reason":"transport close","timestamp":"2026-01-12T13:34:15.061Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T13:34:15.061Z"}
+{"level":"info","message":"Socket disconnected: GMyNnpF9U1yZ6HGPAAHp","reason":"transport error","timestamp":"2026-01-12T14:34:28.903Z"}
+{"level":"info","message":"New connection: c-zZql-CilZjwLG-AAHv","timestamp":"2026-01-12T14:34:31.074Z"}
+{"level":"info","message":"New connection: l2mTIgvcqEt2sOwLAAHy","timestamp":"2026-01-12T14:34:41.656Z"}
+{"level":"info","message":"New connection: 0rfgCXqdp77j6T9OAAHz","timestamp":"2026-01-12T14:34:41.699Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"l2mTIgvcqEt2sOwLAAHy","timestamp":"2026-01-12T14:34:41.772Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"0rfgCXqdp77j6T9OAAHz","timestamp":"2026-01-12T14:34:41.795Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T14:40:28.930Z"}
+{"level":"info","message":"Socket disconnected: l2mTIgvcqEt2sOwLAAHy","reason":"transport close","timestamp":"2026-01-12T16:11:24.725Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T16:11:24.735Z"}
+{"level":"info","message":"Socket disconnected: 0rfgCXqdp77j6T9OAAHz","reason":"transport close","timestamp":"2026-01-12T16:11:24.741Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T16:11:24.746Z"}
+{"level":"info","message":"Socket disconnected: c-zZql-CilZjwLG-AAHv","reason":"transport error","timestamp":"2026-01-12T16:21:28.516Z"}
+{"level":"info","message":"New connection: 14vJ3fJyr5P6zqcmAAH1","timestamp":"2026-01-12T16:21:30.020Z"}
+{"level":"info","message":"New connection: HA-wULGpkkaHQUmhAAH4","timestamp":"2026-01-12T16:21:38.589Z"}
+{"level":"info","message":"New connection: ydudjal8fJN-ZsjWAAH5","timestamp":"2026-01-12T16:21:38.641Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"HA-wULGpkkaHQUmhAAH4","timestamp":"2026-01-12T16:21:38.810Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"ydudjal8fJN-ZsjWAAH5","timestamp":"2026-01-12T16:21:38.899Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T16:27:28.130Z"}
+{"level":"info","message":"Socket disconnected: HA-wULGpkkaHQUmhAAH4","reason":"transport close","timestamp":"2026-01-12T16:50:24.220Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T16:50:24.230Z"}
+{"level":"info","message":"Socket disconnected: ydudjal8fJN-ZsjWAAH5","reason":"transport close","timestamp":"2026-01-12T16:50:24.233Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T16:50:24.234Z"}
+{"level":"info","message":"Socket disconnected: 14vJ3fJyr5P6zqcmAAH1","reason":"transport error","timestamp":"2026-01-12T18:03:53.033Z"}
+{"level":"info","message":"New connection: hQ4y7NmopoVXN_YlAAH7","timestamp":"2026-01-12T18:03:54.472Z"}
+{"level":"info","message":"New connection: uwVc5o1ivsdGC5mCAAH-","timestamp":"2026-01-12T18:03:56.607Z"}
+{"level":"info","message":"New connection: d3Hr1uUy9H6zqawoAAH_","timestamp":"2026-01-12T18:03:56.876Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"uwVc5o1ivsdGC5mCAAH-","timestamp":"2026-01-12T18:03:56.984Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"d3Hr1uUy9H6zqawoAAH_","timestamp":"2026-01-12T18:03:57.163Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T18:09:53.069Z"}
+{"level":"info","message":"New connection: M_bEDCUW7sqmkutFAAIB","timestamp":"2026-01-12T20:16:07.233Z"}
+{"level":"info","message":"New connection: 9N7_5lNeWMdN_N7pAAID","timestamp":"2026-01-12T21:58:08.425Z"}
+{"level":"info","message":"Socket disconnected: d3Hr1uUy9H6zqawoAAH_","reason":"transport close","timestamp":"2026-01-12T22:40:19.283Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T22:40:19.290Z"}
+{"level":"info","message":"Socket disconnected: uwVc5o1ivsdGC5mCAAH-","reason":"transport close","timestamp":"2026-01-12T22:40:19.295Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-12T22:40:19.296Z"}
+{"level":"info","message":"New connection: _aYSxyZe3IbqmE24AAIF","timestamp":"2026-01-12T22:41:10.184Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"_aYSxyZe3IbqmE24AAIF","timestamp":"2026-01-12T22:41:10.233Z"}
+{"level":"info","message":"New connection: 2sAWwqHtwsN2s7coAAIH","timestamp":"2026-01-12T22:41:10.260Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"2sAWwqHtwsN2s7coAAIH","timestamp":"2026-01-12T22:41:10.325Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-12T22:47:07.097Z"}
+{"level":"info","message":"Socket disconnected: 2sAWwqHtwsN2s7coAAIH","reason":"transport close","timestamp":"2026-01-12T23:07:02.372Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T23:07:02.373Z"}
+{"level":"info","message":"New connection: ISMNawoXlQB86kkvAAIJ","timestamp":"2026-01-12T23:07:30.223Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"ISMNawoXlQB86kkvAAIJ","timestamp":"2026-01-12T23:07:30.246Z"}
+{"level":"info","message":"Socket disconnected: ISMNawoXlQB86kkvAAIJ","reason":"client namespace disconnect","timestamp":"2026-01-12T23:07:30.247Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-12T23:07:30.247Z"}
+{"level":"info","message":"New connection: 5XwYUNHQP7ZGjJPvAAIL","timestamp":"2026-01-12T23:07:30.255Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"5XwYUNHQP7ZGjJPvAAIL","timestamp":"2026-01-12T23:07:30.257Z"}
+{"level":"info","message":"New connection: ee3CheAte3RfjqxaAAIN","timestamp":"2026-01-12T23:49:52.947Z"}
+{"level":"info","message":"Socket disconnected: 5XwYUNHQP7ZGjJPvAAIL","reason":"transport close","timestamp":"2026-01-13T02:52:32.113Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-13T02:52:32.127Z"}
+{"level":"info","message":"Socket disconnected: _aYSxyZe3IbqmE24AAIF","reason":"transport close","timestamp":"2026-01-13T02:52:32.131Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-13T02:52:32.132Z"}
+{"level":"info","message":"Socket disconnected: ee3CheAte3RfjqxaAAIN","reason":"transport error","timestamp":"2026-01-13T03:18:23.669Z"}
+{"level":"info","message":"Socket disconnected: hQ4y7NmopoVXN_YlAAH7","reason":"transport close","timestamp":"2026-01-13T03:18:24.651Z"}
+{"level":"info","message":"Socket disconnected: 3LE61t7iS0XvFdRSAAHj","reason":"transport close","timestamp":"2026-01-13T03:18:24.672Z"}
+{"level":"info","message":"New connection: 7Jvv3ZJsTrJGTwFXAAIP","timestamp":"2026-01-13T03:18:24.970Z"}
+{"level":"info","message":"Socket disconnected: MApeAoCiCHOT3U_CAAAU","reason":"transport close","timestamp":"2026-01-13T03:18:25.009Z"}
+{"level":"info","message":"Socket disconnected: 7aRZG_wdnaF4A4kCAABy","reason":"transport close","timestamp":"2026-01-13T03:18:25.173Z"}
+{"level":"info","message":"New connection: hTG82LE5xImtkmQ2AAIR","timestamp":"2026-01-13T03:18:25.458Z"}
+{"level":"info","message":"New connection: UoWLah3AkyrlcvkAAAIT","timestamp":"2026-01-13T03:18:26.256Z"}
+{"level":"info","message":"New connection: 31GO7KR3q2oZQW0wAAIV","timestamp":"2026-01-13T03:18:26.598Z"}
+{"level":"info","message":"New connection: A2H6AFB2n1ZlV5s3AAIX","timestamp":"2026-01-13T03:18:27.171Z"}
+{"level":"info","message":"New connection: GQ48lAlmFOuB0-7gAAIa","timestamp":"2026-01-13T03:18:27.807Z"}
+{"level":"info","message":"New connection: ESzW3SRcX1A9PVhJAAIb","timestamp":"2026-01-13T03:18:27.826Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"GQ48lAlmFOuB0-7gAAIa","timestamp":"2026-01-13T03:18:27.837Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"ESzW3SRcX1A9PVhJAAIb","timestamp":"2026-01-13T03:18:27.857Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-13T03:24:23.801Z"}
+{"level":"info","message":"Socket disconnected: GQ48lAlmFOuB0-7gAAIa","reason":"transport close","timestamp":"2026-01-13T08:00:18.770Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-13T08:00:18.788Z"}
+{"level":"info","message":"Socket disconnected: ESzW3SRcX1A9PVhJAAIb","reason":"transport close","timestamp":"2026-01-13T08:00:18.794Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-13T08:00:18.795Z"}
+{"level":"info","message":"Socket disconnected: 7Jvv3ZJsTrJGTwFXAAIP","reason":"transport error","timestamp":"2026-01-13T09:44:12.232Z"}
+{"level":"info","message":"Socket disconnected: hTG82LE5xImtkmQ2AAIR","reason":"transport close","timestamp":"2026-01-13T09:44:12.706Z"}
+{"level":"info","message":"Socket disconnected: 31GO7KR3q2oZQW0wAAIV","reason":"transport close","timestamp":"2026-01-13T09:44:12.739Z"}
+{"level":"info","message":"Socket disconnected: UoWLah3AkyrlcvkAAAIT","reason":"transport close","timestamp":"2026-01-13T09:44:12.740Z"}
+{"level":"info","message":"New connection: Z3rYp5RX4IZwe-kxAAId","timestamp":"2026-01-13T09:44:13.591Z"}
+{"level":"info","message":"Socket disconnected: A2H6AFB2n1ZlV5s3AAIX","reason":"transport close","timestamp":"2026-01-13T09:44:13.834Z"}
+{"level":"info","message":"Socket disconnected: CKSsbme8lEB2draVAAHh","reason":"transport close","timestamp":"2026-01-13T09:44:14.134Z"}
+{"level":"info","message":"Socket disconnected: 9N7_5lNeWMdN_N7pAAID","reason":"transport close","timestamp":"2026-01-13T09:44:14.324Z"}
+{"level":"info","message":"New connection: jzpOkonVpq920dXvAAIg","timestamp":"2026-01-13T09:44:15.134Z"}
+{"level":"info","message":"New connection: C4rCoxwQzgYntpVUAAIh","timestamp":"2026-01-13T09:44:15.226Z"}
+{"level":"info","message":"Socket disconnected: uy3aKiCKgBUTHwSwAACi","reason":"transport close","timestamp":"2026-01-13T09:44:15.672Z"}
+{"level":"info","message":"Socket disconnected: M_bEDCUW7sqmkutFAAIB","reason":"transport close","timestamp":"2026-01-13T09:44:15.717Z"}
+{"level":"info","message":"New connection: ndeEWZ36_F32T0H3AAIk","timestamp":"2026-01-13T09:44:15.934Z"}
+{"level":"info","message":"Socket disconnected: yE1ac_ZAUFRpW7aLAAEQ","reason":"transport close","timestamp":"2026-01-13T09:44:16.368Z"}
+{"level":"info","message":"Socket disconnected: nv2jqr-VzDV6eHeRAAE-","reason":"transport close","timestamp":"2026-01-13T09:44:16.435Z"}
+{"level":"info","message":"New connection: NsASr8HJ9_IAhz8_AAIl","timestamp":"2026-01-13T09:44:16.690Z"}
+{"level":"info","message":"Socket disconnected: JT--w7QLE_kzjSeHAAGt","reason":"transport close","timestamp":"2026-01-13T09:44:16.734Z"}
+{"level":"info","message":"Socket disconnected: XLk3OG1eBWcVJc4PAAE8","reason":"transport close","timestamp":"2026-01-13T09:44:16.735Z"}
+{"level":"info","message":"New connection: GsI59KfJprhMupI4AAIo","timestamp":"2026-01-13T09:44:18.635Z"}
+{"level":"info","message":"New connection: MR-rS_Q8NFz07NveAAIq","timestamp":"2026-01-13T09:44:19.080Z"}
+{"level":"info","message":"New connection: VIEtDL-xCoj5UekdAAIs","timestamp":"2026-01-13T09:44:19.964Z"}
+{"level":"info","message":"New connection: 5x115YuNe_HgWANkAAIx","timestamp":"2026-01-13T09:44:20.428Z"}
+{"level":"info","message":"New connection: Qc1q0oul-tYrY7dSAAIy","timestamp":"2026-01-13T09:44:20.637Z"}
+{"level":"info","message":"New connection: RAFAO4hNHMp2c_pwAAIz","timestamp":"2026-01-13T09:44:20.693Z"}
+{"level":"info","message":"New connection: Dor87mOtQkZ-_jngAAI0","timestamp":"2026-01-13T09:44:20.729Z"}
+{"level":"info","message":"New connection: He8Xk7Gd7c_NgYOkAAI1","timestamp":"2026-01-13T09:44:20.844Z"}
+{"level":"info","message":"New connection: Mm6cfPSSFWmxUoePAAI4","timestamp":"2026-01-13T09:44:27.288Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"Mm6cfPSSFWmxUoePAAI4","timestamp":"2026-01-13T09:44:27.446Z"}
+{"level":"info","message":"New connection: Io-kIXT4Q-Toz6oSAAI5","timestamp":"2026-01-13T09:44:27.568Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"Io-kIXT4Q-Toz6oSAAI5","timestamp":"2026-01-13T09:44:27.601Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-13T09:50:11.631Z"}
+{"level":"info","message":"Socket disconnected: Mm6cfPSSFWmxUoePAAI4","reason":"transport close","timestamp":"2026-01-13T09:59:36.526Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-13T09:59:36.529Z"}
+{"level":"info","message":"Socket disconnected: Io-kIXT4Q-Toz6oSAAI5","reason":"transport close","timestamp":"2026-01-13T09:59:36.539Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-13T09:59:36.539Z"}
+{"level":"info","message":"Socket disconnected: Z3rYp5RX4IZwe-kxAAId","reason":"transport close","timestamp":"2026-01-13T10:04:04.611Z"}
+{"level":"info","message":"New connection: niGMZqhUtZlt1YMZAAI7","timestamp":"2026-01-13T10:04:05.206Z"}
+{"level":"info","message":"New connection: _qYpJicwYQVOIbZ7AAI-","timestamp":"2026-01-13T10:04:07.168Z"}
+{"level":"info","message":"New connection: X9gthfcbp7e4FuAlAAI_","timestamp":"2026-01-13T10:04:07.170Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"_qYpJicwYQVOIbZ7AAI-","timestamp":"2026-01-13T10:04:07.503Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"X9gthfcbp7e4FuAlAAI_","timestamp":"2026-01-13T10:04:07.996Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-13T10:10:03.571Z"}
+{"level":"info","message":"New connection: T15yufDuJyP74rx3AAJB","timestamp":"2026-01-14T02:36:53.759Z"}
+{"level":"info","message":"New connection: T5q4IOXNGxOC5vfqAAJD","timestamp":"2026-01-14T04:47:30.145Z"}
+{"level":"info","message":"New connection: _8nlq-A04ZicFXJEAAJF","timestamp":"2026-01-14T04:52:34.122Z"}
+{"level":"info","message":"New connection: 3ZBb2GRYPk4Khuh9AAJH","timestamp":"2026-01-14T05:04:55.784Z"}
+{"level":"info","message":"New connection: 4Gs_oA3-yW9k62BYAAJJ","timestamp":"2026-01-14T05:12:09.522Z"}
+{"level":"info","message":"New connection: n8Syk1sicMUc8CoRAAJL","timestamp":"2026-01-14T05:15:20.897Z"}
+{"level":"info","message":"Socket disconnected: n8Syk1sicMUc8CoRAAJL","reason":"transport close","timestamp":"2026-01-14T05:30:07.658Z"}
+{"level":"info","message":"Socket disconnected: 5x115YuNe_HgWANkAAIx","reason":"transport close","timestamp":"2026-01-14T05:30:07.999Z"}
+{"level":"info","message":"Socket disconnected: He8Xk7Gd7c_NgYOkAAI1","reason":"transport close","timestamp":"2026-01-14T05:30:08.016Z"}
+{"level":"info","message":"Socket disconnected: BFBDRrxhkLpPv5rmAAEq","reason":"transport close","timestamp":"2026-01-14T05:30:08.037Z"}
+{"level":"info","message":"Socket disconnected: VIEtDL-xCoj5UekdAAIs","reason":"transport close","timestamp":"2026-01-14T05:30:08.040Z"}
+{"level":"info","message":"Socket disconnected: m9nO52SK8Up-HEgQAAD8","reason":"transport close","timestamp":"2026-01-14T05:30:08.047Z"}
+{"level":"info","message":"Socket disconnected: lus9GwAzv747m1HPAAC-","reason":"transport close","timestamp":"2026-01-14T05:30:08.053Z"}
+{"level":"info","message":"Socket disconnected: SsszQC_mLuSVDsIDAAGv","reason":"transport close","timestamp":"2026-01-14T05:30:08.056Z"}
+{"level":"info","message":"Socket disconnected: RAFAO4hNHMp2c_pwAAIz","reason":"transport close","timestamp":"2026-01-14T05:30:08.061Z"}
+{"level":"info","message":"Socket disconnected: Hf6uXrVbT4Njm_TUAAEc","reason":"transport close","timestamp":"2026-01-14T05:30:08.067Z"}
+{"level":"info","message":"Socket disconnected: _8nlq-A04ZicFXJEAAJF","reason":"transport close","timestamp":"2026-01-14T05:30:08.135Z"}
+{"level":"info","message":"Socket disconnected: GsI59KfJprhMupI4AAIo","reason":"transport close","timestamp":"2026-01-14T05:30:08.200Z"}
+{"level":"info","message":"Socket disconnected: Qc1q0oul-tYrY7dSAAIy","reason":"transport close","timestamp":"2026-01-14T05:30:08.221Z"}
+{"level":"info","message":"Socket disconnected: T5q4IOXNGxOC5vfqAAJD","reason":"transport close","timestamp":"2026-01-14T05:30:08.232Z"}
+{"level":"info","message":"Socket disconnected: MR-rS_Q8NFz07NveAAIq","reason":"transport close","timestamp":"2026-01-14T05:30:08.239Z"}
+{"level":"info","message":"Socket disconnected: 3XPfZroFALIDihldAAFE","reason":"transport close","timestamp":"2026-01-14T05:30:08.251Z"}
+{"level":"info","message":"Socket disconnected: niGMZqhUtZlt1YMZAAI7","reason":"transport close","timestamp":"2026-01-14T05:30:08.271Z"}
+{"level":"info","message":"Socket disconnected: gMV6XNyaMGMj8XJcAAFV","reason":"transport close","timestamp":"2026-01-14T05:30:08.282Z"}
+{"level":"info","message":"Socket disconnected: 4Gs_oA3-yW9k62BYAAJJ","reason":"transport close","timestamp":"2026-01-14T05:30:08.285Z"}
+{"level":"info","message":"Socket disconnected: 3ZBb2GRYPk4Khuh9AAJH","reason":"transport close","timestamp":"2026-01-14T05:30:08.286Z"}
+{"level":"info","message":"Socket disconnected: ACBnEM4_Ycb0AEWvAACE","reason":"transport close","timestamp":"2026-01-14T05:30:08.297Z"}
+{"level":"info","message":"Socket disconnected: HF7eiXRh2hoI4PUkAACC","reason":"transport close","timestamp":"2026-01-14T05:30:08.305Z"}
+{"level":"info","message":"Socket disconnected: Kc6EeLA3_sW4RdqfAAES","reason":"transport close","timestamp":"2026-01-14T05:30:08.309Z"}
+{"level":"info","message":"Socket disconnected: Kyh4UNVaKC1s1lp6AACI","reason":"transport close","timestamp":"2026-01-14T05:30:08.313Z"}
+{"level":"info","message":"Socket disconnected: oJTY7hxhMSV0GCmjAACG","reason":"transport close","timestamp":"2026-01-14T05:30:08.314Z"}
+{"level":"info","message":"Socket disconnected: Dor87mOtQkZ-_jngAAI0","reason":"transport close","timestamp":"2026-01-14T05:30:08.314Z"}
+{"level":"info","message":"Socket disconnected: T15yufDuJyP74rx3AAJB","reason":"transport close","timestamp":"2026-01-14T05:30:08.315Z"}
+{"level":"info","message":"Socket disconnected: zq9Ck0uq21Q6iXIwAAEe","reason":"transport close","timestamp":"2026-01-14T05:30:08.316Z"}
+{"level":"info","message":"Socket disconnected: rF3taRQPWOmpPy_MAAFK","reason":"transport close","timestamp":"2026-01-14T05:30:08.316Z"}
+{"level":"info","message":"Socket disconnected: xuEaUDcCTH-9eC5JAAEO","reason":"transport close","timestamp":"2026-01-14T05:30:08.317Z"}
+{"level":"info","message":"Socket disconnected: WxHzXucwLavi2z1DAAB-","reason":"transport close","timestamp":"2026-01-14T05:30:08.320Z"}
+{"level":"info","message":"Socket disconnected: RhnhMG10DnF3pIviAACA","reason":"transport close","timestamp":"2026-01-14T05:30:08.376Z"}
+{"level":"info","message":"Socket disconnected: lG4lideWhlk4zsIXAAB8","reason":"transport close","timestamp":"2026-01-14T05:30:08.378Z"}
+{"level":"info","message":"Socket disconnected: 2Y6I1107r5d8fD7EAAB4","reason":"transport close","timestamp":"2026-01-14T05:30:08.385Z"}
+{"level":"info","message":"Socket disconnected: 9lui8oiY6FTUXzfiAAAS","reason":"transport close","timestamp":"2026-01-14T05:30:08.419Z"}
+{"level":"info","message":"Socket disconnected: _k0IWGeHMwATcqefAAB2","reason":"transport close","timestamp":"2026-01-14T05:30:08.435Z"}
+{"level":"info","message":"Socket disconnected: XvE6-jLj1-eQhEvUAAB0","reason":"transport close","timestamp":"2026-01-14T05:30:08.437Z"}
+{"level":"info","message":"Socket disconnected: ndeEWZ36_F32T0H3AAIk","reason":"transport close","timestamp":"2026-01-14T05:30:08.438Z"}
+{"level":"info","message":"Socket disconnected: NsASr8HJ9_IAhz8_AAIl","reason":"transport close","timestamp":"2026-01-14T05:30:08.439Z"}
+{"level":"info","message":"Socket disconnected: Wi5YDLBpvRbkweHYAAB6","reason":"transport close","timestamp":"2026-01-14T05:30:08.475Z"}
+{"level":"info","message":"Socket disconnected: MR4PmWcw6rEXel3DAABi","reason":"transport close","timestamp":"2026-01-14T05:30:08.478Z"}
+{"level":"info","message":"Socket disconnected: jzpOkonVpq920dXvAAIg","reason":"transport close","timestamp":"2026-01-14T05:30:08.508Z"}
+{"level":"info","message":"Socket disconnected: Jp0JTcIRA9dnnwKnAABw","reason":"transport close","timestamp":"2026-01-14T05:30:08.520Z"}
+{"level":"info","message":"Socket disconnected: C4rCoxwQzgYntpVUAAIh","reason":"transport close","timestamp":"2026-01-14T05:30:08.559Z"}
+{"level":"info","message":"New connection: exQIom35af1ChL7ZAAJN","timestamp":"2026-01-14T05:56:34.763Z"}
+{"level":"info","message":"Socket disconnected: _qYpJicwYQVOIbZ7AAI-","reason":"transport close","timestamp":"2026-01-14T09:48:03.711Z"}
+{"level":"info","message":"Cleaned up rider 51","timestamp":"2026-01-14T09:48:03.738Z"}
+{"level":"info","message":"Socket disconnected: X9gthfcbp7e4FuAlAAI_","reason":"transport close","timestamp":"2026-01-14T09:48:03.745Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-14T09:48:03.746Z"}
+{"level":"info","message":"Socket disconnected: exQIom35af1ChL7ZAAJN","reason":"transport close","timestamp":"2026-01-14T12:48:10.299Z"}
+{"level":"info","message":"New connection: 506brq3pMUb-D_KOAAJP","timestamp":"2026-01-14T12:48:10.320Z"}
+{"level":"info","message":"Socket disconnected: 506brq3pMUb-D_KOAAJP","reason":"transport error","timestamp":"2026-01-14T13:59:52.666Z"}
+{"level":"info","message":"New connection: DjE0xWTKwQ_WbRh1AAJR","timestamp":"2026-01-14T13:59:52.760Z"}
+{"level":"info","message":"New connection: qAvszcXoWP4msD78AAJT","timestamp":"2026-01-14T14:00:00.777Z"}
+{"level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Driver 54 joined","metadata":{"firstName":"lang","isAvailable":true,"isOnline":true,"lastName":"chibili","phoneNumber":"260912644552"},"socketId":"qAvszcXoWP4msD78AAJT","timestamp":"2026-01-14T14:00:01.044Z"}
+{"level":"info","message":"New connection: x3s-hxn7wOGvFSQMAAJV","timestamp":"2026-01-14T14:00:02.443Z"}
+{"level":"info","message":"Rider 51 joined","metadata":{"firstName":"test","lastName":"man","phoneNumber":"260982644552"},"socketId":"x3s-hxn7wOGvFSQMAAJV","timestamp":"2026-01-14T14:00:03.574Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-14T14:05:52.740Z"}
+{"level":"info","message":"🚀 OkraRides Socket Server started","timestamp":"2026-01-19T08:16:51.549Z"}
+{"level":"info","message":"📡 Listening on port 3005","timestamp":"2026-01-19T08:16:51.554Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-19T08:16:51.555Z"}
+{"level":"info","message":"🔐 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004, http://localhost:3005, http://localhost:1343","timestamp":"2026-01-19T08:16:51.555Z"}
+{"level":"info","message":"New connection: 8nDt16rT5Zic-Aw8AAAB","timestamp":"2026-01-19T08:18:46.864Z"}
+{"level":"info","message":"New connection: iN1s_510rkOMAkI4AAAD","timestamp":"2026-01-19T08:19:47.986Z"}
+{"level":"info","message":"New ride request: 32","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-19T09:03:57.776Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-19T09:03:57.791Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Lilayi, Zambia","lat":-15.52376,"lng":28.30431,"name":"Lilayi","placeId":"ChIJCYimEcySQBkRGmiAWVViVLg"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-19T09:03:57.792Z"}
+{"dataKeys":["rideId","rideCode","riderId","riderName","pickupLocation","dropoffLocation","estimatedFare","distance","taxiType","rideClass","requestedAt"],"event":"ride:request:received","level":"info","message":"Emitted 'ride:request:received' to room 'driver:54'","room":"driver:54","timestamp":"2026-01-19T09:03:58.846Z"}
+{"driverIds":[54],"level":"info","message":"Ride request sent to 1 drivers","rideId":32,"timestamp":"2026-01-19T09:03:58.847Z"}
+{"level":"info","message":"Socket disconnected: iN1s_510rkOMAkI4AAAD","reason":"transport close","timestamp":"2026-01-19T13:13:29.255Z"}
+{"level":"info","message":"Socket disconnected: 8nDt16rT5Zic-Aw8AAAB","reason":"transport close","timestamp":"2026-01-19T13:13:29.835Z"}
+{"level":"info","message":"New connection: gO1KIdMjcPF2WWc8AAAF","timestamp":"2026-01-19T13:13:31.198Z"}
+{"level":"info","message":"New connection: r5kAhOUhP8bIYdrPAAAH","timestamp":"2026-01-19T13:13:34.023Z"}
+{"level":"info","message":"Socket disconnected: r5kAhOUhP8bIYdrPAAAH","reason":"transport error","timestamp":"2026-01-19T15:27:14.619Z"}
+{"level":"info","message":"New connection: 1OvRQApw_qbAaMerAAAJ","timestamp":"2026-01-19T15:27:15.894Z"}
+{"level":"info","message":"Socket disconnected: 1OvRQApw_qbAaMerAAAJ","reason":"transport error","timestamp":"2026-01-19T16:27:30.881Z"}
+{"level":"info","message":"New connection: 3NcWn7v8ekDar5VPAAAL","timestamp":"2026-01-19T16:27:33.496Z"}
+{"level":"info","message":"Socket disconnected: 3NcWn7v8ekDar5VPAAAL","reason":"transport close","timestamp":"2026-01-19T17:16:57.560Z"}
+{"level":"info","message":"New connection: 7To7SLoCUP8Qt538AAAN","timestamp":"2026-01-19T17:16:59.197Z"}
+{"level":"info","message":"Socket disconnected: 7To7SLoCUP8Qt538AAAN","reason":"transport error","timestamp":"2026-01-19T20:35:37.791Z"}
+{"level":"info","message":"New connection: 5pYKotemdfLCE2AMAAAP","timestamp":"2026-01-19T20:35:41.422Z"}
+{"level":"info","message":"Socket disconnected: 5pYKotemdfLCE2AMAAAP","reason":"transport error","timestamp":"2026-01-20T01:59:36.635Z"}
+{"level":"info","message":"New connection: 3hpXl_IiGSw05AwYAAAR","timestamp":"2026-01-20T01:59:38.338Z"}
+{"level":"info","message":"Socket disconnected: 3hpXl_IiGSw05AwYAAAR","reason":"transport error","timestamp":"2026-01-20T05:24:05.691Z"}
+{"level":"info","message":"New connection: fjvcB-IRsZ4OsVhKAAAT","timestamp":"2026-01-20T05:24:07.294Z"}
+{"level":"info","message":"Socket disconnected: fjvcB-IRsZ4OsVhKAAAT","reason":"transport error","timestamp":"2026-01-20T14:44:33.571Z"}
+{"level":"info","message":"New connection: UOX3GZPT7vNSh7SyAAAV","timestamp":"2026-01-20T14:44:37.653Z"}
+{"level":"info","message":"Socket disconnected: UOX3GZPT7vNSh7SyAAAV","reason":"transport error","timestamp":"2026-01-20T15:18:51.625Z"}
+{"level":"info","message":"New connection: 5DyVtIZKUJ7mLPucAAAX","timestamp":"2026-01-20T15:18:53.289Z"}
+{"level":"info","message":"Socket disconnected: 5DyVtIZKUJ7mLPucAAAX","reason":"transport error","timestamp":"2026-01-20T15:55:00.644Z"}
+{"level":"info","message":"New connection: g4DxifcHOpj0quVZAAAZ","timestamp":"2026-01-20T15:55:03.422Z"}
+{"level":"info","message":"Socket disconnected: g4DxifcHOpj0quVZAAAZ","reason":"transport close","timestamp":"2026-01-20T16:47:33.549Z"}
+{"level":"info","message":"Socket disconnected: gO1KIdMjcPF2WWc8AAAF","reason":"transport close","timestamp":"2026-01-20T16:47:33.569Z"}
+{"level":"info","message":"New connection: vDKJWGTzUT9e46HxAAAb","timestamp":"2026-01-20T16:47:35.141Z"}
+{"level":"info","message":"New connection: av3EwbFjnoZ-_SpQAAAd","timestamp":"2026-01-20T16:47:35.182Z"}
+{"level":"info","message":"Socket disconnected: vDKJWGTzUT9e46HxAAAb","reason":"transport error","timestamp":"2026-01-20T23:51:21.912Z"}
+{"level":"info","message":"Socket disconnected: av3EwbFjnoZ-_SpQAAAd","reason":"transport close","timestamp":"2026-01-20T23:51:22.484Z"}
+{"level":"info","message":"New connection: 4Gov-v1tHodd-13PAAAf","timestamp":"2026-01-20T23:51:23.228Z"}
+{"level":"info","message":"New connection: HJr30DUToHJJBr8kAAAh","timestamp":"2026-01-20T23:51:23.612Z"}
+{"level":"info","message":"Socket disconnected: 4Gov-v1tHodd-13PAAAf","reason":"transport error","timestamp":"2026-01-21T11:16:43.756Z"}
+{"level":"info","message":"New connection: ltrb8uljDjmO0YSmAAAj","timestamp":"2026-01-21T11:16:46.061Z"}
+{"level":"info","message":"Socket disconnected: ltrb8uljDjmO0YSmAAAj","reason":"transport close","timestamp":"2026-01-21T11:21:06.042Z"}
+{"level":"info","message":"Socket disconnected: HJr30DUToHJJBr8kAAAh","reason":"transport close","timestamp":"2026-01-21T11:21:17.083Z"}
+{"level":"info","message":"🚀 OkraRides Socket Server started","timestamp":"2026-01-21T14:56:01.054Z"}
+{"level":"info","message":"📡 Listening on port 3005","timestamp":"2026-01-21T14:56:01.058Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-21T14:56:01.059Z"}
+{"level":"info","message":"🔐 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004, http://localhost:3005, http://localhost:1343","timestamp":"2026-01-21T14:56:01.059Z"}
+{"level":"info","message":"New connection: ypgB_fR6YdRhhPFLAAAB","timestamp":"2026-01-21T14:56:03.722Z"}
+{"level":"info","message":"New connection: XoYobWtE44Z5Zwt_AAAD","timestamp":"2026-01-21T14:56:04.275Z"}
+{"level":"info","message":"Socket disconnected: XoYobWtE44Z5Zwt_AAAD","reason":"transport close","timestamp":"2026-01-21T15:44:38.902Z"}
+{"level":"info","message":"New connection: AhXw7B8vCJZVXFx4AAAF","timestamp":"2026-01-21T15:44:40.399Z"}
+{"level":"info","message":"Socket disconnected: AhXw7B8vCJZVXFx4AAAF","reason":"transport error","timestamp":"2026-01-21T19:39:44.234Z"}
+{"level":"info","message":"New connection: tQCMVPG3ZU3oSNzsAAAH","timestamp":"2026-01-21T19:39:44.943Z"}
+{"level":"info","message":"Socket disconnected: tQCMVPG3ZU3oSNzsAAAH","reason":"transport close","timestamp":"2026-01-22T06:42:43.649Z"}
+{"level":"info","message":"New connection: 4pSTzWpODDG81FIlAAAJ","timestamp":"2026-01-22T06:42:44.644Z"}
+{"level":"info","message":"Socket disconnected: 4pSTzWpODDG81FIlAAAJ","reason":"transport error","timestamp":"2026-01-22T08:25:57.540Z"}
+{"level":"info","message":"New connection: toLn-9IwQu69Y8tyAAAL","timestamp":"2026-01-22T08:25:58.936Z"}
+{"level":"info","message":"Socket disconnected: toLn-9IwQu69Y8tyAAAL","reason":"transport error","timestamp":"2026-01-22T09:40:31.470Z"}
+{"level":"info","message":"New connection: 0gd-rSB7kztI3cYPAAAN","timestamp":"2026-01-22T09:40:33.054Z"}
+{"level":"info","message":"Socket disconnected: 0gd-rSB7kztI3cYPAAAN","reason":"transport close","timestamp":"2026-01-22T09:41:07.600Z"}
+{"level":"info","message":"🚀 OkraRides Socket Server started","timestamp":"2026-01-22T23:15:01.414Z"}
+{"level":"info","message":"📡 Listening on port 3005","timestamp":"2026-01-22T23:15:01.418Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-22T23:15:01.419Z"}
+{"level":"info","message":"🔐 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004, http://localhost:3005, http://localhost:1343","timestamp":"2026-01-22T23:15:01.419Z"}
+{"level":"info","message":"New connection: 9QQkC9fcCSL0Kc1GAAAB","timestamp":"2026-01-22T23:15:06.225Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"9QQkC9fcCSL0Kc1GAAAB","timestamp":"2026-01-23T00:11:51.811Z"}
+{"level":"info","message":"New connection: 3pmEhrhNqzfqBrjdAAAD","timestamp":"2026-01-23T01:02:47.341Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:49.817Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:49.935Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:50.100Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:50.272Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:51.509Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:51.712Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:51.946Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:52.168Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:52.775Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:53.212Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:54.115Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:54.601Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:55.118Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:55.509Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:55.788Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:56.011Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:56.245Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:59.237Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:59.674Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:07:59.997Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:08:00.372Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:08:23.793Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:08:24.096Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:08:24.422Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:08:26.857Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.143Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.650Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.693Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.733Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.775Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.813Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.853Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.893Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.934Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:26.974Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.014Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.054Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.097Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.137Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.179Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.218Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.259Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.299Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.341Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.386Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.422Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.465Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:09:27.501Z"}
+{"level":"info","message":"🚀 OkraRides Socket Server started","timestamp":"2026-01-23T01:10:14.490Z"}
+{"level":"info","message":"📡 Listening on port 3005","timestamp":"2026-01-23T01:10:14.499Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-23T01:10:14.500Z"}
+{"level":"info","message":"🔐 Allowed origins: http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004, http://localhost:3005, http://localhost:1343","timestamp":"2026-01-23T01:10:14.501Z"}
+{"level":"info","message":"New connection: hF-IZ7cJEVsFdEJYAAAB","timestamp":"2026-01-23T01:10:15.344Z"}
+{"level":"info","message":"New connection: RTL-kYtpQhYVdgqAAAAD","timestamp":"2026-01-23T01:10:18.130Z"}
+{"level":"info","message":"Socket disconnected: hF-IZ7cJEVsFdEJYAAAB","reason":"client namespace disconnect","timestamp":"2026-01-23T01:10:39.189Z"}
+{"level":"info","message":"New connection: 6I1tRROTwW5yhhk6AAAF","timestamp":"2026-01-23T01:11:08.768Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"6I1tRROTwW5yhhk6AAAF","timestamp":"2026-01-23T01:11:09.301Z"}
+{"level":"info","message":"Socket disconnected: 6I1tRROTwW5yhhk6AAAF","reason":"client namespace disconnect","timestamp":"2026-01-23T01:20:07.354Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-23T01:20:07.356Z"}
+{"level":"info","message":"New connection: OYc39xF1iuUfNW4VAAAH","timestamp":"2026-01-23T01:20:54.063Z"}
+{"level":"info","message":"New connection: Ruzr_C8rU5U0eaKYAAAJ","timestamp":"2026-01-23T01:22:13.615Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"Ruzr_C8rU5U0eaKYAAAJ","timestamp":"2026-01-23T01:22:30.258Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"Ruzr_C8rU5U0eaKYAAAJ","timestamp":"2026-01-23T01:24:02.454Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"Ruzr_C8rU5U0eaKYAAAJ","timestamp":"2026-01-23T01:24:02.966Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"Ruzr_C8rU5U0eaKYAAAJ","timestamp":"2026-01-23T01:24:03.061Z"}
+{"level":"info","message":"Socket disconnected: Ruzr_C8rU5U0eaKYAAAJ","reason":"transport close","timestamp":"2026-01-23T01:27:20.094Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-23T01:27:20.095Z"}
+{"level":"info","message":"New connection: nzkdAuF8kUtqaWhOAAAL","timestamp":"2026-01-23T01:27:26.749Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"nzkdAuF8kUtqaWhOAAAL","timestamp":"2026-01-23T01:27:48.368Z"}
+{"level":"info","message":"New connection: uFCpa_jk4l2vcVMyAAAN","timestamp":"2026-01-23T01:30:36.746Z"}
+{"level":"info","message":"Socket disconnected: nzkdAuF8kUtqaWhOAAAL","reason":"transport close","timestamp":"2026-01-23T01:34:43.770Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-23T01:34:43.772Z"}
+{"level":"info","message":"New connection: h57T0UCYj34uD8AMAAAP","timestamp":"2026-01-23T01:34:47.805Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"h57T0UCYj34uD8AMAAAP","timestamp":"2026-01-23T01:34:51.911Z"}
+{"level":"info","message":"New connection: U7et6s4e30HWL7KjAAAR","timestamp":"2026-01-23T01:35:00.276Z"}
+{"level":"info","message":"New connection: 4SPrwFiUGWHMQd8RAAAT","timestamp":"2026-01-23T01:40:11.436Z"}
+{"level":"info","message":"New connection: W2wMZaOwxKexgLLBAAAV","timestamp":"2026-01-23T01:45:03.769Z"}
+{"level":"info","message":"Socket disconnected: h57T0UCYj34uD8AMAAAP","reason":"client namespace disconnect","timestamp":"2026-01-23T01:45:23.012Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-23T01:45:23.013Z"}
+{"level":"info","message":"New connection: 5MnHM4h2faUkkg17AAAX","timestamp":"2026-01-23T01:45:36.988Z"}
+{"level":"info","message":"Socket disconnected: U7et6s4e30HWL7KjAAAR","reason":"transport close","timestamp":"2026-01-23T01:45:53.368Z"}
+{"level":"info","message":"Socket disconnected: 4SPrwFiUGWHMQd8RAAAT","reason":"transport close","timestamp":"2026-01-23T01:45:53.383Z"}
+{"level":"info","message":"Socket disconnected: RTL-kYtpQhYVdgqAAAAD","reason":"transport close","timestamp":"2026-01-23T01:45:53.435Z"}
+{"level":"info","message":"Socket disconnected: OYc39xF1iuUfNW4VAAAH","reason":"transport close","timestamp":"2026-01-23T01:45:53.543Z"}
+{"level":"info","message":"Socket disconnected: W2wMZaOwxKexgLLBAAAV","reason":"transport close","timestamp":"2026-01-23T01:45:53.557Z"}
+{"level":"info","message":"Socket disconnected: uFCpa_jk4l2vcVMyAAAN","reason":"transport close","timestamp":"2026-01-23T01:45:53.559Z"}
+{"level":"info","message":"New connection: -F8WAe1uIHkB7z8TAAAZ","timestamp":"2026-01-23T01:46:36.669Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"5MnHM4h2faUkkg17AAAX","timestamp":"2026-01-23T01:50:07.530Z"}
+{"level":"info","message":"Socket disconnected: 5MnHM4h2faUkkg17AAAX","reason":"client namespace disconnect","timestamp":"2026-01-23T01:52:58.078Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-23T01:52:58.078Z"}
+{"level":"info","message":"New connection: lFDGrBPXPBysA2X_AAAb","timestamp":"2026-01-23T01:53:21.244Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"lFDGrBPXPBysA2X_AAAb","timestamp":"2026-01-23T01:53:33.709Z"}
+{"level":"info","message":"New connection: sZ4JxK3lKmaWnNvqAAAd","timestamp":"2026-01-23T01:55:36.941Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"lFDGrBPXPBysA2X_AAAb","timestamp":"2026-01-23T02:00:57.786Z"}
+{"level":"info","message":"New connection: fz_esbEe4erVuRv3AAAf","timestamp":"2026-01-23T02:04:39.438Z"}
+{"level":"info","message":"Socket disconnected: lFDGrBPXPBysA2X_AAAb","reason":"client namespace disconnect","timestamp":"2026-01-23T02:07:40.807Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-23T02:07:40.808Z"}
+{"level":"info","message":"New connection: 2yHskZMaEj-WYVKjAAAh","timestamp":"2026-01-23T02:07:49.585Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"2yHskZMaEj-WYVKjAAAh","timestamp":"2026-01-23T02:08:34.059Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"2yHskZMaEj-WYVKjAAAh","timestamp":"2026-01-23T02:08:34.500Z"}
+{"level":"info","message":"Driver 54 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"2yHskZMaEj-WYVKjAAAh","timestamp":"2026-01-23T02:08:34.854Z"}
+{"level":"info","message":"Socket disconnected: fz_esbEe4erVuRv3AAAf","reason":"transport error","timestamp":"2026-01-23T06:44:42.590Z"}
+{"level":"warn","message":"Removing stale location for driver 54","timestamp":"2026-01-23T06:44:42.642Z"}
+{"level":"info","message":"Socket disconnected: 2yHskZMaEj-WYVKjAAAh","reason":"transport close","timestamp":"2026-01-23T06:44:42.723Z"}
+{"level":"info","message":"Cleaned up driver 54","timestamp":"2026-01-23T06:44:42.833Z"}
+{"level":"info","message":"New connection: nJ7MjkaPWyh0TJI6AAAj","timestamp":"2026-01-23T06:44:43.133Z"}
+{"level":"info","message":"New connection: W3s0amdrGbiOkDc5AAAl","timestamp":"2026-01-23T06:44:43.977Z"}
+{"level":"info","message":"Socket disconnected: nJ7MjkaPWyh0TJI6AAAj","reason":"transport error","timestamp":"2026-01-23T09:38:14.053Z"}
+{"level":"info","message":"New connection: b6wUyH-wV8ziHHQbAAAn","timestamp":"2026-01-23T09:38:15.639Z"}
+{"level":"info","message":"Driver 51 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"W3s0amdrGbiOkDc5AAAl","timestamp":"2026-01-23T12:08:41.517Z"}
+{"level":"info","message":"New ride request: 33","rideType":{"createdAt":"2026-01-01T04:28:28.752Z","displayOrder":1,"documentId":"e9j0pq8m66upsds9q6xs64w6","id":11,"isActive":true,"locale":null,"name":"Taxi","publishedAt":null,"updatedAt":"2026-01-01T04:29:36.096Z"},"riderId":51,"timestamp":"2026-01-23T12:10:50.562Z"}
+{"dataKeys":["rideId","riderId","pickupLocation","dropoffLocation","rideType","estimatedFare","searchRadius"],"event":"ride:request:created","level":"info","message":"Emitted 'ride:request:created' to room 'rider:51'","room":"rider:51","timestamp":"2026-01-23T12:10:50.569Z"}
+{"event":"ride:request:new","level":"info","location":{"address":"Lusaka, Zambia","lat":-15.4530487,"lng":28.357213,"name":"Chisankane","placeId":"ChIJP-elUgCNQBkRxqnc6CqlF0k"},"message":"Broadcast to 0 nearby drivers","radius":10,"timestamp":"2026-01-23T12:10:50.570Z"}
+{"level":"info","message":"Driver 51 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"W3s0amdrGbiOkDc5AAAl","timestamp":"2026-01-23T12:11:08.404Z"}
+{"level":"info","message":"Driver 51 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"W3s0amdrGbiOkDc5AAAl","timestamp":"2026-01-23T12:11:08.597Z"}
+{"level":"info","message":"Driver 51 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"W3s0amdrGbiOkDc5AAAl","timestamp":"2026-01-23T12:11:08.642Z"}
+{"level":"info","message":"Driver 51 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"W3s0amdrGbiOkDc5AAAl","timestamp":"2026-01-23T12:11:08.682Z"}
+{"level":"info","message":"Driver 51 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"W3s0amdrGbiOkDc5AAAl","timestamp":"2026-01-23T13:05:04.103Z"}
+{"level":"info","message":"Socket disconnected: b6wUyH-wV8ziHHQbAAAn","reason":"transport error","timestamp":"2026-01-23T17:13:59.937Z"}
+{"level":"info","message":"New connection: wyq3pGwLrAHXX4YRAAAp","timestamp":"2026-01-23T17:14:01.164Z"}
+{"level":"info","message":"Socket disconnected: wyq3pGwLrAHXX4YRAAAp","reason":"transport error","timestamp":"2026-01-23T18:22:59.799Z"}
+{"level":"info","message":"New connection: QNyWiUS7tg-A2ChcAAAr","timestamp":"2026-01-23T18:23:00.465Z"}
+{"level":"info","message":"Driver 51 joined","metadata":{"appVersion":"1.0.0","buildNumber":"1","deviceId":"efe635fc3a8bcbb9","deviceName":"Galaxy S9+","expoVersion":"Unknown","isDevice":true,"manufacturer":"samsung","modelName":"SM-G965U1","osName":"samsung/star2qlteue/star2qlteue:10/QP1A.190711.020/G965U1UEU9FVA1:user/release-keys","osVersion":"10","platform":"android","platformVersion":29,"totalMemory":5850189824},"socketId":"W3s0amdrGbiOkDc5AAAl","timestamp":"2026-01-23T20:36:29.023Z"}
+{"level":"info","message":"Socket disconnected: W3s0amdrGbiOkDc5AAAl","reason":"transport error","timestamp":"2026-01-23T23:46:54.638Z"}
+{"level":"info","message":"Cleaned up driver 51","timestamp":"2026-01-23T23:46:54.651Z"}
+{"level":"info","message":"New connection: dmbLiTczBE4lOueiAAAt","timestamp":"2026-01-23T23:46:55.277Z"}
+{"level":"info","message":"Socket disconnected: QNyWiUS7tg-A2ChcAAAr","reason":"transport error","timestamp":"2026-01-24T08:06:17.042Z"}
+{"level":"info","message":"New connection: aYbZhngYTEIl9_UeAAAv","timestamp":"2026-01-24T08:06:19.248Z"}
+{"level":"info","message":"New connection: 6g5zghP9-XY3vGePAAAx","timestamp":"2026-01-24T08:42:29.123Z"}
+{"level":"info","message":"Socket disconnected: 6g5zghP9-XY3vGePAAAx","reason":"transport error","timestamp":"2026-01-24T18:03:07.573Z"}
+{"level":"info","message":"New connection: wHGkB8MwHAPElFE_AAAz","timestamp":"2026-01-24T18:03:08.164Z"}
+{"level":"info","message":"Socket disconnected: aYbZhngYTEIl9_UeAAAv","reason":"transport close","timestamp":"2026-01-25T03:23:37.739Z"}
+{"level":"info","message":"Socket disconnected: sZ4JxK3lKmaWnNvqAAAd","reason":"transport close","timestamp":"2026-01-25T03:23:37.751Z"}
+{"level":"info","message":"Socket disconnected: -F8WAe1uIHkB7z8TAAAZ","reason":"transport close","timestamp":"2026-01-25T03:23:37.753Z"}
+{"level":"info","message":"Socket disconnected: wHGkB8MwHAPElFE_AAAz","reason":"transport close","timestamp":"2026-01-25T03:23:37.756Z"}
+{"level":"info","message":"Socket disconnected: dmbLiTczBE4lOueiAAAt","reason":"client namespace disconnect","timestamp":"2026-01-25T03:23:46.291Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-25T03:23:53.926Z"}

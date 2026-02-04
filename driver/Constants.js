@@ -1,9 +1,14 @@
-// Constants.js - Driver App Constants
+// Application-wide constants
+export const APP_NAME = 'OkraRides';
+export const APP_VERSION = '1.0.0';
+export const DEFAULT_CURRENCY = 'ZMW';
+export const DEFAULT_CURRENCY_SYMBOL = 'K';
+export const CURRENCY_SYMBOL = 'K'; // Alias
+export const DEFAULT_COUNTRY_CODE = '+260';
+export const DEFAULT_COUNTRY = 'Zambia';
 
-// API Base URL
+// API Configuration
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337/api';
-
-// App URLs
 export const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
 export const DRIVER_APP_URL = process.env.NEXT_PUBLIC_DRIVER_APP_URL || 'http://localhost:3001';
 export const RIDER_APP_URL = process.env.NEXT_PUBLIC_RIDER_APP_URL || 'http://localhost:3000';
@@ -25,29 +30,27 @@ export const RIDE_STATUS = {
   PASSENGER_ONBOARD: 'passenger_onboard',
   COMPLETED: 'completed',
   CANCELLED: 'cancelled',
-  NO_DRIVERS_AVAILABLE: 'no_drivers_available',
+  NO_DRIVERS: 'no_drivers_available',
 };
 
-// Ride Status Labels (Human-readable)
 export const RIDE_STATUS_LABELS = {
-  pending: 'Pending',
-  accepted: 'Accepted',
+  pending: 'Finding Driver',
+  accepted: 'Driver Accepted',
   arrived: 'Driver Arrived',
-  passenger_onboard: 'In Progress',
+  passenger_onboard: 'Trip in Progress',
   completed: 'Completed',
   cancelled: 'Cancelled',
   no_drivers_available: 'No Drivers Available',
 };
 
-// Ride Status Colors
 export const RIDE_STATUS_COLORS = {
-  pending: '#FFA000',
+  pending: '#FF9800',
   accepted: '#2196F3',
-  arrived: '#9C27B0',
-  passenger_onboard: '#4CAF50',
+  arrived: '#4CAF50',
+  passenger_onboard: '#FFC107',
   completed: '#4CAF50',
   cancelled: '#F44336',
-  no_drivers_available: '#757575',
+  no_drivers_available: '#9E9E9E',
 };
 
 // Verification Status
@@ -107,7 +110,6 @@ export const NAVIGATION_ACTIONS = {
 };
 
 // App Settings
-export const RIDE_REQUEST_TIMEOUT = 30; // seconds
 export const MAX_RIDE_DISTANCE = 100; // km
 export const DEFAULT_MAP_ZOOM = 15;
 export const LOCATION_UPDATE_INTERVAL = 5000; // ms
@@ -119,13 +121,6 @@ export const SOUND_ENABLED = true;
 export const VIBRATION_ENABLED = true;
 export const AUTO_NAVIGATE_TO_PICKUP = true;
 export const DEFAULT_NAVIGATION_APP = 'google_maps';
-
-// country
-export const DEFAULT_COUNTRY_CODE = '+260';
-export const DEFAULT_COUNTRY = 'Zambia';
-// Currency
-export const DEFAULT_CURRENCY = 'ZMW';
-export const CURRENCY_SYMBOL = 'K';
 
 // Colors (Driver App - Green Theme)
 export const COLORS = {
@@ -145,39 +140,54 @@ export const COLORS = {
   onRide: '#2196F3',
 };
 
-// ============= WebSocket Events =============
+// ✅ Unified Socket Events
 export const SOCKET_EVENTS = {
+  // Connection
+  CONNECT: 'connect',
+  DISCONNECT: 'disconnect',
+  
   // Driver Events
   DRIVER: {
     JOIN: 'driver:join',
     CONNECTED: 'driver:connected',
     SESSION_REPLACED: 'driver:session-replaced',
     LOCATION_UPDATE: 'driver:location:update',
+    LOCATION_UPDATED: 'driver:location:updated',
     ONLINE: 'driver:online',
     OFFLINE: 'driver:offline',
     ONLINE_SUCCESS: 'driver:online:success',
     OFFLINE_SUCCESS: 'driver:offline:success',
     FORCED_OFFLINE: 'driver:forced:offline',
+    ARRIVED: 'driver:arrived',
   },
   
-  // Ride Request Events
+  // Rider Events
+  RIDER: {
+    JOIN: 'rider:join',
+    CONNECTED: 'rider:connected',
+    SESSION_REPLACED: 'rider:session-replaced',
+    LOCATION_UPDATE: 'rider:location:update',
+    LOCATION_UPDATED: 'rider:location:updated',
+  },
+  
+  // Ride Lifecycle Events
   RIDE: {
     REQUEST_NEW: 'ride:request:new',
+    REQUEST_CREATED: 'ride:request:created',
+    REQUEST_SENT: 'ride:request:sent',
     REQUEST_RECEIVED: 'ride:request:received',
     ACCEPT: 'ride:accept',
+    ACCEPTED: 'ride:accepted',
     ACCEPT_SUCCESS: 'ride:accept:success',
     DECLINE: 'ride:decline',
+    DECLINED: 'ride:declined',
     DECLINE_SUCCESS: 'ride:decline:success',
     CANCELLED: 'ride:cancelled',
     TAKEN: 'ride:taken',
-    DRIVER_ARRIVED: 'ride:driver:arrived',
     TRIP_STARTED: 'ride:trip:started',
     TRIP_COMPLETED: 'ride:trip:completed',
-  },
-  
-  // Rider Location Events
-  RIDER: {
-    LOCATION_UPDATED: 'rider:location:updated',
+    NO_DRIVERS: 'ride:no_drivers',
+    DRIVER_ARRIVED: 'ride:driver:arrived',
   },
   
   // Subscription Events
@@ -212,11 +222,13 @@ export const SOCKET_EVENTS = {
   
   // SOS Events
   SOS: {
+    TRIGGER: 'sos:trigger',
+    TRIGGERED: 'sos:triggered',
     ALERT: 'sos:alert',
     ACKNOWLEDGED: 'sos:acknowledged',
   },
   
-  // Bus Route Events (if applicable)
+  // Bus Route Events
   BUS: {
     ROUTE_STARTED: 'bus:route:started',
     LOCATION_UPDATED: 'bus:location:updated',
@@ -233,7 +245,14 @@ export const SOCKET_EVENTS = {
     PONG: 'pong',
     ERROR: 'error',
   },
-}
+};
+
+// Payment Methods
+export const PAYMENT_METHODS = {
+  CASH: 'cash',
+  OKRAPAY: 'okrapay',
+  MOBILE_MONEY: 'mobile_money',
+};
 
 // Storage Keys
 export const STORAGE_KEYS = {
@@ -243,6 +262,8 @@ export const STORAGE_KEYS = {
   DRIVER_PREFERENCES: 'driver_preferences',
   THEME_MODE: 'theme_mode',
   LANGUAGE: 'language',
+  RECENT_LOCATIONS: 'recent_locations',
+  ACTIVE_RIDE: 'active_ride',
 };
 
 // API Endpoints
@@ -289,4 +310,69 @@ export const API_ENDPOINTS = {
   REQUEST_WITHDRAWAL: '/driver/withdrawal/request',
   FLOAT_BALANCE: '/driver/float/balance',
   TOPUP_FLOAT: '/driver/float/topup',
+};
+
+// Time Constants
+export const TIME = {
+  SECOND: 1000,
+  MINUTE: 60 * 1000,
+  HOUR: 60 * 60 * 1000,
+  DAY: 24 * 60 * 60 * 1000,
+  OTP_RESEND_DELAY: 30,
+  RIDE_REQUEST_TIMEOUT: 30,
+};
+
+// Validation
+export const VALIDATION = {
+  PHONE: {
+    MIN_LENGTH: 9,
+    MAX_LENGTH: 9,
+    REGEX: /^[97]\d{8}$/,
+    PREFIX: [9, 7],
+  },
+  OTP: {
+    LENGTH: 6,
+    REGEX: /^\d{6}$/,
+    EXPIRY_MINUTES: 10,
+  },
+};
+
+export default {
+  APP_NAME,
+  APP_VERSION,
+  DEFAULT_CURRENCY,
+  DEFAULT_CURRENCY_SYMBOL,
+  CURRENCY_SYMBOL,
+  DEFAULT_COUNTRY_CODE,
+  DEFAULT_COUNTRY,
+  API_BASE_URL,
+  FRONTEND_URL,
+  DRIVER_APP_URL,
+  RIDER_APP_URL,
+  DRIVER_STATUS,
+  RIDE_STATUS,
+  RIDE_STATUS_LABELS,
+  RIDE_STATUS_COLORS,
+  VERIFICATION_STATUS,
+  SUBSCRIPTION_STATUS,
+  VEHICLE_TYPE,
+  DOCUMENT_TYPE,
+  EARNINGS_PERIOD,
+  NAVIGATION_ACTIONS,
+  MAX_RIDE_DISTANCE,
+  DEFAULT_MAP_ZOOM,
+  LOCATION_UPDATE_INTERVAL,
+  MINIMUM_WITHDRAWAL_AMOUNT,
+  COMMISSION_RATE,
+  SOUND_ENABLED,
+  VIBRATION_ENABLED,
+  AUTO_NAVIGATE_TO_PICKUP,
+  DEFAULT_NAVIGATION_APP,
+  COLORS,
+  SOCKET_EVENTS,
+  PAYMENT_METHODS,
+  STORAGE_KEYS,
+  API_ENDPOINTS,
+  TIME,
+  VALIDATION,
 };

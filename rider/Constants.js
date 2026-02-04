@@ -1,18 +1,13 @@
 // Application-wide constants
-
-// ============= App Configuration =============
-
-export const APP_NAME = 'Okra Rides';
+export const APP_NAME = 'OkraRides';
 export const APP_VERSION = '1.0.0';
 export const APP_TAGLINE = 'Your Journey, Your Way';
-
 export const DEFAULT_CURRENCY = 'ZMW';
 export const DEFAULT_CURRENCY_SYMBOL = 'K';
 export const DEFAULT_COUNTRY_CODE = '+260';
 export const DEFAULT_COUNTRY = 'Zambia';
 
-// ============= API Endpoints =============
-
+// API Configuration
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337/api';
 
 export const API_ENDPOINTS = {
@@ -62,8 +57,7 @@ export const API_ENDPOINTS = {
   },
 };
 
-// ============= Ride Status =============
-
+// Ride Status
 export const RIDE_STATUS = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
@@ -75,58 +69,90 @@ export const RIDE_STATUS = {
 };
 
 export const RIDE_STATUS_LABELS = {
-  [RIDE_STATUS.PENDING]: 'Finding Driver',
-  [RIDE_STATUS.ACCEPTED]: 'Driver Accepted',
-  [RIDE_STATUS.ARRIVED]: 'Driver Arrived',
-  [RIDE_STATUS.PASSENGER_ONBOARD]: 'Trip in Progress',
-  [RIDE_STATUS.COMPLETED]: 'Completed',
-  [RIDE_STATUS.CANCELLED]: 'Cancelled',
-  [RIDE_STATUS.NO_DRIVERS]: 'No Drivers Available',
+  pending: 'Finding Driver',
+  accepted: 'Driver Accepted',
+  arrived: 'Driver Arrived',
+  passenger_onboard: 'Trip in Progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  no_drivers_available: 'No Drivers Available',
 };
 
 export const RIDE_STATUS_COLORS = {
-  [RIDE_STATUS.PENDING]: '#FF9800',
-  [RIDE_STATUS.ACCEPTED]: '#2196F3',
-  [RIDE_STATUS.ARRIVED]: '#4CAF50',
-  [RIDE_STATUS.PASSENGER_ONBOARD]: '#FFC107',
-  [RIDE_STATUS.COMPLETED]: '#4CAF50',
-  [RIDE_STATUS.CANCELLED]: '#F44336',
-  [RIDE_STATUS.NO_DRIVERS]: '#9E9E9E',
+  pending: '#FF9800',
+  accepted: '#2196F3',
+  arrived: '#4CAF50',
+  passenger_onboard: '#FFC107',
+  completed: '#4CAF50',
+  cancelled: '#F44336',
+  no_drivers_available: '#9E9E9E',
 };
 
-// ============= WebSocket Events =============
+// ✅ Unified Socket Events
 export const SOCKET_EVENTS = {
+  // Connection
+  CONNECT: 'connect',
+  DISCONNECT: 'disconnect',
+  
+  // Driver Events
+  DRIVER: {
+    JOIN: 'driver:join',
+    CONNECTED: 'driver:connected',
+    SESSION_REPLACED: 'driver:session-replaced',
+    LOCATION_UPDATE: 'driver:location:update',
+    LOCATION_UPDATED: 'driver:location:updated',
+    ONLINE: 'driver:online',
+    OFFLINE: 'driver:offline',
+    ONLINE_SUCCESS: 'driver:online:success',
+    OFFLINE_SUCCESS: 'driver:offline:success',
+    FORCED_OFFLINE: 'driver:forced:offline',
+    ARRIVED: 'driver:arrived',
+  },
+  
   // Rider Events
   RIDER: {
     JOIN: 'rider:join',
     CONNECTED: 'rider:connected',
     SESSION_REPLACED: 'rider:session-replaced',
     LOCATION_UPDATE: 'rider:location:update',
+    LOCATION_UPDATED: 'rider:location:updated',
   },
   
   // Ride Lifecycle Events
   RIDE: {
+    REQUEST_NEW: 'ride:request:new',
     REQUEST_CREATED: 'ride:request:created',
     REQUEST_SENT: 'ride:request:sent',
+    REQUEST_RECEIVED: 'ride:request:received',
+    ACCEPT: 'ride:accept',
     ACCEPTED: 'ride:accepted',
+    ACCEPT_SUCCESS: 'ride:accept:success',
+    DECLINE: 'ride:decline',
     DECLINED: 'ride:declined',
+    DECLINE_SUCCESS: 'ride:decline:success',
     CANCELLED: 'ride:cancelled',
-    DRIVER_ARRIVED: 'ride:driver:arrived',
+    TAKEN: 'ride:taken',
     TRIP_STARTED: 'ride:trip:started',
     TRIP_COMPLETED: 'ride:trip:completed',
-    TAKEN: 'ride:taken',
+    NO_DRIVERS: 'ride:no_drivers',
   },
   
-  // Driver Location Events
-  DRIVER: {
-    LOCATION_UPDATED: 'driver:location:updated',
-    ARRIVED: 'ride:driver:arrived',
+  // Subscription Events
+  SUBSCRIPTION: {
+    EXPIRING_WARNING: 'subscription:expiring:warning',
+    EXPIRED: 'subscription:expired',
+    ACTIVATED: 'subscription:activated',
   },
   
   // Payment Events
   PAYMENT: {
     SUCCESS: 'payment:success',
     FAILED: 'payment:failed',
+  },
+  
+  // Withdrawal Events
+  WITHDRAWAL: {
+    PROCESSED: 'withdrawal:processed',
   },
   
   // Rating Events
@@ -145,6 +171,7 @@ export const SOCKET_EVENTS = {
   SOS: {
     TRIGGER: 'sos:trigger',
     TRIGGERED: 'sos:triggered',
+    ALERT: 'sos:alert',
     ACKNOWLEDGED: 'sos:acknowledged',
   },
   
@@ -166,8 +193,8 @@ export const SOCKET_EVENTS = {
     ERROR: 'error',
   },
 };
-// ============= Payment Methods =============
 
+// Payment Methods
 export const PAYMENT_METHODS = {
   CASH: 'cash',
   OKRAPAY: 'okrapay',
@@ -175,13 +202,12 @@ export const PAYMENT_METHODS = {
 };
 
 export const PAYMENT_METHOD_LABELS = {
-  [PAYMENT_METHODS.CASH]: 'Cash',
-  [PAYMENT_METHODS.OKRAPAY]: 'OkraPay',
-  [PAYMENT_METHODS.MOBILE_MONEY]: 'Mobile Money',
+  cash: 'Cash',
+  okrapay: 'OkraPay',
+  mobile_money: 'Mobile Money',
 };
 
-// ============= Ride Types =============
-
+// Ride Types
 export const RIDE_TYPES = {
   TAXI: 'taxi',
   BUS: 'bus',
@@ -190,14 +216,13 @@ export const RIDE_TYPES = {
 };
 
 export const RIDE_TYPE_LABELS = {
-  [RIDE_TYPES.TAXI]: 'Okra Go',
-  [RIDE_TYPES.BUS]: 'Okra Bus',
-  [RIDE_TYPES.MOTORCYCLE]: 'Okra Bike',
-  [RIDE_TYPES.DELIVERY]: 'Okra Delivery',
+  taxi: 'Okra Go',
+  bus: 'Okra Bus',
+  motorcycle: 'Okra Bike',
+  delivery: 'Okra Delivery',
 };
 
-// ============= Map Configuration =============
-
+// Map Configuration
 export const MAP_CONFIG = {
   DEFAULT_CENTER: {
     lat: -15.4167, // Lusaka
@@ -225,44 +250,7 @@ export const MAP_CONFIG = {
   },
 };
 
-// ============= Validation Rules =============
-
-export const VALIDATION = {
-  PHONE: {
-    MIN_LENGTH: 9,
-    MAX_LENGTH: 9,
-    REGEX: /^[97]\d{8}$/,
-    PREFIX: [9, 7], // Valid first digits
-  },
-  
-  OTP: {
-    LENGTH: 6,
-    REGEX: /^\d{6}$/,
-    EXPIRY_MINUTES: 10,
-  },
-  
-  NAME: {
-    MIN_LENGTH: 2,
-    MAX_LENGTH: 50,
-    REGEX: /^[a-zA-Z\s]+$/,
-  },
-};
-
-// ============= Time Constants =============
-
-export const TIME = {
-  SECOND: 1000,
-  MINUTE: 60 * 1000,
-  HOUR: 60 * 60 * 1000,
-  DAY: 24 * 60 * 60 * 1000,
-  
-  OTP_RESEND_DELAY: 30, // seconds
-  SESSION_DURATION: 6 * 30 * 24 * 60 * 60 * 1000, // 6 months
-  RIDE_REQUEST_TIMEOUT: 30, // seconds
-};
-
-// ============= Storage Keys =============
-
+// Storage Keys
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth_token',
   USER_DATA: 'user_data',
@@ -273,8 +261,38 @@ export const STORAGE_KEYS = {
   ACTIVE_RIDE: 'active_ride',
 };
 
-// ============= Error Messages =============
+// Time Constants
+export const TIME = {
+  SECOND: 1000,
+  MINUTE: 60 * 1000,
+  HOUR: 60 * 60 * 1000,
+  DAY: 24 * 60 * 60 * 1000,
+  OTP_RESEND_DELAY: 30,
+  SESSION_DURATION: 6 * 30 * 24 * 60 * 60 * 1000, // 6 months
+  RIDE_REQUEST_TIMEOUT: 30,
+};
 
+// Validation
+export const VALIDATION = {
+  PHONE: {
+    MIN_LENGTH: 9,
+    MAX_LENGTH: 9,
+    REGEX: /^[97]\d{8}$/,
+    PREFIX: [9, 7],
+  },
+  OTP: {
+    LENGTH: 6,
+    REGEX: /^\d{6}$/,
+    EXPIRY_MINUTES: 10,
+  },
+  NAME: {
+    MIN_LENGTH: 2,
+    MAX_LENGTH: 50,
+    REGEX: /^[a-zA-Z\s]+$/,
+  },
+};
+
+// Error Messages
 export const ERROR_MESSAGES = {
   NETWORK_ERROR: 'Network error. Please check your connection.',
   SERVER_ERROR: 'Server error. Please try again later.',
@@ -286,8 +304,7 @@ export const ERROR_MESSAGES = {
   LOCATION_UNAVAILABLE: 'Unable to get your location. Please try again.',
 };
 
-// ============= Success Messages =============
-
+// Success Messages
 export const SUCCESS_MESSAGES = {
   OTP_SENT: 'OTP sent successfully',
   LOGIN_SUCCESS: 'Login successful',
@@ -296,8 +313,7 @@ export const SUCCESS_MESSAGES = {
   PAYMENT_SUCCESS: 'Payment successful',
 };
 
-// ============= Notification Types =============
-
+// Notification Types
 export const NOTIFICATION_TYPES = {
   RIDE_REQUEST: 'ride_request',
   RIDE_ACCEPTED: 'ride_accepted',
@@ -309,8 +325,7 @@ export const NOTIFICATION_TYPES = {
   SYSTEM: 'system_announcement',
 };
 
-// ============= Rating Tags =============
-
+// Rating Tags
 export const RATING_TAGS = {
   POSITIVE: [
     'Great Service',
@@ -330,21 +345,18 @@ export const RATING_TAGS = {
   ],
 };
 
-// ============= Feature Flags =============
-
+// Feature Flags
 export const FEATURES = {
   DARK_MODE: process.env.NEXT_PUBLIC_ENABLE_DARK_MODE === 'true',
   PWA: process.env.NEXT_PUBLIC_ENABLE_PWA === 'true',
   NOTIFICATIONS: process.env.NEXT_PUBLIC_ENABLE_NOTIFICATIONS === 'true',
   SCHEDULED_RIDES: true,
   FAVORITE_DRIVERS: true,
-  SPLIT_PAYMENT: false, // Coming soon
+  SPLIT_PAYMENT: false,
   BIKE_TAXI: true,
   BUS_BOOKING: true,
   DELIVERY: true,
 };
-
-// ============= Export all =============
 
 export default {
   APP_NAME,
@@ -359,19 +371,18 @@ export default {
   RIDE_STATUS,
   RIDE_STATUS_LABELS,
   RIDE_STATUS_COLORS,
+  SOCKET_EVENTS,
   PAYMENT_METHODS,
   PAYMENT_METHOD_LABELS,
   RIDE_TYPES,
   RIDE_TYPE_LABELS,
   MAP_CONFIG,
-  VALIDATION,
-  TIME,
   STORAGE_KEYS,
+  TIME,
+  VALIDATION,
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
   NOTIFICATION_TYPES,
   RATING_TAGS,
   FEATURES,
 };
-
-

@@ -1,3 +1,4 @@
+// driver/app/(main)/active-ride/[id]/page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,6 +23,7 @@ import {
 import { motion } from 'framer-motion';
 import { GoogleMapIframe } from '@/components/Map/GoogleMapIframe';
 import { useRide } from '@/lib/hooks/useRide';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { formatCurrency, formatDistance } from '@/Functions';
 import { apiClient } from '@/lib/api/client';
 import { useSocket } from '@/lib/socket/SocketProvider';
@@ -32,6 +34,8 @@ export default function ActiveRidePage() {
   const router = useRouter();
   const { currentRide, startTrip, completeTrip, cancelRide, confirmArrival } = useRide();
   const { updateLocation } = useSocket();
+  const { isNative, getCurrentLocation } = useReactNative();
+
   const [ride, setRide] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,33 +47,47 @@ export default function ActiveRidePage() {
   useEffect(() => {
     if (!ride || ride.rideStatus === 'completed' || ride.rideStatus === 'cancelled') return;
 
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const location = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        
-        const heading = position.coords.heading || 0;
-        const speed = position.coords.speed || 0;
+    let locationInterval;
 
-        // Update socket
-        updateLocation(location, heading, speed);
-      },
-      (error) => {
-        console.error('Location error:', error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0,
+    const trackLocation = async () => {
+      try {
+        if (isNative) {
+          const location = await getCurrentLocation();
+          if (location) {
+            updateLocation(location, location.heading || 0, location.speed || 0);
+          }
+        } else {
+          // Web fallback
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const location = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                };
+                const heading = position.coords.heading || 0;
+                const speed = position.coords.speed || 0;
+                updateLocation(location, heading, speed);
+              },
+              (error) => console.error('Location error:', error)
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Location tracking error:', error);
       }
-    );
+    };
+
+    // Track immediately
+    trackLocation();
+
+    // Then track every 5 seconds
+    locationInterval = setInterval(trackLocation, 5000);
 
     return () => {
-      navigator.geolocation.clearWatch(watchId);
+      if (locationInterval) clearInterval(locationInterval);
     };
-  }, [ride?.rideStatus, updateLocation]);
+  }, [ride?.rideStatus, isNative, getCurrentLocation, updateLocation]);
 
   const loadRideDetails = async () => {
     try {
@@ -116,10 +134,11 @@ export default function ActiveRidePage() {
   };
 
   const handleNavigate = () => {
-    const destination = ride.rideStatus === 'accepted' || ride.rideStatus === 'arrived'
-      ? ride.pickupLocation
-      : ride.dropoffLocation;
-    
+    const destination =
+      ride.rideStatus === 'accepted' || ride.rideStatus === 'arrived'
+        ? ride.pickupLocation
+        : ride.dropoffLocation;
+
     const url = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`;
     window.open(url, '_blank');
   };
@@ -141,7 +160,7 @@ export default function ActiveRidePage() {
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* App Bar */}
+      {/* AppBar */}
       <AppBar position="static" elevation={0}>
         <Toolbar>
           <IconButton edge="start" color="inherit" onClick={() => router.back()}>
@@ -214,7 +233,7 @@ export default function ActiveRidePage() {
           <Typography variant="body1" sx={{ mb: 2 }}>
             {ride.pickupLocation.address}
           </Typography>
-          
+
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
             DROPOFF
           </Typography>
@@ -285,4 +304,3 @@ export default function ActiveRidePage() {
     </Box>
   );
 }
-

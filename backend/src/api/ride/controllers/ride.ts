@@ -376,30 +376,22 @@ async findOne(ctx) {
     
   //   return response;
   // },
- async create(ctx) {
+async create(ctx) {
     try {
       const { data } = ctx.request.body;
       const riderId = ctx.state.user.id;
 
-      // Validate rider profile is active
       const rider = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: riderId },
         populate: { riderProfile: true }
-      })
+      });
 
       if (!rider?.riderProfile) {
         return ctx.badRequest('Rider profile not found');
       }
 
-      // Ensure rider profile is active and other profiles are inactive
-      // if (rider.activeProfile !== 'rider') {
-      //   return ctx.badRequest('Rider profile must be active to book rides');
-      // }
-
-      // Generate ride code
       data.rideCode = data.rideCode || await generateUniqueRideCode();
 
-      // Convert taxiType string to ID if needed
       if (data.taxiType && typeof data.taxiType === 'string') {
         const taxiTypeRecord = await strapi.db.query('api::taxi-type.taxi-type').findOne({
           where: { name: data.taxiType }
@@ -411,7 +403,6 @@ async findOne(ctx) {
         }
       }
 
-      // Same for rideClass
       if (data.rideClass && typeof data.rideClass === 'string') {
         const rideClassRecord = await strapi.db.query('api::ride-class.ride-class').findOne({
           where: { name: data.rideClass }
@@ -421,46 +412,91 @@ async findOne(ctx) {
         }
       }
 
-      // Set initial values
       data.rider = riderId;
       data.rideStatus = 'pending';
       data.requestedAt = new Date();
       data.requestedDrivers = [];
       data.declinedDrivers = [];
 
-      // Create the ride
       const ride = await strapi.db.query('api::ride.ride').create({
         data,
         populate: true
       });
-      // Emit socket event for new ride request
-      socketService.emitRideRequestCreated(ride);
 
+      // ✅ Direct socket emit - No eventHub
+      socketService.emitRideRequestCreated(ride);
       strapi.log.info(`Ride ${ride.id} created by rider ${riderId}`);
-      toggleDriverProfileOffline(ctx) // if you are online in your driver profile, we set it to offline
-      // Find and notify eligible drivers
-      const eligibleDriversResult = await RideBookingService.findEligibleDrivers({
-          pickupLocation: data.pickupLocation,
-          riderId,
-          taxiType: data.taxiType,
-          rideClass: data.rideClass
+
+      const toggleDriverProfileOffline = async () => {
+        const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: riderId },
+          populate: {
+            driverProfile: { select: ['id'] },
+            riderProfile: { select: ['id'] },
+            deliveryProfile: { select: ['id'] },
+            conductorProfile: { select: ['id'] }
+          }
         });
+
+        if (user?.driverProfile) {
+          await strapi.db.query('plugin::users-permissions.user').update({
+            where: { id: riderId },
+            data: {
+              isOnline: false,
+              activeProfile: 'rider',
+              profileActivityStatus: {
+                "rider": true,
+                "driver": false,
+                "delivery": false,
+                "conductor": false
+              },
+              lastSeen: new Date()
+            }
+          });
+
+          await strapi.db.query('driver-profiles.driver-profile').update({
+            where: { id: user.driverProfile.id },
+            data: { isOnline: false, isActive: false }
+          });
+
+          await strapi.db.query('rider-profiles.rider-profile').update({
+            where: { id: user.riderProfile.id },
+            data: { isOnline: true, isAvailable: true, isActive: true }
+          });
+
+          await strapi.db.query('delivery-profiles.delivery-profile').update({
+            where: { id: user.deliveryProfile.id },
+            data: { isOnline: false, isAvailable: false, isActive: false }
+          });
+
+          await strapi.db.query('conductor-profiles.conductor-profile').update({
+            where: { id: user.conductorProfile.id },
+            data: { isOnline: false, isAvailable: false, isActive: false }
+          });
+        }
+      };
+
+      await toggleDriverProfileOffline();
+
+      const eligibleDriversResult = await RideBookingService.findEligibleDrivers({
+        pickupLocation: data.pickupLocation,
+        riderId,
+        taxiType: data.taxiType,
+        rideClass: data.rideClass
+      });
 
       if (eligibleDriversResult.success && eligibleDriversResult.drivers.length > 0) {
-        // Send requests to drivers
         await RideBookingService.sendRideRequests(ride.id, eligibleDriversResult.drivers);
       } else {
-        // No drivers available
         await strapi.db.query('api::ride.ride').update({
           where: { id: ride.id },
-          data: { rideStatus: 'no_drivers_available', cancelledBy: 'system' }
+          data: {
+            rideStatus: 'no_drivers_available',
+            cancelledBy: 'system'
+          }
         });
-
         strapi.log.warn(`No eligible drivers found for ride ${ride.id}`);
       }
-
-      // Emit event for rider
-      strapi.eventHub.emit('ride.created', { ride });
 
       return ctx.send({
         success: true,
@@ -1166,9 +1202,7 @@ async getActiveRide(ctx) {
       const { id } = ctx.params;
       const driverId = ctx.state.user.id;
 
-      // Check if driver can accept rides
       const eligibilityCheck = await RideBookingService.canDriverAcceptRides(driverId);
-
       if (!eligibilityCheck.canAccept) {
         return ctx.forbidden(eligibilityCheck.reason);
       }
@@ -1186,7 +1220,6 @@ async getActiveRide(ctx) {
         return ctx.badRequest('Ride is not available');
       }
 
-      // Check if this driver was actually requested
       const requestedDrivers = ride.requestedDrivers || [];
       const wasRequested = requestedDrivers.some(rd => rd.driverId === driverId);
 
@@ -1194,14 +1227,11 @@ async getActiveRide(ctx) {
         return ctx.badRequest('You were not requested for this ride');
       }
 
-      // Get driver details
       const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: driverId },
         populate: {
           driverProfile: {
-            populate: {
-              assignedVehicle: true
-            }
+            populate: { assignedVehicle: true }
           }
         }
       });
@@ -1210,7 +1240,6 @@ async getActiveRide(ctx) {
         return ctx.badRequest('Driver profile not found');
       }
 
-      // Update ride
       const updatedRide = await strapi.db.query('api::ride.ride').update({
         where: { id },
         data: {
@@ -1221,8 +1250,8 @@ async getActiveRide(ctx) {
         },
         populate: true
       });
-      
-      // Notify rider via socket (real-time)
+
+      // ✅ Direct socket emit - No eventHub
       socketService.emit('ride:accepted', {
         rideId: updatedRide.id,
         driverId,
@@ -1245,11 +1274,10 @@ async getActiveRide(ctx) {
           model: driver.driverProfile.assignedVehicle.model,
           color: driver.driverProfile.assignedVehicle.color,
         } : null,
-        eta: 180, // Calculate actual ETA
-        distance: 1.5, // Calculate actual distance
-      })
+        eta: 180,
+        distance: 1.5,
+      });
 
-      // Update driver profile
       await strapi.db.query('plugin::users-permissions.user').update({
         where: { id: driverId },
         data: {
@@ -1261,19 +1289,12 @@ async getActiveRide(ctx) {
         }
       });
 
-      // Emit events
-      strapi.eventHub.emit('ride:accepted', { 
-        ride: updatedRide, 
-        driverId 
-      });
-
-      // Notify other drivers that ride was taken
       const otherDriverIds = requestedDrivers
         .filter(rd => rd.driverId !== driverId)
         .map(rd => rd.driverId);
 
       if (otherDriverIds.length > 0) {
-        strapi.eventHub.emit('ride:taken', {
+        socketService.emit('ride:taken', {
           rideId: id,
           driverIds: otherDriverIds
         });
@@ -1400,11 +1421,11 @@ async getActiveRide(ctx) {
           rideStatus: 'arrived',
           arrivedAt: new Date(),
         }
-      })
-      
-      emitRideStatusChange(updatedRide, 'accepted'); // previous status is what's added
-      strapi.eventHub.emit('ride:arrived', { ride: updatedRide });
-     
+      });
+
+      // ✅ Direct socket emit - No eventHub
+      socketService.emitDriverArrived(updatedRide);
+
       return ctx.send(updatedRide);
     } catch (error) {
       strapi.log.error('Confirm arrival error:', error);
@@ -1437,23 +1458,27 @@ async getActiveRide(ctx) {
           tripStartedAt: new Date(),
         }
       });
-      
+
       const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: driverId },
         populate: {
-          driverProfile: {select: ['id'] }
+          driverProfile: {
+            select: ['id']
+          }
         }
-      })
+      });
+
       await strapi.db.query('driver-profiles.driver-profile').update({
-        where: { id: driver.driverProfile.id },  
+        where: { id: driver.driverProfile.id },
         data: {
-            isAvailable: false,
-            isEnroute: true,
-            currentRide: id
-         }
-      })
-      emitRideStatusChange(updatedRide, 'arrived'); // previous status is what's added
-      strapi.eventHub.emit('ride:started', { ride: updatedRide });
+          isAvailable: false,
+          isEnroute: true,
+          currentRide: id
+        }
+      });
+
+      // ✅ Direct socket emit - No eventHub
+      socketService.emitTripStarted(updatedRide);
 
       return ctx.send(updatedRide);
     } catch (error) {
@@ -1482,10 +1507,9 @@ async getActiveRide(ctx) {
         return ctx.badRequest('Trip not started');
       }
 
-      // Calculate commission
       const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
       let commission = 0;
-      
+
       if (settings?.commissionType === 'percentage') {
         commission = (ride.totalFare * (settings.defaultCommissionPercentage || 15)) / 100;
       } else if (settings?.commissionType === 'flat_rate') {
@@ -1494,7 +1518,6 @@ async getActiveRide(ctx) {
 
       const driverEarnings = ride.totalFare - commission;
 
-      // Update ride
       const updatedRide = await strapi.db.query('api::ride.ride').update({
         where: { id },
         data: {
@@ -1508,29 +1531,28 @@ async getActiveRide(ctx) {
         }
       });
 
-      // Update driver profile - getting existing data and updating it
       const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: ride.driver.id },
         populate: {
           driverProfile: {
-            select: ['id','completedRides','totalRides','totalEarnings','currentBalance'] 
+            select: ['id', 'completedRides', 'totalRides', 'totalEarnings', 'currentBalance']
           }
         }
-      })
+      });
 
       await strapi.db.query('driver-profiles.driver-profile').update({
-        where: { id: driver.driverProfile.id },  
+        where: { id: driver.driverProfile.id },
         data: {
-            isAvailable: true,
-            isEnroute: false,
-            currentRide: null,
-            completedRides: (driver.driverProfile.completedRides || 0) + 1,
-            totalRides: (driver.driverProfile.totalRides || 0) + 1,
-            totalEarnings: (driver.driverProfile.totalEarnings || 0) + driverEarnings,
-            currentBalance: (driver.driverProfile.currentBalance || 0) + driverEarnings,
-         }
-      })
-      // Create ledger entry
+          isAvailable: true,
+          isEnroute: false,
+          currentRide: null,
+          completedRides: (driver.driverProfile.completedRides || 0) + 1,
+          totalRides: (driver.driverProfile.totalRides || 0) + 1,
+          totalEarnings: (driver.driverProfile.totalEarnings || 0) + driverEarnings,
+          currentBalance: (driver.driverProfile.currentBalance || 0) + driverEarnings,
+        }
+      });
+
       await strapi.db.query('api::ledger-entry.ledger-entry').create({
         data: {
           entryId: `LE-${Date.now()}`,
@@ -1543,9 +1565,12 @@ async getActiveRide(ctx) {
         }
       });
 
-      emitRideStatusChange(updatedRide, 'passenger_onboard'); // previous status is what's added
-      requestRatings(updatedRide);
-      strapi.eventHub.emit('ride:completed', { ride: updatedRide });
+      // ✅ Direct socket emit - No eventHub
+      socketService.emitTripCompleted(updatedRide);
+
+      // Request ratings
+      socketService.emitRatingRequestRider(ride.riderId, id, driverId);
+      socketService.emitRatingRequestDriver(driverId, id, ride.riderId);
 
       return ctx.send(updatedRide);
     } catch (error) {
@@ -1619,84 +1644,79 @@ async getActiveRide(ctx) {
   //   }
   // }
 async cancelRide(ctx) {
-  try {
-    const { id } = ctx.params;
-    const userId = ctx.state.user.id;
-    const { reason, cancelledBy } = ctx.request.body;
+    try {
+      const { id } = ctx.params;
+      const userId = ctx.state.user.id;
+      const { reason, cancelledBy } = ctx.request.body;
 
-    const ride = await strapi.db.query('api::ride.ride').findOne({
-      where: { id },
-      populate: ['rider', 'driver']
-    });
+      const ride = await strapi.db.query('api::ride.ride').findOne({
+        where: { id },
+        populate: ['rider', 'driver']
+      });
 
-    if (!ride) {
-      return ctx.notFound('Ride not found');
-    }
-
-    if (ride.rideStatus === 'completed' || ride.rideStatus === 'cancelled') {
-      return ctx.badRequest('Cannot cancel this ride');
-    }
-
-    // Calculate cancellation fee if applicable
-    let cancellationFee = 0;
-    const cancellationReason = await strapi.db.query('api::cancellation-reason.cancellation-reason').findOne({
-      where: { code: reason }
-    });
-
-    if (cancellationReason?.hasFee) {
-      cancellationFee = cancellationReason.feeAmount || 0;
-    }
-
-    const updatedRide = await strapi.db.query('api::ride.ride').update({
-      where: { id },
-      data: {
-        rideStatus: 'cancelled',
-        cancelledAt: new Date(),
-        cancelledBy,
-        cancellationReason: reason,
-        cancellationFee,
+      if (!ride) {
+        return ctx.notFound('Ride not found');
       }
-    });
 
-    // **NEW: Handle driver blocking after cancellation**
-    if (ride.driver && ride.rideStatus === 'accepted') {
-      // Add driver to temp blocked list
-      await RiderBlockingService.addTempBlock(ride.rider.id, ride.driver.id);
-      
-      strapi.log.info(`Driver ${ride.driver.id} temp blocked for rider ${ride.rider.id} due to cancellation`);
-    }
+      if (ride.rideStatus === 'completed' || ride.rideStatus === 'cancelled') {
+        return ctx.badRequest('Cannot cancel this ride');
+      }
 
-    
+      let cancellationFee = 0;
+      const cancellationReason = await strapi.db.query('api::cancellation-reason.cancellation-reason').findOne({
+        where: { code: reason }
+      });
 
-    // Update driver if assigned
-    if (ride.driver) {
-      const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
-        where: { id: ride.driver.id },
-        populate: {
-          driverProfile: {select: ['id','cancelledRides'] }
-        }
-      })
-      await strapi.db.query('driver-profiles.driver-profile').update({
-        where: { id: driver.driverProfile.id },  
+      if (cancellationReason?.hasFee) {
+        cancellationFee = cancellationReason.feeAmount || 0;
+      }
+
+      const updatedRide = await strapi.db.query('api::ride.ride').update({
+        where: { id },
         data: {
+          rideStatus: 'cancelled',
+          cancelledAt: new Date(),
+          cancelledBy,
+          cancellationReason: reason,
+          cancellationFee,
+        }
+      });
+
+      if (ride.driver && ride.rideStatus === 'accepted') {
+        await RiderBlockingService.addTempBlock(ride.rider.id, ride.driver.id);
+        strapi.log.info(`Driver ${ride.driver.id} temp blocked for rider ${ride.rider.id} due to cancellation`);
+      }
+
+      if (ride.driver) {
+        const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: ride.driver.id },
+          populate: {
+            driverProfile: {
+              select: ['id', 'cancelledRides']
+            }
+          }
+        });
+
+        await strapi.db.query('driver-profiles.driver-profile').update({
+          where: { id: driver.driverProfile.id },
+          data: {
             isAvailable: true,
             isEnroute: false,
             currentRide: null,
             cancelledRides: (driver.driverProfile.cancelledRides || 0) + 1
-         }
-      })
-     
-    }
-    
-    emitRideStatusChange(updatedRide, ride.rideStatus);
-    strapi.eventHub.emit('ride:cancelled', { ride: updatedRide, cancelledBy });
+          }
+        });
+      }
 
-    return ctx.send(updatedRide);
-  } catch (error) {
-    strapi.log.error('Cancel ride error:', error);
-    return ctx.internalServerError('Failed to cancel ride');
-  }
-},
+      // ✅ Direct socket emit - No eventHub
+      socketService.emitRideCancelled(updatedRide, cancelledBy, reason, cancellationFee);
+
+      return ctx.send(updatedRide);
+    } catch (error) {
+      strapi.log.error('Cancel ride error:', error);
+      return ctx.internalServerError('Failed to cancel ride');
+    }
+  },
 // ============================================
 // CUSTOM METHOD: Rate Ride (Driver or Rider)
 // ============================================

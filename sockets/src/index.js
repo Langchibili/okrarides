@@ -1,7 +1,11 @@
 // sockets/src/index.js
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const fs = require('fs');
+const path = require('path');
 const winston = require("winston");
+// Check log file sizes and rotate if needed
+const LOG_FILE_MAX_SIZE = 100 * 1024 * 1024; // 100MB
 
 // ==================== ENVIRONMENT CONFIGURATION ====================
 let clientUrls, environment;
@@ -44,8 +48,38 @@ if (environment === 'local' || environment === 'development') {
 }
 
 // ==================== LOGGER SETUP ====================
+// const logger = winston.createLogger({
+//   level: process.env.LOG_LEVEL || 'info',
+//   format: winston.format.combine(
+//     winston.format.timestamp(),
+//     winston.format.json()
+//   ),
+//   transports: [
+//     new winston.transports.Console({
+//       format: winston.format.combine(
+//         winston.format.colorize(),
+//         winston.format.simple()
+//       )
+//     }),
+//     new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+//     new winston.transports.File({ filename: 'logs/combined.log' })
+//   ]
+// });
+const checkAndRotateLog = (filename) => {
+  const filepath = path.join(__dirname, '..', 'logs', filename);
+  try {
+    const stats = fs.statSync(filepath);
+    if (stats.size > LOG_FILE_MAX_SIZE) {
+      fs.unlinkSync(filepath);
+      console.error(`Rotated log file: ${filename}`);
+    }
+  } catch (error) {
+    // File doesn't exist yet, ignore
+  }
+};
+
 const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
+  level: 'error',
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json()
@@ -55,12 +89,20 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.simple()
-      )
+      ),
+      level: 'error'
     }),
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' })
+    new winston.transports.File({
+      filename: 'logs/error.log',
+      level: 'error',
+      maxsize: LOG_FILE_MAX_SIZE,
+      maxFiles: 1
+    })
   ]
 });
+// Check log files on startup
+checkAndRotateLog('error.log');
+checkAndRotateLog('combined.log');
 
 // ==================== HTTP & SOCKET.IO SERVER SETUP ====================
 const httpServer = createServer();
@@ -104,7 +146,7 @@ function getSocketByEntity(type, entityId) {
 
 function emitToRoom(room, event, data) {
   io.to(room).emit(event, data);
-  logger.info(`Emitted '${event}' to room '${room}'`, { event, room, dataKeys: Object.keys(data) });
+  console.log(`Emitted '${event}' to room '${room}'`, { event, room, dataKeys: Object.keys(data) });
 }
 
 function emitToUser(type, userId, event, data) {
@@ -133,7 +175,7 @@ function broadcastToNearbyDrivers(location, radius, event, data) {
     emitToUser('driver', driverId, event, { ...data, distance });
   });
 
-  logger.info(`Broadcast to ${nearbyDrivers.length} nearby drivers`, { event, location, radius });
+  console.log(`Broadcast to ${nearbyDrivers.length} nearby drivers`, { event, location, radius });
   
   return nearbyDrivers;
 }
@@ -153,7 +195,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 // ==================== SOCKET CONNECTION HANDLER ====================
 io.on("connection", (socket) => {
-  logger.info(`New connection: ${socket.id}`);
+  console.log(`New connection: ${socket.id}`);
 
   // ==================== USER CONNECTION MANAGEMENT ====================
 
@@ -180,7 +222,7 @@ io.on("connection", (socket) => {
 
     socket.join(`rider:${riderId}`);
     
-    logger.info(`Rider ${riderId} joined`, { socketId: socket.id, metadata });
+    console.log(`Rider ${riderId} joined`, { socketId: socket.id, metadata });
     
     socket.emit('rider:connected', { riderId, socketId: socket.id });
   });
@@ -217,7 +259,7 @@ io.on("connection", (socket) => {
       });
     }
     
-    logger.info(`Driver ${driverId} joined`, { socketId: socket.id, location, metadata });
+    console.log(`Driver ${driverId} joined`, { socketId: socket.id, location, metadata });
     
     socket.emit('driver:connected', { driverId, socketId: socket.id });
   });
@@ -244,7 +286,7 @@ io.on("connection", (socket) => {
 
     socket.join(`conductor:${conductorId}`);
     
-    logger.info(`Conductor ${conductorId} joined`, { socketId: socket.id });
+    console.log(`Conductor ${conductorId} joined`, { socketId: socket.id });
     
     socket.emit('conductor:connected', { conductorId, socketId: socket.id });
   });
@@ -279,7 +321,7 @@ io.on("connection", (socket) => {
       });
     }
     
-    logger.info(`Delivery person ${deliveryPersonId} joined`, { socketId: socket.id });
+    console.log(`Delivery person ${deliveryPersonId} joined`, { socketId: socket.id });
     
     socket.emit('delivery:connected', { deliveryPersonId, socketId: socket.id });
   });
@@ -298,7 +340,7 @@ io.on("connection", (socket) => {
     socket.join(`admin:${adminId}`);
     socket.join('admin:all'); // All admins room
     
-    logger.info(`Admin ${adminId} joined`, { socketId: socket.id });
+    console.log(`Admin ${adminId} joined`, { socketId: socket.id });
     
     socket.emit('admin:connected', { adminId, socketId: socket.id });
   });
@@ -309,7 +351,7 @@ io.on("connection", (socket) => {
   socket.on('ride:request:created', (data) => {
     const { rideId, riderId, pickupLocation, dropoffLocation, rideType, estimatedFare } = data;
     
-    logger.info(`New ride request: ${rideId}`, { riderId, rideType });
+    console.log(`New ride request: ${rideId}`, { riderId, rideType });
 
     // Track this ride
     activeRides.set(rideId, {
@@ -345,7 +387,7 @@ io.on("connection", (socket) => {
       });
     });
 
-    logger.info(`Ride request sent to ${driverIds.length} drivers`, { rideId, driverIds });
+    console.log(`Ride request sent to ${driverIds.length} drivers`, { rideId, driverIds });
   });
 
   // Driver accepts ride
@@ -373,7 +415,7 @@ io.on("connection", (socket) => {
     // Notify other drivers that ride was taken
     emitToRoom(`ride:${rideId}:pending`, 'ride:taken', { rideId });
 
-    logger.info(`Ride ${rideId} accepted by driver ${driverId}`);
+    console.log(`Ride ${rideId} accepted by driver ${driverId}`);
     
     socket.emit('ride:accept:success', { rideId });
   });
@@ -382,7 +424,7 @@ io.on("connection", (socket) => {
   socket.on('ride:decline', (data) => {
     const { rideId, driverId, reason } = data;
     
-    logger.info(`Driver ${driverId} declined ride ${rideId}`, { reason });
+    console.log(`Driver ${driverId} declined ride ${rideId}`, { reason });
     
     socket.emit('ride:decline:success', { rideId });
     
@@ -402,7 +444,7 @@ io.on("connection", (socket) => {
       emitToUser('rider', ride.riderId, 'ride:driver:arrived', { rideId, driverId });
     }
 
-    logger.info(`Driver ${driverId} arrived for ride ${rideId}`);
+    console.log(`Driver ${driverId} arrived for ride ${rideId}`);
   });
 
   // From Strapi: Trip started
@@ -419,7 +461,7 @@ io.on("connection", (socket) => {
       emitToUser('driver', driverId, 'ride:trip:started', { rideId });
     }
 
-    logger.info(`Trip started for ride ${rideId}`);
+    console.log(`Trip started for ride ${rideId}`);
   });
 
   // From Strapi: Trip completed
@@ -450,7 +492,7 @@ io.on("connection", (socket) => {
       }, 300000); // 5 minutes
     }
 
-    logger.info(`Trip completed for ride ${rideId}`, { finalFare, distance, duration });
+    console.log(`Trip completed for ride ${rideId}`, { finalFare, distance, duration });
   });
 
   // From Strapi: Ride cancelled
@@ -475,7 +517,7 @@ io.on("connection", (socket) => {
       }, 60000); // 1 minute
     }
 
-    logger.info(`Ride ${rideId} cancelled by ${cancelledBy}`, { reason });
+    console.log(`Ride ${rideId} cancelled by ${cancelledBy}`, { reason });
   });
 
   // ==================== LIVE LOCATION TRACKING ====================
@@ -504,10 +546,10 @@ io.on("connection", (socket) => {
           location,
           heading,
           speed
-        });
+        })
       }
-    });
-  });
+    })
+  })
 
   // Rider location update
   socket.on('rider:location:update', (data) => {
@@ -540,7 +582,7 @@ io.on("connection", (socket) => {
       timestamp: Date.now()
     });
 
-    logger.info(`Driver ${driverId} is now online`);
+    console.log(`Driver ${driverId} is now online`);
     
     socket.emit('driver:online:success', { driverId });
   });
@@ -555,7 +597,7 @@ io.on("connection", (socket) => {
       driverLocations.set(driverId, driverLoc);
     }
 
-    logger.info(`Driver ${driverId} is now offline`);
+    console.log(`Driver ${driverId} is now offline`);
     
     socket.emit('driver:offline:success', { driverId });
   });
@@ -698,7 +740,7 @@ io.on("connection", (socket) => {
       });
     }
     
-    logger.info(`Broadcast notification to ${userType}`, { notification });
+    console.log(`Broadcast notification to ${userType}`, { notification });
   });
 
   // ==================== SOS & EMERGENCY ====================
@@ -749,7 +791,7 @@ io.on("connection", (socket) => {
       busId
     });
     
-    logger.info(`Bus route ${routeId} started by driver ${driverId}`);
+    console.log(`Bus route ${routeId} started by driver ${driverId}`);
   });
 
   // Bus location update
@@ -771,7 +813,7 @@ io.on("connection", (socket) => {
     
     socket.join(`bus:route:${routeId}`);
     
-    logger.info(`Rider ${riderId} tracking bus route ${routeId}`);
+    console.log(`Rider ${riderId} tracking bus route ${routeId}`);
   });
 
   // Stop tracking bus route
@@ -818,7 +860,7 @@ io.on("connection", (socket) => {
       });
     }
     
-    logger.info('System announcement sent', { targetAudience, priority });
+    console.log('System announcement sent', { targetAudience, priority });
   });
 
   // Admin monitoring - watch all rides
@@ -856,7 +898,7 @@ io.on("connection", (socket) => {
   // ==================== DISCONNECT HANDLER ====================
 
   socket.on('disconnect', (reason) => {
-    logger.info(`Socket disconnected: ${socket.id}`, { reason });
+    console.log(`Socket disconnected: ${socket.id}`, { reason });
     
     const entityInfo = connections.sockets.get(socket.id);
     if (entityInfo) {
@@ -875,7 +917,7 @@ io.on("connection", (socket) => {
         }
       }
       
-      logger.info(`Cleaned up ${type} ${id}`);
+      console.log(`Cleaned up ${type} ${id}`);
     }
   });
 
@@ -951,7 +993,7 @@ setInterval(() => {
   activeRides.forEach((ride, rideId) => {
     if ((ride.status === 'completed' || ride.status === 'cancelled') && 
         now - (ride.completedAt || ride.cancelledAt || ride.createdAt) > staleThreshold) {
-      logger.info(`Cleaning up old ride ${rideId}`);
+      console.log(`Cleaning up old ride ${rideId}`);
       activeRides.delete(rideId);
     }
   });
@@ -961,25 +1003,25 @@ setInterval(() => {
 const PORT = process.env.PORT || 3005;
 
 httpServer.listen(PORT, () => {
-  logger.info(`🚀 OkraRides Socket Server started`);
-  logger.info(`📡 Listening on port ${PORT}`);
-  logger.info(`🌍 Environment: ${environment}`);
-  logger.info(`🔐 Allowed origins: ${allowedOrigins.join(', ')}`);
+  console.log(`🚀 OkraRides Socket Server started`);
+  console.log(`📡 Listening on port ${PORT}`);
+  console.log(`🌍 Environment: ${environment}`);
+  console.log(`🔐 Allowed origins: ${allowedOrigins.join(', ')}`);
 });
 
 // ==================== GRACEFUL SHUTDOWN ====================
 process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, closing server gracefully...');
+  console.log('SIGTERM received, closing server gracefully...');
   httpServer.close(() => {
-    logger.info('Server closed');
+    console.log('Server closed');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  logger.info('SIGINT received, closing server gracefully...');
+  console.log('SIGINT received, closing server gracefully...');
   httpServer.close(() => {
-    logger.info('Server closed');
+    console.log('Server closed');
     process.exit(0);
   });
 });

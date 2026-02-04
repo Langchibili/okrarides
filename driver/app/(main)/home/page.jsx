@@ -1,3 +1,4 @@
+//driver/app/(main)/home/page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -33,6 +34,7 @@ import { GoogleMapIframe } from '@/components/Map/GoogleMapIframe';
 import { useDriver } from '@/lib/hooks/useDriver';
 import { useRide } from '@/lib/hooks/useRide';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { getDriverStats } from '@/Functions';
 import { VERIFICATION_STATUS } from '@/Constants';
 import useAuthGuard from '@/lib/hooks/useAuthGuard';
@@ -51,12 +53,15 @@ export default function DriverHomePage() {
     needsFloat,
     paymentSystemType,
   } = useDriver();
+
   const { user } = useAuthGuard({
     requireAuth: true,
     requireVerification: true,
-    redirectTo: '/home' // Custom redirect for verification
+    redirectTo: '/home'
   });
+
   const { incomingRide, currentRide, acceptRide, declineRide } = useRide();
+  const { isNative, getCurrentLocation, requestPermission } = useReactNative();
 
   const [stats, setStats] = useState({
     todayEarnings: 0,
@@ -65,23 +70,12 @@ export default function DriverHomePage() {
     acceptance: 0,
   });
   const [loading, setLoading] = useState(true);
-
-   // ============================================
-  // Redirect Logic for Active Rides
-  // ============================================
-  useEffect(() => {
-    if (currentRide) {
-      const { rideStatus, id } = currentRide;
-      if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
-        router.push(`/rides/${id}`);
-      } else if (rideStatus === 'completed') {
-        router.push(`/rides/${id}`);
-      }
-    }
-  }, [currentRide, router]);
+  const [mapControls, setMapControls] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState(null);
 
   useEffect(() => {
     loadDriverStats();
+    requestLocationOnMount();
   }, []);
 
   const loadDriverStats = async () => {
@@ -95,23 +89,47 @@ export default function DriverHomePage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const requestLocationOnMount = async () => {
+    try {
+      if (isNative) {
+        // Request location from native
+        const location = await getCurrentLocation();
+        if (location) {
+          setCurrentLocation(location);
+          if (mapControls) {
+            mapControls.animateToLocation(location, 16);
+          }
+        }
+      } else {
+        // Web fallback
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const loc = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              };
+              setCurrentLocation(loc);
+              if (mapControls) {
+                mapControls.animateToLocation(loc, 16);
+              }
+            },
+            (error) => console.error('Location error:', error)
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error requesting location:', error);
+    }
+  };
 
   const handleToggleOnline = async () => {
     try {
       const result = await toggleOnline(!isOnline);
       
       if (!result.allowed) {
-        // Show appropriate error/warning
-        // if (result.action === 'complete_verification') {
-        //   if (window.confirm(result.message + '\n\nGo to verification?')) {
-        //     router.push('/verification');
-        //   }
-        // } else if (result.action === 'add_vehicle') {
-        //   if (window.confirm(result.message + '\n\nAdd vehicle now?')) {
-        //     router.push('/vehicle/add');
-        //   }
-        // } else 
         if (result.action === 'subscribe') {
           if (window.confirm(result.message + '\n\nView plans?')) {
             router.push('/subscription/plans');
@@ -144,6 +162,10 @@ export default function DriverHomePage() {
     }
   };
 
+  const handleRelocate = async () => {
+    await requestLocationOnMount();
+  };
+
   // Show verification required alert
   const showVerificationAlert = needsVerification || needsVehicle;
   const showSubscriptionAlert = needsSubscription && !needsVerification && !needsVehicle;
@@ -151,7 +173,7 @@ export default function DriverHomePage() {
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* App Bar */}
+      {/* AppBar */}
       <AppBar position="static" elevation={0}>
         <Toolbar>
           <IconButton edge="start" color="inherit">
@@ -170,7 +192,10 @@ export default function DriverHomePage() {
       <Box sx={{ flex: 1, overflow: 'auto', p: 2, pb: 10 }}>
         {/* Verification Required Alert */}
         {showVerificationAlert && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             <Alert
               severity="warning"
               icon={<WarningIcon />}
@@ -189,8 +214,7 @@ export default function DriverHomePage() {
                 Verification Required
               </Typography>
               <Typography variant="body2">
-                {needsVerification &&
-                  'You must complete verification before accepting rides. '}
+                {needsVerification && 'You must complete verification before accepting rides.'}
                 {needsVehicle && 'Add your vehicle information to continue.'}
               </Typography>
             </Alert>
@@ -199,7 +223,10 @@ export default function DriverHomePage() {
 
         {/* Subscription Required Alert */}
         {showSubscriptionAlert && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             <Alert
               severity="info"
               sx={{ mb: 2 }}
@@ -217,8 +244,7 @@ export default function DriverHomePage() {
                 Subscription Required
               </Typography>
               <Typography variant="body2">
-                Subscribe to a plan to start accepting rides. Keep 100% of your
-                earnings!
+                Subscribe to a plan to start accepting rides. Keep 100% of your earnings!
               </Typography>
             </Alert>
           </motion.div>
@@ -226,7 +252,10 @@ export default function DriverHomePage() {
 
         {/* Float Top-up Alert */}
         {showFloatAlert && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             <Alert
               severity="error"
               sx={{ mb: 2 }}
@@ -244,7 +273,7 @@ export default function DriverHomePage() {
                 Float Top-up Required
               </Typography>
               <Typography variant="body2">
-                Your float balance is low. Top up to continue accepting rides.
+                Your float balance is low. Top up to continue accepting rides. 
                 Current balance: K{driverProfile?.floatBalance?.toFixed(2)}
               </Typography>
             </Alert>
@@ -339,11 +368,19 @@ export default function DriverHomePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Box sx={{ height: 200, borderRadius: 3, overflow: 'hidden', mb: 2 }}>
+          <Box
+            sx={{
+              height: 200,
+              borderRadius: 3,
+              overflow: 'hidden',
+              mb: 2
+            }}
+          >
             <GoogleMapIframe
-              center={{ lat: -15.4167, lng: 28.2833 }}
+              center={currentLocation || { lat: -15.4167, lng: 28.2833 }}
               zoom={13}
               height="200px"
+              onMapLoad={setMapControls}
             />
           </Box>
         </motion.div>
@@ -383,4 +420,3 @@ export default function DriverHomePage() {
     </Box>
   );
 }
-

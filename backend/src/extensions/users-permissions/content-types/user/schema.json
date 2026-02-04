@@ -154,9 +154,6 @@
     "deviceToken": {
       "type": "string"
     },
-    "deviceInfo": {
-      "type": "json"
-    },
     "activeProfile": {
       "type": "enumeration",
       "default": "none",
@@ -209,6 +206,12 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::country.country"
+    },
+    "devices": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::device.device",
+      "mappedBy": "user"
     }
   }
 }

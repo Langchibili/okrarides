@@ -163,6 +163,13 @@ export const authAPI = {
     apiClient.clearToken();
     if (typeof window !== 'undefined') {
       localStorage.clear();
+      // Stop native services if in native app
+      if (typeof window !== 'undefined' && window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'STOP_LOCATION_TRACKING',
+          requestId: `logout_${Date.now()}`
+        }));
+      }
       window.location.href = '/login';
     }
   },

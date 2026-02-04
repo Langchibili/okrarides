@@ -234,6 +234,10 @@
     },
     "rideBookingRadius": {
       "type": "integer"
+    },
+    "getOnlineDriverCurrentLocationCronIntervalInSecs": {
+      "type": "integer",
+      "default": 30
     }
   }
 }

@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from './useAuth';
 import { useDriver } from './useDriver';
 import { VERIFICATION_STATUS } from '@/Constants';
-
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 export const useAuthGuard = (options = {}) => {
   const {
     requireAuth = true,
@@ -18,7 +18,8 @@ export const useAuthGuard = (options = {}) => {
   const pathname = usePathname();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { driverProfile, adminSettings } = useDriver();
-
+  const {sendToNative} = useReactNative()
+  
   useEffect(() => {
     // Wait for auth to load
     if (authLoading) return;
@@ -28,7 +29,8 @@ export const useAuthGuard = (options = {}) => {
       router.push(redirectTo);
       return;
     }
-
+    sendToNative('LOG_DATA', {info: 'driverProfile',driverProfile})
+    //  sendToNative('LOG_DATA', location)
     if (requireVerification) {
       if(user?.driverProfile?.verificationStatus !== VERIFICATION_STATUS.APPROVED){
          router.push('/onboarding/setup-driver');

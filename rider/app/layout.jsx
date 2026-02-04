@@ -4,7 +4,8 @@ import '@/styles/google-maps-fix.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/lib/hooks/useAuth';
 import { SocketProvider } from '@/lib/socket/SocketProvider';
-
+import { ReactNativeWrapper } from '@/lib/contexts/ReactNativeWrapper';
+// we are getting the native code wrapper here because we are using it as a hook inside the layout file for main pages or authenticated pages
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -53,11 +54,13 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <ThemeProvider>
-          <AuthProvider>
-            <SocketProvider>
-              {children}
-            </SocketProvider>
-          </AuthProvider>
+          <ReactNativeWrapper>
+            <AuthProvider>
+              <SocketProvider>
+                {children}
+              </SocketProvider>
+            </AuthProvider>
+          </ReactNativeWrapper>
         </ThemeProvider>
       </body>
     </html>

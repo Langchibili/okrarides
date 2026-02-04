@@ -67,7 +67,8 @@ export default function VehicleTypePage() {
       // Save vehicle type selection
       saveVehicleType({ vehicleType: selectedType })
 
-      router.push('/onboarding/vehicle-details')
+      // router.push('/onboarding/vehicle-details')
+      router.push('/vehicle/add')
     } catch (error) {
       console.error('Error saving vehicle type:', error)
     } finally {

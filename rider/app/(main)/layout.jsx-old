@@ -1,0 +1,136 @@
+//rider\app\(main)\layout.jsx
+'use client';
+
+import { Box } from '@mui/material';
+import { BottomNav } from '@/components/Layout/BottomNav';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useRouter,usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+import { useThemeMode } from '@/components/ThemeProvider';
+import { useRide } from '@/lib/hooks/useRide';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+
+export default function MainLayout({ children }) {
+  const { user, loading, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { activeRide } = useRide();
+  const theme = useThemeMode();
+  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+
+  
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const initializeNativeCode = async ()=>{
+      // ONLY NOW initialize native services (if in native environment,and user has authenticated)
+      if (isNative && !servicesInitialized && user?.id) {
+        console.log('🔧 Initializing native services for driver...');
+        
+        const result = await initializeNativeServices(
+          user.id,
+          'driver', // frontendName
+          process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL
+        );
+
+        if (result.success) {
+          console.log('✅ Native services initialized successfully');
+        } else {
+          console.error('❌ Failed to initialize native services:', result.error);
+          // Continue anyway - app should work in web mode
+        }
+      }
+    }
+    if (!loading && !isAuthenticated()) {
+      router.push('/login');
+    }
+    else{
+      initializeNativeCode() // initialize native code
+    }
+  }, [loading, isAuthenticated, router]);
+
+  // ============================================
+  // Redirect Logic for Active Rides
+  // ============================================
+  useEffect(() => {
+    if (activeRide) {
+      const { rideStatus, id } = activeRide;
+      
+      if (rideStatus === 'pending') {
+        router.push(`/finding-driver?rideId=${id}`);
+      } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
+        router.push(`/tracking?rideId=${id}`);
+      } else if (rideStatus === 'completed') {
+        router.push(`/trip-summary?rideId=${id}`);
+      }
+    }
+  }, [activeRide, router]);
+    
+  useEffect(() => {
+    // Force MUI to re-evaluate styles on route change
+    const jssStyles = document.querySelector('#jss-server-side');
+    if (jssStyles) {
+      jssStyles.parentElement?.removeChild(jssStyles);
+    }
+    
+    // Reset any inline styles that might have been added by homepage
+    document.body.classList.remove('map-loaded', 'google-maps-initialized');
+  }, [pathname]);
+
+  // Show loading or nothing while checking auth
+  if (loading || !isAuthenticated()) {
+    return null;
+  }
+  
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        pb: '80px', // Space for bottom nav
+      }}
+    >
+      {children}
+      <BottomNav userType="rider" />
+    </Box>
+  );
+}
+
+// ============================================
+// FLOW SUMMARY
+// ============================================
+
+/*
+NAVIGATION FLOW:
+
+1. User opens mobile app
+   → React Native loads: http://localhost:3000 (landing page)
+   → ReactNativeWrapper starts checking for isNative
+   → Background service starts but doesn't subscribe to sockets yet
+
+2. User clicks "Drive with Us" on landing page
+   → WebView navigates to: https://driver.okra.tech
+   → ReactNativeWrapper continues working (already loaded)
+   → Still NO native service initialization
+
+3. User enters credentials and clicks "Login"
+   → Authentication succeeds
+   → NOW initializeNativeServices() is called
+   → Native code:
+      - Gets device ID
+      - Connects to device socket server
+      - Registers device with backend
+      - Requests permissions (location, notification, draw-over)
+      - Sets up socket listeners
+      - Starts location tracking (for driver)
+   
+4. User is now authenticated and native services are active
+   → Driver can go online
+   → Device receives location requests from server
+   → Draw-over overlays work for ride requests
+   → All features fully functional
+
+IMPORTANT:
+- Landing page: isNative detection only, NO initialization
+- Frontend apps: initialization ONLY after authentication
+- Services initialized once per session
+- Works seamlessly whether in WebView or web browser
+*/

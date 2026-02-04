@@ -1,0 +1,114 @@
+//driver\app\(main)\layout.jsx
+'use client';
+
+import { Box } from '@mui/material';
+import { BottomNav } from '@/components/Layout/BottomNav';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import { useRide } from '@/lib/hooks/useRide';
+
+export default function MainLayout({ children }) {
+  const { user, loading, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+  const { currentRide } = useRide();
+
+  useEffect(() => {
+    const initializeNativeCode = async ()=>{
+      // ONLY NOW initialize native services (if in native environment,and user has authenticated)
+      if (isNative && !servicesInitialized && user?.id) {
+        console.log('🔧 Initializing native services for driver...');
+        
+        const result = await initializeNativeServices(
+          user.id,
+          'driver', // frontendName
+          process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL
+        );
+
+        if (result.success) {
+          console.log('✅ Native services initialized successfully');
+        } else {
+          console.error('❌ Failed to initialize native services:', result.error);
+          // Continue anyway - app should work in web mode
+        }
+      }
+    }
+    if (!loading) {
+      if (!isAuthenticated()) {
+        router.push('/login');
+      } else {
+        setCheckingAuth(false);
+        initializeNativeCode() // initialize native code
+      }
+    }
+  }, [user, loading, isAuthenticated, router]);
+
+  // ============================================
+  // Redirect Logic for Active Rides
+  // ============================================
+  useEffect(() => {
+    if (currentRide) {
+      const { rideStatus, id } = currentRide;
+      if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
+        router.push(`/rides/${id}`);
+      } else if (rideStatus === 'completed') {
+        router.push(`/rides/${id}`);
+      }
+    }
+  }, [currentRide, router]);
+
+  if (loading || checkingAuth) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <Box sx={{ minHeight: '100vh', pb: 10 }}>
+      {children}
+      <BottomNav />
+    </Box>
+  );
+}
+
+// ============================================
+// FLOW SUMMARY
+// ============================================
+
+/*
+NAVIGATION FLOW:
+
+1. User opens mobile app
+   → React Native loads: http://localhost:3000 (landing page)
+   → ReactNativeWrapper starts checking for isNative
+   → Background service starts but doesn't subscribe to sockets yet
+
+2. User clicks "Drive with Us" on landing page
+   → WebView navigates to: https://driver.okra.tech
+   → ReactNativeWrapper continues working (already loaded)
+   → Still NO native service initialization
+
+3. User enters credentials and clicks "Login"
+   → Authentication succeeds
+   → NOW initializeNativeServices() is called
+   → Native code:
+      - Gets device ID
+      - Connects to device socket server
+      - Registers device with backend
+      - Requests permissions (location, notification, draw-over)
+      - Sets up socket listeners
+      - Starts location tracking (for driver)
+   
+4. User is now authenticated and native services are active
+   → Driver can go online
+   → Device receives location requests from server
+   → Draw-over overlays work for ride requests
+   → All features fully functional
+
+IMPORTANT:
+- Landing page: isNative detection only, NO initialization
+- Frontend apps: initialization ONLY after authentication
+- Services initialized once per session
+- Works seamlessly whether in WebView or web browser
+*/

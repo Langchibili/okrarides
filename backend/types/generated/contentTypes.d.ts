@@ -482,6 +482,8 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
       Schema.Attribute.DefaultTo<true>;
     freeTrialEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
+    getOnlineDriverCurrentLocationCronIntervalInSecs: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<30>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1255,6 +1257,39 @@ export interface ApiDeviceTrackingDeviceTracking
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDeviceDevice extends Struct.CollectionTypeSchema {
+  collectionName: 'devices';
+  info: {
+    displayName: 'device';
+    pluralName: 'devices';
+    singularName: 'device';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    deviceId: Schema.Attribute.String;
+    deviceInfo: Schema.Attribute.JSON;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::device.device'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -3851,7 +3886,7 @@ export interface PluginUsersPermissionsUser
       'delivery-profiles.delivery-profile',
       false
     >;
-    deviceInfo: Schema.Attribute.JSON;
+    devices: Schema.Attribute.Relation<'oneToMany', 'api::device.device'>;
     deviceToken: Schema.Attribute.String;
     driverProfile: Schema.Attribute.Component<
       'driver-profiles.driver-profile',
@@ -3958,6 +3993,7 @@ declare module '@strapi/strapi' {
       'api::country.country': ApiCountryCountry;
       'api::currency.currency': ApiCurrencyCurrency;
       'api::device-tracking.device-tracking': ApiDeviceTrackingDeviceTracking;
+      'api::device.device': ApiDeviceDevice;
       'api::doc.doc': ApiDocDoc;
       'api::driver-subscription.driver-subscription': ApiDriverSubscriptionDriverSubscription;
       'api::driver.driver': ApiDriverDriver;

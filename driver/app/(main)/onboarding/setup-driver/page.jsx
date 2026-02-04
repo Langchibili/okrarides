@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { VERIFICATION_STATUS, DOCUMENT_TYPE } from '@/Constants';
+import { VERIFICATION_STATUS } from '@/Constants';
 export default function SetupDriverPage() {
   const router = useRouter()
   const { user, loading } = useAuth()

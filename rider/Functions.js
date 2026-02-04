@@ -1,4 +1,4 @@
-// Core utility functions and CRUD operations
+// Core utility functions and CRUD operations- rider app
 
 import { apiClient } from './lib/api/client';
 

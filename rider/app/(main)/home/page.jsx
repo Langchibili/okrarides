@@ -1,6 +1,6 @@
 // // File: rider/app/(main)/home/page.tsx
-// // ============================================
 // 'use client';
+
 // import { useState, useEffect, useCallback } from 'react';
 // import { useRouter } from 'next/navigation';
 // import {
@@ -18,6 +18,8 @@
 //   ListItemText,
 //   CircularProgress,
 //   Backdrop,
+//   Alert,
+//   Snackbar,
 // } from '@mui/material';
 // import {
 //   Menu as MenuIcon,
@@ -38,13 +40,26 @@
 // import { RideOptionsSheet } from '@/components/Rider/RideOptionsSheet';
 // import SwipeableBottomSheet from '@/components/ui/SwipeableBottomSheet';
 // import ClientOnly from '@/components/ClientOnly';
+// import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 
 // export default function HomePage() {
 //   const router = useRouter();
 //   const { user } = useAuth();
 //   const { location, loading: locationLoading, refresh } = useGeolocation({ watch: true });
-//   const { activeRide } = useRide();
+//   const { isNative, getCurrentLocation: getNativeLocation } = useReactNative();
+//   // Use comprehensive ride hook
+//   const { 
+//     activeRide,
+//     loading: rideLoading,
+//     error: rideError,
+//     getFareEstimate,
+//     validatePromoCode,
+//     requestRide,
+//     getTaxiTypes,
+//     getRideClasses,
+//   } = useRide();
 
+//   // UI State
 //   const [mapCenter, setMapCenter] = useState(null);
 //   const [pickupLocation, setPickupLocation] = useState(null);
 //   const [dropoffLocation, setDropoffLocation] = useState(null);
@@ -55,16 +70,67 @@
 //   const [isRelocating, setIsRelocating] = useState(false);
 //   const [routeInfo, setRouteInfo] = useState(null);
 //   const [activeInput, setActiveInput] = useState(null);
+  
+//   // Ride State
+//   const [fareEstimates, setFareEstimates] = useState(null);
+//   const [loadingEstimates, setLoadingEstimates] = useState(false);
+//   const [selectedRideClass, setSelectedRideClass] = useState(null);
+//   const [promoCode, setPromoCode] = useState('');
+//   const [promoDiscount, setPromoDiscount] = useState(null);
+//   const [validatingPromo, setValidatingPromo] = useState(false);
+//   const [taxiTypes, setTaxiTypes] = useState([]);
+//   const [rideClasses, setRideClasses] = useState([]);
+  
+//   // Error/Success notifications
+//   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
-//   // Redirect if there's an active ride
-//   useEffect(() => {
-//     if (activeRide) {
-//       router.push(`/tracking?rideId=${activeRide.id}`);
+//   // // ============================================
+//   // // Initialize Location
+//   // // ============================================
+//   // useEffect(() => {
+//   //   if (location && !pickupLocation) {
+//   //     const currentLoc = {
+//   //       lat: location.lat,
+//   //       lng: location.lng,
+//   //       address: 'Current Location',
+//   //       name: 'Current Location',
+//   //       placeId: 'current_location',
+//   //     };
+//   //     setMapCenter({ lat: location.lat, lng: location.lng });
+//   //     setPickupLocation(currentLoc);
+//   //   }
+//   // }, [location, pickupLocation]);
+
+//   // ============================================
+// // Initialize Location
+// // ============================================
+// useEffect(() => {
+//   const initializeLocation = async () => {
+//     // Try native location first if in mobile app
+//     if (isNative && !pickupLocation) {
+//       try {
+//         const nativeLoc = await getNativeLocation()
+//         // alert(nativeLoc)
+//         // alert(nativeLoc?.lat)
+//         if (nativeLoc) {
+//           const currentLoc = {
+//             lat: nativeLoc.lat,
+//             lng: nativeLoc.lng,
+//             address: 'Current Location',
+//             name: 'Current Location',
+//             placeId: 'current_location',
+//           };
+//           setMapCenter({ lat: nativeLoc.lat, lng: nativeLoc.lng });
+//           setPickupLocation(currentLoc);
+//           return;
+//         }
+//       } catch (error) {
+//         console.error('Native location error:', error);
+//         // Fall through to web geolocation
+//       }
 //     }
-//   }, [activeRide, router]);
 
-//   // Set initial map center and pickup to user's location
-//   useEffect(() => {
+//     // Use web geolocation
 //     if (location && !pickupLocation) {
 //       const currentLoc = {
 //         lat: location.lat,
@@ -76,11 +142,27 @@
 //       setMapCenter({ lat: location.lat, lng: location.lng });
 //       setPickupLocation(currentLoc);
 //     }
-//   }, [location, pickupLocation]);
+//   };
 
-//   // Load recent locations
+//   initializeLocation();
+// }, [location, pickupLocation, isNative, getNativeLocation]);
+
+//   // useEffect(() => {
+//   //   if (error) {
+//   //     setSnackbar({
+//   //       open: true,
+//   //       message: error.message || 'Could not get your location. Please check permissions.',
+//   //       severity: 'error',
+//   //     });
+//   //   }
+//   // }, [error]);
+  
+//   // ============================================
+//   // Load Initial Data
+//   // ============================================
 //   useEffect(() => {
-//     const loadRecentLocations = () => {
+//     const loadInitialData = async () => {
+//       // Load recent locations
 //       if (typeof window !== 'undefined') {
 //         const saved = localStorage.getItem('okra_rides_recent_locations');
 //         if (saved) {
@@ -91,11 +173,180 @@
 //           }
 //         }
 //       }
-//     };
-//     loadRecentLocations();
-//   }, []);
 
-//   // Save location to recent
+//       // Load taxi types and ride classes
+//       try {
+//         const types = await getTaxiTypes();
+//         setTaxiTypes(types);
+        
+//         if (types.length > 0) {
+//           const classes = await getRideClasses(types[0].id);
+//           setRideClasses(classes);
+//         }
+//       } catch (error) {
+//         console.error('Error loading taxi data:', error);
+//       }
+//     };
+
+//     loadInitialData();
+//   }, [getTaxiTypes, getRideClasses]);
+
+//   // ============================================
+//   // Auto-fetch Estimates When Locations Set
+//   // ============================================
+//   useEffect(() => {
+//     if (pickupLocation && dropoffLocation && !fareEstimates) {
+//       loadFareEstimates();
+//     }
+//   }, [pickupLocation, dropoffLocation]);
+
+//   // ============================================
+//   // Load Fare Estimates
+//   // ============================================
+//   const loadFareEstimates = async () => {
+//     if (!pickupLocation || !dropoffLocation) return;
+
+//     setLoadingEstimates(true);
+//     try {
+//       const estimates = await getFareEstimate(
+//         pickupLocation, 
+//         dropoffLocation,
+//         'taxi',
+//         ['taxi']
+//       );
+
+//       if (estimates) {
+//         setFareEstimates(estimates);
+        
+//         // Auto-select first ride class if available
+//         if (estimates.estimates && estimates.estimates.length > 0) {
+//           setSelectedRideClass(estimates.estimates[0]);
+//         }
+        
+//         setSnackbar({
+//           open: true,
+//           message: 'Fare estimates loaded successfully',
+//           severity: 'success',
+//         });
+//       } else {
+//         setSnackbar({
+//           open: true,
+//           message: 'Failed to load fare estimates',
+//           severity: 'error',
+//         });
+//       }
+//     } catch (error) {
+//       console.error('Error loading estimates:', error);
+//       setSnackbar({
+//         open: true,
+//         message: 'Error calculating fare. Please try again.',
+//         severity: 'error',
+//       });
+//     } finally {
+//       setLoadingEstimates(false);
+//     }
+//   };
+
+//   // ============================================
+//   // Validate Promo Code
+//   // ============================================
+//   const handleValidatePromoCode = async (code) => {
+//     if (!code || !selectedRideClass) return;
+
+//     setValidatingPromo(true);
+//     try {
+//       const result = await validatePromoCode(code, selectedRideClass.subtotal);
+      
+//       if (result && result.valid) {
+//         setPromoDiscount(result);
+//         setSnackbar({
+//           open: true,
+//           message: result.message || 'Promo code applied successfully!',
+//           severity: 'success',
+//         });
+//       } else {
+//         setPromoDiscount(null);
+//         setSnackbar({
+//           open: true,
+//           message: 'Invalid or expired promo code',
+//           severity: 'error',
+//         });
+//       }
+//     } catch (error) {
+//       setPromoDiscount(null);
+//       setSnackbar({
+//         open: true,
+//         message: 'Error validating promo code',
+//         severity: 'error',
+//       });
+//     } finally {
+//       setValidatingPromo(false);
+//     }
+//   };
+
+//   // ============================================
+//   // Confirm and Book Ride
+//   // ============================================
+//   const handleConfirmRide = async (rideDetails) => {
+//     if (!pickupLocation || !dropoffLocation || !selectedRideClass) {
+//       setSnackbar({
+//         open: true,
+//         message: 'Please select pickup and dropoff locations',
+//         severity: 'warning',
+//       });
+//       return;
+//     }
+//     const rideData = {
+//       taxiType: 'taxi',
+//       rideType: 'taxi',
+//       rider: user,
+//       rideClass: selectedRideClass.rideClassId || selectedRideClass.id,
+//       rideClassId: selectedRideClass.rideClassId || selectedRideClass.id,
+//       pickupLocation,
+//       dropoffLocation,
+//       paymentMethod: rideDetails.paymentMethod || 'cash',
+//       promoCode: promoCode || null,
+//       estimatedFare: rideDetails.totalFare || selectedRideClass.subtotal,
+//       totalFare: rideDetails.totalFare || selectedRideClass.subtotal,
+//       passengerCount: rideDetails.passengerCount || 1,
+//       specialRequests: rideDetails.specialRequests || [],
+//       notes: rideDetails.notes || '',
+//     };
+
+//     try {
+//       const result = await requestRide(rideData);
+
+//       if (result.success) {
+//         setSnackbar({
+//           open: true,
+//           message: 'Ride requested successfully! Finding driver...',
+//           severity: 'success',
+//         });
+
+//         // Navigate to finding driver screen
+//         setTimeout(() => {
+//           router.push(`/finding-driver?rideId=${result.data.id}`);
+//         }, 500);
+//       } else {
+//         setSnackbar({
+//           open: true,
+//           message: result.error || 'Failed to book ride. Please try again.',
+//           severity: 'error',
+//         });
+//       }
+//     } catch (error) {
+//       console.error('Error booking ride:', error);
+//       setSnackbar({
+//         open: true,
+//         message: 'An error occurred while booking. Please try again.',
+//         severity: 'error',
+//       });
+//     }
+//   };
+
+//   // ============================================
+//   // Location Management
+//   // ============================================
 //   const saveToRecent = useCallback((location) => {
 //     if (location.address === 'Current Location' || location.placeId === 'current_location') return;
 
@@ -112,7 +363,6 @@
 //     }
 //   }, [recentLocations]);
 
-//   // Handle location selection
 //   const handlePickupSelect = (location) => {
 //     setPickupLocation(location);
 //     saveToRecent(location);
@@ -120,6 +370,11 @@
 //       mapControls.animateToLocation(location, 15);
 //     }
 //     setActiveInput(null);
+    
+//     // Clear estimates when changing locations
+//     setFareEstimates(null);
+//     setSelectedRideClass(null);
+//     setPromoDiscount(null);
 //   };
 
 //   const handleDropoffSelect = (location) => {
@@ -129,9 +384,13 @@
 //       mapControls.animateToLocation(location, 15);
 //     }
 //     setActiveInput(null);
+    
+//     // Clear estimates when changing locations
+//     setFareEstimates(null);
+//     setSelectedRideClass(null);
+//     setPromoDiscount(null);
 //   };
 
-//   // Select recent location
 //   const handleSelectRecentLocation = (loc) => {
 //     if (!pickupLocation || pickupLocation.placeId === 'current_location') {
 //       handlePickupSelect(loc);
@@ -140,20 +399,6 @@
 //     } else {
 //       // If both are set, replace dropoff
 //       handleDropoffSelect(loc);
-//     }
-//   };
-
-//   const handleConfirmRide = async (rideDetails) => {
-//     try {
-//       const params = new URLSearchParams({
-//         pickup: JSON.stringify(pickupLocation),
-//         dropoff: JSON.stringify(dropoffLocation),
-//         ...rideDetails,
-//       });
-//       router.push(`/finding-driver?${params.toString()}`);
-//     } catch (error) {
-//       console.error('Error confirming ride:', error);
-//       alert('Failed to book ride. Please try again.');
 //     }
 //   };
 
@@ -171,37 +416,131 @@
 //       setPickupLocation(null);
 //     }
 //     setDropoffLocation(null);
+//     setFareEstimates(null);
+//     setSelectedRideClass(null);
+//     setPromoCode('');
+//     setPromoDiscount(null);
 //     setShowRideOptions(false);
 //     setShowLocationSheet(true);
 //     setRouteInfo(null);
 //     setActiveInput(null);
 //   };
 
+//   // const handleRelocate = async () => {
+//   //   try {
+//   //     setIsRelocating(true);
+//   //     await refresh();
+
+//   //     setTimeout(() => {
+//   //       if (location && mapControls) {
+//   //         mapControls.animateToLocation({ lat: location.lat, lng: location.lng }, 16);
+//   //       }
+//   //     }, 300);
+
+//   //     setTimeout(() => {
+//   //       setIsRelocating(false);
+//   //     }, 1500);
+//   //   } catch (error) {
+//   //     console.error('Relocation error:', error);
+//   //     setIsRelocating(false);
+//   //     setSnackbar({
+//   //       open: true,
+//   //       message: 'Could not get your location. Please try again.',
+//   //       severity: 'error',
+//   //     });
+//   //   }
+//   // };
+
+//   // ============================================
+//   // Continue to Ride Options
+//   // ============================================
+  
 //   const handleRelocate = async () => {
-//     try {
-//       setIsRelocating(true);
-//       await refresh();
+//   try {
+//     setIsRelocating(true);
+    
+//     let newLocation = null;
 
-//       setTimeout(() => {
-//         if (location && mapControls) {
-//           mapControls.animateToLocation({ lat: location.lat, lng: location.lng }, 16);
+//     // Use native location if in mobile app
+//     if (isNative) {
+//       try {
+//         const nativeLoc = await getNativeLocation();
+//         if (nativeLoc) {
+//           newLocation = {
+//             lat: nativeLoc.lat,
+//             lng: nativeLoc.lng,
+//           };
 //         }
-//       }, 300);
-
-//       setTimeout(() => {
-//         setIsRelocating(false);
-//       }, 1500);
-//     } catch (error) {
-//       console.error('Relocation error:', error);
-//       setIsRelocating(false);
+//       } catch (nativeError) {
+//         console.error('Native location error:', nativeError);
+//         // Fall back to web geolocation
+//       }
 //     }
+
+//     // Fall back to web geolocation if native failed or not available
+//     if (!newLocation) {
+//       await refresh();
+      
+//       // Wait a bit for location to update
+//       await new Promise(resolve => setTimeout(resolve, 500));
+      
+//       if (location) {
+//         newLocation = {
+//           lat: location.lat,
+//           lng: location.lng,
+//         };
+//       }
+//     }
+
+//     if (newLocation && mapControls) {
+//       mapControls.animateToLocation(newLocation, 16);
+      
+//       setSnackbar({
+//         open: true,
+//         message: 'Location updated successfully',
+//         severity: 'success',
+//       });
+//     } else {
+//       throw new Error('Could not get location');
+//     }
+
+//     setTimeout(() => {
+//       setIsRelocating(false);
+//     }, 1500);
+//   } catch (error) {
+//     console.error('Relocation error:', error);
+//     setIsRelocating(false);
+//     setSnackbar({
+//       open: true,
+//       message: 'Could not get your location. Please check permissions and try again.',
+//       severity: 'error',
+//     });
+//   }
+// };
+
+//   const handleContinueToRideOptions = () => {
+//     if (!fareEstimates) {
+//       loadFareEstimates();
+//     }
+//     setShowLocationSheet(false);
+//     setShowRideOptions(true);
 //   };
 
+//   // ============================================
+//   // Loading State
+//   // ============================================
 //   if (locationLoading && !location) {
 //     return (
-//       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-//         <CircularProgress size={32} />
-//         <Typography sx={{ mt: 2, color: 'text.secondary' }}>
+//       <Box sx={{ 
+//         display: 'flex', 
+//         flexDirection: 'column', 
+//         justifyContent: 'center', 
+//         alignItems: 'center', 
+//         height: '100vh',
+//         bgcolor: 'background.default',
+//       }}>
+//         <CircularProgress size={48} />
+//         <Typography sx={{ mt: 2, color: 'text.secondary', fontWeight: 500 }}>
 //           Getting your location...
 //         </Typography>
 //       </Box>
@@ -210,6 +549,7 @@
 
 //   return (
 //     <ClientOnly>
+      
 //       <Box sx={{ position: 'relative', height: '100vh', width: '100%', overflow: 'hidden' }}>
 //         {/* Map Container */}
 //         <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }}>
@@ -286,7 +626,7 @@
 //           }}
 //         >
 //           <Toolbar sx={{ minHeight: 56 }}>
-//             <IconButton edge="start" sx={{ mr: 1 }}>
+//             <IconButton edge="start" sx={{ mr: 1 }} onClick={() => router.push('/menu')}>
 //               <MenuIcon />
 //             </IconButton>
 //             <Box sx={{ flexGrow: 1 }} />
@@ -331,13 +671,13 @@
 //             {/* Header */}
 //             <Box sx={{ mb: 3, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 //               <Box>
-//                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+//                 {/* <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
 //                   Where to?
 //                 </Typography>
 //                 <Typography variant="body2" color="text.secondary">
 //                   Book a ride in seconds
-//                 </Typography>
-//                 {routeInfo && (
+//                 </Typography> */}
+//                 {routeInfo && (                                                     
 //                   <Typography variant="caption" color="primary.main" sx={{ mt: 1, display: 'block', fontWeight: 600 }}>
 //                     📍 {routeInfo.distance} • ⏱️ {routeInfo.duration}
 //                   </Typography>
@@ -356,6 +696,13 @@
 //                 </IconButton>
 //               )}
 //             </Box>
+
+//             {/* Error Alert */}
+//             {rideError && (
+//               <Alert severity="error" sx={{ mb: 2 }} onClose={() => {}}>
+//                 {rideError}
+//               </Alert>
+//             )}
 
 //             {/* Location Search Inputs */}
 //             <Box sx={{ mb: 2, flexShrink: 0 }}>
@@ -378,6 +725,8 @@
 //                   mapControls={mapControls}
 //                   value={pickupLocation?.address || ''}
 //                   autoFocus={activeInput === 'pickup'}
+//                   onFocus={() => setActiveInput('pickup')}
+//                   onBlur={() => setActiveInput(null)}
 //                 />
 //               </Box>
 
@@ -410,13 +759,15 @@
 //                   mapControls={mapControls}
 //                   value={dropoffLocation?.address || ''}
 //                   autoFocus={activeInput === 'dropoff'}
+//                   onFocus={() => setActiveInput('dropoff')}
+//                   onBlur={() => setActiveInput(null)}
 //                 />
 //               </Box>
 //             </Box>
 
 //             {/* Recent Locations */}
 //             {!activeInput && recentLocations.length > 0 && (
-//               <Box sx={{ mb: 2, flexShrink: 0 }}>
+//               <Box sx={{ mb: 2, flexShrink: 0, flexGrow: 1, overflowY: 'auto' }}>
 //                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5, color: 'text.secondary' }}>
 //                   Recent Locations
 //                 </Typography>
@@ -474,10 +825,8 @@
 //                     fullWidth
 //                     variant="contained"
 //                     size="large"
-//                     onClick={() => {
-//                       setShowLocationSheet(false);
-//                       setShowRideOptions(true);
-//                     }}
+//                     onClick={handleContinueToRideOptions}
+//                     disabled={loadingEstimates || rideLoading}
 //                     sx={{
 //                       height: 56,
 //                       fontWeight: 700,
@@ -492,9 +841,16 @@
 //                       '&:active': {
 //                         transform: 'translateY(0)',
 //                       },
+//                       '&:disabled': {
+//                         bgcolor: 'action.disabledBackground',
+//                       },
 //                     }}
 //                   >
-//                     Continue to Ride Options
+//                     {loadingEstimates ? (
+//                       <CircularProgress size={24} color="inherit" />
+//                     ) : (
+//                       'Continue to Ride Options'
+//                     )}
 //                   </Button>
 //                 </Box>
 //               </motion.div>
@@ -508,21 +864,44 @@
 //             pickupLocation={pickupLocation}
 //             dropoffLocation={dropoffLocation}
 //             routeInfo={routeInfo}
+//             fareEstimates={fareEstimates}
+//             loadingEstimates={loadingEstimates}
+//             selectedRideClass={selectedRideClass}
+//             onSelectRideClass={setSelectedRideClass}
+//             promoCode={promoCode}
+//             onPromoCodeChange={setPromoCode}
+//             promoDiscount={promoDiscount}
+//             onValidatePromo={handleValidatePromoCode}
+//             validatingPromo={validatingPromo}
 //             onClose={() => {
 //               setShowRideOptions(false);
 //               setShowLocationSheet(true);
 //             }}
 //             onConfirmRide={handleConfirmRide}
+//             loading={rideLoading}
 //           />
 //         )}
+
+//         {/* Snackbar for notifications */}
+//         <Snackbar
+//           open={snackbar.open}
+//           autoHideDuration={4000}
+//           onClose={() => setSnackbar({ ...snackbar, open: false })}
+//           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+//         >
+//           <Alert 
+//             onClose={() => setSnackbar({ ...snackbar, open: false })} 
+//             severity={snackbar.severity}
+//             sx={{ width: '100%' }}
+//           >
+//             {snackbar.message}
+//           </Alert>
+//         </Snackbar>
 //       </Box>
 //     </ClientOnly>
 //   );
 // }
-// ============================================
-// rider/app/(main)/home/page.tsx
-// ENHANCED WITH FULL API INTEGRATION
-// ============================================
+// File: rider/app/(main)/home/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -553,6 +932,7 @@ import {
   LocationOn as LocationIcon,
   MyLocation as MyLocationIcon,
   Close as CloseIcon,
+  ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -564,12 +944,13 @@ import { LocationSearch } from '@/components/Map/LocationSearch';
 import { RideOptionsSheet } from '@/components/Rider/RideOptionsSheet';
 import SwipeableBottomSheet from '@/components/ui/SwipeableBottomSheet';
 import ClientOnly from '@/components/ClientOnly';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 
 export default function HomePage() {
   const router = useRouter();
   const { user } = useAuth();
   const { location, loading: locationLoading, refresh } = useGeolocation({ watch: true });
-  
+  const { isNative, getCurrentLocation: getNativeLocation } = useReactNative();
   // Use comprehensive ride hook
   const { 
     activeRide,
@@ -593,6 +974,7 @@ export default function HomePage() {
   const [isRelocating, setIsRelocating] = useState(false);
   const [routeInfo, setRouteInfo] = useState(null);
   const [activeInput, setActiveInput] = useState(null);
+  const [buttonFloating, setButtonFloating] = useState(true);
   
   // Ride State
   const [fareEstimates, setFareEstimates] = useState(null);
@@ -608,39 +990,49 @@ export default function HomePage() {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
   // ============================================
-  // Redirect Logic for Active Rides
-  // ============================================
-  useEffect(() => {
-    if (activeRide) {
-      const { rideStatus, id } = activeRide;
-      
-      if (rideStatus === 'pending') {
-        router.push(`/finding-driver?rideId=${id}`);
-      } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
-        router.push(`/tracking?rideId=${id}`);
-      } else if (rideStatus === 'completed') {
-        router.push(`/trip-summary?rideId=${id}`);
-      }
-    }
-  }, [activeRide, router]);
-
-  // ============================================
   // Initialize Location
   // ============================================
   useEffect(() => {
-    if (location && !pickupLocation) {
-      const currentLoc = {
-        lat: location.lat,
-        lng: location.lng,
-        address: 'Current Location',
-        name: 'Current Location',
-        placeId: 'current_location',
-      };
-      setMapCenter({ lat: location.lat, lng: location.lng });
-      setPickupLocation(currentLoc);
-    }
-  }, [location, pickupLocation]);
+    const initializeLocation = async () => {
+      // Try native location first if in mobile app
+      if (isNative && !pickupLocation) {
+        try {
+          const nativeLoc = await getNativeLocation()
+          if (nativeLoc) {
+            const currentLoc = {
+              lat: nativeLoc.lat,
+              lng: nativeLoc.lng,
+              address: 'Current Location',
+              name: 'Current Location',
+              placeId: 'current_location',
+            };
+            setMapCenter({ lat: nativeLoc.lat, lng: nativeLoc.lng });
+            setPickupLocation(currentLoc);
+            return;
+          }
+        } catch (error) {
+          console.error('Native location error:', error);
+          // Fall through to web geolocation
+        }
+      }
 
+      // Use web geolocation
+      if (location && !pickupLocation) {
+        const currentLoc = {
+          lat: location.lat,
+          lng: location.lng,
+          address: 'Current Location',
+          name: 'Current Location',
+          placeId: 'current_location',
+        };
+        setMapCenter({ lat: location.lat, lng: location.lng });
+        setPickupLocation(currentLoc);
+      }
+    };
+
+    initializeLocation();
+  }, [location, pickupLocation, isNative, getNativeLocation]);
+  
   // ============================================
   // Load Initial Data
   // ============================================
@@ -683,6 +1075,17 @@ export default function HomePage() {
       loadFareEstimates();
     }
   }, [pickupLocation, dropoffLocation]);
+
+  // ============================================
+  // Handle Floating Button State
+  // ============================================
+  useEffect(() => {
+    if (pickupLocation && dropoffLocation && !showRideOptions) {
+      setButtonFloating(true);
+    } else {
+      setButtonFloating(false);
+    }
+  }, [pickupLocation, dropoffLocation, showRideOptions]);
 
   // ============================================
   // Load Fare Estimates
@@ -853,7 +1256,9 @@ export default function HomePage() {
     if (mapControls) {
       mapControls.animateToLocation(location, 15);
     }
-    setActiveInput(null);
+    
+    // Clear active input to collapse sheet
+    setTimeout(() => setActiveInput(null), 100);
     
     // Clear estimates when changing locations
     setFareEstimates(null);
@@ -867,7 +1272,9 @@ export default function HomePage() {
     if (mapControls) {
       mapControls.animateToLocation(location, 15);
     }
-    setActiveInput(null);
+    
+    // Clear active input to collapse sheet
+    setTimeout(() => setActiveInput(null), 100);
     
     // Clear estimates when changing locations
     setFareEstimates(null);
@@ -908,18 +1315,60 @@ export default function HomePage() {
     setShowLocationSheet(true);
     setRouteInfo(null);
     setActiveInput(null);
+    setButtonFloating(true);
   };
 
+  // ============================================
+  // Relocate User Location
+  // ============================================
   const handleRelocate = async () => {
     try {
       setIsRelocating(true);
-      await refresh();
+      
+      let newLocation = null;
 
-      setTimeout(() => {
-        if (location && mapControls) {
-          mapControls.animateToLocation({ lat: location.lat, lng: location.lng }, 16);
+      // Use native location if in mobile app
+      if (isNative) {
+        try {
+          const nativeLoc = await getNativeLocation();
+          if (nativeLoc) {
+            newLocation = {
+              lat: nativeLoc.lat,
+              lng: nativeLoc.lng,
+            };
+          }
+        } catch (nativeError) {
+          console.error('Native location error:', nativeError);
+          // Fall back to web geolocation
         }
-      }, 300);
+      }
+
+      // Fall back to web geolocation if native failed or not available
+      if (!newLocation) {
+        await refresh();
+        
+        // Wait a bit for location to update
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        if (location) {
+          newLocation = {
+            lat: location.lat,
+            lng: location.lng,
+          };
+        }
+      }
+
+      if (newLocation && mapControls) {
+        mapControls.animateToLocation(newLocation, 16);
+        
+        setSnackbar({
+          open: true,
+          message: 'Location updated successfully',
+          severity: 'success',
+        });
+      } else {
+        throw new Error('Could not get location');
+      }
 
       setTimeout(() => {
         setIsRelocating(false);
@@ -929,7 +1378,7 @@ export default function HomePage() {
       setIsRelocating(false);
       setSnackbar({
         open: true,
-        message: 'Could not get your location. Please try again.',
+        message: 'Could not get your location. Please check permissions and try again.',
         severity: 'error',
       });
     }
@@ -944,6 +1393,14 @@ export default function HomePage() {
     }
     setShowLocationSheet(false);
     setShowRideOptions(true);
+    setButtonFloating(false);
+  };
+
+  // ============================================
+  // Handle Swipe Down - Fade Button Back In
+  // ============================================
+  const handleSwipeDown = () => {
+    setButtonFloating(false);
   };
 
   // ============================================
@@ -1085,18 +1542,14 @@ export default function HomePage() {
           initialHeight={400}
           maxHeight={600}
           minHeight={300}
+          expandedHeight={activeInput ? '90%' : null}
+          onSwipeDown={handleSwipeDown}
         >
           <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
             <Box sx={{ mb: 3, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                  Where to?
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Book a ride in seconds
-                </Typography>
-                {routeInfo && (
+                {routeInfo && (                                                     
                   <Typography variant="caption" color="primary.main" sx={{ mt: 1, display: 'block', fontWeight: 600 }}>
                     📍 {routeInfo.distance} • ⏱️ {routeInfo.duration}
                   </Typography>
@@ -1138,15 +1591,20 @@ export default function HomePage() {
                     PICKUP
                   </Typography>
                 </Box>
-                <LocationSearch
-                  placeholder="Current Location"
-                  onSelectLocation={handlePickupSelect}
-                  mapControls={mapControls}
-                  value={pickupLocation?.address || ''}
-                  autoFocus={activeInput === 'pickup'}
-                  onFocus={() => setActiveInput('pickup')}
-                  onBlur={() => setActiveInput(null)}
-                />
+                <Box onClick={() => setActiveInput('pickup')}>
+                  <LocationSearch
+                    placeholder="Current Location"
+                    onSelectLocation={handlePickupSelect}
+                    mapControls={mapControls}
+                    value={pickupLocation?.address || ''}
+                    autoFocus={activeInput === 'pickup'}
+                    onFocus={() => setActiveInput('pickup')}
+                    onBlur={() => {
+                      // Delay blur to allow selection to complete
+                      setTimeout(() => setActiveInput(null), 200);
+                    }}
+                  />
+                </Box>
               </Box>
 
               {/* Connecting Line */}
@@ -1172,15 +1630,20 @@ export default function HomePage() {
                     DESTINATION
                   </Typography>
                 </Box>
-                <LocationSearch
-                  placeholder="Where to?"
-                  onSelectLocation={handleDropoffSelect}
-                  mapControls={mapControls}
-                  value={dropoffLocation?.address || ''}
-                  autoFocus={activeInput === 'dropoff'}
-                  onFocus={() => setActiveInput('dropoff')}
-                  onBlur={() => setActiveInput(null)}
-                />
+                <Box onClick={() => setActiveInput('dropoff')}>
+                  <LocationSearch
+                    placeholder="Where to?"
+                    onSelectLocation={handleDropoffSelect}
+                    mapControls={mapControls}
+                    value={dropoffLocation?.address || ''}
+                    autoFocus={activeInput === 'dropoff'}
+                    onFocus={() => setActiveInput('dropoff')}
+                    onBlur={() => {
+                      // Delay blur to allow selection to complete
+                      setTimeout(() => setActiveInput(null), 200);
+                    }}
+                  />
+                </Box>
               </Box>
             </Box>
 
@@ -1231,51 +1694,64 @@ export default function HomePage() {
                 </List>
               </Box>
             )}
-
-            {/* Continue Button */}
-            {pickupLocation && dropoffLocation && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-              >
-                <Box sx={{ flexShrink: 0, mt: 'auto' }}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    onClick={handleContinueToRideOptions}
-                    disabled={loadingEstimates || rideLoading}
-                    sx={{
-                      height: 56,
-                      fontWeight: 700,
-                      fontSize: '1rem',
-                      borderRadius: 3,
-                      textTransform: 'none',
-                      boxShadow: '0 4px 12px rgba(255, 193, 7, 0.3)',
-                      '&:hover': {
-                        boxShadow: '0 6px 16px rgba(255, 193, 7, 0.4)',
-                        transform: 'translateY(-2px)',
-                      },
-                      '&:active': {
-                        transform: 'translateY(0)',
-                      },
-                      '&:disabled': {
-                        bgcolor: 'action.disabledBackground',
-                      },
-                    }}
-                  >
-                    {loadingEstimates ? (
-                      <CircularProgress size={24} color="inherit" />
-                    ) : (
-                      'Continue to Ride Options'
-                    )}
-                  </Button>
-                </Box>
-              </motion.div>
-            )}
           </Box>
         </SwipeableBottomSheet>
+
+        {/* Floating "Continue to Ride Options" Button */}
+        {pickupLocation && dropoffLocation && showLocationSheet && !showRideOptions && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ 
+              y: 0, 
+              opacity: 1,
+            }}
+            transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+            style={{
+              position: 'fixed',
+              bottom: buttonFloating ? 80 : 20,
+              left: 16,
+              right: 16,
+              zIndex: buttonFloating ? 1000 :105,
+              transition: 'bottom 0.3s ease, z-index 0.3s ease',
+            }}
+          >
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              onClick={handleContinueToRideOptions}
+              disabled={loadingEstimates || rideLoading}
+              endIcon={<ArrowForwardIcon />}
+              sx={{
+                height: 56,
+                fontWeight: 700,
+                fontSize: '1rem',
+                borderRadius: 3,
+                textTransform: 'none',
+                boxShadow: buttonFloating 
+                  ? '0 8px 24px rgba(255, 193, 7, 0.5)' 
+                  : '0 4px 12px rgba(255, 193, 7, 0.3)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 12px 32px rgba(255, 193, 7, 0.6)',
+                },
+                '&:active': {
+                  transform: 'translateY(0)',
+                },
+                '&:disabled': {
+                  bgcolor: 'action.disabledBackground',
+                },
+              }}
+            >
+              {loadingEstimates ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                'Continue to Ride Options'
+              )}
+            </Button>
+          </motion.div>
+        )}
 
         {/* Ride Options Sheet */}
         {showRideOptions && pickupLocation && dropoffLocation && (
@@ -1295,6 +1771,7 @@ export default function HomePage() {
             onClose={() => {
               setShowRideOptions(false);
               setShowLocationSheet(true);
+              setButtonFloating(true);
             }}
             onConfirmRide={handleConfirmRide}
             loading={rideLoading}
