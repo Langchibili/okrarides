@@ -199,11 +199,9 @@ export const useDriver = () => {
   const loadDriverProfile = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get('/users/me?populate=*')
-      const driverProfile = res?.response?.driverProfile ?? res?.driverProfile
-      const driverProfileResponse = await apiClient.get('/users/me?populate=driverProfile.assignedVehicle')
+      const driverProfileResponse = await apiClient.get('/users/me?populate[driverProfile][populate]=*')
+      const driverProfile = driverProfileResponse?.response?.driverProfile ?? driverProfileResponse?.driverProfile
       if(driverProfile){
-        driverProfile.assignedVehicle = driverProfileResponse.driverProfile.assignedVehicle
         setDriverProfile(driverProfile)
         setIsOnline(driverProfile.isOnline || false)
       }
@@ -289,7 +287,7 @@ export const useDriver = () => {
     driverProfile,
     adminSettings,
     isOnline,
-    loading,
+    loadingDriverProfile: loading,
     toggleOnline,
     canGoOnline,
     needsVerification,

@@ -3854,6 +3854,7 @@ export interface PluginUsersPermissionsUser
     };
   };
   attributes: {
+    activeDevice: Schema.Attribute.Relation<'oneToOne', 'api::device.device'>;
     activeProfile: Schema.Attribute.Enumeration<
       ['none', 'rider', 'driver', 'delivery', 'conductor']
     > &

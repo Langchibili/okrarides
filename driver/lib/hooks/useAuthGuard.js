@@ -17,7 +17,7 @@ export const useAuthGuard = (options = {}) => {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  const { driverProfile, adminSettings } = useDriver();
+  const { driverProfile, adminSettings,loadingDriverProfile } = useDriver();
   const {sendToNative} = useReactNative()
   
   useEffect(() => {
@@ -31,13 +31,12 @@ export const useAuthGuard = (options = {}) => {
     }
     sendToNative('LOG_DATA', {info: 'driverProfile',driverProfile})
     //  sendToNative('LOG_DATA', location)
-    if (requireVerification) {
+    if (requireVerification && !loadingDriverProfile) {
       if(user?.driverProfile?.verificationStatus !== VERIFICATION_STATUS.APPROVED){
-         router.push('/onboarding/setup-driver');
-         return;
+        router.push('/onboarding/setup-driver')
+        return;
       }
-      if (requireAuth && isAuthenticated() && !user?.driverProfile) {
-        console.log('here',requireAuth , isAuthenticated() , !user?.driverProfile)
+      if (requireAuth && isAuthenticated() && !driverProfile) {
         router.push('/onboarding/setup-driver');
         return;
       }

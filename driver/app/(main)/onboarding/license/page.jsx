@@ -24,6 +24,7 @@ export default function LicensePage() {
   // FIX 1: Persistence - Load existing data from driverProfile on mount
   useEffect(() => {
     if (driverProfile) {
+      console.log('driverProfile',driverProfile)
       if (driverProfile.driverLicenseNumber) setLicenseNumber(driverProfile.driverLicenseNumber);
       if (driverProfile.licenseExpiryDate) setExpiryDate(driverProfile.licenseExpiryDate);
       // Strapi components return media as objects. Ensure DocumentUploadCard handles objects.

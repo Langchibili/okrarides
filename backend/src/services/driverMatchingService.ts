@@ -45,13 +45,13 @@
 
 //       // Calculate distance and filter
 //       const driversWithDistance = drivers
-//         .filter(driver => driver.currentLocation?.lat && driver.currentLocation?.lng)
+//         .filter(driver => driver.currentLocation?.latitude && driver.currentLocation?.longitude)
 //         .map(driver => {
 //           const distance = this.calculateDistance(
 //             pickupLocation.lat,
 //             pickupLocation.lng,
-//             driver.currentLocation.lat,
-//             driver.currentLocation.lng
+//             driver.currentLocation.latitude,
+//             driver.currentLocation.longitude
 //           );
           
 //           return {
@@ -157,16 +157,16 @@ export default ({ strapi }: { strapi: any }) => ({
           },
           limit: 1000, // Get more drivers to filter by distance
         });
-
+      console.log('online drivers',drivers)
       // Calculate distance and filter
       const driversWithDistance = drivers
-        .filter((driver) => driver.currentLocation?.lat && driver.currentLocation?.lng)
+        .filter((driver) => driver.currentLocation?.latitude && driver.currentLocation?.longitude)
         .map((driver) => {
           const distance = this.calculateDistance(
             pickupLocation.lat,
             pickupLocation.lng,
-            driver.currentLocation.lat,
-            driver.currentLocation.lng
+            driver.currentLocation.latitude,
+            driver.currentLocation.longitude
           );
 
           return {
@@ -177,12 +177,12 @@ export default ({ strapi }: { strapi: any }) => ({
         .filter((driver) => driver.distance <= maxDistance)
         .sort((a, b) => a.distance - b.distance)
         .slice(0, limit);
-
+console.log('driversWithDistance',driversWithDistance)
       return {
         success: true,
         drivers: driversWithDistance,
         totalFound: driversWithDistance.length,
-      };
+      }
     } catch (error: any) {
       strapi.log.error('Error finding nearby drivers:', error);
       return { success: false, error: error.message, drivers: [] };

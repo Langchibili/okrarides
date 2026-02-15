@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-02-04T04:51:32.095Z"
+    "x-generation-date": "2026-02-14T12:30:58.874Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -7273,6 +7273,88 @@
           }
         ],
         "operationId": "get/devices/user/{userId}"
+      }
+    },
+    "/devices/activeride/{deviceId}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Device"
+        ],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "description": "",
+            "deprecated": false,
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "operationId": "get/devices/activeride/{deviceId}"
       }
     },
     "/device/{deviceId}/permissions": {
@@ -31941,6 +32023,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -40181,6 +40274,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -44391,6 +44495,17 @@
                             }
                           }
                         },
+                        "activeDevice": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "number"
+                            },
+                            "documentId": {
+                              "type": "string"
+                            }
+                          }
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -47776,6 +47891,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -49215,6 +49341,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -51696,6 +51833,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -53667,6 +53815,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -55221,6 +55380,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -56633,6 +56803,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -58526,6 +58707,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -61774,6 +61966,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -63408,6 +63611,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -65648,6 +65862,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -67366,6 +67591,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -69344,6 +69580,17 @@
                     }
                   }
                 },
+                "activeDevice": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "number"
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -70791,6 +71038,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -72382,6 +72640,17 @@
                             }
                           }
                         }
+                      }
+                    }
+                  },
+                  "activeDevice": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "number"
+                      },
+                      "documentId": {
+                        "type": "string"
                       }
                     }
                   },
@@ -75662,6 +75931,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -77796,6 +78076,17 @@
                               }
                             }
                           }
+                        }
+                      }
+                    },
+                    "activeDevice": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number"
+                        },
+                        "documentId": {
+                          "type": "string"
                         }
                       }
                     },
@@ -81023,6 +81314,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -82659,6 +82961,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -85994,6 +86307,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -90975,6 +91299,17 @@
                   }
                 }
               },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -92886,6 +93221,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },
@@ -95974,6 +96320,17 @@
                         }
                       }
                     }
+                  }
+                }
+              },
+              "activeDevice": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number"
+                  },
+                  "documentId": {
+                    "type": "string"
                   }
                 }
               },

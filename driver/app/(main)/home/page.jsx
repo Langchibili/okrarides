@@ -148,7 +148,7 @@ export default function DriverHomePage() {
   const handleAcceptRide = async (rideId) => {
     try {
       await acceptRide(rideId);
-      router.push(`/active-ride/${rideId}`);
+      router.push(`/rides/${rideId}`);
     } catch (error) {
       console.error('Error accepting ride:', error);
     }

@@ -621,18 +621,17 @@ async registerDevices(ctx) {
       'api::device.device',
       {
         filters: { deviceId },
-        publicationState: 'preview',
         limit: 1,
       }
     )
-
+   
     const baseDeviceInfo = {
       ...(deviceInfo || {}),
       frontendName,
       lastSeen: new Date().toISOString(),
       active: true,
       updatedAt: new Date().toISOString(),
-    };
+    }
 
     if (existing.length) {
       const updated = await strapi.entityService.update(
@@ -649,6 +648,13 @@ async registerDevices(ctx) {
           },
         }
       )
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: userId },
+        data: { 
+          activeDevice: existing[0].id,
+          devices: {connect:[existing[0].id]} 
+        }
+      }) // this is the current active device, which no matter whether it's a new or existing device, the one device that makes a request from the user is the active device
       registeredDevices.push(updated);
     } else {
       const created = await strapi.entityService.create(
@@ -667,7 +673,10 @@ async registerDevices(ctx) {
       )
       await strapi.db.query('plugin::users-permissions.user').update({
         where: { id: userId },
-        data: { devices: {connect:[created.id]} }
+        data: { 
+          devices: {connect:[created.id]},
+          activeDevice: created.id  // this is the current active device, which no matter whether it's a new or existing device, the one device that makes a request from the user is the active device
+        }
       })
       registeredDevices.push(created);
     }
@@ -682,7 +691,7 @@ async registerDevices(ctx) {
 ,
 async updateUserCurrentLocation(ctx) {
   try {
-    const { deviceId, location } = ctx.request.body;
+    const { deviceId, location } = ctx.request.body
 
     // Validate required fields
     if (!deviceId) {
@@ -701,8 +710,8 @@ async updateUserCurrentLocation(ctx) {
     // Find device by deviceId
     const device = await strapi.db.query('api::device.device').findOne({
       where: { deviceId },
-      populate: ['user'],
-    });
+      populate: ['user']
+    })
 
     if (!device) {
       return ctx.notFound('Device not found');
@@ -766,7 +775,7 @@ async updateUserCurrentLocation(ctx) {
           name: geocodingData.name,
           address: geocodingData.address,
           placeId: geocodingData.placeId,
-        });
+        })
       } else {
         console.warn('No geocoding data returned from Google Maps API');
       }
@@ -774,8 +783,6 @@ async updateUserCurrentLocation(ctx) {
       console.error('Error fetching geocoding details:', geocodingError);
       // Continue without geocoding details if API fails
     }
-    console.log('device.user.id:',device.user.id)
-    console.log('device.id:',device.id)
     // Update user's current location
     const updatedUser = await strapi.db.query('plugin::users-permissions.user').update({
       where: { id: device.user.id },
@@ -784,9 +791,15 @@ async updateUserCurrentLocation(ctx) {
       },
     });
 
+    // Find active device for user
+    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: device.user.id },
+      populate: ['activeDevice']
+    })
+
     // Update device's last seen timestamp and last location
     await strapi.db.query('api::device.device').update({
-      where: { id: device.id },
+      where: { id: user? user.activeDevice.id: deviceId },
       data: {
         deviceInfo: {
           ...(device.deviceInfo || {}),
@@ -830,10 +843,16 @@ async updateUserCurrentLocation(ctx) {
       if (device.user.id !== parseInt(userId)) {
         return ctx.forbidden('Device does not belong to this user');
       }
+      
+      // Find active device for user
+    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: device.user.id },
+      populate: ['activeDevice']
+    })
 
       // Update device - merge deviceInfo if provided
       const updatedDevice = await strapi.db.query('api::device.device').update({
-        where: { id: device.id },
+        where: { id: user? user.activeDevice.id: device.id },
         data: {
           notificationToken: updateData.notificationToken || device.notificationToken,
           deviceInfo: {
@@ -1064,4 +1083,173 @@ async updateUserCurrentLocation(ctx) {
       ctx.internalServerError('Failed to search devices');
     }
   },
-}));
+  async getActiveRideByDevice(ctx) {
+  try {
+    const { deviceId } = ctx.params;
+
+    if (!deviceId) {
+      return ctx.badRequest('Device ID is required');
+    }
+
+    // Find device and populate user with profiles
+    const device = await strapi.db.query('api::device.device').findOne({
+      where: { deviceId },
+      populate: {
+        user: {
+          populate: {
+            riderProfile: {
+              populate: true
+            },
+            driverProfile: {
+              populate: {
+                assignedVehicle: true
+              }
+            },
+            profileActivityStatus: true
+          }
+        }
+      }
+    });
+
+    if (!device) {
+      return ctx.notFound('Device not found');
+    }
+
+    if (!device.user) {
+      return ctx.badRequest('Device is not associated with a user');
+    }
+
+    const user = device.user;
+    const userId = user.id;
+
+    // Define active statuses
+    const riderActiveStatuses = ['pending', 'accepted', 'arrived', 'passenger_onboard'];
+    const excludedDriverStatuses = ['completed', 'cancelled', 'no_drivers_available'];
+
+    // Check for rider active rides
+    if (user.riderProfile) {
+      const riderWhereConditions = {
+        rider: {
+          id: { $eq: userId },
+          riderProfile: {
+            isActive: { $eq: true },
+            blocked: { $eq: false }
+          }
+        },
+        rideStatus: {
+          $in: riderActiveStatuses
+        }
+      };
+
+      const riderActiveRide = await strapi.db.query('api::ride.ride').findOne({
+        where: riderWhereConditions,
+        populate: {
+          rider: {
+            populate: {
+              riderProfile: true
+            }
+          },
+          driver: {
+            populate: {
+              driverProfile: {
+                populate: {
+                  assignedVehicle: true
+                }
+              }
+            }
+          },
+          vehicle: true,
+          rideClass: true,
+          taxiType: true,
+          pickupStation: true,
+          dropoffStation: true,
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (riderActiveRide) {
+        strapi.log.info(`Active ride found for rider ${userId} via device ${deviceId}: ${riderActiveRide.id}`);
+        
+        return ctx.send({
+          success: true,
+          data: riderActiveRide,
+          userRole: 'rider',
+          message: 'Active ride found as rider'
+        });
+      }
+    }
+
+    // Check for driver active rides
+    if (user.driverProfile) {
+      const driverWhereConditions = {
+        driver: {
+          id: { $eq: userId },
+          driverProfile: {
+            isActive: { $eq: true },
+            blocked: { $eq: false },
+            verificationStatus: { $eq: 'approved' }
+          }
+        },
+        rideStatus: {
+          $notIn: excludedDriverStatuses
+        }
+      };
+
+      const driverActiveRide = await strapi.db.query('api::ride.ride').findOne({
+        where: driverWhereConditions,
+        populate: {
+          rider: {
+            populate: {
+              riderProfile: true
+            }
+          },
+          driver: {
+            populate: {
+              driverProfile: {
+                populate: {
+                  assignedVehicle: true,
+                  taxiDriver: true,
+                  busDriver: true,
+                  motorbikeRider: true,
+                  currentSubscription: true
+                }
+              }
+            }
+          },
+          vehicle: true,
+          rideClass: true,
+          taxiType: true,
+          pickupStation: true,
+          dropoffStation: true,
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (driverActiveRide) {
+        strapi.log.info(`Active ride found for driver ${userId} via device ${deviceId}: ${driverActiveRide.id}`);
+        
+        return ctx.send({
+          success: true,
+          data: driverActiveRide,
+          userRole: 'driver',
+          message: 'Active ride found as driver'
+        });
+      }
+    }
+
+    // No active rides found
+    strapi.log.info(`No active rides found for user ${userId} via device ${deviceId}`);
+    
+    return ctx.send({
+      success: true,
+      data: null,
+      userRole: null,
+      message: 'No active rides'
+    });
+
+  } catch (error) {
+    strapi.log.error('Get active ride by device error:', error);
+    return ctx.internalServerError('Failed to get active ride');
+  }
+}
+}))

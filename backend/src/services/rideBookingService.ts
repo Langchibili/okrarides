@@ -90,7 +90,7 @@ export default {
   //         }
 
   //         // 2. Must have current location
-  //         if (!driver.currentLocation?.lat || !driver.currentLocation?.lng) {
+  //         if (!driver.currentLocation?.latitude || !driver.currentLocation?.longitude) {
   //           return false;
   //         }
 
@@ -98,8 +98,8 @@ export default {
   //         const distance = this.calculateDistance(
   //           pickupLocation.lat,
   //           pickupLocation.lng,
-  //           driver.currentLocation.lat,
-  //           driver.currentLocation.lng
+  //           driver.currentLocation.latitude,
+  //           driver.currentLocation.longitude
   //         );
 
   //         // 4. Must be within radius
@@ -130,8 +130,8 @@ export default {
   //         distance: this.calculateDistance(
   //           pickupLocation.lat,
   //           pickupLocation.lng,
-  //           driver.currentLocation.lat,
-  //           driver.currentLocation.lng
+  //           driver.currentLocation.latitude,
+  //           driver.currentLocation.longitude
   //         )
   //       }))
   //       .sort((a, b) => a.distance - b.distance) // Closest first
@@ -222,7 +222,7 @@ export default {
         // Give drivers a moment to respond with updated location
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
-  
+      console.log('online drivers',drivers)
       strapi.log.info(`Found ${drivers.length} online drivers before filtering`);
   
       // Rest of the filtering logic remains the same...
@@ -232,15 +232,15 @@ export default {
             return false;
           }
   
-          if (!driver.currentLocation?.lat || !driver.currentLocation?.lng) {
+          if (!driver.currentLocation?.latitude || !driver.currentLocation?.longitude) {
             return false;
           }
   
           const distance = this.calculateDistance(
             pickupLocation.lat,
             pickupLocation.lng,
-            driver.currentLocation.lat,
-            driver.currentLocation.lng
+            driver.currentLocation.latitude,
+            driver.currentLocation.longitude
           );
   
           if (distance > maxRadius) {
@@ -268,13 +268,14 @@ export default {
           distance: this.calculateDistance(
             pickupLocation.lat,
             pickupLocation.lng,
-            driver.currentLocation.lat,
-            driver.currentLocation.lng
+            driver.currentLocation.latitude,
+            driver.currentLocation.longitude
           )
         }))
         .sort((a, b) => a.distance - b.distance)
-        .slice(0, maxDrivers);
-  
+        .slice(0, maxDrivers)
+
+      console.log('eligibleDrivers',eligibleDrivers)
       strapi.log.info(`Found ${eligibleDrivers.length} eligible drivers`);
   
       return {

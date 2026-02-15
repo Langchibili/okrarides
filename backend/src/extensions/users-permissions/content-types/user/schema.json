@@ -212,6 +212,11 @@
       "relation": "oneToMany",
       "target": "api::device.device",
       "mappedBy": "user"
+    },
+    "activeDevice": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::device.device"
     }
   }
 }

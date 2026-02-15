@@ -84,6 +84,15 @@ export default {
       },
     },
     {
+      method: 'GET',
+      path: '/devices/activeride/:deviceId',
+      handler: 'device.getActiveRideByDevice',
+      config: {
+        policies: [],
+        middlewares: [],
+      }
+    },
+    {
       method: 'DELETE',
       path: '/devices/:userId/:deviceId',
       handler: 'device.removeDevice',
