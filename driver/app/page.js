@@ -1,65 +1,116 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { Box } from '@mui/material';
+import { BottomNav } from '@/components/Layout/BottomNav';
+import { useAuth } from '@/lib/hooks/useAuth';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import { useRide } from '@/lib/hooks/useRide';
+import DriverHomePage from './(main)/home/page';
+
+export default function Home({ children }) {
+  const { user, loading, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+  const { currentRide } = useRide();
+
+  useEffect(() => {
+    const initializeNativeCode = async () => {
+      // ONLY NOW initialize native services (if in native environment, and user has authenticated)
+      if (isNative && !servicesInitialized && user?.id) {
+        console.log('🔧 Initializing native services for driver...');
+        const result = await initializeNativeServices(
+          user.id,
+          'driver', // frontendName
+          process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL
+        );
+       
+        if (window.ReactNativeWebView || result.success) {
+            if (typeof window !== 'undefined') {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'GET_CURRENT_LOCATION',
+                    requestId: `init_loc_${Date.now()}`
+                }));
+
+                // Listen for location response
+                const handleLocationUpdate = (event) => {
+                    try {
+                    const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                    if (data.type === 'LOCATION_UPDATE' && data.payload) {
+                        const { lat, lng } = data.payload;
+                        // Update backend with location
+                        apiClient.post('/driver/update-location', {
+                        location: { lat, lng }
+                        }).catch(err => console.error('Location update error:', err));
+                        
+                        window.removeEventListener('message', handleLocationUpdate);
+                    }
+                    } catch (e) {
+                    console.error('Location response parse error:', e);
+                    }
+                };
+
+                window.addEventListener('message', handleLocationUpdate);
+                setTimeout(() => window.removeEventListener('message', handleLocationUpdate), 10000);
+            } else {
+            // Web fallback
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    apiClient.post('/driver/update-location', {
+                    location: {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    }
+                    }).catch(err => console.error('Location update error:', err));
+                },
+                (error) => console.error('Geolocation error:', error)
+                );
+            }
+            }
+            console.log('✅ Native services initialized successfully');
+            } else {
+            console.error('❌ Failed to initialize native services:', result.error);
+            // Continue anyway - app should work in web mode
+            }
+      }
+    }
+
+    if (!loading) {
+      if (!isAuthenticated()) {
+        router.push('/login');
+      } else {
+        setCheckingAuth(false);
+        initializeNativeCode() // initialize native code
+      }
+    }
+  }, [user, loading, isAuthenticated, router]);
+
+  // ============================================
+  // Redirect Logic for Active Rides
+  // ============================================
+  useEffect(() => {
+    if (currentRide) {
+      const { rideStatus, id } = currentRide;
+
+      if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
+        router.push(`/rides/${id}`);
+      } else if (rideStatus === 'completed') {
+        router.push(`/rides/${id}`);
+      }
+    }
+  }, [currentRide, router]);
+
+  if (loading || checkingAuth) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <Box sx={{ minHeight: '100vh', pb: 10 }}>
+      <DriverHomePage/>
+      <BottomNav />
+    </Box>
   );
 }

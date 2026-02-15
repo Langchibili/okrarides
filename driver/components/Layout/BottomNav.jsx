@@ -14,7 +14,7 @@ export const BottomNav = () => {
   const router = useRouter();
 
   const navItems = [
-    { label: 'Home', value: '/home', icon: <HomeIcon /> },
+    { label: 'Home', value: '/', icon: <HomeIcon /> },
     { label: 'Rides', value: '/rides', icon: <RidesIcon /> },
     { label: 'Earnings', value: '/earnings', icon: <EarningsIcon /> },
     { label: 'Profile', value: '/profile', icon: <ProfileIcon /> },
@@ -52,4 +52,4 @@ export const BottomNav = () => {
 };
 
 export default BottomNav;
-
+

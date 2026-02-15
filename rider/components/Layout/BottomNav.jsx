@@ -21,7 +21,7 @@ export const BottomNav = ({ userType = 'rider' }) => {
   
   // Navigation items for rider
   const riderNavItems = [
-    { label: 'Home', icon: <HomeIcon />, path: '/home' },
+    { label: 'Home', icon: <HomeIcon />, path: '/' },
     { label: 'Trips', icon: <HistoryIcon />, path: '/trips' },
     { label: 'Wallet', icon: <WalletIcon />, path: '/wallet' },
     { label: 'Profile', icon: <ProfileIcon />, path: '/profile' },
@@ -95,4 +95,4 @@ export const BottomNav = ({ userType = 'rider' }) => {
 };
 
 export default BottomNav;
-
+
