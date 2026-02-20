@@ -436,7 +436,6 @@ export function useRide(initialRideId = null) {
       
       try {
         const result = await ridesAPI.checkRideStatus(rideId);
-        
         if (result.success && mountedRef.current) {
           const updatedRide = result.data;
           setRide(updatedRide);

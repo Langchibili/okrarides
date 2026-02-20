@@ -93,6 +93,15 @@ export default {
       }
     },
     {
+      method: 'POST',
+      path: '/devices/acceptride/:deviceId',
+      handler: 'device.acceptRideByDevice',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
       method: 'DELETE',
       path: '/devices/:userId/:deviceId',
       handler: 'device.removeDevice',

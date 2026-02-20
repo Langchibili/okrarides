@@ -29,9 +29,12 @@ export const useAuthGuard = (options = {}) => {
       router.push(redirectTo);
       return;
     }
-    sendToNative('LOG_DATA', {info: 'driverProfile',driverProfile})
-    //  sendToNative('LOG_DATA', location)
-    if (requireVerification && !loadingDriverProfile) {
+   
+    if(loadingDriverProfile){
+      return
+    }
+     sendToNative('LOG_DATA', {info: 'driverProfileHere',driverProfile})
+    if (requireVerification) {
       if(user?.driverProfile?.verificationStatus !== VERIFICATION_STATUS.APPROVED){
         router.push('/onboarding/setup-driver')
         return;

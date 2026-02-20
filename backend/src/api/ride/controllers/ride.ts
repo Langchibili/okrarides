@@ -1045,6 +1045,7 @@ async create(ctx) {
 // ============================================
 async getActiveRide(ctx) {
   try {
+    console.log("ctx.state.user",ctx.state.user)
     const userId = ctx.state.user.id;
 
     // Get user with profile information
@@ -1287,7 +1288,7 @@ async getActiveRide(ctx) {
             currentRide: id
           }
         }
-      });
+      })
 
       const otherDriverIds = requestedDrivers
         .filter(rd => rd.driverId !== driverId)

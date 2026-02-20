@@ -44,8 +44,8 @@
 //   // Update ETA and distance from WebSocket updates (via useRide hook)
 //   useEffect(() => {
 //     if (activeRide) {
-//       setEta(activeRide.eta);
-//       setDistance(activeRide.distance);
+//       setEta(activeRide.estimatedDuration);
+//       setDistance(activeRide.estimatedDistance);
 //     }
 //   }, [activeRide]);
 
@@ -181,6 +181,34 @@ const RIDE_STATUS_CONFIG = {
   },
 };
 
+const calculateDistance = (point1, point2)=> {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = deg2rad(point2.latitude || point2.lat - point1.latitude || point1.lat);
+  const dLon = deg2rad(point2.longitude|| point2.lng - point1.longitude || point1.lng);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(point1.lat)) *
+      Math.cos(deg2rad(point2.lat)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+const deg2rad = (deg)=> {
+  return deg * (Math.PI / 180);
+}
+
+/**
+ * Estimate duration based on distance
+ * Assumes average speed of 30 km/h in city traffic
+ */
+const estimateDuration = (distanceKm)=> {
+  const averageSpeedKmh = 30;
+  const hours = distanceKm / averageSpeedKmh;
+  const minutes = Math.ceil(hours * 60);
+  return minutes;
+}
 export default function TrackingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -221,18 +249,28 @@ export default function TrackingPage() {
   // ============================================
   // Start Real-time Location Tracking
   // ============================================
+
+
   useEffect(() => {
     if (!rideId || !currentRide || trackingStarted) return;
-
     const handleTrackingUpdate = (trackData) => {
       if (trackData.driverLocation) {
         setDriverLocation(trackData.driverLocation);
       }
-      if (trackData.eta !== undefined) {
-        setEta(trackData.eta);
+      if (trackData.estimatedDuration !== undefined) {
+        setEta(trackData.estimatedDuration);
       }
-      if (trackData.distance !== undefined) {
-        setDistance(trackData.distance);
+      else{
+         const distance = calculateDistance(trackData.pickupLocation, trackData.dropoffLocation);
+         const duration = estimateDuration(distance);
+         setEta(duration)
+      }
+      if (trackData.estimatedDistance !== undefined) {
+        setDistance(trackData.estimatedDistance);
+      }
+      else{
+        const distance = calculateDistance(trackData.pickupLocation, trackData.dropoffLocation);
+        setDistance(distance);
       }
 
       // Update map center to driver location
@@ -258,11 +296,20 @@ export default function TrackingPage() {
       if (currentRide.currentDriverLocation) {
         setDriverLocation(currentRide.currentDriverLocation);
       }
-      if (currentRide.eta !== undefined) {
-        setEta(currentRide.eta);
+      if (currentRide.estimatedDuration !== undefined) {
+        setEta(currentRide.estimatedDuration);
       }
-      if (currentRide.distance !== undefined) {
-        setDistance(currentRide.distance);
+      else{
+         const distance = calculateDistance(currentRide.pickupLocation, currentRide.dropoffLocation);
+         const duration = estimateDuration(distance);
+         setEta(duration)
+      }
+      if (currentRide.estimatedDistance !== undefined) {
+        setDistance(currentRide.estimatedDistance);
+      }
+      else{
+        const distance = calculateDistance(currentRide.pickupLocation, currentRide.dropoffLocation);
+        setDistance(distance);
       }
     }
   }, [currentRide]);
@@ -272,7 +319,7 @@ export default function TrackingPage() {
   // ============================================
   useEffect(() => {
     if (!currentRide) return;
-
+console.log('currentRide.rideStatus',currentRide.rideStatus)
     // Navigate to trip summary when completed
     if (currentRide.rideStatus === 'completed') {
       stopTracking();
@@ -287,7 +334,7 @@ export default function TrackingPage() {
         severity: 'warning',
       });
       setTimeout(() => {
-        router.push('/home');
+        router.push('/');
       }, 2000);
     }
     // Show notification when driver arrives
@@ -308,7 +355,6 @@ export default function TrackingPage() {
 
     try {
       const result = await confirmPickup(rideId);
-
       if (result.success) {
         setSnackbar({
           open: true,
@@ -354,7 +400,7 @@ export default function TrackingPage() {
         });
 
         setTimeout(() => {
-          router.push('/home');
+          router.push('/');
         }, 1500);
       } else {
         setSnackbar({
@@ -397,12 +443,23 @@ export default function TrackingPage() {
   // ============================================
   // Format ETA
   // ============================================
-  const formatETA = (seconds) => {
-    if (!seconds) return 'Calculating...';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-  };
+  const formatETA = (minutes) => {
+    if (!minutes && minutes !== 0) return 'Calculating...';
+
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (remainingMinutes === 0) {
+      return `${hours} hr`;
+    }
+
+    return `${hours} hr ${remainingMinutes} min`;
+  }
+
 
   // ============================================
   // Prepare Map Markers
@@ -477,7 +534,7 @@ export default function TrackingPage() {
         <Typography variant="h6" sx={{ mb: 2 }}>
           No active ride found
         </Typography>
-        <Button variant="contained" onClick={() => router.push('/home')}>
+        <Button variant="contained" onClick={() => router.push('/')}>
           Go to Home
         </Button>
       </Box>
@@ -532,7 +589,7 @@ export default function TrackingPage() {
           </Box>
           <IconButton
             size="small"
-            onClick={() => router.push('/home')}
+            onClick={() => router.push('/')}
             sx={{ color: 'white' }}
           >
             <CloseIcon />
@@ -614,7 +671,7 @@ export default function TrackingPage() {
         <SwipeableBottomSheet
           open={true}
           initialHeight={rideStatus === 'arrived' ? 500 : 420}
-          maxHeight={600}
+          maxHeight={700}
           minHeight={200}
         >
           <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -740,18 +797,23 @@ export default function TrackingPage() {
                   PICKUP
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ mb: 2, ml: 3.5 }}>
+              <Typography variant="body2" sx={{  mb: 2, ml: 3.5, fontWeight: 500 }}>
                 {currentRide?.pickupLocation?.address}
               </Typography>
-
+              <Typography variant="body2" sx={{  mb: 2, ml: 3.5, fontWeight: 300 }}>
+                <strong>{'> '}</strong>{currentRide?.pickupLocation?.name}
+              </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <PlaceIcon sx={{ color: 'error.main', fontSize: 20 }} />
                 <Typography variant="body2" fontWeight={600} color="text.secondary">
                   DESTINATION
                 </Typography>
               </Box>
-              <Typography variant="body2" sx={{ ml: 3.5 }}>
+              <Typography variant="body2" sx={{ ml: 3.5, fontWeight: 500 }}>
                 {currentRide?.dropoffLocation?.address}
+              </Typography>
+              <Typography variant="body2" sx={{ ml: 3.5, fontWeight: 300 }}>
+                <strong>{'> '}</strong>{currentRide?.dropoffLocation?.name}
               </Typography>
             </Box>
 

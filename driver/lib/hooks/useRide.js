@@ -180,7 +180,7 @@
 // };
 
 // export default useRide;
-
+// driver/lib/hooks/useRide.js
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
@@ -351,7 +351,7 @@ export const useRide = () => {
       setLoading(true);
       const response = await apiClient.post(`/rides/${rideId}/confirm-arrival`);
       if ((response && response.hasOwnProperty('id')) || response.success || response?.data) {
-        setCurrentRide(response.data);
+      setCurrentRide(response.data);
       setError(null);
       return response;
     } else {

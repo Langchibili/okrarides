@@ -13,6 +13,9 @@
   "attributes": {
     "aboutRoute": {
       "type": "string"
+    },
+    "abroute": {
+      "type": "blocks"
     }
   }
 }

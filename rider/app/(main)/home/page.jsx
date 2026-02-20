@@ -1198,6 +1198,8 @@ export default function HomePage() {
       passengerCount: rideDetails.passengerCount || 1,
       specialRequests: rideDetails.specialRequests || [],
       notes: rideDetails.notes || '',
+      estimatedDistance: parseFloat(routeInfo?.distance) || null,
+      estimatedDuration: parseFloat(routeInfo?.duration) || null
     };
 
     try {

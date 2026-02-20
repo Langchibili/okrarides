@@ -402,6 +402,8 @@
 // src/api/device/controller/device.ts
 import { factories } from '@strapi/strapi';
 import { googleMapService } from '../../../services/googleMapService';
+import  RideBookingService  from '../../../services/rideBookingService';
+import socketService from '../../../services/socketService';
 export default factories.createCoreController('api::device.device', ({ strapi }) => ({
   // ========================
   // DEFAULT CRUD OPERATIONS
@@ -1250,6 +1252,181 @@ async updateUserCurrentLocation(ctx) {
   } catch (error) {
     strapi.log.error('Get active ride by device error:', error);
     return ctx.internalServerError('Failed to get active ride');
+  }
+},
+async acceptRideByDevice(ctx) {
+  try {
+    const { deviceId } = ctx.params;
+
+    if (!deviceId) {
+      return ctx.badRequest('Device ID is required');
+    }
+
+    // Find device and populate user with driver profile
+    const device = await strapi.db.query('api::device.device').findOne({
+      where: { deviceId },
+      populate: {
+        user: {
+          populate: {
+            driverProfile: {
+              populate: {
+                assignedVehicle: true,
+                currentSubscription: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!device) {
+      return ctx.notFound('Device not found');
+    }
+
+    if (!device.user) {
+      return ctx.badRequest('Device is not associated with a user');
+    }
+
+    const user = device.user;
+    const driverId = user.id;
+
+    // Check if user has driver profile
+    if (!user.driverProfile) {
+      return ctx.badRequest('User does not have a driver profile');
+    }
+
+    // Check driver eligibility
+    const eligibilityCheck = await RideBookingService.canDriverAcceptRides(driverId);
+    if (!eligibilityCheck.canAccept) {
+      return ctx.forbidden(eligibilityCheck.reason);
+    }
+
+    // Find all pending rides (we'll filter by requestedDrivers in code)
+    const pendingRides = await strapi.db.query('api::ride.ride').findMany({
+      where: {
+        rideStatus: 'pending',
+      },
+      populate: ['rider', 'driver'],
+      orderBy: { createdAt: 'desc' },
+      limit: 50 // Get recent pending rides
+    });
+
+    // Find a ride where this driver was requested
+    const ride = pendingRides.find(r => {
+      const requestedDrivers = r.requestedDrivers || [];
+      return requestedDrivers.some(rd => rd.driverId === driverId);
+    });
+
+    if (!ride) {
+      return ctx.notFound('No pending ride request found for this driver');
+    }
+
+    // Double-check ride is still pending (race condition protection)
+    const currentRide = await strapi.db.query('api::ride.ride').findOne({
+      where: { id: ride.id },
+      populate: ['rider', 'driver']
+    });
+
+    if (!currentRide || currentRide.rideStatus !== 'pending') {
+      return ctx.badRequest('Ride is no longer available');
+    }
+
+    // Update ride to accepted
+    const updatedRide = await strapi.db.query('api::ride.ride').update({
+      where: { id: currentRide.id },
+      data: {
+        rideStatus: 'accepted',
+        driver: driverId,
+        vehicle: user.driverProfile.assignedVehicle?.id || null,
+        acceptedAt: new Date()
+      },
+      populate: {
+        rider: {
+          populate: {
+            riderProfile: true
+          }
+        },
+        driver: {
+          populate: {
+            driverProfile: {
+              populate: {
+                assignedVehicle: true
+              }
+            }
+          }
+        },
+        vehicle: true,
+        rideClass: true,
+        taxiType: true,
+        pickupStation: true,
+        dropoffStation: true,
+      }
+    });
+
+    // Emit socket event - ride accepted
+    socketService.emit('ride:accepted', {
+      rideId: updatedRide.id,
+      driverId,
+      riderId: currentRide.rider?.id,
+      driver: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
+        profilePicture: user.profilePicture,
+        driverProfile: {
+          averageRating: user.driverProfile.averageRating,
+          totalRatings: user.driverProfile.totalRatings || 0,
+          completedRides: user.driverProfile.completedRides || 0,
+        },
+      },
+      vehicle: user.driverProfile.assignedVehicle ? {
+        id: user.driverProfile.assignedVehicle.id,
+        numberPlate: user.driverProfile.assignedVehicle.numberPlate,
+        make: user.driverProfile.assignedVehicle.make,
+        model: user.driverProfile.assignedVehicle.model,
+        color: user.driverProfile.assignedVehicle.color,
+      } : null,
+      eta: 180,
+      distance: 1.5,
+    });
+
+    // Update driver availability
+    await strapi.db.query('plugin::users-permissions.user').update({
+      where: { id: driverId },
+      data: {
+        driverProfile: {
+          id: user.driverProfile.id,
+          isAvailable: false,
+          currentRide: currentRide.id
+        }
+      }
+    });
+
+    // Notify other drivers that ride was taken
+    const requestedDrivers = currentRide.requestedDrivers || [];
+    const otherDriverIds = requestedDrivers
+      .filter(rd => rd.driverId !== driverId)
+      .map(rd => rd.driverId);
+
+    if (otherDriverIds.length > 0) {
+      socketService.emit('ride:taken', {
+        rideId: currentRide.id,
+        driverIds: otherDriverIds
+      });
+    }
+
+    strapi.log.info(`Ride ${currentRide.id} accepted by driver ${driverId} via device ${deviceId}`);
+
+    return ctx.send({
+      success: true,
+      data: updatedRide,
+      message: 'Ride accepted successfully'
+    });
+
+  } catch (error) {
+    strapi.log.error('Accept ride by device error:', error);
+    return ctx.internalServerError('Failed to accept ride');
   }
 }
 }))

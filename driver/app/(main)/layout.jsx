@@ -94,11 +94,10 @@ export default function MainLayout({ children }) {
   useEffect(() => {
     if (currentRide) {
       const { rideStatus, id } = currentRide;
-
       if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
-        router.push(`/rides/${id}`);
+        router.push(`/active-ride/${id}`);
       } else if (rideStatus === 'completed') {
-        router.push(`/rides/${id}`);
+        router.push(`/active-ride/${id}`);
       }
     }
   }, [currentRide, router]);

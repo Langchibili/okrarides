@@ -21,30 +21,47 @@ import {
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import useSound from 'use-sound';
+// import useSound from 'use-sound';
 import { formatCurrency, formatDistance } from '@/Functions';
+
+const formatETA = (minutes) => {
+    if (!minutes && minutes !== 0) return 'Calculating...';
+
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (remainingMinutes === 0) {
+      return `${hours} hr`;
+    }
+
+    return `${hours} hr ${remainingMinutes} min`;
+  }
 
 export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => {
   const theme = useTheme();
   const [countdown, setCountdown] = useState(30);
-  const [playSound, { stop }] = useSound('/sounds/ride-request.mp3', {
-    volume: 1,
-    loop: true,
-  });
+  // const [playSound, { stop }] = useSound('/sounds/ride-request.mp3', {
+  //   volume: 1,
+  //   loop: true,
+  // });
 
   // Play sound when modal opens
-  useEffect(() => {
-    if (open) {
-      playSound();
-      // Vibrate pattern
-      if (navigator.vibrate) {
-        navigator.vibrate([200, 100, 200, 100, 200]);
-      }
-    }
-    return () => {
-      stop?.();
-    };
-  }, [open, playSound, stop]);
+  // useEffect(() => {
+  //   if (open) {
+  //     playSound();
+  //     // Vibrate pattern
+  //     if (navigator.vibrate) {
+  //       navigator.vibrate([200, 100, 200, 100, 200]);
+  //     }
+  //   }
+  //   return () => {
+  //     stop?.();
+  //   };
+  // }, [open, playSound, stop]);
 
   // Countdown timer
   useEffect(() => {
@@ -66,6 +83,7 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
 
   // Reset countdown when new request
   useEffect(() => {
+    console.log('rideRequest',rideRequest)
     if (open && rideRequest) {
       setCountdown(30);
     }
@@ -207,6 +225,9 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {rideRequest.pickupLocation?.address}
               </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 300 }}>
+                <strong>{'> '}</strong>{rideRequest.pickupLocation?.name}
+              </Typography>
             </Box>
           </Box>
 
@@ -244,6 +265,9 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 {rideRequest.dropoffLocation?.address}
               </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 300 }}>
+                <strong>{'> '}</strong>{rideRequest.dropoffLocation?.name}
+              </Typography>
             </Box>
           </Box>
         </Paper>
@@ -273,7 +297,7 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
               variant="h6"
               sx={{ fontWeight: 700, color: 'info.main' }}
             >
-              {rideRequest.duration} min
+              {formatETA(Math.round((rideRequest.distance / 40) * 60))}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Duration
@@ -284,7 +308,7 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
               variant="h6"
               sx={{ fontWeight: 700, color: 'success.main' }}
             >
-              {formatCurrency(rideRequest.fare)}
+              {formatCurrency(rideRequest.estimatedFare)}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               Fare
@@ -322,13 +346,14 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
                 borderRadius: 3,
                 fontWeight: 600,
                 fontSize: '1.1rem',
+                color:'white',
                 bgcolor: 'success.main',
                 '&:hover': {
                   bgcolor: 'success.dark',
                 },
               }}
             >
-              Accept Ride
+              Accept
             </Button>
           </motion.div>
         </Box>
@@ -338,4 +363,3 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
 };
 
 export default RideRequestModal;
-

@@ -358,6 +358,8 @@ class RideAPI {
           notes: rideData.notes || '',
           scheduledFor: rideData.scheduledFor || null,
           totalFare: rideData.estimatedFare || rideData.totalFare,
+          estimatedDistance:rideData.estimatedDistance || null,
+          estimatedDuration: rideData.estimatedDuration || null,
           rideStatus: 'pending',
           requestedAt: new Date().toISOString(),
         },

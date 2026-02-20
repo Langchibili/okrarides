@@ -608,7 +608,7 @@ function setupMainServerEventForwarding() {
     console.log('driverId',driverId)
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'ride:request:new', data);
-  });
+  })
 
   // Ride request received (to specific driver)
   mainSocket.on('ride:request:received', (data) => {

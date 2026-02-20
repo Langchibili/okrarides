@@ -1400,6 +1400,7 @@ export interface ApiDriverDriver extends Struct.CollectionTypeSchema {
   };
   attributes: {
     aboutRoute: Schema.Attribute.String;
+    abroute: Schema.Attribute.Blocks;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

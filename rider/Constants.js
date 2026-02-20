@@ -106,7 +106,7 @@ export const SOCKET_EVENTS = {
     ONLINE_SUCCESS: 'driver:online:success',
     OFFLINE_SUCCESS: 'driver:offline:success',
     FORCED_OFFLINE: 'driver:forced:offline',
-    ARRIVED: 'driver:arrived',
+    ARRIVED: 'ride:driver:arrived',
   },
   
   // Rider Events

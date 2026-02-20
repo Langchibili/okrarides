@@ -1,3 +1,4 @@
+//Okrarides\driver\app\(main)\rides\[id]\page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -56,7 +57,24 @@ export default function RideDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  const formatETA = (minutes) => {
+    if (!minutes && minutes !== 0) return 'Calculating...';
+
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    if (remainingMinutes === 0) {
+      return `${hours} hr`;
+    }
+
+    return `${hours} hr ${remainingMinutes} min`;
+  }
 
   if (loading) {
     return (
@@ -347,7 +365,7 @@ export default function RideDetailPage() {
             </Box>
             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
               <Typography variant="h5" sx={{ fontWeight: 700, color: 'info.main' }}>
-                {Math.round((ride.actualDuration || ride.estimatedDuration) / 60)} min
+                {formatETA(ride.actualDuration || ride.estimatedDuration)}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Duration

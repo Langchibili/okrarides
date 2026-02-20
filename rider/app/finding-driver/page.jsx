@@ -461,7 +461,6 @@ export default function FindingDriverPage() {
   useEffect(() => {
     const currentRide = activeRide || ride;
     if (!currentRide) return;
-
     // Driver accepted the ride
     if (currentRide.rideStatus === 'accepted' && currentRide.driver) {
       setSearchStage('found');
@@ -477,7 +476,7 @@ export default function FindingDriverPage() {
       // Navigate to tracking after showing driver info
       setTimeout(() => {
         router.push(`/tracking?rideId=${currentRide.id}`);
-      }, 3000);
+      }, 2000);
     }
     // No drivers available
     else if (currentRide.rideStatus === 'no_drivers_available') {

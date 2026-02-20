@@ -26,7 +26,7 @@ export default function MainLayout({ children }) {
         console.log('🔧 Initializing native services for driver...');
         const result = await initializeNativeServices(
           user.id,
-          'driver', // frontendName
+          'rider', // frontendName
           process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL
         );
        
