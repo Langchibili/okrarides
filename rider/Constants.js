@@ -1,3 +1,4 @@
+//Okra\Okrarides\rider\Constants.js
 // Application-wide constants
 export const APP_NAME = 'OkraRides';
 export const APP_VERSION = '1.0.0';
@@ -135,6 +136,7 @@ export const SOCKET_EVENTS = {
     TRIP_STARTED: 'ride:trip:started',
     TRIP_COMPLETED: 'ride:trip:completed',
     NO_DRIVERS: 'ride:no_drivers',
+    PAYMENT_REQUESTED: 'ride:payment:requested'
   },
   
   // Subscription Events
@@ -146,6 +148,7 @@ export const SOCKET_EVENTS = {
   
   // Payment Events
   PAYMENT: {
+    RECEIVED: 'payment:received',   // ← rider paid (cash OR okrapay confirmed)
     SUCCESS: 'payment:success',
     FAILED: 'payment:failed',
   },

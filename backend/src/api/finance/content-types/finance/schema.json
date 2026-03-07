@@ -4,15 +4,140 @@
   "info": {
     "singularName": "finance",
     "pluralName": "finances",
-    "displayName": "finance"
+    "displayName": "Driver Finance Record"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
-    "aboutRoute": {
-      "type": "string"
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "reportDate": {
+      "type": "date"
+    },
+    "reportType": {
+      "type": "enumeration",
+      "enum": ["daily", "weekly", "monthly", "yearly", "all_time"],
+      "default": "all_time"
+    },
+
+    "totalEarnings": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total driver earnings (gross, including cash rides)"
+    },
+    "cashEarnings": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Earnings from cash rides (physically collected by driver)"
+    },
+    "digitalEarnings": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Earnings from digital (okrapay) rides, net of commission"
+    },
+    "subscriptionEarnings": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Earnings from rides taken under subscription (zero commission)"
+    },
+
+    "totalCommissionPaid": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total commission deducted from this driver (float deductions)"
+    },
+    "commissionSavedBySubscription": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Amount saved in commission by being on a subscription plan"
+    },
+
+    "totalFloatPurchased": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Cumulative float top-ups by this driver"
+    },
+    "totalFloatDeducted": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Cumulative float deducted via ride commissions"
+    },
+    "currentFloatBalance": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Snapshot of float balance at report time"
+    },
+    "lowestFloatBalance": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Lowest recorded float balance (can be negative)"
+    },
+    "negativeFloatCount": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of times float went negative"
+    },
+
+    "totalWithdrawn": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total amount withdrawn by this driver"
+    },
+    "totalPendingWithdrawals": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Current pending withdrawal amount at report time"
+    },
+
+    "totalSubscriptionsPaid": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total amount paid for subscriptions"
+    },
+
+    "totalRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "completedRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "cancelledRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "subscriptionRides": {
+      "type": "integer",
+      "default": 0,
+      "description": "Rides completed under subscription (zero commission)"
+    },
+    "floatRides": {
+      "type": "integer",
+      "default": 0,
+      "description": "Rides completed under float system (commission deducted)"
+    },
+    "cashRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "digitalRides": {
+      "type": "integer",
+      "default": 0
+    },
+
+    "averageFarePerRide": {
+      "type": "decimal",
+      "default": 0
+    },
+    "averageCommissionPerRide": {
+      "type": "decimal",
+      "default": 0
     }
   }
 }

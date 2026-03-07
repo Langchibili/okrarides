@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useThemeMode } from '@/components/ThemeProvider';
 import { useRide } from '@/lib/hooks/useRide';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import { ridesAPI } from '@/lib/api/rides';
 import HomePage from './(main)/home/page';
 
 export default function Home({ children }) {
@@ -85,6 +86,7 @@ export default function Home({ children }) {
       if (!isAuthenticated()) {
         router.push('/login');
       } else {
+        ridesAPI.cleanTempBlocks() // clears list of temporarily blocked off drivers due to ride declines, if driver was blocked off a long time ago
         initializeNativeCode() // initialize native code
       }
     }

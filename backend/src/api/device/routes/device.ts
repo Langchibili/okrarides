@@ -93,6 +93,16 @@ export default {
       }
     },
     {
+      method: 'GET',
+      path: '/devices/pending-ride/:deviceId',
+      handler: 'device.getPendingRideByDevice',
+      config: {
+        auth: false, // or set appropriate authentication
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
       method: 'POST',
       path: '/devices/acceptride/:deviceId',
       handler: 'device.acceptRideByDevice',

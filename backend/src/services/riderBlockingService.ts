@@ -37,7 +37,7 @@
 //       });
 
 //       // Update rider profile with cleaned blocks
-//       await strapi.db.query('plugin::users-permissions.user').update({
+//       await strapi.db.query('rider-profiles.rider-profile').update({
 //         where: { id: riderId },
 //         data: {
 //           riderProfile: {
@@ -75,7 +75,7 @@
 //       const tempBlockedDrivers = user.riderProfile.tempBlockedDrivers || {};
 //       tempBlockedDrivers[driverId] = new Date().toISOString();
 
-//       await strapi.db.query('plugin::users-permissions.user').update({
+//       await strapi.db.query('rider-profiles.rider-profile').update({
 //         where: { id: riderId },
 //         data: {
 //           riderProfile: {
@@ -115,7 +115,7 @@
 
 //       blockedDrivers.push(driverId);
 
-//       await strapi.db.query('plugin::users-permissions.user').update({
+//       await strapi.db.query('rider-profiles.rider-profile').update({
 //         where: { id: riderId },
 //         data: {
 //           riderProfile: {
@@ -149,7 +149,7 @@
 //       const blockedDrivers = user.riderProfile.blockedDrivers || [];
 //       const updatedBlocks = blockedDrivers.filter(id => id !== driverId);
 
-//       await strapi.db.query('plugin::users-permissions.user').update({
+//       await strapi.db.query('rider-profiles.rider-profile').update({
 //         where: { id: riderId },
 //         data: {
 //           riderProfile: {
@@ -277,13 +277,10 @@ export default {
       });
 
       // Update rider profile with cleaned blocks
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: riderId },
+      await strapi.db.query('rider-profiles.rider-profile').update({
+        where: { id: user.riderProfile.id  },
         data: {
-          riderProfile: {
-            ...user.riderProfile,
-            tempBlockedDrivers: cleanedBlocks
-          }
+          tempBlockedDrivers: cleanedBlocks
         }
       });
 
@@ -315,13 +312,10 @@ export default {
       const tempBlockedDrivers = user.riderProfile.tempBlockedDrivers || {};
       tempBlockedDrivers[driverId as string] = new Date().toISOString();
 
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: riderId },
+      await strapi.db.query('rider-profiles.rider-profile').update({
+        where: { id: user.riderProfile.id },
         data: {
-          riderProfile: {
-            ...user.riderProfile,
-            tempBlockedDrivers
-          }
+          tempBlockedDrivers
         }
       });
 
@@ -355,13 +349,10 @@ export default {
 
       blockedDrivers.push(driverId);
 
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: riderId },
+      await strapi.db.query('rider-profiles.rider-profile').update({
+        where: { id: user.riderProfile.id  },
         data: {
-          riderProfile: {
-            ...user.riderProfile,
-            blockedDrivers
-          }
+          blockedDrivers
         }
       });
 
@@ -389,13 +380,10 @@ export default {
       const blockedDrivers: any[] = user.riderProfile.blockedDrivers || [];
       const updatedBlocks = blockedDrivers.filter(id => id !== driverId);
 
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: riderId },
+      await strapi.db.query('rider-profiles.rider-profile').update({
+        where: { id: user.riderProfile.id  },
         data: {
-          riderProfile: {
-            ...user.riderProfile,
-            blockedDrivers: updatedBlocks
-          }
+          blockedDrivers: updatedBlocks
         }
       });
 

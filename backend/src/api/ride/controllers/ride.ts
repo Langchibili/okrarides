@@ -5,7 +5,7 @@ import { factories } from '@strapi/strapi';
 import { generateUniqueRideCode }  from '../../../services/generateUniqueRideCode';
 import  RideBookingService  from '../../../services/rideBookingService';
 import  RiderBlockingService  from '../../../services/riderBlockingService';
-const { emitRideStatusChange, requestRatings, emitRatingSubmitted  } = require('../../../utils/socketUtils');
+const { emitRatingSubmitted  } = require('../../../utils/socketUtils');
 import socketService from '../../../services/socketService';
 
 interface Location {
@@ -41,6 +41,240 @@ interface QueryParams {
   pagination?: QueryPagination;
   sort?: any;
 }
+interface HandleCompleteTripInput {
+  rideId:          string | number;
+  driverId:        string | number;
+  actualDistance?: number;
+  actualDuration?: number;
+}
+
+interface HandleCompleteTripResult {
+  updatedRide:        Record<string, any>;
+  driverEarnings:     number;
+  commission:         number;
+  floatDeduction:     number;
+  isSubscriptionRide: boolean;
+  paymentSystemType:  string;
+  newFloatBalance:    number;
+  newCurrentBalance:  number;
+}
+async function handleCompleteTrip(
+  input: HandleCompleteTripInput
+): Promise<HandleCompleteTripResult> {
+  const { rideId, driverId, actualDistance, actualDuration } = input;
+
+  const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+
+  // Re-fetch ride with latest data (paymentMethod may have been set by payCash just before this call)
+  const ride = await strapi.db.query('api::ride.ride').findOne({
+    where: { id: rideId },
+    populate: ['driver', 'rideClass', 'rider'],
+  });
+
+  if (!ride) throw new Error(`Ride ${rideId} not found`);
+
+  // Populate driver with subscription info
+  const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
+    where: { id: driverId },
+    populate: {
+      driverProfile: {
+        populate: { currentSubscription: true },
+      },
+    },
+  });
+
+  if (!driver?.driverProfile) {
+    throw new Error(`Driver profile not found for driver ${driverId}`);
+  }
+
+  // ── Payment system context ────────────────────────────────────────────────
+  const paymentSystemType     = settings?.paymentSystemType || 'float_based';
+  const hasActiveSubscription = isSubscriptionCurrentlyActive(driver.driverProfile);
+
+  const isSubscriptionRide =
+    paymentSystemType === 'subscription_based' ||
+    (paymentSystemType === 'hybrid' && hasActiveSubscription);
+
+  // ── Commission & earnings ─────────────────────────────────────────────────
+  let commission     = 0;
+  let floatDeduction = 0;
+  let driverEarnings = 0;
+
+  if (isSubscriptionRide) {
+    commission     = 0;
+    floatDeduction = 0;
+    driverEarnings = ride.totalFare;
+  } else {
+    if (settings?.commissionType === 'percentage') {
+      commission = (ride.totalFare * (settings.defaultCommissionPercentage || 15)) / 100;
+    } else if (settings?.commissionType === 'flat_rate') {
+      commission = settings.defaultFlatCommission || 0;
+    }
+
+    if (ride.paymentMethod === 'cash') {
+      // Cash: platform takes its cut from the driver's pre-paid float.
+      floatDeduction = ride.totalFare + commission;
+      driverEarnings = ride.totalFare;
+    } else {
+      // Digital (OkraPay): platform collected fare, forwards driver net share.
+      floatDeduction = 0;
+      driverEarnings = ride.totalFare - commission;
+    }
+  }
+
+  // ── New balances ──────────────────────────────────────────────────────────
+  const currentFloat   = driver.driverProfile.floatBalance   || 0;
+  const currentBalance = driver.driverProfile.currentBalance || 0;
+
+  let newFloatBalance   = currentFloat;
+  let newCurrentBalance = currentBalance;
+
+  if (!isSubscriptionRide && ride.paymentMethod === 'cash') {
+    newFloatBalance   = currentFloat - floatDeduction;
+    newCurrentBalance = newFloatBalance > 0 ? newFloatBalance : 0;
+  } else {
+    newCurrentBalance = currentBalance + driverEarnings;
+  }
+
+  // ── Update ride record ────────────────────────────────────────────────────
+  const updatedRide = await strapi.db.query('api::ride.ride').update({
+    where: { id: rideId },
+    data: {
+      rideStatus:          'completed',
+      tripCompletedAt:     new Date(),
+      actualDistance:      actualDistance || ride.estimatedDistance,
+      actualDuration:      actualDuration || ride.estimatedDuration,
+      commission,
+      driverEarnings,
+      commissionDeducted:  !isSubscriptionRide,
+      wasSubscriptionRide: isSubscriptionRide,
+      paymentStatus:       'completed',
+    },
+  });
+  // ── Update driver profile ─────────────────────────────────────────────────
+  await strapi.db.query('driver-profiles.driver-profile').update({
+    where: { id: driver.driverProfile.id },
+    data: {
+      isAvailable:    true,
+      isEnroute:      false,
+      currentRide:    null,
+      completedRides: (driver.driverProfile.completedRides || 0) + 1,
+      totalRides:     (driver.driverProfile.totalRides     || 0) + 1,
+      totalEarnings:  (driver.driverProfile.totalEarnings  || 0) + driverEarnings,
+      floatBalance:   newFloatBalance,
+      currentBalance: newCurrentBalance,
+    },
+  });
+
+  // ── Ledger entries ────────────────────────────────────────────────────────
+  await strapi.db.query('api::ledger-entry.ledger-entry').create({
+    data: {
+      entryId:      `LE-${Date.now()}`,
+      driver:       driverId,
+      ride:         rideId,
+      type:         isSubscriptionRide
+                      ? 'fare_subscription'
+                      : ride.paymentMethod === 'cash'
+                      ? 'fare_cash'
+                      : 'fare_digital',
+      amount:       driverEarnings,
+      source:       ride.paymentMethod,
+      ledgerStatus: 'settled',
+    },
+  });
+
+  if (floatDeduction > 0) {
+    await strapi.db.query('api::ledger-entry.ledger-entry').create({
+      data: {
+        entryId:      `LE-FD-${Date.now()}`,
+        driver:       driverId,
+        ride:         rideId,
+        type:         'float_deduction',
+        amount:       -floatDeduction,
+        source:       'system',
+        ledgerStatus: 'settled',
+      },
+    });
+  }
+
+  if (commission > 0) {
+    await strapi.db.query('api::ledger-entry.ledger-entry').create({
+      data: {
+        entryId:      `LE-COMM-${Date.now()}`,
+        driver:       driverId,
+        ride:         rideId,
+        type:         'commission',
+        amount:       -commission,
+        source:       'system',
+        ledgerStatus: 'settled',
+      },
+    });
+  }
+
+  strapi.log.info(
+    `[handleCompleteTrip] Ride ${rideId} finalised. ` +
+    `System: ${paymentSystemType}${isSubscriptionRide ? ' (subscription)' : ''}. ` +
+    `Payment: ${ride.paymentMethod}. ` +
+    `Fare: ${ride.totalFare}, Commission: ${commission}, ` +
+    `FloatDeduction: ${floatDeduction}, DriverEarnings: ${driverEarnings}. ` +
+    `NewFloat: ${newFloatBalance}, NewBalance: ${newCurrentBalance}`
+  );
+
+  return {
+    updatedRide,
+    driverEarnings,
+    commission,
+    floatDeduction,
+    isSubscriptionRide,
+    paymentSystemType,
+    newFloatBalance,
+    newCurrentBalance,
+  };
+}
+// ─── Helper ────────────────────────────────────────────────────────────────
+
+/**
+ * Determines whether a driver's subscription is currently valid and unexpired.
+ * Checks BOTH the denormalized `subscriptionStatus` field on the driver profile
+ * AND the actual `expiresAt` timestamp on the currentSubscription relation.
+ *
+ * This dual check catches cases where the hourly cron job hasn't yet run but
+ * the subscription has already technically passed its expiry time — particularly
+ * important in completeTrip where the commission calculation depends on this.
+ */
+function isSubscriptionCurrentlyActive(driverProfile: any): boolean {
+  const profileStatus = driverProfile?.subscriptionStatus;
+
+  // Fast-fail on clearly inactive statuses
+  if (!['active', 'trial'].includes(profileStatus)) {
+    return false;
+  }
+
+  // If no linked subscription record, trust the denormalized status alone
+  const sub = driverProfile?.currentSubscription;
+  if (!sub) {
+    return profileStatus === 'active' || profileStatus === 'trial';
+  }
+
+  // Check the actual subscription record status (correct field name: subscriptionStatus)
+  const subStatus = sub.subscriptionStatus;
+  if (!['active', 'trial'].includes(subStatus)) {
+    return false;
+  }
+
+  // Guard against stale profile data — check the actual expiry timestamp
+  if (sub.expiresAt) {
+    const now = new Date();
+    const expiresAt = new Date(sub.expiresAt);
+    if (now > expiresAt) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const toggleDriverProfileOffline = async (ctx)=> {
     try {
@@ -48,15 +282,12 @@ const toggleDriverProfileOffline = async (ctx)=> {
       
       const user = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: userId },
-        // 1. Limit fields on the main User object
         select: ['id', 'username',"isOnline"], 
         populate: { 
           driverProfile: {
-            // 2. Only fetch fields used in your logic (ID and status)
             select: ['id'] 
           },
           riderProfile: {
-            // 3. We only need the ID to perform the update later
             select: ['id'] 
           },
           deliveryProfile: {
@@ -73,7 +304,6 @@ const toggleDriverProfileOffline = async (ctx)=> {
 
       const newOnlineStatus = !user.driverProfile.isOnline;
       
-      // Update driver profile - getting component ID and updating it
       await strapi.db.query('plugin::users-permissions.user').update({
         where: { id: userId },
         data: {
@@ -120,7 +350,6 @@ const toggleDriverProfileOffline = async (ctx)=> {
           }
       })
 
-      // Emit WebSocket event
       strapi.eventHub.emit('driver:status:changed', {
         driverId: userId,
         status: 'offline'
@@ -130,25 +359,21 @@ const toggleDriverProfileOffline = async (ctx)=> {
       return ctx.internalServerError('Failed to update status');
     }
   }
-// Helper function to parse sort parameter
-// Helper function to parse sort parameter
+
 function parseSortParam(sort: any): Record<string, 'asc' | 'desc'> {
   if (!sort) {
     return { createdAt: 'desc' };
   }
   
-  // If it's already an object, return it
   if (typeof sort === 'object' && !Array.isArray(sort)) {
     return sort;
   }
   
-  // If it's a string like "createdAt:desc" or "createdAt"
   if (typeof sort === 'string') {
     const [field, order] = sort.split(':');
     return { [field]: (order as 'asc' | 'desc') || 'asc' };
   }
   
-  // If it's an array, take the first element
   if (Array.isArray(sort) && sort.length > 0) {
     return parseSortParam(sort[0]);
   }
@@ -157,32 +382,22 @@ function parseSortParam(sort: any): Record<string, 'asc' | 'desc'> {
 }
 
 export default factories.createCoreController('api::ride.ride',({ strapi }) => ({
-  // ============================================
-  // Keep all default CRUD operations
-  // ============================================
-// Replace your find method with this:
 async find(ctx) {
   try {
-    // Type the query properly
     const query = ctx.query as QueryParams;
 
     if (query) {
-      // Parse the sort parameter
       const orderBy = parseSortParam(query.sort);
 
-      // Build the query with proper Strapi v5 syntax
       const entities = await strapi.db.query('api::ride.ride').findMany({
         where: {
-          // Add user filter - only show rides for current user
           $or: [
             { rider: ctx.state.user.id },
             { driver: ctx.state.user.id }
           ],
-          // Add status filter if provided
           ...(query.filters?.rideStatus?.$eq && {
             rideStatus: query.filters.rideStatus.$eq
           }),
-          // Add date filters if provided
           ...(query.filters?.createdAt?.$gte && {
             createdAt: {
               $gte: query.filters.createdAt.$gte,
@@ -194,7 +409,7 @@ async find(ctx) {
         },
         populate: {
           driver: {
-            fields: ['id', 'firstName', 'lastName', 'phoneNumber', 'profile_picture'], // Use 'fields' instead of 'select'
+            fields: ['id', 'firstName', 'lastName', 'phoneNumber', 'profile_picture'],
             populate: {
               driverProfile: {
                 fields: ['id', 'averageRating', 'totalRatings', 'completedRides']
@@ -226,7 +441,6 @@ async find(ctx) {
           : 0,
       });
 
-      // Get total count for pagination
       const total = await strapi.db.query('api::ride.ride').count({
         where: {
           $or: [
@@ -247,12 +461,10 @@ async find(ctx) {
         }
       });
 
-      // Sanitize output
       const sanitizedEntities = await Promise.all(
         entities.map(entity => this.sanitizeOutput(entity, ctx))
       );
 
-      // Return with pagination metadata
       return {
         data: sanitizedEntities,
         meta: {
@@ -278,7 +490,6 @@ async findOne(ctx) {
   const { id } = ctx.params;
 
   try {
-    // Use db.query to find by numerical 'id'
     const entity = await strapi.db.query('api::ride.ride').findOne({
       where: { id: id },
       populate: {
@@ -316,7 +527,6 @@ async findOne(ctx) {
       return ctx.notFound('Ride not found');
     }
 
-    // Verify user has access to this ride
     const userId = ctx.state.user.id;
     const isRider = entity.rider?.id === userId || entity.rider === userId;
     const isDriver = entity.driver?.id === userId || entity.driver === userId;
@@ -325,9 +535,7 @@ async findOne(ctx) {
       return ctx.forbidden('You do not have access to this ride');
     }
 
-    // Sanitize the output to remove private fields
     const sanitizedEntity = await this.sanitizeOutput(entity, ctx);
-
     return this.transformResponse(sanitizedEntity);
     
   } catch (error) {
@@ -336,46 +544,6 @@ async findOne(ctx) {
   }
 },
 
-  // async create(ctx) {
-  //   //console.log('ctx.request.body', ctx.request.body);
-    
-  //   const { data } = ctx.request.body;
-    
-  //   // Generate ride code if not present
-  //   data.rideCode = data.rideCode ? data.rideCode : await generateUniqueRideCode();
-    
-  //   // Convert taxiType string to ID if needed
-  //   if (data.taxiType && typeof data.taxiType === 'string') {
-  //       const taxiTypeRecord = await strapi.db.query('api::taxi-type.taxi-type').findOne({
-  //       where: { name: data.taxiType } // or whatever field contains "taxi"
-  //       });
-        
-  //       if (taxiTypeRecord) {
-  //       data.taxiType = taxiTypeRecord.id;
-  //       } else {
-  //       // Handle case when taxi type doesn't exist
-  //       return ctx.badRequest('Invalid taxi type');
-  //       }
-  //   }
-    
-  //   // Same for rideClass if it might be a string
-  //   if (data.rideClass && typeof data.rideClass === 'string') {
-  //       const rideClassRecord = await strapi.db.query('api::ride-class.ride-class').findOne({
-  //       where: { name: data.rideClass } // adjust field as needed
-  //       });
-        
-  //       if (rideClassRecord) {
-  //       data.rideClass = rideClassRecord.id;
-  //       }
-  //   }
-    
-  //   const response = await super.create(ctx);
-    
-  //   // Emit event for driver matching
-  //   strapi.eventHub.emit('ride.created', { ride: response.data });
-    
-  //   return response;
-  // },
 async create(ctx) {
     try {
       const { data } = ctx.request.body;
@@ -423,7 +591,6 @@ async create(ctx) {
         populate: true
       });
 
-      // ✅ Direct socket emit - No eventHub
       socketService.emitRideRequestCreated(ride);
       strapi.log.info(`Ride ${ride.id} created by rider ${riderId}`);
 
@@ -508,62 +675,46 @@ async create(ctx) {
       return ctx.internalServerError('Failed to create ride');
     }
   },
+
   async update(ctx) {
     const { id } = ctx.params;
-    const { data } = ctx.request.body; // Standard Strapi wrapper { data: { ... } }
+    const { data } = ctx.request.body;
 
-    // 1. Perform the update using the low-level db.query
-    // This allows targeting the numerical 'id' directly
     const updatedEntity = await strapi.db.query('api::vehicle.vehicle').update({
       where: { id: id },
       data: data,
-      populate: true, // Populates relations so the response is complete
+      populate: true,
     });
 
-    // 2. Handle 404 if record doesn't exist
     if (!updatedEntity) {
       return ctx.notFound('Vehicle not found');
     }
 
-    // 3. Sanitize the output 
-    // This removes sensitive fields based on the Content-Type permissions
     const sanitizedEntity = await this.sanitizeOutput(updatedEntity, ctx);
     const transformedResponse = this.transformResponse(sanitizedEntity) 
-    // 4. Emit your event (using v5 flattened structure)
     const ride = (transformedResponse as any)?.data;
     if (ride?.rideStatus) {
       strapi.eventHub.emit(`ride.rideStatus.${ride.rideStatus}`, { ride });
     }
-    // 4. Transform to standard Strapi JSON API response
-    // This wraps the result in { data: { id, attributes: ... } } (v4) or { data: { ... } } (v5)
     return transformedResponse;
   },
 
  async delete(ctx) {
   const { id } = ctx.params;
 
-  // 1. Perform the deletion using the low-level db.query
-  // This targets the numerical 'id' directly. 
-  // We use .delete() which returns the deleted record's data.
   const deletedEntity = await strapi.db.query('api::vehicle.vehicle').delete({
     where: { id: id },
-    populate: true, // Optional: populate if you need the response to show relations
+    populate: true,
   });
 
-  // 2. Handle 404 if the record didn't exist
   if (!deletedEntity) {
     return ctx.notFound('Vehicle not found');
   }
-  // Optional: Emit a deletion event if needed
-    strapi.eventHub.emit('ride.deleted', { id });
-  // 3. Sanitize the output
-  // Removes sensitive data (like creator information or private fields)
+  strapi.eventHub.emit('ride.deleted', { id });
   const sanitizedEntity = await this.sanitizeOutput(deletedEntity, ctx);
-
-  // 4. Transform to standard Strapi JSON API response
-  // Returns the deleted record wrapped in the standard { data: ... } format
   return this.transformResponse(sanitizedEntity);
 },
+
   // ============================================
   // CUSTOM METHOD 1: Estimate Fare
   // ============================================
@@ -576,16 +727,14 @@ async create(ctx) {
         rideTypes = ['taxi'],
         passengerCount = 1,
       }: EstimateRequest = ctx.request.body;
-      // Validate input
+
       if (!pickupLocation || !dropoffLocation) {
         return ctx.badRequest('Pickup and dropoff locations are required');
       }
 
-      // Calculate distance and duration
       const distance = calculateDistance(pickupLocation, dropoffLocation);
       const duration = estimateDuration(distance);
 
-      // Get active ride classes for the taxi type
       const rideClasses = await strapi.db.query('api::ride-class.ride-class').findMany({
         where: {
           isActive: true,
@@ -606,7 +755,6 @@ async create(ctx) {
         return ctx.badRequest('No active ride classes found');
       }
 
-      // Get surge pricing if applicable
       const surgePricing = await strapi.db.query('api::surge-pricing.surge-pricing').findOne({
         where: {
           isActive: true,
@@ -617,7 +765,6 @@ async create(ctx) {
 
       const surgeMultiplier = surgePricing?.multiplier || 1;
 
-      // Calculate estimates for each ride class
       const estimates = rideClasses.map((rideClass: any) => {
         const baseFare = rideClass.baseFare;
         const distanceFare = distance * rideClass.perKmRate;
@@ -626,7 +773,6 @@ async create(ctx) {
         const surgeFare = subtotal * (surgeMultiplier - 1);
         const totalFare = subtotal + surgeFare;
 
-        // Count available drivers (mock - you'd implement actual driver availability)
         const availableDrivers = Math.floor(Math.random() * 10) + 1;
 
         return {
@@ -648,7 +794,6 @@ async create(ctx) {
         };
       });
 
-      // Sort by price
       estimates.sort((a, b) => a.totalFare - b.totalFare);
 
       return ctx.send({
@@ -656,7 +801,7 @@ async create(ctx) {
         route: {
           distance: `${distance.toFixed(1)} km`,
           duration: `${duration} min`,
-          polyline: '', // You can integrate with Google Maps Directions API
+          polyline: '',
         },
         surgePricing: surgeMultiplier > 1 ? {
           active: true,
@@ -694,7 +839,6 @@ async create(ctx) {
         return ctx.badRequest('No driver assigned to this ride');
       }
 
-      // Get driver's current location
       const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: ride.driver.id },
         select: ['currentLocation', 'lastSeen', 'isOnline'],
@@ -741,7 +885,6 @@ async create(ctx) {
         return ctx.notFound('Ride not found');
       }
 
-      // Get driver's current location
       let driverLocation = null;
       let eta = null;
       let distance = null;
@@ -755,13 +898,12 @@ async create(ctx) {
         if (driver?.currentLocation) {
           driverLocation = driver.currentLocation;
 
-          // Calculate ETA based on rideStatus
           if (ride.rideStatus === 'accepted' || ride.rideStatus === 'arrived') {
             distance = calculateDistance(
               driver.currentLocation,
               ride.pickupLocation
             );
-            eta = Math.ceil(distance * 3); // 3 minutes per km
+            eta = Math.ceil(distance * 3);
           } else if (ride.rideStatus === 'passenger_onboard') {
             distance = calculateDistance(
               driver.currentLocation,
@@ -779,7 +921,6 @@ async create(ctx) {
           }
       })
 
-      // Build tracking response
       const trackingData = {
         ride: {
           id: ride.id,
@@ -860,12 +1001,12 @@ async create(ctx) {
           }
       })
 
-      // Build receipt
       const receipt = {
         rideDetails: {
           rideCode: ride.rideCode,
           date: ride.tripCompletedAt || ride.createdAt,
           rideStatus: ride.rideStatus,
+          wasSubscriptionRide: ride.wasSubscriptionRide || false,
         },
         locations: {
           pickup: {
@@ -897,6 +1038,11 @@ async create(ctx) {
           subtotal: parseFloat((ride.subtotal || 0).toFixed(2)),
           promoDiscount: parseFloat((ride.promoDiscount || 0).toFixed(2)),
           totalFare: parseFloat(ride.totalFare.toFixed(2)),
+          commission: parseFloat((ride.commission || 0).toFixed(2)),
+          driverEarnings: parseFloat((ride.driverEarnings || 0).toFixed(2)),
+          commissionNote: ride.wasSubscriptionRide
+            ? 'No commission — subscription plan'
+            : `Commission (${ride.commission > 0 ? ((ride.commission / ride.totalFare) * 100).toFixed(0) : 0}%)`,
         },
         promoCode: ride.promoCode ? {
           code: ride.promoCode.code,
@@ -926,7 +1072,415 @@ async create(ctx) {
       return ctx.internalServerError('Failed to generate receipt');
     }
   },
+  async downloadReceipt(ctx) {
+    try {
+      const { id } = ctx.params;
+      const userId = ctx.state.user?.id;
 
+      if (!userId) return ctx.unauthorized('Authentication required');
+
+      const ride = await strapi.db.query('api::ride.ride').findOne({
+        where: { id },
+        populate: {
+          rider:     { select: ['id', 'firstName', 'lastName', 'phoneNumber', 'email'] },
+          driver:    { select: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+          vehicle:   true,
+          rideClass: true,
+          taxiType:  true,
+          promoCode: true,
+        },
+      });
+
+      if (!ride) return ctx.notFound('Ride not found');
+
+      const isRider  = ride.rider?.id  === userId || ride.rider  === userId;
+      const isDriver = ride.driver?.id === userId || ride.driver === userId;
+      if (!isRider && !isDriver) return ctx.forbidden('Access denied');
+
+      if (ride.rideStatus !== 'completed') {
+        return ctx.badRequest('Receipt is only available for completed rides');
+      }
+
+      // ── Lookup driver rating ─────────────────────────────────────────────
+      let driverRating = 'N/A';
+      if (ride.driver) {
+        const driverUser = await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: ride.driver.id ?? ride.driver },
+          populate: { driverProfile: { select: ['averageRating'] } },
+        });
+        if (driverUser?.driverProfile?.averageRating != null) {
+          driverRating = parseFloat(driverUser.driverProfile.averageRating).toFixed(1);
+        }
+      }
+
+      // ── Admin settings (platform name, support contact) ──────────────────
+      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({}) || {};
+      const platformName  = settings.platformName  || 'OkraRides';
+      const supportEmail  = settings.supportEmail  || 'support@okrarides.com';
+      const supportPhone  = settings.supportPhone  || '';
+      const currency      = settings.defaultCurrency?.symbol || 'K';
+
+      const fmt = (n: number) => `${currency}${(n || 0).toFixed(2)}`;
+
+      const dateStr = new Date(ride.tripCompletedAt || ride.createdAt).toLocaleString('en-ZM', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      });
+
+      const distanceStr  = `${(ride.actualDistance  || ride.estimatedDistance  || 0).toFixed(2)} km`;
+      const durationStr  = `${(ride.actualDuration   || ride.estimatedDuration  || 0)} min`;
+      const paymentLabel = ride.paymentMethod === 'cash' ? 'Cash' : 'OkraPay';
+
+      // ── Fare rows ────────────────────────────────────────────────────────
+      const fareRows = [
+        ['Base Fare',      fmt(ride.baseFare     || 0)],
+        ['Distance Fare',  fmt(ride.distanceFare || 0)],
+        ['Time Fare',      fmt(ride.timeFare     || 0)],
+        ...(ride.surgeFare     > 0 ? [['Surge',            fmt(ride.surgeFare)]]       : []),
+        ...(ride.promoDiscount > 0 ? [['Promo Discount',  `-${fmt(ride.promoDiscount)}`]] : []),
+      ];
+
+      const fareRowsHtml = fareRows.map(([label, value]) => `
+        <tr>
+          <td>${label}</td>
+          <td class="amount">${value}</td>
+        </tr>`).join('');
+
+      const promoRowHtml = ride.promoCode ? `
+        <div class="section">
+          <div class="section-title">Promo Applied</div>
+          <table>
+            <tr><td>Code</td><td class="amount">${ride.promoCode.code}</td></tr>
+            <tr><td>Discount</td><td class="amount">-${fmt(ride.promoDiscount || 0)}</td></tr>
+          </table>
+        </div>` : '';
+
+      const driverHtml = ride.driver ? `
+        <div class="section">
+          <div class="section-title">Driver Information</div>
+          <table>
+            <tr><td>Name</td>
+                <td class="amount">${ride.driver.firstName || ''} ${ride.driver.lastName || ''}</td></tr>
+            <tr><td>Phone</td>
+                <td class="amount">${ride.driver.phoneNumber || 'N/A'}</td></tr>
+            <tr><td>Rating</td>
+                <td class="amount">⭐ ${driverRating}</td></tr>
+            ${ride.vehicle ? `
+            <tr><td>Vehicle</td>
+                <td class="amount">${[ride.vehicle.color, ride.vehicle.make, ride.vehicle.model].filter(Boolean).join(' ')}</td></tr>
+            <tr><td>Plate</td>
+                <td class="amount">${ride.vehicle.numberPlate || 'N/A'}</td></tr>` : ''}
+          </table>
+        </div>` : '';
+
+      const html = `<!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>${platformName} Receipt — ${ride.rideCode}</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            color: #1a1a1a;
+            background: #f5f5f5;
+            padding: 24px;
+          }
+
+          .receipt {
+            max-width: 480px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px 28px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+          }
+
+          .header {
+            text-align: center;
+            margin-bottom: 28px;
+          }
+
+          .brand {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFC107, #FF9800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+          }
+
+          .receipt-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+
+          .ride-code {
+            text-align: center;
+            margin-bottom: 20px;
+          }
+
+          .ride-code span {
+            display: inline-block;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 1px;
+          }
+
+          .total-block {
+            text-align: center;
+            margin: 20px 0 24px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 12px;
+            color: white;
+          }
+
+          .total-label { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+          .total-amount { font-size: 36px; font-weight: 800; margin: 6px 0 4px; }
+          .total-method { font-size: 13px; opacity: 0.8; }
+
+          .divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 20px 0;
+          }
+
+          .section { margin-bottom: 20px; }
+
+          .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 10px;
+          }
+
+          table { width: 100%; border-collapse: collapse; }
+
+          td {
+            padding: 7px 0;
+            vertical-align: top;
+            color: #444;
+            border-bottom: 1px solid #f5f5f5;
+          }
+
+          td.amount {
+            text-align: right;
+            font-weight: 600;
+            color: #1a1a1a;
+          }
+
+          .route-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: flex-start;
+          }
+
+          .dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 3px;
+          }
+
+          .dot.pickup  { background: #4CAF50; }
+          .dot.dropoff { background: #F44336; border-radius: 3px; }
+
+          .route-label { font-size: 10px; color: #888; font-weight: 600; text-transform: uppercase; }
+          .route-addr  { font-size: 13px; font-weight: 500; margin-top: 2px; }
+
+          .total-row td {
+            font-size: 16px;
+            font-weight: 800;
+            padding-top: 12px;
+            border-bottom: none;
+          }
+
+          .total-row td.amount { color: #FF9800; }
+
+          .footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+          }
+
+          .footer p { font-size: 12px; color: #999; line-height: 1.6; }
+
+          .print-btn {
+            display: block;
+            margin: 28px auto 0;
+            padding: 12px 32px;
+            background: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+          }
+
+          .print-btn:hover { background: #F57C00; }
+
+          @media print {
+            body { background: white; padding: 0; }
+            .receipt { box-shadow: none; border-radius: 0; max-width: 100%; padding: 20px; }
+            .print-btn { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+
+          <div class="header">
+            <div class="brand">${platformName}</div>
+            <div class="receipt-label">Trip Receipt</div>
+          </div>
+
+          <div class="ride-code"><span>${ride.rideCode}</span></div>
+
+          <div class="total-block">
+            <div class="total-label">Total Charged</div>
+            <div class="total-amount">${fmt(ride.totalFare)}</div>
+            <div class="total-method">${paymentLabel} • ${dateStr}</div>
+          </div>
+
+          <!-- Route -->
+          <div class="section">
+            <div class="section-title">Trip Route</div>
+
+            <div class="route-item">
+              <div class="dot pickup"></div>
+              <div>
+                <div class="route-label">Pickup</div>
+                <div class="route-addr">${ride.pickupLocation?.address || 'N/A'}</div>
+              </div>
+            </div>
+
+            <div class="route-item">
+              <div class="dot dropoff"></div>
+              <div>
+                <div class="route-label">Dropoff</div>
+                <div class="route-addr">${ride.dropoffLocation?.address || 'N/A'}</div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <!-- Trip Stats -->
+          <div class="section">
+            <div class="section-title">Trip Details</div>
+            <table>
+              <tr>
+                <td>Distance</td>
+                <td class="amount">${distanceStr}</td>
+              </tr>
+              <tr>
+                <td>Duration</td>
+                <td class="amount">${durationStr}</td>
+              </tr>
+              ${ride.rideClass ? `
+              <tr>
+                <td>Ride Class</td>
+                <td class="amount">${ride.rideClass.name}</td>
+              </tr>` : ''}
+              ${ride.taxiType ? `
+              <tr>
+                <td>Type</td>
+                <td class="amount">${ride.taxiType.name}</td>
+              </tr>` : ''}
+            </table>
+          </div>
+
+          <hr class="divider">
+
+          <!-- Fare Breakdown -->
+          <div class="section">
+            <div class="section-title">Fare Breakdown</div>
+            <table>
+              ${fareRowsHtml}
+              <tr class="total-row">
+                <td>Total</td>
+                <td class="amount">${fmt(ride.totalFare)}</td>
+              </tr>
+            </table>
+          </div>
+
+          ${promoRowHtml}
+
+          <hr class="divider">
+
+          <!-- Driver -->
+          ${driverHtml}
+
+          ${driverHtml ? '<hr class="divider">' : ''}
+
+          <!-- Payment -->
+          <div class="section">
+            <div class="section-title">Payment</div>
+            <table>
+              <tr>
+                <td>Method</td>
+                <td class="amount">${paymentLabel}</td>
+              </tr>
+              <tr>
+                <td>Status</td>
+                <td class="amount">${ride.paymentStatus || 'N/A'}</td>
+              </tr>
+              ${ride.wasSubscriptionRide ? `
+              <tr>
+                <td>Note</td>
+                <td class="amount" style="color:#4CAF50">Subscription Ride — 0% commission</td>
+              </tr>` : ''}
+            </table>
+          </div>
+
+          <div class="footer">
+            <p>
+              Thank you for riding with <strong>${platformName}</strong>!<br>
+              ${supportEmail ? `Support: ${supportEmail}` : ''}
+              ${supportPhone ? ` • ${supportPhone}` : ''}
+            </p>
+          </div>
+
+        </div>
+
+        <button class="print-btn" onclick="window.print()">
+          Save as PDF / Print
+        </button>
+
+        <script>
+          // Auto-trigger print dialog when opened directly as a download target
+          if (window.location.search.includes('auto_print=1')) {
+            window.addEventListener('load', () => setTimeout(() => window.print(), 300));
+          }
+        </script>
+      </body>
+      </html>`;
+
+      ctx.set('Content-Type', 'text/html; charset=utf-8');
+      ctx.set('Content-Disposition', `inline; filename="okrarides-receipt-${ride.rideCode}.html"`);
+      ctx.body = html;
+
+    } catch (err: any) {
+      strapi.log.error('[Ride:downloadReceipt]', err);
+      return ctx.internalServerError(err.message || 'Failed to generate receipt');
+    }
+  },
   // ============================================
   // CUSTOM METHOD 5: Share Tracking
   // ============================================
@@ -943,23 +1497,17 @@ async create(ctx) {
         return ctx.notFound('Ride not found');
       }
 
-      // Check if ride is in trackable state
       const trackableStatuses = ['accepted', 'arrived', 'passenger_onboard'];
       if (!trackableStatuses.includes(ride.rideStatus)) {
         return ctx.badRequest('Ride is not in a trackable state');
       }
 
-      // Generate unique tracking token
       const crypto = require('crypto');
       const trackingToken = crypto.randomBytes(32).toString('hex');
-
-      // Store tracking token (you might want to create a separate tracking_tokens table)
-      // For now, we'll just generate the URL
 
       const baseUrl = strapi.config.get('server.url') || 'http://localhost:1343';
       const trackingUrl = `${baseUrl}/track/${ride.rideCode}/${trackingToken}`;
 
-      // Set expiry (24 hours from now)
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
@@ -975,229 +1523,163 @@ async create(ctx) {
       return ctx.internalServerError('Failed to generate tracking link');
     }
   },
-   // Accept ride
-  // async acceptRide(ctx) {
-  //   try {
-  //     const { id } = ctx.params;
-  //     const driverId = ctx.state.user.id;
 
-  //     const ride = await strapi.db.query('api::ride.ride').findOne({
-  //       where: { id },
-  //       populate: ['rider', 'driver']
-  //     });
+  // ============================================
+  // GET ACTIVE RIDE
+  // ============================================
+  async getActiveRide(ctx) {
+    try {
+      const userId = ctx.state.user.id;
 
-  //     if (!ride) {
-  //       return ctx.notFound('Ride not found');
-  //     }
-
-  //     if (ride.status !== 'pending') {
-  //       return ctx.badRequest('Ride is not available');
-  //     }
-
-  //     // Check if driver is available
-  //     const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
-  //       where: { id: driverId },
-  //       populate: { driverProfile: true }
-  //     });
-
-  //     if (!driver.driverProfile?.isAvailable) {
-  //       return ctx.badRequest('Driver is not available');
-  //     }
-
-  //     // Update ride
-  //     const updatedRide = await strapi.db.query('api::ride.ride').update({
-  //       where: { id },
-  //       data: {
-  //         status: 'accepted',
-  //         driver: driverId,
-  //         acceptedAt: new Date(),
-  //       }
-  //     });
-
-  //     // Update driver profile - preserving existing component data
-  //     await strapi.db.query('plugin::users-permissions.user').update({
-  //       where: { id: driverId },
-  //       data: {
-  //         driverProfile: {
-  //           ...driver.driverProfile,
-  //           isAvailable: false,
-  //           currentRide: id,
-  //         }
-  //       }
-  //     });
-
-  //     // Emit events
-  //     strapi.eventHub.emit('ride:accepted', { ride: updatedRide, driverId });
-
-  //     return ctx.send(updatedRide);
-  //   } catch (error) {
-  //     strapi.log.error('Accept ride error:', error);
-  //     return ctx.internalServerError('Failed to accept ride');
-  //   }
-  // },
- // Accept ride with subscription check
-
- // ============================================
-// GET ACTIVE RIDE - Check for rider or driver active rides
-// ============================================
-// ============================================
-// GET ACTIVE RIDE - Advanced with profile validation
-// ============================================
-async getActiveRide(ctx) {
-  try {
-    console.log("ctx.state.user",ctx.state.user)
-    const userId = ctx.state.user.id;
-
-    // Get user with profile information
-    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-      where: { id: userId },
-      populate: {
-        riderProfile: {
-          populate: true
-        },
-        driverProfile: {
-          populate: {
-            assignedVehicle: true
-          }
-        },
-        profileActivityStatus: true
-      }
-    });
-
-    if (!user) {
-      return ctx.notFound('User not found');
-    }
-
-    // Define active statuses
-    const riderActiveStatuses = ['pending', 'accepted', 'arrived', 'passenger_onboard'];
-    const excludedDriverStatuses = ['completed', 'cancelled', 'no_drivers_available'];
-
-    // Check for rider active rides
-    if (user.riderProfile) {
-      const riderWhereConditions = {
-        rider: {
-          id: { $eq: userId },
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: userId },
+        populate: {
           riderProfile: {
-            isActive: { $eq: true },
-            blocked: { $eq: false }
-          }
-        },
-        rideStatus: {
-          $in: riderActiveStatuses
-        }
-      };
-
-      const riderActiveRide = await strapi.db.query('api::ride.ride').findOne({
-        where: riderWhereConditions,
-        populate: {
-          rider: {
-            populate: {
-              riderProfile: true
-            }
+            populate: true
           },
-          driver: {
-            populate: {
-              driverProfile: {
-                populate: {
-                  assignedVehicle: true
-                }
-              }
-            }
-          },
-          vehicle: true,
-          rideClass: true,
-          taxiType: true,
-          pickupStation: true,
-          dropoffStation: true,
-        },
-        orderBy: { createdAt: 'desc' }
-      });
-
-      if (riderActiveRide) {
-        strapi.log.info(`Active ride found for rider ${userId}: ${riderActiveRide.id}`);
-        
-        return ctx.send({
-          success: true,
-          data: riderActiveRide,
-          userRole: 'rider',
-          message: 'Active ride found as rider'
-        });
-      }
-    }
-
-    // Check for driver active rides
-    if (user.driverProfile) {
-      const driverWhereConditions = {
-        driver: {
-          id: { $eq: userId },
           driverProfile: {
-            isActive: { $eq: true },
-            blocked: { $eq: false },
-            verificationStatus: { $eq: 'approved' }
-          }
-        },
-        rideStatus: {
-          $notIn: excludedDriverStatuses
+            populate: {
+              assignedVehicle: true
+            }
+          },
+          profileActivityStatus: true
         }
-      };
-
-      const driverActiveRide = await strapi.db.query('api::ride.ride').findOne({
-        where: driverWhereConditions,
-        populate: {
-          rider: {
-            populate: {
-              riderProfile: true
-            }
-          },
-          driver: {
-            populate: {
-              driverProfile: {
-                populate: {
-                  assignedVehicle: true,
-                  taxiDriver: true,
-                  busDriver: true,
-                  motorbikeRider: true,
-                  currentSubscription: true
-                }
-              }
-            }
-          },
-          vehicle: true,
-          rideClass: true,
-          taxiType: true,
-          pickupStation: true,
-          dropoffStation: true,
-        },
-        orderBy: { createdAt: 'desc' }
       });
 
-      if (driverActiveRide) {
-        strapi.log.info(`Active ride found for driver ${userId}: ${driverActiveRide.id}`);
-        
-        return ctx.send({
-          success: true,
-          data: driverActiveRide,
-          userRole: 'driver',
-          message: 'Active ride found as driver'
-        });
+      if (!user) {
+        return ctx.notFound('User not found');
       }
+
+      const riderActiveStatuses = ['pending', 'accepted', 'arrived', 'passenger_onboard'];
+      const excludedDriverStatuses = ['completed', 'cancelled', 'no_drivers_available'];
+
+      if (user.riderProfile) {
+        const riderWhereConditions = {
+          rider: {
+            id: { $eq: userId },
+            riderProfile: {
+              isActive: { $eq: true },
+              blocked: { $eq: false }
+            }
+          },
+          rideStatus: {
+            $in: riderActiveStatuses
+          }
+        };
+
+        const riderActiveRide = await strapi.db.query('api::ride.ride').findOne({
+          where: riderWhereConditions,
+          populate: {
+            rider: {
+              populate: {
+                riderProfile: true
+              }
+            },
+            driver: {
+              populate: {
+                driverProfile: {
+                  populate: {
+                    assignedVehicle: true
+                  }
+                }
+              }
+            },
+            vehicle: true,
+            rideClass: true,
+            taxiType: true,
+            pickupStation: true,
+            dropoffStation: true,
+          },
+          orderBy: { createdAt: 'desc' }
+        });
+
+        if (riderActiveRide) {
+          strapi.log.info(`Active ride found for rider ${userId}: ${riderActiveRide.id}`);
+          
+          return ctx.send({
+            success: true,
+            data: riderActiveRide,
+            userRole: 'rider',
+            message: 'Active ride found as rider'
+          });
+        }
+      }
+
+      if (user.driverProfile) {
+        const driverWhereConditions = {
+          driver: {
+            id: { $eq: userId },
+            driverProfile: {
+              isActive: { $eq: true },
+              blocked: { $eq: false },
+              verificationStatus: { $eq: 'approved' }
+            }
+          },
+          rideStatus: {
+            $notIn: excludedDriverStatuses
+          }
+        };
+
+        const driverActiveRide = await strapi.db.query('api::ride.ride').findOne({
+          where: driverWhereConditions,
+          populate: {
+            rider: {
+              populate: {
+                riderProfile: true
+              }
+            },
+            driver: {
+              populate: {
+                driverProfile: {
+                  populate: {
+                    assignedVehicle: true,
+                    taxiDriver: true,
+                    busDriver: true,
+                    motorbikeRider: true,
+                    currentSubscription: true
+                  }
+                }
+              }
+            },
+            vehicle: true,
+            rideClass: true,
+            taxiType: true,
+            pickupStation: true,
+            dropoffStation: true,
+          },
+          orderBy: { createdAt: 'desc' }
+        });
+
+        if (driverActiveRide) {
+          strapi.log.info(`Active ride found for driver ${userId}: ${driverActiveRide.id}`);
+          
+          return ctx.send({
+            success: true,
+            data: driverActiveRide,
+            userRole: 'driver',
+            message: 'Active ride found as driver'
+          });
+        }
+      }
+
+      strapi.log.info(`No active rides found for user ${userId}`);
+      
+      return ctx.send({
+        success: true,
+        data: null,
+        userRole: null,
+        message: 'No active rides'
+      });
+
+    } catch (error) {
+      strapi.log.error('Get active ride error:', error);
+      return ctx.internalServerError('Failed to get active ride');
     }
+  },
 
-    // No active rides found
-    strapi.log.info(`No active rides found for user ${userId}`);
-    
-    return ctx.send({
-      success: true,
-      data: null,
-      userRole: null,
-      message: 'No active rides'
-    });
-
-  } catch (error) {
-    strapi.log.error('Get active ride error:', error);
-    return ctx.internalServerError('Failed to get active ride');
-  }
-},
+  // ============================================
+  // Accept ride with subscription / float check
+  // ============================================
   async acceptRide(ctx) {
     try {
       const { id } = ctx.params;
@@ -1252,7 +1734,6 @@ async getActiveRide(ctx) {
         populate: true
       });
 
-      // ✅ Direct socket emit - No eventHub
       socketService.emit('ride:accepted', {
         rideId: updatedRide.id,
         driverId,
@@ -1314,37 +1795,6 @@ async getActiveRide(ctx) {
   },
 
   // Decline ride
-  // async declineRide(ctx) {
-  //   try {
-  //     const { id } = ctx.params;
-  //     const driverId = ctx.state.user.id;
-
-  //     const ride = await strapi.db.query('api::ride.ride').findOne({
-  //       where: { id }
-  //     });
-
-  //     if (!ride) {
-  //       return ctx.notFound('Ride not found');
-  //     }
-
-  //     // Remove driver from requested list
-  //     const requestedDrivers = ride.requestedDrivers || [];
-  //     const updatedDrivers = requestedDrivers.filter(d => d.driverId !== driverId);
-
-  //     await strapi.db.query('api::ride.ride').update({
-  //       where: { id },
-  //       data: {
-  //         requestedDrivers: updatedDrivers
-  //       }
-  //     });
-
-  //     return ctx.send({ message: 'Ride declined successfully' });
-  //   } catch (error) {
-  //     strapi.log.error('Decline ride error:', error);
-  //     return ctx.internalServerError('Failed to decline ride');
-  //   }
-  // },
-  // Decline ride
   async declineRide(ctx) {
     try {
       const { id } = ctx.params;
@@ -1359,13 +1809,11 @@ async getActiveRide(ctx) {
         return ctx.notFound('Ride not found');
       }
 
-      // Add to declined drivers
       const declinedDrivers = ride.declinedDrivers || [];
       if (!declinedDrivers.includes(driverId)) {
         declinedDrivers.push(driverId);
       }
 
-      // Remove from requested drivers
       const requestedDrivers = (ride.requestedDrivers || []).map(rd => {
         if (rd.driverId === driverId) {
           return { ...rd, status: 'declined', declinedAt: new Date().toISOString() };
@@ -1373,9 +1821,10 @@ async getActiveRide(ctx) {
         return rd;
       });
 
-      // add the driver into the rider's temporarily blocked drivers
-      if(ride?.rider?.id){
-         RiderBlockingService.addTempBlock(ride.rider.id,driverId)
+      // FIX: addTempBlock is async — must await so errors are caught and
+      // the block is guaranteed to complete before the response is sent.
+      if (ride?.rider?.id) {
+        await RiderBlockingService.addTempBlock(ride.rider.id, driverId);
       }
       
       await strapi.db.query('api::ride.ride').update({
@@ -1384,7 +1833,7 @@ async getActiveRide(ctx) {
           requestedDrivers,
           declinedDrivers
         }
-      });
+      })
 
       strapi.log.info(`Driver ${driverId} declined ride ${id}`);
 
@@ -1424,7 +1873,6 @@ async getActiveRide(ctx) {
         }
       });
 
-      // ✅ Direct socket emit - No eventHub
       socketService.emitDriverArrived(updatedRide);
 
       return ctx.send(updatedRide);
@@ -1478,7 +1926,6 @@ async getActiveRide(ctx) {
         }
       });
 
-      // ✅ Direct socket emit - No eventHub
       socketService.emitTripStarted(updatedRide);
 
       return ctx.send(updatedRide);
@@ -1488,163 +1935,522 @@ async getActiveRide(ctx) {
     }
   },
 
-  // Complete trip
-  async completeTrip(ctx) {
+
+  /**
+   * POST /api/rides/:id/request-payment
+   *
+   * Called when the driver taps "Request Payment". Emits a socket event so the
+   * rider's device/app is notified and redirected to the pay page.
+   *
+   * The driver's frontend also emits directly via socket (see active-ride page),
+   * but this REST endpoint gives the backend a chance to:
+   *  - validate the ride is in the right state
+   *  - record the paymentRequestedAt timestamp
+   *  - re-emit via the authoritative backend socket if the client emit failed
+   */
+  async requestPayment(ctx) {
     try {
       const { id } = ctx.params;
-      const driverId = ctx.state.user.id;
-      const { actualDistance, actualDuration } = ctx.request.body;
+      const userId = ctx.state.user?.id;
+
+      if (!userId) return ctx.unauthorized('Authentication required');
 
       const ride = await strapi.db.query('api::ride.ride').findOne({
-        where: { id, driver: driverId },
-        populate: ['driver', 'rideClass']
+        where: { id },
+        populate: {
+          rider:  { select: ['id'] },
+          driver: { select: ['id'] },
+        },
       });
 
-      if (!ride) {
-        return ctx.notFound('Ride not found');
-      }
+      if (!ride) return ctx.notFound('Ride not found');
+
+      const isDriver = ride.driver?.id === userId || ride.driver === userId;
+      if (!isDriver) return ctx.forbidden('Only the driver can request payment');
 
       if (ride.rideStatus !== 'passenger_onboard') {
-        return ctx.badRequest('Trip not started');
+        return ctx.badRequest('Payment can only be requested while the trip is in progress');
       }
 
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
-      let commission = 0;
-
-      if (settings?.commissionType === 'percentage') {
-        commission = (ride.totalFare * (settings.defaultCommissionPercentage || 15)) / 100;
-      } else if (settings?.commissionType === 'flat_rate') {
-        commission = settings.defaultFlatCommission || 0;
-      }
-
-      const driverEarnings = ride.totalFare - commission;
-
-      const updatedRide = await strapi.db.query('api::ride.ride').update({
+      // Record timestamp
+      await strapi.db.query('api::ride.ride').update({
         where: { id },
-        data: {
-          rideStatus: 'completed',
-          tripCompletedAt: new Date(),
-          actualDistance: actualDistance || ride.estimatedDistance,
-          actualDuration: actualDuration || ride.estimatedDuration,
-          commission,
-          driverEarnings,
-          commissionDeducted: true,
-        }
+        data:  { paymentRequestedAt: new Date() },
       });
 
-      const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
-        where: { id: ride.driver.id },
-        populate: {
-          driverProfile: {
-            select: ['id', 'completedRides', 'totalRides', 'totalEarnings', 'currentBalance']
-          }
-        }
-      });
+      const riderId  = ride.rider?.id  ?? ride.rider;
+      const driverId = ride.driver?.id ?? ride.driver;
 
-      await strapi.db.query('driver-profiles.driver-profile').update({
-        where: { id: driver.driverProfile.id },
-        data: {
-          isAvailable: true,
-          isEnroute: false,
-          currentRide: null,
-          completedRides: (driver.driverProfile.completedRides || 0) + 1,
-          totalRides: (driver.driverProfile.totalRides || 0) + 1,
-          totalEarnings: (driver.driverProfile.totalEarnings || 0) + driverEarnings,
-          currentBalance: (driver.driverProfile.currentBalance || 0) + driverEarnings,
-        }
-      });
+      // Emit via the main socket server so both socket paths are covered
+      if (socketService?.emit) {
+        socketService.emit('ride:payment:requested', {
+          rideId:    ride.id,
+          riderId,
+          driverId,
+          finalFare: ride.totalFare,
+          paymentRequestedAt: new Date().toISOString(),
+        });
+      }
 
-      await strapi.db.query('api::ledger-entry.ledger-entry').create({
-        data: {
-          entryId: `LE-${Date.now()}`,
-          driver: driverId,
-          ride: id,
-          type: 'fare',
-          amount: driverEarnings,
-          source: ride.paymentMethod,
-          ledgerStatus: 'settled',
-        }
-      });
+      return ctx.send({ success: true, message: 'Payment request sent to rider' });
 
-      // ✅ Direct socket emit - No eventHub
-      socketService.emitTripCompleted(updatedRide);
-
-      // Request ratings
-      socketService.emitRatingRequestRider(ride.riderId, id, driverId);
-      socketService.emitRatingRequestDriver(driverId, id, ride.riderId);
-
-      return ctx.send(updatedRide);
-    } catch (error) {
-      strapi.log.error('Complete trip error:', error);
-      return ctx.internalServerError('Failed to complete trip');
+    } catch (err: any) {
+      strapi.log.error('[Ride:requestPayment]', err);
+      return ctx.internalServerError(err.message || 'Failed to request payment');
     }
   },
+  // async payCash(ctx) {
+  //   const { id: rideId } = ctx.params;
+  //   const userId = ctx.state.user?.id;
 
-  // Cancel ride
-  // async cancelRide(ctx) {
+  //   if (!userId) {
+  //     return ctx.unauthorized('Authentication required');
+  //   }
+
+  //   // ── Fetch ride ────────────────────────────────────────────────────────────
+  //   const ride = await strapi.db.query('api::ride.ride').findOne({
+  //     where: { id: rideId },
+  //     populate: { rider: true, driver: true },
+  //   });
+
+  //   if (!ride) return ctx.notFound('Ride not found');
+
+  //   // Only the rider of this ride can submit payment
+  //   if (String(ride.rider?.id) !== String(userId)) {
+  //     return ctx.forbidden('You are not the rider of this trip');
+  //   }
+
+  //   // Idempotency: already paid
+  //   if (ride.paymentStatus === 'completed') {
+  //     return ctx.send({ success: true, message: 'Already paid', alreadyCompleted: true });
+  //   }
+
+  //   // Must be in a payable state
+  //   const payableStatuses = ['passenger_onboard', 'awaiting_payment'];
+  //   if (!payableStatuses.includes(ride.rideStatus)) {
+  //     return ctx.badRequest(`Ride cannot be paid in status: ${ride.rideStatus}`);
+  //   }
+
+  //   // ── Update ride ───────────────────────────────────────────────────────────
+  //   const now = new Date().toISOString();
+  //   await strapi.db.query('api::ride.ride').update({
+  //     where:{id:rideId},
+  //     data: {
+  //       paymentMethod:    'cash',
+  //       paymentStatus:    'completed',
+  //       rideStatus:       'completed',
+  //       tripCompletedAt:  now,
+  //     }
+  //   })
+
+  //   // ── Create transaction record ─────────────────────────────────────────────
+  //   try {
+  //     await strapi.db.query('api::transaction.transaction').create({
+  //       data: {
+  //         user:           ride.rider?.id,
+  //         ride:           rideId,
+  //         type:           'ride_payment',
+  //         paymentMethod:         'cash',
+  //         amount:         ride.totalFare ?? ride.estimatedFare ?? 0,
+  //         transactionStatus:         'completed',
+  //         notes:    `Cash payment for ride #${ride.rideCode ?? rideId}`,
+  //         processedAt: now,
+  //       }
+  //     })
+  //   } catch (txErr) {
+  //     strapi.log.warn('[payCash] Failed to create transaction record:', txErr.message);
+  //     // Non-fatal — ride is already marked completed
+  //   }
+
+  //   // ── Emit socket events ────────────────────────────────────────────────────
+  //   // Both rider and driver should receive `payment:received` so their UIs can react.
+  //   const socketService = strapi.service('api::socket.socket');
+
+  //   const eventPayload = {
+  //     rideId:       rideId,
+  //     riderId:      ride.rider?.id,
+  //     driverId:     ride.driver?.id,
+  //     amount:       ride.totalFare ?? ride.estimatedFare ?? 0,
+  //     method:       'cash',
+  //     rideStatus:   'completed',
+  //     paymentStatus:'completed',
+  //     paidAt:       now,
+  //   };
+
+  //   try {
+  //     // To rider
+  //     socketService?.emitToUser?.('rider',  ride.rider?.id,  'payment:received', eventPayload);
+  //     // To driver
+  //     socketService?.emitToUser?.('driver', ride.driver?.id, 'payment:received', eventPayload);
+  //   } catch (emitErr) {
+  //     strapi.log.warn('[payCash] Socket emit error:', emitErr.message);
+  //   }
+
+  //   return ctx.send({
+  //     success:       true,
+  //     message:       'Cash payment recorded. Ride completed.',
+  //     rideStatus:    'completed',
+  //     paymentStatus: 'completed',
+  //     paymentMethod: 'cash',
+  //     paidAt:        now,
+  //   });
+  // },
+
+  // ============================================
+  // Complete trip — handles float deduction and subscription earnings
+  // Float formula: floatBalance - (fareAmount + fareAmount * commissionRate)
+  // Subscription: zero commission, full fare credited to withdrawable balance
+  // Digital rides: earnings added to currentBalance regardless of system
+  // ============================================
+  // async completeTrip(ctx) {
   //   try {
   //     const { id } = ctx.params;
-  //     const userId = ctx.state.user.id;
-  //     const { reason, cancelledBy } = ctx.request.body;
+  //     const driverId = ctx.state.user.id;
+  //     const { actualDistance, actualDuration } = ctx.request.body;
 
   //     const ride = await strapi.db.query('api::ride.ride').findOne({
-  //       where: { id },
-  //       populate: ['rider', 'driver']
+  //       where: { id, driver: driverId },
+  //       populate: ['driver', 'rideClass']
   //     });
 
   //     if (!ride) {
   //       return ctx.notFound('Ride not found');
   //     }
 
-  //     if (ride.status === 'completed' || ride.status === 'cancelled') {
-  //       return ctx.badRequest('Cannot cancel this ride');
+  //     if (ride.rideStatus !== 'passenger_onboard') {
+  //       return ctx.badRequest('Trip not started')
   //     }
 
-  //     // Calculate cancellation fee if applicable
-  //     let cancellationFee = 0;
-  //     const cancellationReason = await strapi.db.query('api::cancellation-reason.cancellation-reason').findOne({
-  //       where: { code: reason }
-  //     });
+  //     const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
 
-  //     if (cancellationReason?.hasFee) {
-  //       cancellationFee = cancellationReason.feeAmount || 0;
+  //     // FIX: populate currentSubscription so isSubscriptionCurrentlyActive() can
+  //     // double-check the actual expiresAt timestamp, not just the denormalized
+  //     // subscriptionStatus field which may be stale between cron runs.
+  //     const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
+  //       where: { id: ride.driver.id },
+  //       populate: {
+  //         driverProfile: {
+  //           populate: {
+  //             currentSubscription: true,
+  //           }
+  //         }
+  //       }
+  //     })
+
+  //     // ─── Determine payment system context ────────────────────────────────
+  //     const paymentSystemType = settings?.paymentSystemType || 'float_based';
+
+  //     // Use isSubscriptionCurrentlyActive() which checks both the denormalized
+  //     // status AND the actual expiresAt on the currentSubscription record.
+  //     const hasActiveSubscription = isSubscriptionCurrentlyActive(driver.driverProfile);
+
+  //     // A ride counts as a subscription ride when:
+  //     // - System is subscription_based, OR
+  //     // - System is hybrid AND driver has an active (non-expired) subscription
+  //     const isSubscriptionRide =
+  //       paymentSystemType === 'subscription_based' ||
+  //       (paymentSystemType === 'hybrid' && hasActiveSubscription);
+
+  //     // ─── Calculate commission & earnings ─────────────────────────────────
+  //     let commission = 0;
+  //     let floatDeduction = 0;
+  //     let driverEarnings = 0;
+
+  //     if (isSubscriptionRide) {
+  //       // Subscription: zero commission, driver keeps the full fare
+  //       commission = 0;
+  //       floatDeduction = 0;
+  //       driverEarnings = ride.totalFare;
+  //     } else {
+  //       // Float-based: apply commission rate
+  //       if (settings?.commissionType === 'percentage') {
+  //         commission = (ride.totalFare * (settings.defaultCommissionPercentage || 15)) / 100;
+  //       } else if (settings?.commissionType === 'flat_rate') {
+  //         commission = settings.defaultFlatCommission || 0;
+  //       }
+
+  //       if (ride.paymentMethod === 'cash') {
+  //         // Cash ride: driver collects cash directly from rider.
+  //         // Platform takes its cut from the driver's pre-paid float.
+  //         // Formula: floatDeduction = fareAmount + (fareAmount * commissionRate)
+  //         floatDeduction = ride.totalFare + commission;
+  //         driverEarnings = ride.totalFare;
+  //       } else {
+  //         // Digital (okrapay): platform collects fare, forwards driver's net share.
+  //         floatDeduction = 0;
+  //         driverEarnings = ride.totalFare - commission;
+  //       }
   //     }
 
+  //     // ─── Compute new balances ─────────────────────────────────────────────
+  //     const currentFloat = driver.driverProfile?.floatBalance || 0;
+  //     const currentBalance = driver.driverProfile?.currentBalance || 0;
+
+  //     let newFloatBalance = currentFloat;
+  //     let newCurrentBalance = currentBalance;
+
+  //     if (!isSubscriptionRide && ride.paymentMethod === 'cash') {
+  //       newFloatBalance = currentFloat - floatDeduction;
+  //       newCurrentBalance = newFloatBalance > 0 ? newFloatBalance : 0;
+  //     } else {
+  //       newCurrentBalance = currentBalance + driverEarnings;
+  //     }
+
+  //     // ─── Update ride record ───────────────────────────────────────────────
   //     const updatedRide = await strapi.db.query('api::ride.ride').update({
   //       where: { id },
   //       data: {
-  //         status: 'cancelled',
-  //         cancelledAt: new Date(),
-  //         cancelledBy,
-  //         cancellationReason: reason,
-  //         cancellationFee,
+  //         rideStatus: 'completed',
+  //         tripCompletedAt: new Date(),
+  //         actualDistance: actualDistance || ride.estimatedDistance,
+  //         actualDuration: actualDuration || ride.estimatedDuration,
+  //         commission,
+  //         driverEarnings,
+  //         commissionDeducted: !isSubscriptionRide,
+  //         wasSubscriptionRide: isSubscriptionRide,
   //       }
   //     });
 
-  //     // Update driver if assigned
-  //     if (ride.driver) {
-  //       await strapi.db.query('plugin::users-permissions.user').update({
-  //         where: { id: ride.driver.id },
+  //     // ─── Update driver profile ────────────────────────────────────────────
+  //     await strapi.db.query('driver-profiles.driver-profile').update({
+  //       where: { id: driver.driverProfile.id },
+  //       data: {
+  //         isAvailable: true,
+  //         isEnroute: false,
+  //         currentRide: null,
+  //         completedRides: (driver.driverProfile.completedRides || 0) + 1,
+  //         totalRides: (driver.driverProfile.totalRides || 0) + 1,
+  //         totalEarnings: (driver.driverProfile.totalEarnings || 0) + driverEarnings,
+  //         floatBalance: newFloatBalance,
+  //         currentBalance: newCurrentBalance,
+  //       }
+  //     });
+
+  //     // ─── Ledger entries ───────────────────────────────────────────────────
+
+  //     // Primary earnings entry
+  //     await strapi.db.query('api::ledger-entry.ledger-entry').create({
+  //       data: {
+  //         entryId: `LE-${Date.now()}`,
+  //         driver: driverId,
+  //         ride: id,
+  //         type: isSubscriptionRide
+  //           ? 'fare_subscription'
+  //           : ride.paymentMethod === 'cash'
+  //           ? 'fare_cash'
+  //           : 'fare_digital',
+  //         amount: driverEarnings,
+  //         source: ride.paymentMethod,
+  //         ledgerStatus: 'settled',
+  //       }
+  //     });
+
+  //     // Float deduction entry (only for cash rides on float system)
+  //     if (floatDeduction > 0) {
+  //       await strapi.db.query('api::ledger-entry.ledger-entry').create({
   //         data: {
-  //           driverProfile: {
-  //             ...ride.driver.driverProfile,
-  //             isAvailable: true,
-  //             currentRide: null,
-  //             cancelledRides: (ride.driver.driverProfile.cancelledRides || 0) + 1,
-  //           }
+  //           entryId: `LE-FD-${Date.now()}`,
+  //           driver: driverId,
+  //           ride: id,
+  //           type: 'float_deduction',
+  //           amount: -floatDeduction,
+  //           source: 'system',
+  //           ledgerStatus: 'settled',
   //         }
   //       });
   //     }
 
-  //     strapi.eventHub.emit('ride:cancelled', { ride: updatedRide, cancelledBy });
+  //     // Commission entry (separate record for platform accounting)
+  //     if (commission > 0) {
+  //       await strapi.db.query('api::ledger-entry.ledger-entry').create({
+  //         data: {
+  //           entryId: `LE-COMM-${Date.now()}`,
+  //           driver: driverId,
+  //           ride: id,
+  //           type: 'commission',
+  //           amount: -commission,
+  //           source: 'system',
+  //           ledgerStatus: 'settled',
+  //         }
+  //       });
+  //     }
+
+  //     // ─── Emit events ──────────────────────────────────────────────────────
+  //     socketService.emitTripCompleted(updatedRide);
+
+  //     socketService.emitRatingRequestRider(ride.riderId, id, driverId);
+  //     socketService.emitRatingRequestDriver(driverId, id, ride.riderId);
+
+  //     strapi.log.info(
+  //       `Ride ${id} completed. ` +
+  //       `System: ${paymentSystemType}${isSubscriptionRide ? ' (subscription ride)' : ''}. ` +
+  //       `Payment: ${ride.paymentMethod}. ` +
+  //       `Fare: ${ride.totalFare}, Commission: ${commission}, ` +
+  //       `FloatDeduction: ${floatDeduction}, DriverEarnings: ${driverEarnings}. ` +
+  //       `NewFloat: ${newFloatBalance}, NewBalance: ${newCurrentBalance}`
+  //     );
 
   //     return ctx.send(updatedRide);
   //   } catch (error) {
-  //     strapi.log.error('Cancel ride error:', error);
-  //     return ctx.internalServerError('Failed to cancel ride');
+  //     strapi.log.error('Complete trip error:', error);
+  //     return ctx.internalServerError('Failed to complete trip');
   //   }
-  // }
-async cancelRide(ctx) {
+  // },
+
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// 2. completeTrip  (paste inside the controller object)
+// ════════════════════════════════════════════════════════════════════════════
+async completeTrip(ctx) {
+  try {
+    const { id } = ctx.params;
+    const driverId = ctx.state.user.id;
+    const { actualDistance, actualDuration } = ctx.request.body;
+
+    const ride = await strapi.db.query('api::ride.ride').findOne({
+      where: { id, driver: driverId },
+      populate: ['driver', 'rideClass', 'rider'],
+    });
+
+    if (!ride) return ctx.notFound('Ride not found');
+
+    const completableStatuses = ['passenger_onboard', 'awaiting_payment'];
+    if (!completableStatuses.includes(ride.rideStatus)) {
+      return ctx.badRequest(`Trip cannot be completed from status: ${ride.rideStatus}`);
+    }
+
+    // Plain function call — TypeScript knows the exact signature and return type
+    const { updatedRide } = await handleCompleteTrip({
+      rideId: id,
+      driverId,
+      actualDistance,
+      actualDuration,
+    });
+
+    socketService.emitTripCompleted(updatedRide)
+    // socketService.emitRatingRequestRider(ride.rider?.id, id, driverId);
+    // socketService.emitRatingRequestDriver(driverId, id, ride.rider?.id);
+
+    return ctx.send(updatedRide);
+  } catch (error) {
+    strapi.log.error('completeTrip error:', error);
+    return ctx.internalServerError('Failed to complete trip');
+  }
+},
+
+// ════════════════════════════════════════════════════════════════════════════
+// 3. payCash  (paste inside the controller object)
+// ════════════════════════════════════════════════════════════════════════════
+async payCash(ctx) {
+  try {
+    const { id: rideId } = ctx.params;
+    const userId = ctx.state.user?.id;
+
+    if (!userId) return ctx.unauthorized('Authentication required');
+
+    const ride = await strapi.db.query('api::ride.ride').findOne({
+      where: { id: rideId },
+      populate: { rider: true, driver: true },
+    });
+
+    if (!ride) return ctx.notFound('Ride not found');
+
+    if (String(ride.rider?.id) !== String(userId)) {
+      return ctx.forbidden('You are not the rider of this trip');
+    }
+
+    if (ride.paymentStatus === 'completed') {
+      return ctx.send({ success: true, message: 'Already paid', alreadyCompleted: true });
+    }
+
+    const payableStatuses = ['passenger_onboard', 'awaiting_payment'];
+    if (!payableStatuses.includes(ride.rideStatus)) {
+      return ctx.badRequest(`Ride cannot be paid in status: ${ride.rideStatus}`);
+    }
+
+    if (!ride.driver?.id) {
+      return ctx.badRequest('No driver assigned to this ride');
+    }
+
+    // Set paymentMethod to 'cash' before the helper re-fetches the ride,
+    // so the float-deduction formula inside handleCompleteTrip uses the correct path.
+    await strapi.db.query('api::ride.ride').update({
+      where: { id: rideId },
+      data:  { paymentMethod: 'cash' },
+    });
+
+    // Plain function call — no `this`, no Strapi signature constraint
+    const { updatedRide } = await handleCompleteTrip({
+      rideId,
+      driverId: ride.driver.id,
+      // actualDistance / actualDuration fall back to estimated values inside the helper
+    })
+
+    // Transaction record
+    try {
+      await strapi.db.query('api::transaction.transaction').create({
+        data: {
+          user:              ride.rider?.id,
+          ride:              rideId,
+          type:              'ride_payment',
+          paymentMethod:     'cash',
+          amount:            ride.totalFare ?? ride.estimatedFare ?? 0,
+          transactionStatus: 'completed',
+          notes:             `Cash payment for ride #${ride.rideCode ?? rideId}`,
+          processedAt:       new Date().toISOString(),
+        },
+      });
+    } catch (txErr) {
+      strapi.log.warn('[payCash] Failed to create transaction record:', txErr.message);
+    }
+
+    const socketService  = strapi.service('api::socket.socket');
+    const now            = new Date().toISOString();
+
+    const paymentPayload = {
+      rideId,
+      riderId:       ride.rider?.id,
+      driverId:      ride.driver?.id,
+      amount:        ride.totalFare ?? ride.estimatedFare ?? 0,
+      method:        'cash',
+      rideStatus:    'completed',
+      paymentStatus: 'completed',
+      paidAt:        now,
+    };
+
+    try {
+      socketService.emitPaymentReceived(
+        rideId,
+        ride.rider?.id,
+        ride.driver?.id,
+        ride.totalFare ?? ride.estimatedFare ?? 0,
+        'cash',
+      );
+    } catch (emitErr) {
+      strapi.log.warn('[payCash] Socket emit error:', emitErr.message);
+    }
+
+    // socketService.emitTripCompleted(updatedRide)
+    // socketService?.emitRatingRequestRider?.(ride.rider?.id,  rideId, ride.driver?.id);
+    // socketService?.emitRatingRequestDriver?.(ride.driver?.id, rideId, ride.rider?.id);
+
+    return ctx.send({
+      success:       true,
+      message:       'Cash payment recorded. Ride completed.',
+      rideStatus:    'completed',
+      paymentStatus: 'completed',
+      paymentMethod: 'cash',
+      paidAt:        now,
+    });
+  } catch (error) {
+    strapi.log.error('payCash error:', error);
+    return ctx.internalServerError('Failed to record cash payment');
+  }
+},
+
+
+  async cancelRide(ctx) {
     try {
       const { id } = ctx.params;
       const userId = ctx.state.user.id;
@@ -1684,6 +2490,8 @@ async cancelRide(ctx) {
       });
 
       if (ride.driver && ride.rideStatus === 'accepted') {
+        // FIX: addTempBlock is async — must await so errors are caught and
+        // the block is guaranteed to complete before the response is sent.
         await RiderBlockingService.addTempBlock(ride.rider.id, ride.driver.id);
         strapi.log.info(`Driver ${ride.driver.id} temp blocked for rider ${ride.rider.id} due to cancellation`);
       }
@@ -1709,7 +2517,6 @@ async cancelRide(ctx) {
         });
       }
 
-      // ✅ Direct socket emit - No eventHub
       socketService.emitRideCancelled(updatedRide, cancelledBy, reason, cancellationFee);
 
       return ctx.send(updatedRide);
@@ -1718,194 +2525,176 @@ async cancelRide(ctx) {
       return ctx.internalServerError('Failed to cancel ride');
     }
   },
-// ============================================
-// CUSTOM METHOD: Rate Ride (Driver or Rider)
-// ============================================
-async rateRide(ctx) {
-  try {
-    const { id } = ctx.params;
-    const userId = ctx.state.user.id;
-    const { rating, review = '', tags = [], ratedBy } = ctx.request.body;
 
-    // Validate inputs
-    if (!rating || rating < 1 || rating > 5) {
-      return ctx.badRequest('Rating must be between 1 and 5');
-    }
+  // ============================================
+  // CUSTOM METHOD: Rate Ride (Driver or Rider)
+  // ============================================
+  async rateRide(ctx) {
+    try {
+      const { id } = ctx.params;
+      const userId = ctx.state.user.id;
+      const { rating, review = '', tags = [], ratedBy } = ctx.request.body;
 
-    if (!ratedBy || !['rider', 'driver'].includes(ratedBy)) {
-      return ctx.badRequest('ratedBy must be either "rider" or "driver"');
-    }
-
-    // Get ride with all relations
-    const ride = await strapi.db.query('api::ride.ride').findOne({
-      where: { id },
-      populate: {
-        rider: {
-          populate: {
-            riderProfile: true
-          }
-        },
-        driver: {
-          populate: {
-            driverProfile: true
-          }
-        }
+      if (!rating || rating < 1 || rating > 5) {
+        return ctx.badRequest('Rating must be between 1 and 5');
       }
-    });
 
-    if (!ride) {
-      return ctx.notFound('Ride not found');
-    }
-
-    // Verify ride is completed
-    if (ride.rideStatus !== 'completed') {
-      return ctx.badRequest('Can only rate completed rides');
-    }
-
-    // Verify user is part of this ride
-    const isRider = ride.rider?.id === userId;
-    const isDriver = ride.driver?.id === userId;
-
-    if (!isRider && !isDriver) {
-      return ctx.forbidden('You are not authorized to rate this ride');
-    }
-
-    // Verify ratedBy matches user type
-    if ((ratedBy === 'rider' && !isRider) || (ratedBy === 'driver' && !isDriver)) {
-      return ctx.badRequest('ratedBy does not match your user type');
-    }
-
-    // Check if already rated
-    const existingRating = await strapi.db.query('api::rating.rating').findOne({
-      where: {
-        ride: id,
-        ratedBy: ratedBy
+      if (!ratedBy || !['rider', 'driver'].includes(ratedBy)) {
+        return ctx.badRequest('ratedBy must be either "rider" or "driver"');
       }
-    });
 
-    if (existingRating) {
-      return ctx.badRequest('You have already rated this ride');
-    }
-
-    // Determine who is being rated
-    let ratedUserId;
-    let ratedUserType;
-    
-    if (ratedBy === 'rider') {
-      // Rider is rating the driver
-      ratedUserId = ride.driver?.id;
-      ratedUserType = 'driver';
-    } else {
-      // Driver is rating the rider
-      ratedUserId = ride.rider?.id;
-      ratedUserType = 'rider';
-    }
-
-    if (!ratedUserId) {
-      return ctx.badRequest('Cannot determine who to rate');
-    }
-
-    // Create rating record
-    const newRating = await strapi.db.query('api::rating.rating').create({
-      data: {
-        ride: id,
-        ratedUser: ratedUserId, // The person being given the rating
-        rating: rating,
-        review: review,
-        tags: tags,
-        ratedBy: userId // The person giving the rating
-      }
-    });
-
-    // Update rated user's statistics
-    if (ratedUserType === 'driver') {
-      // Update driver's rating
-      const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
-        where: { id: ratedUserId },
+      const ride = await strapi.db.query('api::ride.ride').findOne({
+        where: { id },
         populate: {
-          driverProfile: {
-            select: ['id', 'averageRating', 'totalRatings']
+          rider: {
+            populate: {
+              riderProfile: true
+            }
+          },
+          driver: {
+            populate: {
+              driverProfile: true
+            }
           }
         }
       });
 
-      if (driver?.driverProfile) {
-        const currentAverage = driver.driverProfile.averageRating || 0;
-        const currentTotal = driver.driverProfile.totalRatings || 0;
-        
-        // Calculate new average
-        const newTotal = currentTotal + 1;
-        const newAverage = ((currentAverage * currentTotal) + rating) / newTotal;
-
-        await strapi.db.query('driver-profiles.driver-profile').update({
-          where: { id: driver.driverProfile.id },
-          data: {
-            averageRating: parseFloat(newAverage.toFixed(2)),
-            totalRatings: newTotal
-          }
-        });
+      if (!ride) {
+        return ctx.notFound('Ride not found');
       }
-    } else {
-      // Update rider's rating
-      const rider = await strapi.db.query('plugin::users-permissions.user').findOne({
-        where: { id: ratedUserId },
-        populate: {
-          riderProfile: {
-            select: ['id', 'averageRating', 'totalRatings']
-          }
+
+      if (ride.rideStatus !== 'completed') {
+        return ctx.badRequest('Can only rate completed rides');
+      }
+
+      const isRider = ride.rider?.id === userId;
+      const isDriver = ride.driver?.id === userId;
+
+      if (!isRider && !isDriver) {
+        return ctx.forbidden('You are not authorized to rate this ride');
+      }
+
+      if ((ratedBy === 'rider' && !isRider) || (ratedBy === 'driver' && !isDriver)) {
+        return ctx.badRequest('ratedBy does not match your user type');
+      }
+
+      const existingRating = await strapi.db.query('api::rating.rating').findOne({
+        where: {
+          ride: id,
+          ratedBy: ratedBy
         }
       });
 
-      if (rider?.riderProfile) {
-        const currentAverage = rider.riderProfile.averageRating || 0;
-        const currentTotal = rider.riderProfile.totalRatings || 0;
-        
-        // Calculate new average
-        const newTotal = currentTotal + 1;
-        const newAverage = ((currentAverage * currentTotal) + rating) / newTotal;
+      if (existingRating) {
+        return ctx.badRequest('You have already rated this ride');
+      }
 
-        await strapi.db.query('rider-profiles.rider-profile').update({
-          where: { id: rider.riderProfile.id },
-          data: {
-            averageRating: parseFloat(newAverage.toFixed(2)),
-            totalRatings: newTotal
+      let ratedUserId;
+      let ratedUserType;
+      
+      if (ratedBy === 'rider') {
+        ratedUserId = ride.driver?.id;
+        ratedUserType = 'driver';
+      } else {
+        ratedUserId = ride.rider?.id;
+        ratedUserType = 'rider';
+      }
+
+      if (!ratedUserId) {
+        return ctx.badRequest('Cannot determine who to rate');
+      }
+
+      const newRating = await strapi.db.query('api::rating.rating').create({
+        data: {
+          ride: id,
+          ratedUser: ratedUserId,
+          rating: rating,
+          review: review,
+          tags: tags,
+          ratedBy: userId
+        }
+      });
+
+      if (ratedUserType === 'driver') {
+        const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: ratedUserId },
+          populate: {
+            driverProfile: {
+              select: ['id', 'averageRating', 'totalRatings']
+            }
           }
         });
+
+        if (driver?.driverProfile) {
+          const currentAverage = driver.driverProfile.averageRating || 0;
+          const currentTotal = driver.driverProfile.totalRatings || 0;
+          
+          const newTotal = currentTotal + 1;
+          const newAverage = ((currentAverage * currentTotal) + rating) / newTotal;
+
+          await strapi.db.query('driver-profiles.driver-profile').update({
+            where: { id: driver.driverProfile.id },
+            data: {
+              averageRating: parseFloat(newAverage.toFixed(2)),
+              totalRatings: newTotal
+            }
+          });
+        }
+      } else {
+        const rider = await strapi.db.query('plugin::users-permissions.user').findOne({
+          where: { id: ratedUserId },
+          populate: {
+            riderProfile: {
+              select: ['id', 'averageRating', 'totalRatings']
+            }
+          }
+        });
+
+        if (rider?.riderProfile) {
+          const currentAverage = rider.riderProfile.averageRating || 0;
+          const currentTotal = rider.riderProfile.totalRatings || 0;
+          
+          const newTotal = currentTotal + 1;
+          const newAverage = ((currentAverage * currentTotal) + rating) / newTotal;
+
+          await strapi.db.query('rider-profiles.rider-profile').update({
+            where: { id: rider.riderProfile.id },
+            data: {
+              averageRating: parseFloat(newAverage.toFixed(2)),
+              totalRatings: newTotal
+            }
+          });
+        }
       }
+
+      emitRatingSubmitted(userId, ratedBy, id, rating);
+
+      strapi.log.info(`${ratedBy} ${userId} rated ${ratedUserType} ${ratedUserId} with ${rating} stars for ride ${id}`);
+
+      return ctx.send({
+        success: true,
+        message: 'Rating submitted successfully',
+        rating: {
+          id: newRating.id,
+          rating: rating,
+          review: review,
+          tags: tags,
+        }
+      });
+
+    } catch (error) {
+      strapi.log.error('Rate ride error:', error);
+      return ctx.internalServerError('Failed to submit rating');
     }
-
-    // Emit socket event for rating confirmation
-    emitRatingSubmitted(userId, ratedBy, id, rating);
-
-    strapi.log.info(`${ratedBy} ${userId} rated ${ratedUserType} ${ratedUserId} with ${rating} stars for ride ${id}`);
-
-    return ctx.send({
-      success: true,
-      message: 'Rating submitted successfully',
-      rating: {
-        id: newRating.id,
-        rating: rating,
-        review: review,
-        tags: tags,
-      }
-    });
-
-  } catch (error) {
-    strapi.log.error('Rate ride error:', error);
-    return ctx.internalServerError('Failed to submit rating');
   }
-}
 }));
 
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
 
-/**
- * Calculate distance between two coordinates using Haversine formula
- */
 function calculateDistance(point1: Location, point2: Location): number {
-  const R = 6371; // Earth's radius in kilometers
+  const R = 6371;
   const dLat = deg2rad(point2.lat - point1.lat);
   const dLon = deg2rad(point2.lng - point1.lng);
   const a =
@@ -1922,13 +2711,25 @@ function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
 
-/**
- * Estimate duration based on distance
- * Assumes average speed of 30 km/h in city traffic
- */
 function estimateDuration(distanceKm: number): number {
   const averageSpeedKmh = 30;
   const hours = distanceKm / averageSpeedKmh;
   const minutes = Math.ceil(hours * 60);
   return minutes;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

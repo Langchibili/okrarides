@@ -21,14 +21,6 @@
         "hybrid"
       ]
     },
-    "floatSystemEnabled": {
-      "type": "boolean",
-      "default": true
-    },
-    "subscriptionSystemEnabled": {
-      "type": "boolean",
-      "default": false
-    },
     "freeTrialEnabled": {
       "type": "boolean",
       "default": false
@@ -238,6 +230,25 @@
     "getOnlineDriverCurrentLocationCronIntervalInSecs": {
       "type": "integer",
       "default": 30
+    },
+    "externalPaymentGateway": {
+      "type": "enumeration",
+      "default": "lencopay",
+      "enum": [
+        "lencopay"
+      ]
+    },
+    "allowFloatTopUpWithOkraPay": {
+      "type": "boolean",
+      "default": true
+    },
+    "allowRidePaymentWithOkraPay": {
+      "type": "boolean",
+      "default": true
+    },
+    "appsServerPollingIntervalInSeconds": {
+      "type": "integer",
+      "default": 20
     }
   }
 }

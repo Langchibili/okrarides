@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { apiClient } from '@/lib/api/client';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { useWebSocket } from './useWebSocket';
+import { useSocket } from '@/lib/socket/SocketProvider';
 import { SOCKET_EVENTS } from '@/Constants';
 
 export const useSubscription = () => {
@@ -12,7 +12,7 @@ export const useSubscription = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { socket, isConnected } = useWebSocket();
+  const { on, off, emit, connected } = useSocket();
 
   useEffect(() => {
     if (user?.driverProfile?.currentSubscription) {
@@ -22,7 +22,7 @@ export const useSubscription = () => {
 
   // Listen for subscription events
   useEffect(() => {
-    if (!socket || !isConnected) return;
+    if (!connected) return;
 
     const handleSubscriptionExpiring = (data) => {
       // Show warning notification
@@ -43,14 +43,14 @@ export const useSubscription = () => {
       });
     };
 
-    socket.on(SOCKET_EVENTS.SUBSCRIPTION_EXPIRING, handleSubscriptionExpiring);
-    socket.on(SOCKET_EVENTS.SUBSCRIPTION_EXPIRED, handleSubscriptionExpired);
+    on(SOCKET_EVENTS.SUBSCRIPTION_EXPIRING, handleSubscriptionExpiring);
+    on(SOCKET_EVENTS.SUBSCRIPTION_EXPIRED, handleSubscriptionExpired);
 
     return () => {
-      socket.off(SOCKET_EVENTS.SUBSCRIPTION_EXPIRING, handleSubscriptionExpiring);
-      socket.off(SOCKET_EVENTS.SUBSCRIPTION_EXPIRED, handleSubscriptionExpired);
+      off(SOCKET_EVENTS.SUBSCRIPTION_EXPIRING, handleSubscriptionExpiring);
+      off(SOCKET_EVENTS.SUBSCRIPTION_EXPIRED, handleSubscriptionExpired);
     };
-  }, [socket, isConnected, user, updateUser]);
+  }, [connected, user, updateUser]);
 
   const fetchPlans = useCallback(async () => {
     try {

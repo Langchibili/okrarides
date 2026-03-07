@@ -188,6 +188,7 @@ export const SOCKET_EVENTS = {
     TRIP_COMPLETED: 'ride:trip:completed',
     NO_DRIVERS: 'ride:no_drivers',
     DRIVER_ARRIVED: 'ride:driver:arrived',
+    PAYMENT_REQUESTED: 'ride:payment:requested'
   },
   
   // Subscription Events
@@ -199,6 +200,7 @@ export const SOCKET_EVENTS = {
   
   // Payment Events
   PAYMENT: {
+    RECEIVED: 'payment:received',   // ← rider paid (cash OR okrapay confirmed)
     SUCCESS: 'payment:success',
     FAILED: 'payment:failed',
   },

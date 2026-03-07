@@ -1533,6 +1533,57 @@ io.on("connection", (socket) => {
     console.log(`Trip completed for ride ${rideId}`, { finalFare, distance, duration });
   });
 
+  socket.on('ride:payment:requested', (data) => {
+    const { rideId, driverId } = data;
+
+    const ride = activeRides.get(rideId);
+    if (ride) {
+      // Mark ride as awaiting_payment in our local tracking
+      ride.status = 'awaiting_payment';
+      ride.paymentRequestedAt = Date.now();
+      activeRides.set(rideId, ride);
+
+      // Notify rider
+      emitToUser('rider', ride.riderId, 'ride:payment:requested', {
+        rideId,
+        driverId,
+        riderId: ride.riderId,
+        finalFare: data.finalFare,
+      });
+
+      // Also notify driver (for their own UI confirmation)
+      emitToUser('driver', driverId, 'ride:payment:requested', {
+        rideId,
+        driverId,
+        riderId: ride.riderId,
+        finalFare: data.finalFare,
+      });
+    }
+
+    console.log(`Payment requested by driver ${driverId} for ride ${rideId}`);
+  })
+
+  socket.on('payment:received', (data) => {
+    console.log('[MainSocket] payment:received from client socket', socket.id, data);
+
+    const { rideId, riderId, driverId } = data;
+
+    // Update activeRides map if you maintain one
+    if (rideId && activeRides && activeRides[rideId]) {
+      activeRides[rideId].paymentStatus = 'completed';
+      activeRides[rideId].rideStatus    = 'completed';
+    }
+
+    // Broadcast to both parties
+    if (riderId) {
+      emitToUser('rider', riderId, 'payment:received', data);
+    }
+    if (driverId) {
+      emitToUser('driver', driverId, 'payment:received', data);
+    }
+  })
+  
+
   // From Strapi: Ride cancelled
   socket.on('ride:cancelled', (data) => {
     const { rideId, cancelledBy, reason, cancellationFee } = data;

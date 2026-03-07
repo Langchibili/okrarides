@@ -5,6 +5,8 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/lib/hooks/useAuth';
 import { SocketProvider } from '@/lib/socket/SocketProvider';
 import { ReactNativeWrapper } from '@/lib/contexts/ReactNativeWrapper';
+import { MapsProvider } from '@/components/APIProviders/MapsProvider';
+
 // we are getting the native code wrapper here because we are using it as a hook inside the layout file for main pages or authenticated pages
 const inter = Inter({
   subsets: ['latin'],
@@ -57,7 +59,9 @@ export default function RootLayout({ children }) {
           <ReactNativeWrapper>
             <AuthProvider>
               <SocketProvider>
-                {children}
+                <MapsProvider>
+                   {children}
+                </MapsProvider>
               </SocketProvider>
             </AuthProvider>
           </ReactNativeWrapper>

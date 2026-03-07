@@ -41,6 +41,15 @@ export default {
       },
     },
     {
+      method: 'GET',
+      path: '/rides/:id/receipt/download',
+      handler: 'ride.downloadReceipt',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
       method: 'POST',
       path: '/rides/:id/share-tracking',
       handler: 'ride.shareTracking',
@@ -81,6 +90,18 @@ export default {
       handler: 'ride.startTrip',
       config: { policies: [] }
     },
+    {
+      method: 'POST',
+      path:   '/rides/:id/request-payment',
+      handler: 'ride.requestPayment',
+      config: { policies: []},
+    },
+    { 
+      method: 'POST', 
+      path: '/rides/:id/pay-cash', 
+      handler: 'ride.payCash', 
+      config: { policies: [] } 
+     },
     {
       method: 'POST',
       path: '/rides/:id/complete',

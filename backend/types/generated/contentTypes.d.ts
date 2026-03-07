@@ -444,12 +444,18 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
   attributes: {
     affiliateSystemEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
+    allowFloatTopUpWithOkraPay: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<true>;
     allowManualCompletion: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
     allowMultipleTrials: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
     allowNegativeFloat: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
+    allowRidePaymentWithOkraPay: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<true>;
+    appsServerPollingIntervalInSeconds: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<20>;
     autoRenewByDefault: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
     blockCashRidesOnInsufficientFloat: Schema.Attribute.Boolean &
@@ -478,8 +484,8 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
     driverOrderRequestVibration: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
     emailEnabled: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
-    floatSystemEnabled: Schema.Attribute.Boolean &
-      Schema.Attribute.DefaultTo<true>;
+    externalPaymentGateway: Schema.Attribute.Enumeration<['lencopay']> &
+      Schema.Attribute.DefaultTo<'lencopay'>;
     freeTrialEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
     getOnlineDriverCurrentLocationCronIntervalInSecs: Schema.Attribute.Integer &
@@ -544,8 +550,6 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
     smsEnabled: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     subscriptionGracePeriodDays: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<3>;
-    subscriptionSystemEnabled: Schema.Attribute.Boolean &
-      Schema.Attribute.DefaultTo<false>;
     supportEmail: Schema.Attribute.Email;
     supportPhone: Schema.Attribute.String;
     targetRidesForUnlock: Schema.Attribute.Integer &
@@ -785,6 +789,78 @@ export interface ApiAnalyticsSnapshotAnalyticsSnapshot
     totalRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     trialSubscriptions: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiApiProviderApiProvider extends Struct.CollectionTypeSchema {
+  collectionName: 'api_providers';
+  info: {
+    displayName: 'apiProviders';
+    pluralName: 'api-providers';
+    singularName: 'api-provider';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::api-provider.api-provider'
+    > &
+      Schema.Attribute.Private;
+    maxMonthlyRequests: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<20000>;
+    providerData: Schema.Attribute.JSON;
+    providerName: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiApiProvidersPriorityMapApiProvidersPriorityMap
+  extends Struct.SingleTypeSchema {
+  collectionName: 'api_providers_priority_maps';
+  info: {
+    displayName: 'apiProvidersPriorityMap';
+    pluralName: 'api-providers-priority-maps';
+    singularName: 'api-providers-priority-map';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::api-providers-priority-map.api-providers-priority-map'
+    > &
+      Schema.Attribute.Private;
+    mapsProviders: Schema.Attribute.JSON;
+    prioritizedMap: Schema.Attribute.Enumeration<
+      [
+        'geoapify',
+        'wazemap',
+        'openstreetmap',
+        'localmap',
+        'yandexmap',
+        'googlemap',
+        'applemap',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'applemap'>;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1400,7 +1476,6 @@ export interface ApiDriverDriver extends Struct.CollectionTypeSchema {
   };
   attributes: {
     aboutRoute: Schema.Attribute.String;
-    abroute: Schema.Attribute.Blocks;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1603,25 +1678,68 @@ export interface ApiFavoriteLocationFavoriteLocation
 export interface ApiFinanceFinance extends Struct.CollectionTypeSchema {
   collectionName: 'finances';
   info: {
-    displayName: 'finance';
+    displayName: 'Driver Finance Record';
     pluralName: 'finances';
     singularName: 'finance';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
-    aboutRoute: Schema.Attribute.String;
+    averageCommissionPerRide: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    averageFarePerRide: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    cancelledRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    cashEarnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    cashRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    commissionSavedBySubscription: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    completedRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    currentFloatBalance: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    digitalEarnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    digitalRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    driver: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    floatRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::finance.finance'
     > &
       Schema.Attribute.Private;
+    lowestFloatBalance: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    negativeFloatCount: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
+    reportDate: Schema.Attribute.Date;
+    reportType: Schema.Attribute.Enumeration<
+      ['daily', 'weekly', 'monthly', 'yearly', 'all_time']
+    > &
+      Schema.Attribute.DefaultTo<'all_time'>;
+    subscriptionEarnings: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    subscriptionRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    totalCommissionPaid: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalEarnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    totalFloatDeducted: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalFloatPurchased: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalPendingWithdrawals: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    totalSubscriptionsPaid: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalWithdrawn: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1954,6 +2072,96 @@ export interface ApiNotificationNotification
   };
 }
 
+export interface ApiOkrapayOkrapay extends Struct.CollectionTypeSchema {
+  collectionName: 'okrapays';
+  info: {
+    description: 'Records every payment or payout transaction routed through the OkraPay gateway layer';
+    displayName: 'OkraPay Transaction';
+    name: 'okrapay';
+    pluralName: 'okrapays';
+    singularName: 'okrapay';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: true;
+    };
+    'content-type-builder': {
+      visible: true;
+    };
+  };
+  attributes: {
+    amount: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    completedAt: Schema.Attribute.DateTime;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currency: Schema.Attribute.Relation<'manyToOne', 'api::currency.currency'>;
+    direction: Schema.Attribute.Enumeration<['collection', 'payout']> &
+      Schema.Attribute.Required;
+    failedAt: Schema.Attribute.DateTime;
+    failureReason: Schema.Attribute.Text;
+    gatewayName: Schema.Attribute.String;
+    gatewayReference: Schema.Attribute.String;
+    gatewayResponse: Schema.Attribute.JSON;
+    initiatedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    ipAddress: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::okrapay.okrapay'
+    > &
+      Schema.Attribute.Private;
+    metadata: Schema.Attribute.JSON;
+    notes: Schema.Attribute.Text;
+    paymentId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    paymentMethod: Schema.Attribute.Enumeration<
+      ['mobile_money', 'card', 'bank_transfer']
+    >;
+    paymentStatus: Schema.Attribute.Enumeration<
+      ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    publishedAt: Schema.Attribute.DateTime;
+    purpose: Schema.Attribute.Enumeration<
+      [
+        'floatadd',
+        'subpay',
+        'ridepay',
+        'withdraw',
+        'walletTopup',
+        'affiliatePayout',
+      ]
+    > &
+      Schema.Attribute.Required;
+    reference: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    relatedEntityId: Schema.Attribute.String;
+    relatedEntityType: Schema.Attribute.Enumeration<
+      [
+        'float_topup',
+        'driver_subscription',
+        'ride',
+        'withdrawal',
+        'wallet_topup',
+      ]
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiOtpVerificationOtpVerification
   extends Struct.CollectionTypeSchema {
   collectionName: 'otp_verifications';
@@ -2146,6 +2354,64 @@ export interface ApiPhoneNumbersListPhoneNumbersList
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPlatformStatPlatformStat extends Struct.SingleTypeSchema {
+  collectionName: 'platform_stats';
+  info: {
+    displayName: 'Platform Statistics';
+    pluralName: 'platform-stats';
+    singularName: 'platform-stat';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    activeDriverCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    activeSubscriberCount: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    driversWithNegativeFloat: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    lastCalculatedAt: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::platform-stat.platform-stat'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    totalActiveFloat: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    totalCashRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    totalDigitalRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    totalDriverEarnings: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalFloatRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    totalFloatSold: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    totalNegativeFloat: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalPendingWithdrawals: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalPlatformCommission: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalRidesCancelled: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    totalRidesCompleted: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    totalSubscriptionRevenue: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalSubscriptionRides: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    totalWithdrawalsProcessed: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    trialSubscriberCount: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -2498,6 +2764,10 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
     promoDiscount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     publishedAt: Schema.Attribute.DateTime;
     requestedAt: Schema.Attribute.DateTime;
+    requestedDriverAccounts: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
     requestedDrivers: Schema.Attribute.JSON;
     rideClass: Schema.Attribute.Relation<
       'manyToOne',
@@ -2517,6 +2787,7 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
         'accepted',
         'arrived',
         'passenger_onboard',
+        'awaiting_payment',
         'completed',
         'cancelled',
         'no_drivers_available',
@@ -3329,6 +3600,7 @@ export interface ApiVerifyotpVerifyotp extends Struct.CollectionTypeSchema {
 export interface ApiWithdrawalWithdrawal extends Struct.CollectionTypeSchema {
   collectionName: 'withdrawals';
   info: {
+    description: 'Tracks driver and rider withdrawal requests';
     displayName: 'Withdrawal';
     name: 'withdrawal';
     pluralName: 'withdrawals';
@@ -3346,8 +3618,11 @@ export interface ApiWithdrawalWithdrawal extends Struct.CollectionTypeSchema {
     };
   };
   attributes: {
-    accountDetails: Schema.Attribute.JSON & Schema.Attribute.Required;
+    accountName: Schema.Attribute.String & Schema.Attribute.Required;
+    accountNumber: Schema.Attribute.String & Schema.Attribute.Required;
     amount: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    balanceAfter: Schema.Attribute.Decimal;
+    balanceBefore: Schema.Attribute.Decimal;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -3361,16 +3636,19 @@ export interface ApiWithdrawalWithdrawal extends Struct.CollectionTypeSchema {
       'api::withdrawal.withdrawal'
     > &
       Schema.Attribute.Private;
-    method: Schema.Attribute.Enumeration<
-      ['okrapay', 'mobile_money', 'bank_transfer']
-    > &
+    method: Schema.Attribute.Enumeration<['mobile_money', 'bank_transfer']> &
       Schema.Attribute.Required;
     notes: Schema.Attribute.Text;
+    okrapayTransaction: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::okrapay.okrapay'
+    >;
     processedAt: Schema.Attribute.DateTime;
     processedBy: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     requestedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -3379,13 +3657,15 @@ export interface ApiWithdrawalWithdrawal extends Struct.CollectionTypeSchema {
     user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    >;
+    > &
+      Schema.Attribute.Required;
     withdrawalId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     withdrawalStatus: Schema.Attribute.Enumeration<
       ['pending', 'processing', 'completed', 'failed', 'cancelled']
     > &
+      Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'pending'>;
   };
 }
@@ -3986,6 +4266,8 @@ declare module '@strapi/strapi' {
       'api::affiliate.affiliate': ApiAffiliateAffiliate;
       'api::allowed-vehicle-year.allowed-vehicle-year': ApiAllowedVehicleYearAllowedVehicleYear;
       'api::analytics-snapshot.analytics-snapshot': ApiAnalyticsSnapshotAnalyticsSnapshot;
+      'api::api-provider.api-provider': ApiApiProviderApiProvider;
+      'api::api-providers-priority-map.api-providers-priority-map': ApiApiProvidersPriorityMapApiProvidersPriorityMap;
       'api::app-version.app-version': ApiAppVersionAppVersion;
       'api::audit-log.audit-log': ApiAuditLogAuditLog;
       'api::bus-route.bus-route': ApiBusRouteBusRoute;
@@ -4010,10 +4292,12 @@ declare module '@strapi/strapi' {
       'api::language.language': ApiLanguageLanguage;
       'api::ledger-entry.ledger-entry': ApiLedgerEntryLedgerEntry;
       'api::notification.notification': ApiNotificationNotification;
+      'api::okrapay.okrapay': ApiOkrapayOkrapay;
       'api::otp-verification.otp-verification': ApiOtpVerificationOtpVerification;
       'api::package.package': ApiPackagePackage;
       'api::payment-method.payment-method': ApiPaymentMethodPaymentMethod;
       'api::phone-numbers-list.phone-numbers-list': ApiPhoneNumbersListPhoneNumbersList;
+      'api::platform-stat.platform-stat': ApiPlatformStatPlatformStat;
       'api::promo-code.promo-code': ApiPromoCodePromoCode;
       'api::push-notification-log.push-notification-log': ApiPushNotificationLogPushNotificationLog;
       'api::rating.rating': ApiRatingRating;

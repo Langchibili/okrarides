@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "api_providers",
+  "info": {
+    "singularName": "api-provider",
+    "pluralName": "api-providers",
+    "displayName": "apiProviders"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "providerName": {
+      "type": "string"
+    },
+    "providerData": {
+      "type": "json"
+    },
+    "maxMonthlyRequests": {
+      "type": "integer",
+      "default": 20000
+    }
+  }
+}

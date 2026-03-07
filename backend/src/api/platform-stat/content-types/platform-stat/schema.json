@@ -1,0 +1,106 @@
+{
+  "kind": "singleType",
+  "collectionName": "platform_stats",
+  "info": {
+    "singularName": "platform-stat",
+    "pluralName": "platform-stats",
+    "displayName": "Platform Statistics"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "lastCalculatedAt": {
+      "type": "datetime"
+    },
+
+    "totalDriverEarnings": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Sum of all driver earnings across all completed rides"
+    },
+    "totalPlatformCommission": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total commission collected by the platform from float-based rides"
+    },
+    "totalSubscriptionRevenue": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total revenue from driver subscription purchases"
+    },
+
+    "totalFloatSold": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Cumulative float purchased by all drivers (platform cash in)"
+    },
+    "totalActiveFloat": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Sum of all positive float balances currently held"
+    },
+    "totalNegativeFloat": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Absolute sum of all negative float balances (debt owed to platform)"
+    },
+    "driversWithNegativeFloat": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of drivers currently in negative float"
+    },
+
+    "totalWithdrawalsProcessed": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total amount paid out via withdrawals"
+    },
+    "totalPendingWithdrawals": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total amount currently awaiting withdrawal processing"
+    },
+
+    "totalRidesCompleted": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalRidesCancelled": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalSubscriptionRides": {
+      "type": "integer",
+      "default": 0,
+      "description": "Rides completed with zero commission (subscription riders)"
+    },
+    "totalFloatRides": {
+      "type": "integer",
+      "default": 0,
+      "description": "Rides completed with float commission deduction"
+    },
+    "totalCashRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalDigitalRides": {
+      "type": "integer",
+      "default": 0
+    },
+
+    "activeDriverCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "activeSubscriberCount": {
+      "type": "integer",
+      "default": 0
+    },
+    "trialSubscriberCount": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

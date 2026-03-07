@@ -324,10 +324,33 @@ export const canDriverReceiveCashRide = (settings, driverFloatBalance) => {
   return driverFloatBalance > 0
 }
 
+/**
+ * Whether float top-ups via OkraPay are permitted.
+ * Requires okrapayEnabled to also be true.
+ * Default: true (enabled by default in the schema).
+ */
+export function isAllowFloatTopUpWithOkraPay(settings) {
+  if (!settings) return false;
+  // Both the master okrapay switch AND the specific float topup flag must be on
+  return settings.okrapayEnabled !== false && settings.allowFloatTopUpWithOkraPay !== false;
+}
+
+/**
+ * Whether ride payments via OkraPay are permitted.
+ * Requires okrapayEnabled to also be true.
+ * Default: true (enabled by default in the schema).
+ */
+export function isAllowRidePaymentWithOkraPay(settings) {
+  if (!settings) return false;
+  return settings.okrapayEnabled !== false && settings.allowRidePaymentWithOkraPay !== false;
+}
+
 export default {
   getAdminSettings,
   updateAdminSettings,
   // Helper functions
+  isAllowFloatTopUpWithOkraPay,
+  isAllowRidePaymentWithOkraPay,
   getPaymentSystemType,
   isFloatSystemEnabled,
   isSubscriptionSystemEnabled,

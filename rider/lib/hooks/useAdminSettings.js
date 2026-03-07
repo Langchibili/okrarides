@@ -109,6 +109,8 @@ export function useAdminSettings() {
     lastFetched,
 
     // Payment System
+    allowFloatTopUpWithOkraPay:     AdminSettingsHelpers.isAllowFloatTopUpWithOkraPay(settings),
+    allowRidePaymentWithOkraPay:    AdminSettingsHelpers.isAllowRidePaymentWithOkraPay(settings),
     paymentSystemType: AdminSettingsHelpers.getPaymentSystemType(settings),
     isFloatSystemEnabled: AdminSettingsHelpers.isFloatSystemEnabled(settings),
     isSubscriptionSystemEnabled: AdminSettingsHelpers.isSubscriptionSystemEnabled(settings),
@@ -255,6 +257,8 @@ export function useAdminSettingsStandalone() {
     refresh: fetchSettings,
 
     // All helper functions
+    allowFloatTopUpWithOkraPay:     AdminSettingsHelpers.isAllowFloatTopUpWithOkraPay(settings),
+    allowRidePaymentWithOkraPay:    AdminSettingsHelpers.isAllowRidePaymentWithOkraPay(settings),
     paymentSystemType: AdminSettingsHelpers.getPaymentSystemType(settings),
     isFloatSystemEnabled: AdminSettingsHelpers.isFloatSystemEnabled(settings),
     isSubscriptionSystemEnabled: AdminSettingsHelpers.isSubscriptionSystemEnabled(settings),

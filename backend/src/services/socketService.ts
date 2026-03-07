@@ -700,6 +700,25 @@ class SocketService {
   /**
    * Notify user of successful payment
    */
+  public emitPaymentReceived(
+    rideId:   string | number,
+    riderId:  string | number,
+    driverId: string | number,
+    amount:   number,
+    method:   string = 'cash',
+  ): boolean {
+    return this.emit('payment:received', {
+      rideId,
+      riderId,
+      driverId,
+      amount,
+      method,
+      rideStatus:    'completed',
+      paymentStatus: 'completed',
+      paidAt:        new Date().toISOString(),
+    });
+  }
+  
   public emitPaymentSuccess(userId: string | number, userType: string, amount: number, transactionId: string | number, type: string = 'ride'): boolean {
     return this.emit('payment:success', {
       userId,

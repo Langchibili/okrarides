@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { useThemeMode } from '@/components/ThemeProvider';
 import { useRide } from '@/lib/hooks/useRide';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import { ridesAPI } from '@/lib/api/rides';
 
 export default function MainLayout({ children }) {
   const { user, loading, isAuthenticated } = useAuth();
@@ -20,7 +21,7 @@ export default function MainLayout({ children }) {
 
   // Redirect to login if not authenticated
    useEffect(() => {
-    const initializeNativeCode = async () => {
+     const initializeNativeCode = async () => {
       // ONLY NOW initialize native services (if in native environment, and user has authenticated)
       if (isNative && !servicesInitialized && user?.id) {
         console.log('🔧 Initializing native services for driver...');
@@ -85,8 +86,9 @@ export default function MainLayout({ children }) {
       if (!isAuthenticated()) {
         router.push('/login');
       } else {
+        ridesAPI.cleanTempBlocks() // clears list of temporarily blocked off drivers due to ride declines, if driver was blocked off a long time ago
         initializeNativeCode() // initialize native code
-      }
+       }
     }
   }, [user, loading, isAuthenticated, router]);
 
@@ -94,7 +96,7 @@ export default function MainLayout({ children }) {
   // Redirect Logic for Active Rides
   // ============================================
   useEffect(() => {
-    if (activeRide) {
+    if (activeRide && isAuthenticated) {
       const { rideStatus, id } = activeRide;
 
       if (rideStatus === 'pending') {

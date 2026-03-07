@@ -12,9 +12,6 @@ export const getAdminSettings = async () => {
         'Content-Type': 'application/json',
       },
     })
-    // Note: You may need to adjust the response structure based on your API
-    // If your API returns { data: {...} }, use response.data
-    // If it returns the data directly, use response
     return response.data || response
   } catch (error) {
     console.error('Get admin settings error:', error)
@@ -49,11 +46,13 @@ export const getPaymentSystemType = (settings) => {
 }
 
 export const isFloatSystemEnabled = (settings) => {
-  return settings?.floatSystemEnabled ?? true
+  const type = getPaymentSystemType(settings)
+  return type === 'float_based' || type === 'hybrid'
 }
 
 export const isSubscriptionSystemEnabled = (settings) => {
-  return settings?.subscriptionSystemEnabled ?? false
+  const type = getPaymentSystemType(settings)
+  return type === 'subscription_based' || type === 'hybrid'
 }
 
 // Free Trial
@@ -181,8 +180,9 @@ export const isRoadTaxRequired = (settings) => {
 export const isFitnessDocumentRequired = (settings) => {
   return settings?.requireFitnessDocument ?? true
 }
-export const isVehicleRegistrationRequired  = (settings) => {
-  return settings?.requireVehicleRegistration ?? true
+
+export const isVehicleRegistrationRequired = (settings) => {
+  return settings?.requireVehicleRegistration ?? false
 }
 
 // Device Unlock
@@ -235,7 +235,7 @@ export const getDefaultCurrency = (settings) => {
 }
 
 export const getRideBookingRadius = (settings) => {
-  return settings?.rideBookingRadius || 10;
+  return settings?.rideBookingRadius || 10
 }
 
 /**
@@ -260,7 +260,6 @@ export const calculateCommission = (settings, fareAmount) => {
       }
 
       const tiers = getCommissionTiers(settings)
-      // Find applicable tier
       const tier = tiers.find(
         (t) =>
           fareAmount >= t.minFare &&
@@ -276,7 +275,6 @@ export const calculateCommission = (settings, fareAmount) => {
         }
       }
 
-      // Fallback to default percentage
       return (fareAmount * getDefaultCommissionPercentage(settings)) / 100
 
     default:
@@ -324,9 +322,32 @@ export const canDriverReceiveCashRide = (settings, driverFloatBalance) => {
   return driverFloatBalance > 0
 }
 
+/**
+ * Whether float top-ups via OkraPay are permitted.
+ * Requires okrapayEnabled to also be true.
+ * Default: true (enabled by default in the schema).
+ */
+export function isAllowFloatTopUpWithOkraPay(settings) {
+  if (!settings) return false;
+  // Both the master okrapay switch AND the specific float topup flag must be on
+  return settings.okrapayEnabled !== false && settings.allowFloatTopUpWithOkraPay !== false;
+}
+
+/**
+ * Whether ride payments via OkraPay are permitted.
+ * Requires okrapayEnabled to also be true.
+ * Default: true (enabled by default in the schema).
+ */
+export function isAllowRidePaymentWithOkraPay(settings) {
+  if (!settings) return false;
+  return settings.okrapayEnabled !== false && settings.allowRidePaymentWithOkraPay !== false;
+}
+
 export default {
   getAdminSettings,
   updateAdminSettings,
+  isAllowFloatTopUpWithOkraPay,
+  isAllowRidePaymentWithOkraPay,
   // Helper functions
   getPaymentSystemType,
   isFloatSystemEnabled,
@@ -373,11 +394,11 @@ export default {
   getSupportEmail,
   getSupportPhone,
   getDefaultCurrency,
+  getRideBookingRadius,
   // Utility functions
   calculateCommission,
   convertPointsToMoney,
   convertMoneyToPoints,
   canRedeemPoints,
   canDriverReceiveCashRide,
-  getRideBookingRadius
 }

@@ -1,0 +1,144 @@
+{
+  "kind": "collectionType",
+  "collectionName": "okrapays",
+  "info": {
+    "singularName": "okrapay",
+    "pluralName": "okrapays",
+    "displayName": "OkraPay Transaction",
+    "name": "okrapay",
+    "description": "Records every payment or payout transaction routed through the OkraPay gateway layer"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "paymentId": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "description": "Our internal unique payment ID, e.g. OKRA-1716000000000"
+    },
+    "reference": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "description": "Full structured reference sent to the gateway: ref-id-{userId}-purpose-{code}-{phone}-{timestamp}"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "description": "The user (rider or driver) who initiated this payment"
+    },
+    "purpose": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "floatadd",
+        "subpay",
+        "ridepay",
+        "withdraw",
+        "walletTopup",
+        "affiliatePayout"
+      ],
+      "description": "What this transaction is for"
+    },
+    "direction": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "collection",
+        "payout"
+      ],
+      "description": "collection = money coming in; payout = money going out"
+    },
+    "amount": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::currency.currency"
+    },
+    "paymentStatus": {
+      "type": "enumeration",
+      "required": true,
+      "default": "pending",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
+        "cancelled",
+        "refunded"
+      ]
+    },
+    "paymentMethod": {
+      "type": "enumeration",
+      "enum": [
+        "mobile_money",
+        "card",
+        "bank_transfer"
+      ],
+      "description": "Channel used — populated once the webhook is received"
+    },
+    "gatewayName": {
+      "type": "string",
+      "description": "Which gateway handled this transaction, e.g. lencopay"
+    },
+    "gatewayReference": {
+      "type": "string",
+      "description": "Gateway's own transaction ID"
+    },
+    "gatewayResponse": {
+      "type": "json",
+      "description": "Full raw webhook payload stored for auditing"
+    },
+    "relatedEntityType": {
+      "type": "enumeration",
+      "enum": [
+        "float_topup",
+        "driver_subscription",
+        "ride",
+        "withdrawal",
+        "wallet_topup"
+      ],
+      "description": "Which collection the relatedEntityId refers to"
+    },
+    "relatedEntityId": {
+      "type": "string",
+      "description": "String ID of the related record (float topup, subscription, ride, withdrawal)"
+    },
+    "initiatedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "completedAt": {
+      "type": "datetime"
+    },
+    "failedAt": {
+      "type": "datetime"
+    },
+    "failureReason": {
+      "type": "text"
+    },
+    "ipAddress": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}

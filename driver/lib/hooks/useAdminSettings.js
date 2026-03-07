@@ -1,4 +1,4 @@
-// lib/hooks/useAdminSettings.js
+//Okra\Okrarides\driver\lib\hooks\useAdminSettings.js
 'use client'
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react'
@@ -7,6 +7,17 @@ import * as AdminSettingsHelpers from '@/lib/api/adminSettings'
 
 // Create context for admin settings
 const AdminSettingsContext = createContext(null)
+
+/**
+ * Derives float/subscription enabled flags from paymentSystemType enum.
+ * paymentSystemType: 'float_based' | 'subscription_based' | 'hybrid'
+ */
+function derivePaymentSystemFlags(paymentSystemType) {
+  return {
+    isFloatSystemEnabled: paymentSystemType === 'float_based' || paymentSystemType === 'hybrid',
+    isSubscriptionSystemEnabled: paymentSystemType === 'subscription_based' || paymentSystemType === 'hybrid',
+  }
+}
 
 /**
  * Provider component to wrap your app
@@ -99,6 +110,9 @@ export function useAdminSettings() {
 
   const { settings, loading, error, refresh, lastFetched } = context || {}
 
+  const paymentSystemType = AdminSettingsHelpers.getPaymentSystemType(settings)
+  const { isFloatSystemEnabled, isSubscriptionSystemEnabled } = derivePaymentSystemFlags(paymentSystemType)
+
   // Return all helper functions with settings pre-applied
   return {
     // Core
@@ -109,9 +123,9 @@ export function useAdminSettings() {
     lastFetched,
 
     // Payment System
-    paymentSystemType: AdminSettingsHelpers.getPaymentSystemType(settings),
-    isFloatSystemEnabled: AdminSettingsHelpers.isFloatSystemEnabled(settings),
-    isSubscriptionSystemEnabled: AdminSettingsHelpers.isSubscriptionSystemEnabled(settings),
+    paymentSystemType,
+    isFloatSystemEnabled,
+    isSubscriptionSystemEnabled,
 
     // Free Trial
     isFreeTrialEnabled: AdminSettingsHelpers.isFreeTrialEnabled(settings),
@@ -168,6 +182,9 @@ export function useAdminSettings() {
     // Payment Methods
     isCashEnabled: AdminSettingsHelpers.isCashEnabled(settings),
     isOkrapayEnabled: AdminSettingsHelpers.isOkrapayEnabled(settings),
+    isOkrapayEnabled: AdminSettingsHelpers.isOkrapayEnabled(settings),
+    allowFloatTopUpWithOkraPay:     AdminSettingsHelpers.isAllowFloatTopUpWithOkraPay(settings),
+    allowRidePaymentWithOkraPay:    AdminSettingsHelpers.isAllowRidePaymentWithOkraPay(settings),
 
     // Platform Info
     platformName: AdminSettingsHelpers.getPlatformName(settings),
@@ -249,16 +266,24 @@ export function useAdminSettingsStandalone() {
     fetchSettings()
   }, [fetchSettings])
 
+  const paymentSystemType = AdminSettingsHelpers.getPaymentSystemType(settings)
+  const { isFloatSystemEnabled, isSubscriptionSystemEnabled } = derivePaymentSystemFlags(paymentSystemType)
+
   return {
     settings,
     loading,
     error,
     refresh: fetchSettings,
 
+    // Payment System
+    paymentSystemType,
+    isFloatSystemEnabled,
+    isSubscriptionSystemEnabled,
+    isCashEnabled: AdminSettingsHelpers.isCashEnabled(settings),
+    isOkrapayEnabled: AdminSettingsHelpers.isOkrapayEnabled(settings),
+    allowFloatTopUpWithOkraPay:     AdminSettingsHelpers.isAllowFloatTopUpWithOkraPay(settings),
+    allowRidePaymentWithOkraPay:    AdminSettingsHelpers.isAllowRidePaymentWithOkraPay(settings),
     // All helper functions
-    paymentSystemType: AdminSettingsHelpers.getPaymentSystemType(settings),
-    isFloatSystemEnabled: AdminSettingsHelpers.isFloatSystemEnabled(settings),
-    isSubscriptionSystemEnabled: AdminSettingsHelpers.isSubscriptionSystemEnabled(settings),
     isFreeTrialEnabled: AdminSettingsHelpers.isFreeTrialEnabled(settings),
     defaultFreeTrialDays: AdminSettingsHelpers.getDefaultFreeTrialDays(settings),
     minimumFloatTopup: AdminSettingsHelpers.getMinimumFloatTopup(settings),
@@ -289,13 +314,12 @@ export function useAdminSettingsStandalone() {
     isInsuranceRequired: AdminSettingsHelpers.isInsuranceRequired(settings),
     isRoadTaxRequired: AdminSettingsHelpers.isRoadTaxRequired(settings),
     isFitnessDocumentRequired: AdminSettingsHelpers.isFitnessDocumentRequired(settings),
+    isVehicleRegistrationRequired: AdminSettingsHelpers.isVehicleRegistrationRequired(settings),
     targetRidesForUnlock: AdminSettingsHelpers.getTargetRidesForUnlock(settings),
     isSmsEnabled: AdminSettingsHelpers.isSmsEnabled(settings),
     isEmailEnabled: AdminSettingsHelpers.isEmailEnabled(settings),
     isPushNotificationsEnabled: AdminSettingsHelpers.isPushNotificationsEnabled(settings),
     isWhatsappEnabled: AdminSettingsHelpers.isWhatsappEnabled(settings),
-    isCashEnabled: AdminSettingsHelpers.isCashEnabled(settings),
-    isOkrapayEnabled: AdminSettingsHelpers.isOkrapayEnabled(settings),
     platformName: AdminSettingsHelpers.getPlatformName(settings),
     supportEmail: AdminSettingsHelpers.getSupportEmail(settings),
     supportPhone: AdminSettingsHelpers.getSupportPhone(settings),

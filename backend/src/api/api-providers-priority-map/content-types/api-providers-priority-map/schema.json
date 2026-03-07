@@ -1,0 +1,31 @@
+{
+  "kind": "singleType",
+  "collectionName": "api_providers_priority_maps",
+  "info": {
+    "singularName": "api-providers-priority-map",
+    "pluralName": "api-providers-priority-maps",
+    "displayName": "apiProvidersPriorityMap"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "mapsProviders": {
+      "type": "json"
+    },
+    "prioritizedMap": {
+      "type": "enumeration",
+      "default": "applemap",
+      "enum": [
+        "geoapify",
+        "wazemap",
+        "openstreetmap",
+        "localmap",
+        "yandexmap",
+        "googlemap",
+        "applemap"
+      ]
+    }
+  }
+}

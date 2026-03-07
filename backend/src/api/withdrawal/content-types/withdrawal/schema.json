@@ -5,7 +5,8 @@
     "singularName": "withdrawal",
     "pluralName": "withdrawals",
     "displayName": "Withdrawal",
-    "name": "withdrawal"
+    "name": "withdrawal",
+    "description": "Tracks driver and rider withdrawal requests"
   },
   "options": {
     "draftAndPublish": false
@@ -27,7 +28,8 @@
     "user": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user"
+      "target": "plugin::users-permissions.user",
+      "required": true
     },
     "amount": {
       "type": "decimal",
@@ -42,17 +44,25 @@
       "type": "enumeration",
       "required": true,
       "enum": [
-        "okrapay",
         "mobile_money",
         "bank_transfer"
       ]
     },
-    "accountDetails": {
-      "type": "json",
+    "provider": {
+      "type": "string",
+      "description": "Mobile money operator (mtn, airtel) or bank code"
+    },
+    "accountNumber": {
+      "type": "string",
+      "required": true
+    },
+    "accountName": {
+      "type": "string",
       "required": true
     },
     "withdrawalStatus": {
       "type": "enumeration",
+      "required": true,
       "default": "pending",
       "enum": [
         "pending",
@@ -62,6 +72,23 @@
         "cancelled"
       ]
     },
+    "gatewayReference": {
+      "type": "string"
+    },
+    "gatewayResponse": {
+      "type": "json"
+    },
+    "okrapayTransaction": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::okrapay.okrapay"
+    },
+    "balanceBefore": {
+      "type": "decimal"
+    },
+    "balanceAfter": {
+      "type": "decimal"
+    },
     "requestedAt": {
       "type": "datetime",
       "required": true
@@ -69,22 +96,16 @@
     "processedAt": {
       "type": "datetime"
     },
-    "processedBy": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "plugin::users-permissions.user"
-    },
-    "gatewayReference": {
-      "type": "string"
-    },
-    "gatewayResponse": {
-      "type": "json"
+    "failureReason": {
+      "type": "text"
     },
     "notes": {
       "type": "text"
     },
-    "failureReason": {
-      "type": "text"
+    "processedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
     }
   }
 }

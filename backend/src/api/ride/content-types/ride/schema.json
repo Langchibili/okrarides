@@ -107,6 +107,7 @@
         "accepted",
         "arrived",
         "passenger_onboard",
+        "awaiting_payment",
         "completed",
         "cancelled",
         "no_drivers_available"
@@ -255,6 +256,11 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::package.package"
+    },
+    "requestedDriverAccounts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user"
     }
   }
 }

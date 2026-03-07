@@ -938,13 +938,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useGeolocation } from '@/lib/hooks/useGeolocation';
 import { useRide } from '@/lib/hooks/useRide';
-import { GoogleMapIframe } from '@/components/Map/GoogleMapIframe';
 import { MapControls } from '@/components/Map/MapControls';
 import { LocationSearch } from '@/components/Map/LocationSearch';
 import { RideOptionsSheet } from '@/components/Rider/RideOptionsSheet';
 import SwipeableBottomSheet from '@/components/ui/SwipeableBottomSheet';
 import ClientOnly from '@/components/ClientOnly';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import MapIframe from '@/components/Map/MapIframe';
 
 export default function HomePage() {
   const router = useRouter();
@@ -1080,6 +1080,7 @@ export default function HomePage() {
   // Handle Floating Button State
   // ============================================
   useEffect(() => {
+    console.log('pickupLocation, dropoffLocation',pickupLocation, dropoffLocation)
     if (pickupLocation && dropoffLocation && !showRideOptions) {
       setButtonFloating(true);
     } else {
@@ -1431,7 +1432,7 @@ export default function HomePage() {
       <Box sx={{ position: 'relative', height: '100vh', width: '100%', overflow: 'hidden' }}>
         {/* Map Container */}
         <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }}>
-          <GoogleMapIframe
+          <MapIframe
             center={mapCenter || (location ? { lat: location.lat, lng: location.lng } : { lat: -15.4167, lng: 28.2833 })}
             zoom={13}
             pickupLocation={pickupLocation}

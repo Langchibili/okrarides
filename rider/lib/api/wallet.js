@@ -1,7 +1,9 @@
+// PATH: rider/lib/api/wallet.js
+
 import { apiClient } from './client';
 
 export const walletAPI = {
-  // Get wallet balance
+  // ── Balance ────────────────────────────────────────────────────────────────
   async getBalance() {
     const response = await apiClient.get('/users/me?populate=riderProfile');
     return {
@@ -10,119 +12,146 @@ export const walletAPI = {
     };
   },
 
-  // Get transactions history
+  // ── Transactions ───────────────────────────────────────────────────────────
   async getTransactions(params = {}) {
-    const { page = 1, limit = 20, type, status } = params;
-    
-    const filters = {};
-    if (type) filters.type = { $eq: type };
-    if (status) filters.status = { $eq: status };
+    const { page = 1, limit = 20, type, transactionStatus } = params;
 
-    const query = new URLSearchParams({
-      'populate': '*',
-      'pagination[page]': page,
-      'pagination[pageSize]': limit,
-      'sort': 'createdAt:desc',
-      'filters[user][id][$eq]': 'me',
-      'filters': JSON.stringify(filters),
-    });
+    const filterParts = [];
+    if (type)              filterParts.push(`filters[type][$eq]=${encodeURIComponent(type)}`);
+    if (transactionStatus) filterParts.push(`filters[transactionStatus][$eq]=${encodeURIComponent(transactionStatus)}`);
 
-    const response = await apiClient.get(`/transactions?${query}`);
-    return response;
+    const query = [
+      `populate=*`,
+      `pagination[page]=${page}`,
+      `pagination[pageSize]=${limit}`,
+      `sort=createdAt:desc`,
+      `filters[user][id][$eq]=me`,
+      ...filterParts,
+    ].join('&');
+
+    return apiClient.get(`/transactions?${query}`);
   },
 
-  // Initiate wallet top-up
+  // ── Wallet Top-up ──────────────────────────────────────────────────────────
+  //
+  // Creates a float-topup record then initiates an OkraPay payment.
+  // The `purpose` is 'walletTopup' and the relatedEntityId is the topup record id.
+  //
   async topUp(amount, paymentMethod = 'okrapay') {
-    const response = await apiClient.post('/float-topups', {
+    // 1. Create a pending topup record
+    const topupResponse = await apiClient.post('/float-topups', {
       data: {
         amount,
         paymentMethod,
-        status: 'pending',
+        floatStatus: 'pending',
+        purpose: 'wallet_topup',
       },
     });
 
-    // Initiate payment with OkraPay
+    const topupId = topupResponse.data?.id;
+    if (!topupId) throw new Error('Failed to create topup record');
+
+    // 2. Initiate OkraPay payment
     const paymentResponse = await apiClient.post('/okrapay/initiate', {
+      purpose:         'walletTopup',
       amount,
-      currency: 'ZMW',
-      reference: response.data.topupId,
-      type: 'wallet_topup',
-      callbackUrl: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/wallet/topup/callback`,
+      currency:        'ZMW',
+      relatedEntityId: topupId,
     });
 
+    if (!paymentResponse.success) {
+      throw new Error(paymentResponse.error || 'Failed to initiate payment');
+    }
+
     return {
-      ...response.data,
-      paymentUrl: paymentResponse.paymentUrl,
-      transactionId: paymentResponse.transactionId,
+      ...topupResponse.data,
+      paymentId:     paymentResponse.data?.paymentId,
+      reference:     paymentResponse.data?.reference,
+      paymentUrl:    paymentResponse.data?.paymentUrl,
+      gatewayConfig: paymentResponse.data?.gatewayConfig,
     };
   },
 
-  // Get payment methods
+  // ── Pay for a Ride ─────────────────────────────────────────────────────────
+  //
+  // Attempts to pay for a ride:
+  //   1. Backend first checks rider's wallet balance.
+  //   2. If sufficient → deducts wallet, marks ride paid, returns paidFromWallet: true.
+  //   3. If insufficient → opens OkraPay gateway for the full ride amount.
+  //
+  // The reference for ridepay uses the RIDE ID (not the user id).
+  //
+  async payForRide(rideId, fareAmount) {
+    const response = await apiClient.post('/okrapay/initiate', {
+      purpose:         'ridepay',
+      amount:          fareAmount,
+      currency:        'ZMW',
+      relatedEntityId: rideId,   // ride id — backend derives rider from ride record
+    });
+
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to initiate ride payment');
+    }
+
+    return response;
+    // Response shape:
+    //   { success: true, paidFromWallet: true, message: '...', data: { rideId, amount, walletBalance } }
+    //   OR
+    //   { success: true, paidFromWallet: false, data: { paymentId, reference, paymentUrl, gatewayName, gatewayConfig, amount } }
+  },
+
+  // ── Payment Methods ────────────────────────────────────────────────────────
   async getPaymentMethods() {
     const response = await apiClient.get('/payment-methods?filters[user][id][$eq]=me&populate=*');
     return response.data;
   },
 
-  // Add payment method
   async addPaymentMethod(data) {
     const response = await apiClient.post('/payment-methods', {
-      data: {
-        ...data,
-        user: 'me',
-      },
+      data: { ...data, user: 'me' },
     });
     return response.data;
   },
 
-  // Remove payment method
   async removePaymentMethod(id) {
-    const response = await apiClient.delete(`/payment-methods/${id}`);
-    return response;
+    return apiClient.delete(`/payment-methods/${id}`);
   },
 
-  // Set default payment method
   async setDefaultPaymentMethod(id) {
     const response = await apiClient.put(`/payment-methods/${id}`, {
-      data: {
-        isDefault: true,
-      },
+      data: { isDefault: true },
     });
     return response.data;
   },
 
-  // Request withdrawal
+  // ── Withdrawals ────────────────────────────────────────────────────────────
   async requestWithdrawal(data) {
-    const { amount, method, accountDetails } = data;
-    
-    const response = await apiClient.post('/withdrawals', {
-      data: {
-        amount,
-        method,
-        accountDetails,
-        status: 'pending',
-      },
+    const { amount, method, accountDetails, provider, accountName } = data;
+
+    const response = await apiClient.post('/okrapay/request-withdrawal', {
+      amount,
+      method:        method        || 'mobile_money',
+      provider:      provider      || accountDetails?.provider,
+      accountNumber: data.accountNumber || accountDetails?.accountNumber,
+      accountName:   accountName   || accountDetails?.accountName,
     });
-    
-    return response.data;
+
+    return response.data || response;
   },
 
-  // Get withdrawal history
   async getWithdrawals(params = {}) {
     const { page = 1, limit = 20 } = params;
-    
-    const query = new URLSearchParams({
-      'populate': '*',
-      'pagination[page]': page,
-      'pagination[pageSize]': limit,
-      'sort': 'createdAt:desc',
-      'filters[user][id][$eq]': 'me',
-    });
-
-    const response = await apiClient.get(`/withdrawals?${query}`);
-    return response;
+    const query = [
+      `populate=*`,
+      `pagination[page]=${page}`,
+      `pagination[pageSize]=${limit}`,
+      `sort=createdAt:desc`,
+      `filters[user][id][$eq]=me`,
+    ].join('&');
+    return apiClient.get(`/withdrawals?${query}`);
   },
 
-  // Get transaction details
+  // ── Transactions ───────────────────────────────────────────────────────────
   async getTransaction(id) {
     const response = await apiClient.get(`/transactions/${id}?populate=*`);
     return response.data;
@@ -130,4 +159,3 @@ export const walletAPI = {
 };
 
 export default walletAPI;
-

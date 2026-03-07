@@ -1,128 +1,128 @@
 import { apiClient } from './client';
 
 export const walletAPI = {
-  // Get wallet balance
+  // ── Balance ────────────────────────────────────────────────────────────────
   async getBalance() {
-    const response = await apiClient.get('/users/me?populate=riderProfile');
+    const response = await apiClient.get('/users/me?populate=driverProfile');
     return {
-      balance: response.riderProfile?.walletBalance || 0,
-      currency: 'ZMW',
+      balance:   response.driverProfile?.floatBalance    || 0,
+      withdrawable: response.driverProfile?.currentBalance || 0,
+      currency:  'ZMW',
     };
   },
 
-  // Get transactions history
+  // ── Transactions ───────────────────────────────────────────────────────────
   async getTransactions(params = {}) {
     const { page = 1, limit = 20, type, transactionStatus } = params;
-    
-    const filters = {};
-    if (type) filters.type = { $eq: type };
-    if (transactionStatus) filters.transactionStatus = { $eq: transactionStatus };
 
-    const query = new URLSearchParams({
-      'populate': '*',
-      'pagination[page]': page,
-      'pagination[pageSize]': limit,
-      'sort': 'createdAt:desc',
-      'filters[user][id][$eq]': 'me',
-      'filters': JSON.stringify(filters),
-    });
+    const filterParts = [];
+    if (type)              filterParts.push(`filters[type][$eq]=${encodeURIComponent(type)}`);
+    if (transactionStatus) filterParts.push(`filters[transactionStatus][$eq]=${encodeURIComponent(transactionStatus)}`);
 
-    const response = await apiClient.get(`/transactions?${query}`);
-    return response;
+    const query = [
+      `populate=*`,
+      `pagination[page]=${page}`,
+      `pagination[pageSize]=${limit}`,
+      `sort=createdAt:desc`,
+      `filters[user][id][$eq]=me`,
+      ...filterParts,
+    ].join('&');
+
+    return apiClient.get(`/transactions?${query}`);
   },
 
-  // Initiate wallet top-up
+  // ── Float Top-up ───────────────────────────────────────────────────────────
+  //
+  // Creates a pending float-topup record, then initiates OkraPay for payment.
+  // The `purpose` sent to the backend is 'floatadd'.
+  //
   async topUp(amount, paymentMethod = 'okrapay') {
-    const response = await apiClient.post('/float-topups', {
+    // 1. Create pending topup record
+    const topupResponse = await apiClient.post('/float-topups', {
       data: {
         amount,
         paymentMethod,
         floatStatus: 'pending',
+        purpose:     'float_topup',
       },
     });
 
-    // Initiate payment with OkraPay
+    const topupId = topupResponse.data?.id;
+    if (!topupId) throw new Error('Failed to create float topup record');
+
+    // 2. Initiate OkraPay gateway payment
     const paymentResponse = await apiClient.post('/okrapay/initiate', {
+      purpose:         'floatadd',
       amount,
-      currency: 'ZMW',
-      reference: response.data.topupId,
-      type: 'wallet_topup',
-      callbackUrl: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/wallet/topup/callback`,
+      currency:        'ZMW',
+      relatedEntityId: topupId,
     });
 
+    if (!paymentResponse.success) {
+      throw new Error(paymentResponse.error || 'Failed to initiate payment');
+    }
+
     return {
-      ...response.data,
-      paymentUrl: paymentResponse.paymentUrl,
-      transactionId: paymentResponse.transactionId,
+      ...topupResponse.data,
+      paymentId:     paymentResponse.data?.paymentId,
+      reference:     paymentResponse.data?.reference,
+      paymentUrl:    paymentResponse.data?.paymentUrl,
+      gatewayConfig: paymentResponse.data?.gatewayConfig,
     };
   },
 
-  // Get payment methods
+  // ── Payment Methods ────────────────────────────────────────────────────────
   async getPaymentMethods() {
     const response = await apiClient.get('/payment-methods?filters[user][id][$eq]=me&populate=*');
     return response.data;
   },
 
-  // Add payment method
   async addPaymentMethod(data) {
     const response = await apiClient.post('/payment-methods', {
-      data: {
-        ...data,
-        user: 'me',
-      },
+      data: { ...data, user: 'me' },
     });
     return response.data;
   },
 
-  // Remove payment method
   async removePaymentMethod(id) {
-    const response = await apiClient.delete(`/payment-methods/${id}`);
-    return response;
+    return apiClient.delete(`/payment-methods/${id}`);
   },
 
-  // Set default payment method
   async setDefaultPaymentMethod(id) {
     const response = await apiClient.put(`/payment-methods/${id}`, {
-      data: {
-        isDefault: true,
-      },
+      data: { isDefault: true },
     });
     return response.data;
   },
 
-  // Request withdrawal
+  // ── Withdrawals ────────────────────────────────────────────────────────────
   async requestWithdrawal(data) {
-    const { amount, method, accountDetails } = data;
-    
-    const response = await apiClient.post('/withdrawals', {
-      data: {
-        amount,
-        method,
-        accountDetails,
-        withdrawalStatus: 'pending',
-      },
+    const { amount, method, provider, accountNumber, accountName, accountDetails } = data;
+
+    const response = await apiClient.post('/okrapay/request-withdrawal', {
+      amount,
+      method:        method         || 'mobile_money',
+      provider:      provider       || accountDetails?.provider,
+      accountNumber: accountNumber  || accountDetails?.accountNumber,
+      accountName:   accountName    || accountDetails?.accountName,
     });
-    
-    return response.data;
+
+    return response.data || response;
   },
 
-  // Get withdrawal history
   async getWithdrawals(params = {}) {
     const { page = 1, limit = 20 } = params;
-    
-    const query = new URLSearchParams({
-      'populate': '*',
-      'pagination[page]': page,
-      'pagination[pageSize]': limit,
-      'sort': 'createdAt:desc',
-      'filters[user][id][$eq]': 'me',
-    });
-
-    const response = await apiClient.get(`/withdrawals?${query}`);
-    return response;
+    const query = [
+      `populate=*`,
+      `pagination[page]=${page}`,
+      `pagination[pageSize]=${limit}`,
+      `sort=createdAt:desc`,
+      `filters[user][id][$eq]=me`,
+    ].join('&');
+    return apiClient.get(`/withdrawals?${query}`);
   },
 
-  // Get transaction details
+  // ── Transaction detail ─────────────────────────────────────────────────────
   async getTransaction(id) {
     const response = await apiClient.get(`/transactions/${id}?populate=*`);
     return response.data;
@@ -130,4 +130,3 @@ export const walletAPI = {
 };
 
 export default walletAPI;
-
