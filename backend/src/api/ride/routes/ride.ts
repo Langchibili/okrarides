@@ -36,7 +36,7 @@ const defaultRoutes = {
       },
     },
     {
-      method: 'PUT',
+    method: 'PUT',
       path: '/rides/:id',
       handler: 'ride.update',
       config: {

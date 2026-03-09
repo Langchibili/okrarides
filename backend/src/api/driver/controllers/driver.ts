@@ -961,5 +961,124 @@ async toggleOnline(ctx) {
       strapi.log.error('Update vehicle error:', error);
       return ctx.internalServerError('Failed to update vehicle');
     }
+  },
+  async getPaymentPhoneNumbers(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: userId },
+        populate: {
+          driverProfile: {
+            select: ['id', 'paymentPhoneNumbers'],
+          },
+          country: {
+            select: ['id', 'phoneCode', 'acceptedMobileMoneyPayments'],
+          },
+        },
+      });
+
+      if (!user?.driverProfile) {
+        return ctx.badRequest('Driver profile not found');
+      }
+
+      return ctx.send({
+        paymentPhoneNumbers: user.driverProfile.paymentPhoneNumbers || [],
+        acceptedMobileMoneyPayments: user.country?.acceptedMobileMoneyPayments || [],
+      });
+    } catch (error) {
+      strapi.log.error('Get payment phone numbers error:', error);
+      return ctx.internalServerError('Failed to fetch payment phone numbers');
+    }
+  },
+
+  /**
+   * PUT /api/driver/payment-phone-numbers
+   *
+   * Body: { paymentPhoneNumbers: Array<{ mobileNumber, mobileType, name }> }
+   *
+   * Validates each entry against the country's acceptedMobileMoneyPayments,
+   * then saves the full array to the driver profile.
+   */
+  async savePaymentPhoneNumbers(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+      const { paymentPhoneNumbers } = ctx.request.body;
+
+      // ── Basic payload validation ──────────────────────────────────────────
+      if (!Array.isArray(paymentPhoneNumbers)) {
+        return ctx.badRequest('paymentPhoneNumbers must be an array');
+      }
+
+      // ── Load user + country for allowed types ─────────────────────────────
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: userId },
+        populate: {
+          driverProfile: {
+            select: ['id', 'paymentPhoneNumbers'],
+          },
+          country: {
+            select: ['id', 'phoneCode', 'acceptedMobileMoneyPayments'],
+          },
+        },
+      });
+
+      if (!user?.driverProfile) {
+        return ctx.badRequest('Driver profile not found');
+      }
+
+      const acceptedTypes: string[] = (user.country?.acceptedMobileMoneyPayments || []).map(
+        (t: string) => t.toLowerCase()
+      );
+
+      // ── Validate each entry ───────────────────────────────────────────────
+      for (let i = 0; i < paymentPhoneNumbers.length; i++) {
+        const entry = paymentPhoneNumbers[i];
+
+        if (!entry.mobileNumber || !entry.mobileType || !entry.name) {
+          return ctx.badRequest(
+            `Entry at index ${i} is missing required fields (mobileNumber, mobileType, name)`
+          );
+        }
+
+        // Phone number must start with country code (e.g. +260...)
+        const cleaned = entry.mobileNumber.replace(/\s/g, '');
+        // if (!/^\\d{7,15}$/.test(cleaned)) {
+        //   return ctx.badRequest(
+        //     `Entry at index ${i}: mobileNumber must include country code e.g. +260971234567`
+        //   );
+        // }
+
+        // mobileType must be in the country's accepted list
+        if (acceptedTypes.length > 0 && !acceptedTypes.includes(entry.mobileType.toLowerCase())) {
+          return ctx.badRequest(
+            `Entry at index ${i}: mobileType "${entry.mobileType}" is not accepted in your country. Accepted: ${acceptedTypes.join(', ')}`
+          );
+        }
+      }
+
+      // ── Normalise and save ────────────────────────────────────────────────
+      const normalised = paymentPhoneNumbers.map(entry => ({
+        mobileNumber: entry.mobileNumber.replace(/\s/g, ''),
+        mobileType: entry.mobileType.toLowerCase(),
+        name: entry.name.trim(),
+      }));
+
+      await strapi.db.query('driver-profiles.driver-profile').update({
+        where: { id: user.driverProfile.id },
+        data: {
+          paymentPhoneNumbers: normalised,
+        },
+      });
+
+      return ctx.send({
+        success: true,
+        message: 'Payment phone numbers updated successfully',
+        paymentPhoneNumbers: normalised,
+      });
+    } catch (error) {
+      strapi.log.error('Save payment phone numbers error:', error);
+      return ctx.internalServerError('Failed to save payment phone numbers');
+    }
   }
 }));

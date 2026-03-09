@@ -108,7 +108,7 @@ export default function MainLayout({ children }) {
 
   return (
     <Box sx={{ minHeight: '100vh', pb: 10 }}>
-      {children}
+        {children}
       <BottomNav />
     </Box>
   );

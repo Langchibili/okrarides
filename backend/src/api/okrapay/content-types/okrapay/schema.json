@@ -4,7 +4,7 @@
   "info": {
     "singularName": "okrapay",
     "pluralName": "okrapays",
-    "displayName": "OkraPay Transaction",
+    "displayName": "OkraPay",
     "name": "okrapay",
     "description": "Records every payment or payout transaction routed through the OkraPay gateway layer"
   },

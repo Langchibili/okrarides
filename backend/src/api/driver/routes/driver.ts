@@ -176,6 +176,18 @@ export default {
       path: '/driver/vehicles/assigned-vehicle',
       handler: 'driver.updateDriverVehicle',
       config: { policies: [] }
-    }
+    },
+    {
+      method: 'GET',
+      path: '/driver/payment-phone-numbers',
+      handler: 'driver.getPaymentPhoneNumbers',
+      config: { policies: []},
+    },
+    {
+      method: 'PUT',
+      path: '/driver/payment-phone-numbers',
+      handler: 'driver.savePaymentPhoneNumbers',
+      config: { policies: [] },
+    },
   ]
 };

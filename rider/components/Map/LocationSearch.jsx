@@ -1061,7 +1061,7 @@ export const LocationSearch = ({
         )}
       </AnimatePresence>
     </Box>
-  );
-};
+  )
+}
 
 export default LocationSearch;

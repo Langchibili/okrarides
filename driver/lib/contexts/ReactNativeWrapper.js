@@ -660,8 +660,8 @@ export function ReactNativeWrapper({ children }) {
   const sendToNative = useCallback((type, payload = {}) => {
     return new Promise((resolve, reject) => {
       if (!isNative || !window.ReactNativeWebView) {
-        reject(new Error('Not running in React Native environment'));
-        return;
+        console.log('Not running in React Native environment');
+        resolve(null); 
       }
 
       const requestId = `req_${++requestIdCounterRef.current}_${Date.now()}`;

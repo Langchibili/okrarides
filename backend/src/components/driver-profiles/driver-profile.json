@@ -152,6 +152,10 @@
       "type": "decimal",
       "default": 0
     },
+    "WithdrawablefloatBalance": {
+      "type": "decimal",
+      "default": 0
+    },
     "floatLimit": {
       "type": "decimal"
     },
@@ -331,6 +335,9 @@
     "isEnroute": {
       "type": "boolean",
       "default": false
+    },
+    "paymentPhoneNumbers": {
+      "type": "json"
     }
   }
 }

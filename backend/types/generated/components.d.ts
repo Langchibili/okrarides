@@ -267,6 +267,7 @@ export interface DriverProfilesDriverProfile extends Struct.ComponentSchema {
     nationalIdNumber: Schema.Attribute.String & Schema.Attribute.Unique;
     negativeBalanceLimit: Schema.Attribute.Decimal &
       Schema.Attribute.DefaultTo<0>;
+    paymentPhoneNumbers: Schema.Attribute.JSON;
     pendingWithdrawal: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     preferredNavigationApp: Schema.Attribute.Enumeration<
       ['google_maps', 'waze']
@@ -317,6 +318,8 @@ export interface DriverProfilesDriverProfile extends Struct.ComponentSchema {
     >;
     voiceNavigationEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
+    WithdrawablefloatBalance: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
   };
 }
 

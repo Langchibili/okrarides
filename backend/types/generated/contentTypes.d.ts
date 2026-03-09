@@ -442,6 +442,8 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    adminSupportEmails: Schema.Attribute.JSON;
+    adminSupportNumbers: Schema.Attribute.JSON;
     affiliateSystemEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
     allowFloatTopUpWithOkraPay: Schema.Attribute.Boolean &
@@ -506,6 +508,8 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
       Schema.Attribute.DefaultTo<10>;
     minimumPointsForRedemption: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<100>;
+    minimumWithdrawAmount: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<10>;
     moneyPerPoint: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0.1>;
     negativeFloatLimit: Schema.Attribute.Decimal &
       Schema.Attribute.DefaultTo<0>;
@@ -561,6 +565,8 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
       Schema.Attribute.Private;
     whatsappEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
+    withdrawableBalance: Schema.Attribute.Enumeration<['float', 'earnings']> &
+      Schema.Attribute.DefaultTo<'float'>;
   };
 }
 
@@ -1200,6 +1206,7 @@ export interface ApiCountryCountry extends Struct.CollectionTypeSchema {
     };
   };
   attributes: {
+    acceptedMobileMoneyPayments: Schema.Attribute.JSON;
     code: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique &
@@ -2076,7 +2083,7 @@ export interface ApiOkrapayOkrapay extends Struct.CollectionTypeSchema {
   collectionName: 'okrapays';
   info: {
     description: 'Records every payment or payout transaction routed through the OkraPay gateway layer';
-    displayName: 'OkraPay Transaction';
+    displayName: 'OkraPay';
     name: 'okrapay';
     pluralName: 'okrapays';
     singularName: 'okrapay';

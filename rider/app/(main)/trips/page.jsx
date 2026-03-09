@@ -1,3 +1,4 @@
+//rider\app\(main)\trips\page.jsx
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

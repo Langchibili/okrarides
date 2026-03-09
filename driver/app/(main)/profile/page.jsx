@@ -1,3 +1,4 @@
+//Okra\Okrarides\driver\app\(main)\profile\page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -17,8 +18,6 @@ import {
   Divider,
   IconButton,
   Chip,
-  Switch,
-  Alert,
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
@@ -34,7 +33,7 @@ import {
   Logout as LogoutIcon,
   ChevronRight as ChevronIcon,
   Star as StarIcon,
-  CheckCircle as CheckIcon,
+  AccountBalance as AccountBalanceIcon,
   CardGiftcard,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -56,41 +55,13 @@ export default function ProfilePage() {
   const getVerificationBadge = () => {
     switch (driverProfile?.verificationStatus) {
       case VERIFICATION_STATUS.APPROVED:
-        return (
-          <Chip
-            label="✓ Verified"
-            color="success"
-            size="small"
-            sx={{ fontWeight: 600 }}
-          />
-        );
+        return <Chip label="✓ Verified" color="success" size="small" sx={{ fontWeight: 600 }} />;
       case VERIFICATION_STATUS.PENDING:
-        return (
-          <Chip
-            label="⏳ Pending"
-            color="warning"
-            size="small"
-            sx={{ fontWeight: 600 }}
-          />
-        );
+        return <Chip label="⏳ Pending" color="warning" size="small" sx={{ fontWeight: 600 }} />;
       case VERIFICATION_STATUS.REJECTED:
-        return (
-          <Chip
-            label="✗ Rejected"
-            color="error"
-            size="small"
-            sx={{ fontWeight: 600 }}
-          />
-        );
+        return <Chip label="✗ Rejected" color="error" size="small" sx={{ fontWeight: 600 }} />;
       default:
-        return (
-          <Chip
-            label="Not Verified"
-            color="default"
-            size="small"
-            sx={{ fontWeight: 600 }}
-          />
-        );
+        return <Chip label="Not Verified" color="default" size="small" sx={{ fontWeight: 600 }} />;
     }
   };
 
@@ -102,9 +73,7 @@ export default function ProfilePage() {
           <IconButton edge="start" color="inherit" onClick={() => router.back()}>
             <BackIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ flex: 1 }}>
-            Profile
-          </Typography>
+          <Typography variant="h6" sx={{ flex: 1 }}>Profile</Typography>
           <IconButton color="inherit" onClick={() => router.push('/profile/edit')}>
             <EditIcon />
           </IconButton>
@@ -117,14 +86,7 @@ export default function ProfilePage() {
           <Paper elevation={3} sx={{ p: 3, borderRadius: 4, mb: 3, textAlign: 'center' }}>
             <Avatar
               src={user?.profilePicture}
-              sx={{
-                width: 100,
-                height: 100,
-                mx: 'auto',
-                mb: 2,
-                border: 3,
-                borderColor: 'primary.main',
-              }}
+              sx={{ width: 100, height: 100, mx: 'auto', mb: 2, border: 3, borderColor: 'primary.main' }}
             >
               {user?.firstName?.[0]}
             </Avatar>
@@ -132,7 +94,6 @@ export default function ProfilePage() {
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
               {user?.firstName} {user?.lastName}
             </Typography>
-
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               {user?.phoneNumber}
             </Typography>
@@ -142,41 +103,28 @@ export default function ProfilePage() {
             {/* Driver Stats */}
             <Box
               sx={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                gap: 2,
-                mt: 3,
-                pt: 3,
-                borderTop: 1,
-                borderColor: 'divider',
+                display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2,
+                mt: 3, pt: 3, borderTop: 1, borderColor: 'divider',
               }}
             >
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
                   {driverProfile?.totalRides || 0}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Total Rides
-                </Typography>
+                <Typography variant="caption" color="text.secondary">Total Rides</Typography>
               </Box>
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  <StarIcon
-                    sx={{ fontSize: 20, color: 'warning.main', verticalAlign: 'middle' }}
-                  />{' '}
+                  <StarIcon sx={{ fontSize: 20, color: 'warning.main', verticalAlign: 'middle' }} />{' '}
                   {driverProfile?.averageRating?.toFixed(1) || '0.0'}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Rating
-                </Typography>
+                <Typography variant="caption" color="text.secondary">Rating</Typography>
               </Box>
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
                   {driverProfile?.completionRate?.toFixed(0) || 0}%
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Completion
-                </Typography>
+                <Typography variant="caption" color="text.secondary">Completion</Typography>
               </Box>
             </Box>
           </Paper>
@@ -186,19 +134,12 @@ export default function ProfilePage() {
         <Paper elevation={2} sx={{ borderRadius: 3, mb: 2, overflow: 'hidden' }}>
           <List disablePadding>
             <ListItem sx={{ bgcolor: 'background.default', py: 1 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                ACCOUNT
-              </Typography>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600 }}>ACCOUNT</Typography>
             </ListItem>
 
             <ListItemButton onClick={() => router.push('/profile/edit')}>
-              <ListItemIcon>
-                <ProfileIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Edit Profile"
-                secondary="Name, photo, contact info"
-              />
+              <ListItemIcon><ProfileIcon /></ListItemIcon>
+              <ListItemText primary="Edit Profile" secondary="Name, photo, contact info" />
               <ChevronIcon />
             </ListItemButton>
 
@@ -208,19 +149,14 @@ export default function ProfilePage() {
               <ListItemIcon>
                 <VerifiedIcon color={driverProfile?.verificationStatus === VERIFICATION_STATUS.APPROVED ? 'success' : 'default'} />
               </ListItemIcon>
-              <ListItemText
-                primary="Verification Status"
-                secondary={driverProfile?.verificationStatus || 'Not started'}
-              />
+              <ListItemText primary="Verification Status" secondary={driverProfile?.verificationStatus || 'Not started'} />
               <ChevronIcon />
             </ListItemButton>
 
             <Divider />
 
             <ListItemButton onClick={() => router.push('/vehicle')}>
-              <ListItemIcon>
-                <VehicleIcon />
-              </ListItemIcon>
+              <ListItemIcon><VehicleIcon /></ListItemIcon>
               <ListItemText
                 primary="Vehicle Information"
                 secondary={
@@ -235,13 +171,8 @@ export default function ProfilePage() {
             <Divider />
 
             <ListItemButton onClick={() => router.push('/profile/performance')}>
-              <ListItemIcon>
-                <PerformanceIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Performance Metrics"
-                secondary="Stats, ratings, completion rate"
-              />
+              <ListItemIcon><PerformanceIcon /></ListItemIcon>
+              <ListItemText primary="Performance Metrics" secondary="Stats, ratings, completion rate" />
               <ChevronIcon />
             </ListItemButton>
           </List>
@@ -251,21 +182,31 @@ export default function ProfilePage() {
         <Paper elevation={2} sx={{ borderRadius: 3, mb: 2, overflow: 'hidden' }}>
           <List disablePadding>
             <ListItem sx={{ bgcolor: 'background.default', py: 1 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                EARNINGS & FINANCE
-              </Typography>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600 }}>EARNINGS & FINANCE</Typography>
             </ListItem>
 
             <ListItemButton onClick={() => router.push('/subscription')}>
-              <ListItemIcon>
-                <CardGiftcard/>
-              </ListItemIcon>
+              <ListItemIcon><CardGiftcard /></ListItemIcon>
               <ListItemText
                 primary="Subscription"
+                secondary={driverProfile?.subscriptionStatus === 'active' ? 'Active - No commission' : 'View plans'}
+              />
+              <ChevronIcon />
+            </ListItemButton>
+
+            <Divider />
+
+            {/* ── Mobile Money Numbers ── */}
+            <ListItemButton onClick={() => router.push('/mobile-money-numbers')}>
+              <ListItemIcon>
+                <AccountBalanceIcon color={driverProfile?.paymentPhoneNumbers?.length > 0 ? 'primary' : 'default'} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Mobile Money Numbers"
                 secondary={
-                  driverProfile?.subscriptionStatus === 'active'
-                    ? 'Active - No commission'
-                    : 'View plans'
+                  driverProfile?.paymentPhoneNumbers?.length > 0
+                    ? `${driverProfile.paymentPhoneNumbers.length} number${driverProfile.paymentPhoneNumbers.length > 1 ? 's' : ''} saved`
+                    : 'Add payout numbers'
                 }
               />
               <ChevronIcon />
@@ -274,26 +215,16 @@ export default function ProfilePage() {
             <Divider />
 
             <ListItemButton onClick={() => router.push('/earnings/withdraw')}>
-              <ListItemIcon>
-                <DocumentIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Withdrawals"
-                secondary="Request withdrawal"
-              />
+              <ListItemIcon><DocumentIcon /></ListItemIcon>
+              <ListItemText primary="Withdrawals" secondary="Request withdrawal" />
               <ChevronIcon />
             </ListItemButton>
 
             <Divider />
 
             <ListItemButton onClick={() => router.push('/profile/referrals')}>
-              <ListItemIcon>
-                <ReferralIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Referral Program"
-                secondary="Earn points by referring"
-              />
+              <ListItemIcon><ReferralIcon /></ListItemIcon>
+              <ListItemText primary="Referral Program" secondary="Earn points by referring" />
               <ChevronIcon />
             </ListItemButton>
           </List>
@@ -303,45 +234,28 @@ export default function ProfilePage() {
         <Paper elevation={2} sx={{ borderRadius: 3, mb: 2, overflow: 'hidden' }}>
           <List disablePadding>
             <ListItem sx={{ bgcolor: 'background.default', py: 1 }}>
-              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                SUPPORT & SETTINGS
-              </Typography>
+              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600 }}>SUPPORT & SETTINGS</Typography>
             </ListItem>
 
             <ListItemButton onClick={() => router.push('/profile/settings')}>
-              <ListItemIcon>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Settings"
-                secondary="App preferences, notifications"
-              />
+              <ListItemIcon><SettingsIcon /></ListItemIcon>
+              <ListItemText primary="Settings" secondary="App preferences, notifications" />
               <ChevronIcon />
             </ListItemButton>
 
             <Divider />
 
             <ListItemButton onClick={() => router.push('/help')}>
-              <ListItemIcon>
-                <HelpIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Help Center"
-                secondary="FAQs, guides, contact support"
-              />
+              <ListItemIcon><HelpIcon /></ListItemIcon>
+              <ListItemText primary="Help Center" secondary="FAQs, guides, contact support" />
               <ChevronIcon />
             </ListItemButton>
 
             <Divider />
 
             <ListItemButton onClick={() => router.push('/profile/legal')}>
-              <ListItemIcon>
-                <DocumentIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary="Legal"
-                secondary="Terms, privacy policy"
-              />
+              <ListItemIcon><DocumentIcon /></ListItemIcon>
+              <ListItemText primary="Legal" secondary="Terms, privacy policy" />
               <ChevronIcon />
             </ListItemButton>
           </List>
@@ -350,9 +264,7 @@ export default function ProfilePage() {
         {/* Logout */}
         <Paper elevation={2} sx={{ borderRadius: 3, overflow: 'hidden' }}>
           <ListItemButton onClick={handleLogout} sx={{ py: 2 }}>
-            <ListItemIcon>
-              <LogoutIcon color="error" />
-            </ListItemIcon>
+            <ListItemIcon><LogoutIcon color="error" /></ListItemIcon>
             <ListItemText
               primary="Logout"
               primaryTypographyProps={{ color: 'error.main', fontWeight: 600 }}
@@ -360,12 +272,7 @@ export default function ProfilePage() {
           </ListItemButton>
         </Paper>
 
-        {/* App Version */}
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ display: 'block', textAlign: 'center', mt: 3 }}
-        >
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 3 }}>
           OkraRides Driver v1.0.0
         </Typography>
       </Box>

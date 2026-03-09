@@ -6,6 +6,8 @@ import { AuthProvider } from '@/lib/hooks/useAuth';
 import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
 import { SocketProvider } from '@/lib/socket/SocketProvider';
 import { ReactNativeWrapper } from '@/lib/contexts/ReactNativeWrapper';
+import { MapsProvider } from '@/components/APIProviders/MapsProvider';
+
 // we are getting the native code wrapper here because we are using it as a hook inside the layout file for main pages or authenticated pages
 
 const inter = Inter({
@@ -60,7 +62,9 @@ export default function RootLayout({ children }) {
             <AdminSettingsProvider>
               <AuthProvider>
                 <SocketProvider>
-                  {children}
+                  <MapsProvider>
+                    {children}
+                  </MapsProvider>
                 </SocketProvider>
               </AuthProvider>
             </AdminSettingsProvider>

@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-06T01:32:10.388Z"
+    "x-generation-date": "2026-03-09T20:14:12.420Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -10332,6 +10332,156 @@
         ],
         "parameters": [],
         "operationId": "put/driver/vehicles/assigned-vehicle",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DriverRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/driver/payment-phone-numbers": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Driver"
+        ],
+        "parameters": [],
+        "operationId": "get/driver/payment-phone-numbers"
+      },
+      "put": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Driver"
+        ],
+        "parameters": [],
+        "operationId": "put/driver/payment-phone-numbers",
         "requestBody": {
           "required": true,
           "content": {
@@ -30185,6 +30335,18 @@
               "appsServerPollingIntervalInSeconds": {
                 "type": "integer"
               },
+              "adminSupportNumbers": {},
+              "adminSupportEmails": {},
+              "withdrawableBalance": {
+                "type": "string",
+                "enum": [
+                  "float",
+                  "earnings"
+                ]
+              },
+              "minimumWithdrawAmount": {
+                "type": "integer"
+              },
               "locale": {
                 "type": "string"
               },
@@ -31111,6 +31273,18 @@
           "appsServerPollingIntervalInSeconds": {
             "type": "integer"
           },
+          "adminSupportNumbers": {},
+          "adminSupportEmails": {},
+          "withdrawableBalance": {
+            "type": "string",
+            "enum": [
+              "float",
+              "earnings"
+            ]
+          },
+          "minimumWithdrawAmount": {
+            "type": "integer"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -31482,6 +31656,18 @@
                   "type": "boolean"
                 },
                 "appsServerPollingIntervalInSeconds": {
+                  "type": "integer"
+                },
+                "adminSupportNumbers": {},
+                "adminSupportEmails": {},
+                "withdrawableBalance": {
+                  "type": "string",
+                  "enum": [
+                    "float",
+                    "earnings"
+                  ]
+                },
+                "minimumWithdrawAmount": {
                   "type": "integer"
                 },
                 "createdAt": {
@@ -35673,6 +35859,7 @@
                             "isActive": {
                               "type": "boolean"
                             },
+                            "acceptedMobileMoneyPayments": {},
                             "createdAt": {
                               "type": "string",
                               "format": "date-time"
@@ -38171,6 +38358,10 @@
             "type": "number",
             "format": "float"
           },
+          "WithdrawablefloatBalance": {
+            "type": "number",
+            "format": "float"
+          },
           "floatLimit": {
             "type": "number",
             "format": "float"
@@ -38394,7 +38585,8 @@
           },
           "isEnroute": {
             "type": "boolean"
-          }
+          },
+          "paymentPhoneNumbers": {}
         }
       },
       "DeliveryVehiclesTaxiComponent": {
@@ -43789,6 +43981,7 @@
                       "isActive": {
                         "type": "boolean"
                       },
+                      "acceptedMobileMoneyPayments": {},
                       "createdAt": {
                         "type": "string",
                         "format": "date-time"
@@ -44662,6 +44855,7 @@
                   "isActive": {
                     "type": "boolean"
                   },
+                  "acceptedMobileMoneyPayments": {},
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -48295,6 +48489,7 @@
               "isActive": {
                 "type": "boolean"
               },
+              "acceptedMobileMoneyPayments": {},
               "locale": {
                 "type": "string"
               },
@@ -48707,6 +48902,7 @@
           "isActive": {
             "type": "boolean"
           },
+          "acceptedMobileMoneyPayments": {},
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -48778,6 +48974,7 @@
                 "isActive": {
                   "type": "boolean"
                 },
+                "acceptedMobileMoneyPayments": {},
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -63947,6 +64144,7 @@
               "isActive": {
                 "type": "boolean"
               },
+              "acceptedMobileMoneyPayments": {},
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -85929,6 +86127,7 @@
                           "isActive": {
                             "type": "boolean"
                           },
+                          "acceptedMobileMoneyPayments": {},
                           "createdAt": {
                             "type": "string",
                             "format": "date-time"
@@ -94014,6 +94213,7 @@
                   "isActive": {
                     "type": "boolean"
                   },
+                  "acceptedMobileMoneyPayments": {},
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"

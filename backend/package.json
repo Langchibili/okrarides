@@ -22,6 +22,8 @@
     "@strapi/plugin-users-permissions": "5.31.2",
     "@strapi/strapi": "5.31.2",
     "axios": "^1.13.2",
+    "jose": "^6.2.0",
+    "lenco-node": "^2.0.0",
     "mysql2": "3.9.8",
     "nodemailer": "^7.0.11",
     "qrcode": "^1.5.4",

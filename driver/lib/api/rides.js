@@ -544,7 +544,7 @@ class RideAPI {
   //   }
   // }
 
-  async getActiveRide() {
+async getActiveRide() {
   try {
     const response = await apiClient.get('/rides/active');
     return {

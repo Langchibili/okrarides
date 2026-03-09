@@ -1,11 +1,13 @@
+//Okra\Okrarides\driver\app\(main)\onboarding\pending\page.jsx
 'use client'
 
-import { Box, Typography, Button, Paper, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
+import { Box, Typography, Button, Paper, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material'
 import {
   HourglassEmpty as PendingIcon,
   CheckCircle as CheckIcon,
   Notifications as NotificationIcon,
   Email as EmailIcon,
+  AccountBalance as AccountBalanceIcon,
 } from '@mui/icons-material'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
@@ -96,7 +98,40 @@ export default function PendingPage() {
             </List>
           </Paper>
 
-          {/* Action Button */}
+          {/* Mobile Money Card */}
+          <Paper
+            elevation={2}
+            sx={{
+              p: 3,
+              mb: 3,
+              borderRadius: 4,
+              border: '1.5px solid',
+              borderColor: 'primary.light',
+              bgcolor: 'primary.50',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+              <AccountBalanceIcon color="primary" />
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                Set Up Payment Info While You Wait
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Add your mobile money numbers which riders can send payment to
+            </Typography>
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              startIcon={<AccountBalanceIcon />}
+              onClick={() => router.push('/mobile-money-numbers')}
+              sx={{ height: 52, borderRadius: 3, fontWeight: 600 }}
+            >
+              Add Mobile Money Numbers
+            </Button>
+          </Paper>
+
+          {/* Back to Home */}
           <Button
             fullWidth
             variant="outlined"
@@ -107,6 +142,7 @@ export default function PendingPage() {
             Back to Home
           </Button>
         </motion.div>
-        </Box>
-      </Box>)
+      </Box>
+    </Box>
+  )
 }

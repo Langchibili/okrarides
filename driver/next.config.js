@@ -120,4 +120,5 @@ module.exports = withPWA({
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  turbopack: {}
 });
