@@ -318,7 +318,7 @@ export interface DriverProfilesDriverProfile extends Struct.ComponentSchema {
     >;
     voiceNavigationEnabled: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
-    WithdrawablefloatBalance: Schema.Attribute.Decimal &
+    withdrawableFloatBalance: Schema.Attribute.Decimal &
       Schema.Attribute.DefaultTo<0>;
   };
 }

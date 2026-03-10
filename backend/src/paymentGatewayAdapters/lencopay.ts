@@ -260,7 +260,7 @@ export class LencoPayAdapter implements IPaymentGateway {
       operator:  params.operator || params.provider     || 'mtn',
       country:   params.country  || 'zm',
     };
-
+    console.log('this.accountId',typeof this.accountId)
     const res = await lencoPost<{
       data: {
         id:             string;

@@ -152,7 +152,7 @@
       "type": "decimal",
       "default": 0
     },
-    "WithdrawablefloatBalance": {
+    "withdrawableFloatBalance": {
       "type": "decimal",
       "default": 0
     },

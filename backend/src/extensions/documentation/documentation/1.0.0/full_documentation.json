@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-09T20:14:12.420Z"
+    "x-generation-date": "2026-03-10T02:06:59.117Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -38358,7 +38358,7 @@
             "type": "number",
             "format": "float"
           },
-          "WithdrawablefloatBalance": {
+          "withdrawableFloatBalance": {
             "type": "number",
             "format": "float"
           },
