@@ -1,271 +1,197 @@
-// // components/ui/SwipeableBottomSheet.jsx
-// 'use client';
-
-// import { useState, useRef } from 'react';
-// import { Box, Paper } from '@mui/material';
-// import { motion, useDragControls } from 'framer-motion';
-
-// const SwipeableBottomSheet = ({
-//   children,
-//   open = true,
-//   onClose,
-//   initialHeight = 400,
-//   maxHeight = 600,
-//   minHeight = 200,
-// }) => {
-//   const [height, setHeight] = useState(initialHeight);
-//   const dragControls = useDragControls();
-//   const sheetRef = useRef(null);
-
-//   const handleDrag = (event, info) => {
-//     const newHeight = Math.max(minHeight, Math.min(maxHeight, height - info.delta.y));
-//     setHeight(newHeight);
-//   };
-
-//   const handleDragEnd = () => {
-//     // Snap to nearest height
-//     if (height < minHeight + 50) {
-//       setHeight(minHeight);
-//     } else if (height > maxHeight - 50) {
-//       setHeight(maxHeight);
-//     } else {
-//       setHeight(initialHeight);
-//     }
-//   };
-
-//   if (!open) return null;
-
-//   return (
-//     <motion.div
-//       ref={sheetRef}
-//       style={{
-//         position: 'absolute',
-//         bottom: 0,
-//         left: 0,
-//         right: 0,
-//         zIndex: 100,
-//         height: `${height}px`,
-//       }}
-//       initial={{ y: '100%' }}
-//       animate={{ y: 0 }}
-//       exit={{ y: '100%' }}
-//       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-//     >
-//       <Paper
-//         sx={{
-//           height: '100%',
-//           borderTopLeftRadius: 24,
-//           borderTopRightRadius: 24,
-//           display: 'flex',
-//           flexDirection: 'column',
-//           overflow: 'hidden',
-//           boxShadow: '0 -4px 24px rgba(0,0,0,0.1)',
-//         }}
-//       >
-//         {/* Drag Handle */}
-//         <Box
-//           sx={{
-//             py: 1.5,
-//             display: 'flex',
-//             justifyContent: 'center',
-//             cursor: 'grab',
-//             touchAction: 'none',
-//             userSelect: 'none',
-//             '&:active': {
-//               cursor: 'grabbing',
-//             },
-//           }}
-//           onPointerDown={(e) => {
-//             dragControls.start(e);
-//           }}
-//         >
-//           <Box
-//             sx={{
-//               width: 40,
-//               height: 4,
-//               borderRadius: 2,
-//               bgcolor: 'divider',
-//             }}
-//           />
-//         </Box>
-
-//         {/* Content */}
-//         <motion.div
-//           drag="y"
-//           dragControls={dragControls}
-//           dragConstraints={{ top: 0, bottom: 0 }}
-//           dragElastic={0.1}
-//           onDrag={handleDrag}
-//           onDragEnd={handleDragEnd}
-//           style={{
-//             flex: 1,
-//             overflow: 'hidden',
-//             touchAction: 'pan-y',
-//           }}
-//         >
-//           <Box sx={{ height: '100%', overflow: 'auto', pb: 2 }}>
-//             {children}
-//           </Box>
-//         </motion.div>
-//       </Paper>
-//     </motion.div>
-//   );
-// };
-
-// export default SwipeableBottomSheet;
 // components/ui/SwipeableBottomSheet.jsx
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Box, Paper } from '@mui/material';
-import { motion, useDragControls } from 'framer-motion';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Box } from '@mui/material';
+import { motion } from 'framer-motion';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BottomSheetDragPill
+// Place as the FIRST child inside your header Box.
+// Same container = same colour = zero seam/line.
+// ─────────────────────────────────────────────────────────────────────────────
+export const BottomSheetDragPill = ({ colored = false, sx = {} }) => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', pt: 1.5, pb: 0.75, ...sx }}>
+    <Box
+      sx={{
+        width: 36,
+        height: 4,
+        borderRadius: 2,
+        bgcolor: colored ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.14)',
+        flexShrink: 0,
+      }}
+    />
+  </Box>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function resolvePx(h) {
+  if (typeof h === 'string' && h.includes('%')) {
+    if (typeof window === 'undefined') return 400;
+    return Math.round(window.innerHeight * (parseFloat(h) / 100));
+  }
+  return Math.round(parseFloat(h) || 400);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SwipeableBottomSheet
+// Props
+//   draggable      default true  — false locks the sheet (ride options use this)
+//   initialHeight  px or "80%"  — starting height
+//   maxHeight      px or "90%"  — hard ceiling when free-dragging
+//   expandedHeight px or "90%"  — programmatic expand target
+//   persistHeight               — keep expanded height until explicit swipe-down
+//   onSwipeDown                 — fired when user collapses
+// ─────────────────────────────────────────────────────────────────────────────
 const SwipeableBottomSheet = ({
   children,
   open = true,
-  onClose,
   initialHeight = 400,
-  maxHeight = 600,
+  maxHeight = '90%',
   minHeight = 200,
-  expandedHeight = null, // New prop for dynamic expansion (e.g., "70%")
-  onSwipeDown, // Callback when user swipes down
+  expandedHeight = null,
+  onSwipeDown,
+  persistHeight = false,
+  draggable = true,
 }) => {
-  const [height, setHeight] = useState(initialHeight);
+  const [height, setHeight] = useState(() => resolvePx(initialHeight));
   const [isExpanded, setIsExpanded] = useState(false);
-  const dragControls = useDragControls();
-  const sheetRef = useRef(null);
-  const containerRef = useRef(null);
+  const savedExpandedRef = useRef(null);
+  const lastH = useRef(resolvePx(initialHeight));
+  const scrollRef = useRef(null);
 
-  // Calculate actual expanded height based on viewport
+  const getMax = useCallback(() => {
+    if (savedExpandedRef.current && isExpanded) return savedExpandedRef.current;
+    if (expandedHeight) return resolvePx(expandedHeight);
+    return resolvePx(maxHeight);
+  }, [expandedHeight, maxHeight, isExpanded]);
+
+  // Sync height from props
   useEffect(() => {
     if (expandedHeight) {
-      const viewportHeight = window.innerHeight;
-      let calculatedHeight;
-      
-      if (typeof expandedHeight === 'string' && expandedHeight.includes('%')) {
-        const percentage = parseFloat(expandedHeight) / 100;
-        calculatedHeight = viewportHeight * percentage;
-      } else {
-        calculatedHeight = expandedHeight;
-      }
-      
-      setHeight(calculatedHeight);
+      const h = resolvePx(expandedHeight);
+      savedExpandedRef.current = h;
+      lastH.current = h;
+      setHeight(h);
       setIsExpanded(true);
-    } else {
-      setHeight(initialHeight);
+      // Scroll to top so user sees the header
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    } else if (!persistHeight || !isExpanded) {
+      const h = resolvePx(initialHeight);
+      lastH.current = h;
+      setHeight(h);
       setIsExpanded(false);
     }
-  }, [expandedHeight, initialHeight]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expandedHeight, initialHeight, persistHeight]);
 
-  const handleDrag = (event, info) => {
-    // Calculate the max allowed height based on whether we're in expanded mode
-    const effectiveMaxHeight = expandedHeight 
-      ? (typeof expandedHeight === 'string' && expandedHeight.includes('%')
-          ? window.innerHeight * (parseFloat(expandedHeight) / 100)
-          : expandedHeight)
-      : maxHeight;
-    
-    const newHeight = Math.max(minHeight, Math.min(effectiveMaxHeight, height - info.delta.y));
-    setHeight(newHeight);
-    
-    // Detect swipe down gesture
-    if (info.delta.y > 5 && onSwipeDown) {
-      onSwipeDown();
-    }
-  };
+  // Scroll to top when sheet first appears
+  useEffect(() => {
+    if (open && scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [open]);
 
-  const handleDragEnd = (event, info) => {
-    // Snap to nearest height
-    if (height < minHeight + 50) {
-      setHeight(minHeight);
-    } else if (expandedHeight && height > maxHeight - 50) {
-      const viewportHeight = window.innerHeight;
-      const calculatedHeight = typeof expandedHeight === 'string' && expandedHeight.includes('%')
-        ? viewportHeight * (parseFloat(expandedHeight) / 100)
-        : expandedHeight;
-      setHeight(calculatedHeight);
-    } else if (height > maxHeight - 50) {
-      setHeight(maxHeight);
-    } else {
-      setHeight(initialHeight);
+  const handleDrag = useCallback((_, info) => {
+    if (!draggable) return;
+    const max = getMax();
+    const min = resolvePx(minHeight);
+    const next = Math.max(min, Math.min(max, lastH.current - info.delta.y));
+    lastH.current = next;
+    setHeight(next);
+  }, [draggable, minHeight, getMax]);
+
+  const handleDragEnd = useCallback((_, info) => {
+    if (!draggable) return;
+    const max = getMax();
+    const min = resolvePx(minHeight);
+    const init = resolvePx(initialHeight);
+    const mxH = resolvePx(maxHeight);
+
+    if (isExpanded) {
+      const collapse = info.velocity.y > 400 || lastH.current < max * 0.6;
+      if (collapse) {
+        lastH.current = init; setHeight(init);
+        setIsExpanded(false);
+        savedExpandedRef.current = null;
+        onSwipeDown?.();
+      } else {
+        lastH.current = max; setHeight(max);
+      }
+      return;
     }
-  };
+
+    if (lastH.current < min + 50)       { lastH.current = min;  setHeight(min);  }
+    else if (lastH.current > mxH - 50)  { lastH.current = mxH;  setHeight(mxH);  }
+    else                                 { lastH.current = init; setHeight(init); }
+  }, [draggable, isExpanded, initialHeight, maxHeight, minHeight, getMax, onSwipeDown]);
 
   if (!open) return null;
 
   return (
     <motion.div
-      ref={sheetRef}
       style={{
         position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        bottom: 0, left: 0, right: 0,
         zIndex: 100,
         height: `${height}px`,
+        maxWidth: '100%',
+        // Contain everything — no horizontal leak
+        overflow: 'hidden',
       }}
       initial={{ y: '100%' }}
       animate={{ y: 0 }}
       exit={{ y: '100%' }}
-      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      transition={{ type: 'spring', damping: 30, stiffness: 240 }}
     >
-      <Paper
-        sx={{
+      <motion.div
+        drag={draggable ? 'y' : false}
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={0.04}
+        dragMomentum={false}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
+        style={{
           height: '100%',
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
           display: 'flex',
           flexDirection: 'column',
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          // IMPORTANT: overflow hidden — children manage their own scroll.
+          // This ensures the footer in RideOptionsSheet is never clipped
+          // by an ancestor scroll container.
           overflow: 'hidden',
-          boxShadow: '0 -4px 24px rgba(0,0,0,0.1)',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 -8px 40px rgba(0,0,0,0.13)',
+          userSelect: draggable ? 'none' : 'auto',
+          WebkitUserSelect: draggable ? 'none' : 'auto',
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
         }}
       >
-        {/* Drag Handle */}
+        {/*
+          The inner Box is intentionally overflow:hidden — NOT overflow:auto.
+          Children (e.g. RideOptionsSheet) receive the full height via
+          flex and manage their own scrollable region internally.
+          This guarantees a sticky footer always sits at the bottom.
+        */}
         <Box
+          ref={scrollRef}
           sx={{
-            py: 1.5,
-            display: 'flex',
-            justifyContent: 'center',
-            cursor: 'grab',
-            touchAction: 'none',
-            userSelect: 'none',
-            '&:active': {
-              cursor: 'grabbing',
-            },
-          }}
-          onPointerDown={(e) => {
-            dragControls.start(e);
-          }}
-        >
-          <Box
-            sx={{
-              width: 40,
-              height: 4,
-              borderRadius: 2,
-              bgcolor: 'divider',
-            }}
-          />
-        </Box>
-
-        {/* Content */}
-        <motion.div
-          drag="y"
-          dragControls={dragControls}
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={0.1}
-          onDrag={handleDrag}
-          onDragEnd={handleDragEnd}
-          style={{
             flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
             overflow: 'hidden',
-            touchAction: 'pan-y',
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
           }}
         >
-          <Box sx={{ height: '100%', overflow: 'auto', pb: 2 }}>
-            {children}
-          </Box>
-        </motion.div>
-      </Paper>
+          {children}
+        </Box>
+      </motion.div>
     </motion.div>
   );
 };

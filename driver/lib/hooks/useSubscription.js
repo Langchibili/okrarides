@@ -53,24 +53,30 @@ export const useSubscription = () => {
   }, [connected, user, updateUser]);
 
   const fetchPlans = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get('/subscriptions/plans');
-      
-      if (response.success) {
-        setPlans(response.plans);
-        setError(null);
-        return response.plans;
-      } else {
-        throw new Error(response.error || 'Failed to fetch plans');
-      }
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const response = await apiClient.get('/subscriptions/plans');
+
+    // Handle raw array (e.g. Strapi returns the array directly)
+    // OR a wrapped response like { success: true, plans: [...] }
+    const plansData = Array.isArray(response)
+      ? response
+      : response?.plans ?? null;
+
+    if (plansData) {
+      setPlans(plansData);
+      setError(null);
+      return plansData;
+    } else {
+      throw new Error(response?.error || 'Failed to fetch plans');
     }
-  }, []);
+  } catch (err) {
+    setError(err.message);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const fetchCurrentSubscription = useCallback(async () => {
     try {
