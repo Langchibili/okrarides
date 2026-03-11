@@ -529,6 +529,7 @@ export default function DriverHomePage() {
     needsVehicle,
     needsSubscription,
     paymentSystemType,
+    loadingDriverProfile
   } = useDriver();
 
   const {
@@ -641,7 +642,8 @@ export default function DriverHomePage() {
       console.error('Error declining ride:', error);
     }
   };
-
+  
+  console.log('driverProfile',driverProfile)
   // ─── Driver-level payment mode ─────────────────────────────────────────────
   const subscriptionStatus = driverProfile?.subscriptionStatus;
   const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
@@ -703,7 +705,8 @@ export default function DriverHomePage() {
     !showVerificationAlert &&
     isOnSubscriptionSystem &&
     floatBalance > 0;
-
+  
+  if(!loadingDriverProfile) {} 
   return (
     // FIX 1: ClientOnly prevents SSR hydration mismatches that cause extra
     // re-renders which previously kept MapsProvider stuck at ready:false.

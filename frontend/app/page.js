@@ -22,8 +22,8 @@ const OkraLandingPage = () => {
       const res = await response.json();
       const urls = res?.data?.paths;
       setFrontendUrls({
-        riderApp: urls['okra-rider-app'] || 'http://10.87.67.23:3001/home',
-        driverApp: urls['okra-driver-app'] || 'http://10.87.67.23:3002/home',
+        riderApp: urls['okra-rider-app'] || 'http://10.27.147.23:3001/home',
+        driverApp: urls['okra-driver-app'] || 'http://10.27.147.23:3002/home',
         deliveryApp: urls['okra-delivery-app'] || 'https://delivery.okra.tech',
         conductorApp: urls['okra-conductor-app'] || 'https://conductor.okra.tech'
       });
@@ -31,8 +31,8 @@ const OkraLandingPage = () => {
     } catch (err) {
       console.error('Error fetching frontend URLs:', err);
       setFrontendUrls({
-        riderApp: 'http://10.87.67.23:3001/home',
-        driverApp: 'http://10.87.67.23:3002/home',
+        riderApp: 'http://10.27.147.23:3001/home',
+        driverApp: 'http://10.27.147.23:3002/home',
         deliveryApp: 'https://delivery.okra.tech',
         conductorApp: 'https://conductor.okra.tech'
       });
