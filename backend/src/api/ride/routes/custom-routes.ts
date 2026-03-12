@@ -109,6 +109,14 @@ export default {
       config: { policies: [] }
     },
     {
+      method:  'GET',
+      path:    '/rides/driver-stats',
+      handler: 'ride.getMyStats',
+      config: {
+        policies:    []
+      }
+    },
+    {
       method: 'POST',
       path: '/rides/:id/rate',
       handler: 'ride.rateRide',

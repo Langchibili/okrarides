@@ -1,10 +1,12 @@
+//Okrarides\driver\components\Driver\OnlineToggle.jsx
 'use client';
 
 import { Paper, Box, Typography, Switch, Chip } from '@mui/material';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
 
 export const OnlineToggle = ({
+  isSubscriptionSystemEnabled,
   isOnline,
   subscriptionStatus,
   onToggle,
@@ -28,6 +30,37 @@ export const OnlineToggle = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
+      <AnimatePresence>
+      {isOnline && (
+        <>
+          {[0, 0.6, 1.2].map((delay, i) => (
+            <motion.div
+              key={`ripple-${i}`}
+              initial={{ opacity: 0.5, scale: 0.4 }}
+              animate={{ opacity: 0, scale: 2.2 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: 'easeOut',
+                delay,
+              }}
+              style={{
+                position: 'absolute',
+                top: '35%',
+                left: '40%',
+                transform: 'translate(-50%, -50%)',
+                width: 80,           // ← fixed px, not '100%'
+                height: 80,          // ← fixed px, not '100%'
+                borderRadius: '50%', // ← circle, not card shape
+                border: '2px solid rgba(255,255,255,0.45)',
+                pointerEvents: 'none',
+              }}
+            />
+          ))}
+        </>
+      )}
+    </AnimatePresence>
       <Paper
         elevation={3}
         sx={{
@@ -78,7 +111,7 @@ export const OnlineToggle = ({
         )}
 
         {/* Subscription Status */}
-        {subscriptionStatus && (
+        {subscriptionStatus && isSubscriptionSystemEnabled && (
           <Box
             sx={{
               mt: 2,
@@ -104,4 +137,4 @@ export const OnlineToggle = ({
 
 export default OnlineToggle;
 
-
+

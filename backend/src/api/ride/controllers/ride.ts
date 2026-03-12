@@ -5,8 +5,9 @@ import { factories } from '@strapi/strapi';
 import { generateUniqueRideCode }  from '../../../services/generateUniqueRideCode';
 import  RideBookingService  from '../../../services/rideBookingService';
 import  RiderBlockingService  from '../../../services/riderBlockingService';
-const { emitRatingSubmitted  } = require('../../../utils/socketUtils');
 import socketService from '../../../services/socketService';
+import { getDriverStats, StatPeriod } from '../../../services/driverStatsService';
+const { emitRatingSubmitted  } = require('../../../utils/socketUtils');
 
 interface Location {
   lat: number;
@@ -99,7 +100,8 @@ async function handleCompleteTrip(
   let commission     = 0;
   let floatDeduction = 0;
   let driverEarnings = 0;
-
+  let withdrawableFloatBalance = 0
+      
   if (isSubscriptionRide) {
     commission     = 0;
     floatDeduction = 0;
@@ -111,15 +113,10 @@ async function handleCompleteTrip(
       commission = settings.defaultFlatCommission || 0;
     }
 
-    if (ride.paymentMethod === 'cash') {
-      // Cash: platform takes its cut from the driver's pre-paid float.
-      floatDeduction = ride.totalFare + commission;
-      driverEarnings = ride.totalFare;
-    } else {
-      // Digital (OkraPay): platform collected fare, forwards driver net share.
-      floatDeduction = 0;
-      driverEarnings = ride.totalFare - commission;
-    }
+    // both payment methods, cash or digital ones, like okrapay incur the same deduction from the driver, because once a driver buys float, we get our money already as a platform, 
+    // so if a driver does trips, when they complete rides, we deduct our commission, in that, the driver will need more float to have more ride bookings
+    floatDeduction = ride.totalFare + commission;
+    driverEarnings = ride.totalFare // so driver earns all the money the rider pays, but due to float deductions, driver makes total float - total rides
   }
 
   // ── New balances ──────────────────────────────────────────────────────────
@@ -129,9 +126,11 @@ async function handleCompleteTrip(
   let newFloatBalance   = currentFloat;
   let newCurrentBalance = currentBalance;
 
-  if (!isSubscriptionRide && ride.paymentMethod === 'cash') {
+  if (!isSubscriptionRide) {
     newFloatBalance   = currentFloat - floatDeduction;
     newCurrentBalance = newFloatBalance > 0 ? newFloatBalance : 0;
+    // calculate the withdrawableFloatBalance by removing the floatDeduction from it, and if withdrawableFloatBalance is negative or 0, it must be reverted to 0
+    withdrawableFloatBalance = driver.driverProfile.withdrawableFloatBalance > 0? driver.driverProfile.withdrawableFloatBalance - floatDeduction : 0
   } else {
     newCurrentBalance = currentBalance + driverEarnings;
   }
@@ -151,6 +150,8 @@ async function handleCompleteTrip(
       paymentStatus:       'completed',
     },
   });
+
+  
   // ── Update driver profile ─────────────────────────────────────────────────
   await strapi.db.query('driver-profiles.driver-profile').update({
     where: { id: driver.driverProfile.id },
@@ -162,6 +163,7 @@ async function handleCompleteTrip(
       totalRides:     (driver.driverProfile.totalRides     || 0) + 1,
       totalEarnings:  (driver.driverProfile.totalEarnings  || 0) + driverEarnings,
       floatBalance:   newFloatBalance,
+      withdrawableFloatBalance: withdrawableFloatBalance > 0? withdrawableFloatBalance : 0, // withdrawableFloatBalance cannot be negative
       currentBalance: newCurrentBalance,
     },
   });
@@ -1999,306 +2001,25 @@ async create(ctx) {
       return ctx.internalServerError(err.message || 'Failed to request payment');
     }
   },
-  // async payCash(ctx) {
-  //   const { id: rideId } = ctx.params;
-  //   const userId = ctx.state.user?.id;
+ async getMyStats(ctx) {
+  try {
+    const driverId = ctx.state.user.id;
+    const period   = (ctx.query.period as string) || 'today';
 
-  //   if (!userId) {
-  //     return ctx.unauthorized('Authentication required');
-  //   }
+    const validPeriods: StatPeriod[] = ['today', 'week', 'month', 'year', 'all'];
+    if (!validPeriods.includes(period as StatPeriod)) {
+      return ctx.badRequest('Invalid period. Use: today | week | month | year | all');
+    }
 
-  //   // ── Fetch ride ────────────────────────────────────────────────────────────
-  //   const ride = await strapi.db.query('api::ride.ride').findOne({
-  //     where: { id: rideId },
-  //     populate: { rider: true, driver: true },
-  //   });
+    // ← strapi is passed explicitly so the service stays testable
+    const stats = await getDriverStats(strapi, driverId, period as StatPeriod);
 
-  //   if (!ride) return ctx.notFound('Ride not found');
-
-  //   // Only the rider of this ride can submit payment
-  //   if (String(ride.rider?.id) !== String(userId)) {
-  //     return ctx.forbidden('You are not the rider of this trip');
-  //   }
-
-  //   // Idempotency: already paid
-  //   if (ride.paymentStatus === 'completed') {
-  //     return ctx.send({ success: true, message: 'Already paid', alreadyCompleted: true });
-  //   }
-
-  //   // Must be in a payable state
-  //   const payableStatuses = ['passenger_onboard', 'awaiting_payment'];
-  //   if (!payableStatuses.includes(ride.rideStatus)) {
-  //     return ctx.badRequest(`Ride cannot be paid in status: ${ride.rideStatus}`);
-  //   }
-
-  //   // ── Update ride ───────────────────────────────────────────────────────────
-  //   const now = new Date().toISOString();
-  //   await strapi.db.query('api::ride.ride').update({
-  //     where:{id:rideId},
-  //     data: {
-  //       paymentMethod:    'cash',
-  //       paymentStatus:    'completed',
-  //       rideStatus:       'completed',
-  //       tripCompletedAt:  now,
-  //     }
-  //   })
-
-  //   // ── Create transaction record ─────────────────────────────────────────────
-  //   try {
-  //     await strapi.db.query('api::transaction.transaction').create({
-  //       data: {
-  //         user:           ride.rider?.id,
-  //         ride:           rideId,
-  //         type:           'ride_payment',
-  //         paymentMethod:         'cash',
-  //         amount:         ride.totalFare ?? ride.estimatedFare ?? 0,
-  //         transactionStatus:         'completed',
-  //         notes:    `Cash payment for ride #${ride.rideCode ?? rideId}`,
-  //         processedAt: now,
-  //       }
-  //     })
-  //   } catch (txErr) {
-  //     strapi.log.warn('[payCash] Failed to create transaction record:', txErr.message);
-  //     // Non-fatal — ride is already marked completed
-  //   }
-
-  //   // ── Emit socket events ────────────────────────────────────────────────────
-  //   // Both rider and driver should receive `payment:received` so their UIs can react.
-  //   const socketService = strapi.service('api::socket.socket');
-
-  //   const eventPayload = {
-  //     rideId:       rideId,
-  //     riderId:      ride.rider?.id,
-  //     driverId:     ride.driver?.id,
-  //     amount:       ride.totalFare ?? ride.estimatedFare ?? 0,
-  //     method:       'cash',
-  //     rideStatus:   'completed',
-  //     paymentStatus:'completed',
-  //     paidAt:       now,
-  //   };
-
-  //   try {
-  //     // To rider
-  //     socketService?.emitToUser?.('rider',  ride.rider?.id,  'payment:received', eventPayload);
-  //     // To driver
-  //     socketService?.emitToUser?.('driver', ride.driver?.id, 'payment:received', eventPayload);
-  //   } catch (emitErr) {
-  //     strapi.log.warn('[payCash] Socket emit error:', emitErr.message);
-  //   }
-
-  //   return ctx.send({
-  //     success:       true,
-  //     message:       'Cash payment recorded. Ride completed.',
-  //     rideStatus:    'completed',
-  //     paymentStatus: 'completed',
-  //     paymentMethod: 'cash',
-  //     paidAt:        now,
-  //   });
-  // },
-
-  // ============================================
-  // Complete trip — handles float deduction and subscription earnings
-  // Float formula: floatBalance - (fareAmount + fareAmount * commissionRate)
-  // Subscription: zero commission, full fare credited to withdrawable balance
-  // Digital rides: earnings added to currentBalance regardless of system
-  // ============================================
-  // async completeTrip(ctx) {
-  //   try {
-  //     const { id } = ctx.params;
-  //     const driverId = ctx.state.user.id;
-  //     const { actualDistance, actualDuration } = ctx.request.body;
-
-  //     const ride = await strapi.db.query('api::ride.ride').findOne({
-  //       where: { id, driver: driverId },
-  //       populate: ['driver', 'rideClass']
-  //     });
-
-  //     if (!ride) {
-  //       return ctx.notFound('Ride not found');
-  //     }
-
-  //     if (ride.rideStatus !== 'passenger_onboard') {
-  //       return ctx.badRequest('Trip not started')
-  //     }
-
-  //     const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
-
-  //     // FIX: populate currentSubscription so isSubscriptionCurrentlyActive() can
-  //     // double-check the actual expiresAt timestamp, not just the denormalized
-  //     // subscriptionStatus field which may be stale between cron runs.
-  //     const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
-  //       where: { id: ride.driver.id },
-  //       populate: {
-  //         driverProfile: {
-  //           populate: {
-  //             currentSubscription: true,
-  //           }
-  //         }
-  //       }
-  //     })
-
-  //     // ─── Determine payment system context ────────────────────────────────
-  //     const paymentSystemType = settings?.paymentSystemType || 'float_based';
-
-  //     // Use isSubscriptionCurrentlyActive() which checks both the denormalized
-  //     // status AND the actual expiresAt on the currentSubscription record.
-  //     const hasActiveSubscription = isSubscriptionCurrentlyActive(driver.driverProfile);
-
-  //     // A ride counts as a subscription ride when:
-  //     // - System is subscription_based, OR
-  //     // - System is hybrid AND driver has an active (non-expired) subscription
-  //     const isSubscriptionRide =
-  //       paymentSystemType === 'subscription_based' ||
-  //       (paymentSystemType === 'hybrid' && hasActiveSubscription);
-
-  //     // ─── Calculate commission & earnings ─────────────────────────────────
-  //     let commission = 0;
-  //     let floatDeduction = 0;
-  //     let driverEarnings = 0;
-
-  //     if (isSubscriptionRide) {
-  //       // Subscription: zero commission, driver keeps the full fare
-  //       commission = 0;
-  //       floatDeduction = 0;
-  //       driverEarnings = ride.totalFare;
-  //     } else {
-  //       // Float-based: apply commission rate
-  //       if (settings?.commissionType === 'percentage') {
-  //         commission = (ride.totalFare * (settings.defaultCommissionPercentage || 15)) / 100;
-  //       } else if (settings?.commissionType === 'flat_rate') {
-  //         commission = settings.defaultFlatCommission || 0;
-  //       }
-
-  //       if (ride.paymentMethod === 'cash') {
-  //         // Cash ride: driver collects cash directly from rider.
-  //         // Platform takes its cut from the driver's pre-paid float.
-  //         // Formula: floatDeduction = fareAmount + (fareAmount * commissionRate)
-  //         floatDeduction = ride.totalFare + commission;
-  //         driverEarnings = ride.totalFare;
-  //       } else {
-  //         // Digital (okrapay): platform collects fare, forwards driver's net share.
-  //         floatDeduction = 0;
-  //         driverEarnings = ride.totalFare - commission;
-  //       }
-  //     }
-
-  //     // ─── Compute new balances ─────────────────────────────────────────────
-  //     const currentFloat = driver.driverProfile?.floatBalance || 0;
-  //     const currentBalance = driver.driverProfile?.currentBalance || 0;
-
-  //     let newFloatBalance = currentFloat;
-  //     let newCurrentBalance = currentBalance;
-
-  //     if (!isSubscriptionRide && ride.paymentMethod === 'cash') {
-  //       newFloatBalance = currentFloat - floatDeduction;
-  //       newCurrentBalance = newFloatBalance > 0 ? newFloatBalance : 0;
-  //     } else {
-  //       newCurrentBalance = currentBalance + driverEarnings;
-  //     }
-
-  //     // ─── Update ride record ───────────────────────────────────────────────
-  //     const updatedRide = await strapi.db.query('api::ride.ride').update({
-  //       where: { id },
-  //       data: {
-  //         rideStatus: 'completed',
-  //         tripCompletedAt: new Date(),
-  //         actualDistance: actualDistance || ride.estimatedDistance,
-  //         actualDuration: actualDuration || ride.estimatedDuration,
-  //         commission,
-  //         driverEarnings,
-  //         commissionDeducted: !isSubscriptionRide,
-  //         wasSubscriptionRide: isSubscriptionRide,
-  //       }
-  //     });
-
-  //     // ─── Update driver profile ────────────────────────────────────────────
-  //     await strapi.db.query('driver-profiles.driver-profile').update({
-  //       where: { id: driver.driverProfile.id },
-  //       data: {
-  //         isAvailable: true,
-  //         isEnroute: false,
-  //         currentRide: null,
-  //         completedRides: (driver.driverProfile.completedRides || 0) + 1,
-  //         totalRides: (driver.driverProfile.totalRides || 0) + 1,
-  //         totalEarnings: (driver.driverProfile.totalEarnings || 0) + driverEarnings,
-  //         floatBalance: newFloatBalance,
-  //         currentBalance: newCurrentBalance,
-  //       }
-  //     });
-
-  //     // ─── Ledger entries ───────────────────────────────────────────────────
-
-  //     // Primary earnings entry
-  //     await strapi.db.query('api::ledger-entry.ledger-entry').create({
-  //       data: {
-  //         entryId: `LE-${Date.now()}`,
-  //         driver: driverId,
-  //         ride: id,
-  //         type: isSubscriptionRide
-  //           ? 'fare_subscription'
-  //           : ride.paymentMethod === 'cash'
-  //           ? 'fare_cash'
-  //           : 'fare_digital',
-  //         amount: driverEarnings,
-  //         source: ride.paymentMethod,
-  //         ledgerStatus: 'settled',
-  //       }
-  //     });
-
-  //     // Float deduction entry (only for cash rides on float system)
-  //     if (floatDeduction > 0) {
-  //       await strapi.db.query('api::ledger-entry.ledger-entry').create({
-  //         data: {
-  //           entryId: `LE-FD-${Date.now()}`,
-  //           driver: driverId,
-  //           ride: id,
-  //           type: 'float_deduction',
-  //           amount: -floatDeduction,
-  //           source: 'system',
-  //           ledgerStatus: 'settled',
-  //         }
-  //       });
-  //     }
-
-  //     // Commission entry (separate record for platform accounting)
-  //     if (commission > 0) {
-  //       await strapi.db.query('api::ledger-entry.ledger-entry').create({
-  //         data: {
-  //           entryId: `LE-COMM-${Date.now()}`,
-  //           driver: driverId,
-  //           ride: id,
-  //           type: 'commission',
-  //           amount: -commission,
-  //           source: 'system',
-  //           ledgerStatus: 'settled',
-  //         }
-  //       });
-  //     }
-
-  //     // ─── Emit events ──────────────────────────────────────────────────────
-  //     socketService.emitTripCompleted(updatedRide);
-
-  //     socketService.emitRatingRequestRider(ride.riderId, id, driverId);
-  //     socketService.emitRatingRequestDriver(driverId, id, ride.riderId);
-
-  //     strapi.log.info(
-  //       `Ride ${id} completed. ` +
-  //       `System: ${paymentSystemType}${isSubscriptionRide ? ' (subscription ride)' : ''}. ` +
-  //       `Payment: ${ride.paymentMethod}. ` +
-  //       `Fare: ${ride.totalFare}, Commission: ${commission}, ` +
-  //       `FloatDeduction: ${floatDeduction}, DriverEarnings: ${driverEarnings}. ` +
-  //       `NewFloat: ${newFloatBalance}, NewBalance: ${newCurrentBalance}`
-  //     );
-
-  //     return ctx.send(updatedRide);
-  //   } catch (error) {
-  //     strapi.log.error('Complete trip error:', error);
-  //     return ctx.internalServerError('Failed to complete trip');
-  //   }
-  // },
-
-
-
+    return ctx.send({ success: true, data: stats });
+  } catch (error) {
+    strapi.log.error('getMyStats error:', error);
+    return ctx.internalServerError('Failed to fetch driver stats');
+  }
+ },
 // ════════════════════════════════════════════════════════════════════════════
 // 2. completeTrip  (paste inside the controller object)
 // ════════════════════════════════════════════════════════════════════════════
@@ -2717,7 +2438,6 @@ function estimateDuration(distanceKm: number): number {
   const minutes = Math.ceil(hours * 60);
   return minutes;
 }
-
 
 
 

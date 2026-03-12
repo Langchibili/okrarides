@@ -1,196 +1,761 @@
+// // //Okrarides\driver\app\(main)\earnings\page.jsx
+// // 'use client';
+
+// // import { useState, useEffect } from 'react';
+// // import {
+// //   Box,
+// //   AppBar,
+// //   Toolbar,
+// //   Typography,
+// //   Tabs,
+// //   Tab,
+// //   Paper,
+// //   Grid,
+// //   Button,
+// //   IconButton,
+// // } from '@mui/material';
+// // import {
+// //   ArrowBack as BackIcon,
+// //   TrendingUp as TrendingUpIcon,
+// //   LocalAtm as MoneyIcon,
+// //   Assessment as ChartIcon,
+// // } from '@mui/icons-material';
+// // import { motion } from 'framer-motion';
+// // import { useRouter } from 'next/navigation';
+// // import { useEarnings } from '@/lib/hooks/useEarnings';
+// // import { EarningsCard } from '@/components/Driver/EarningsCard';
+// // import { formatCurrency } from '@/Functions';
+
+// // export default function EarningsPage() {
+// //   const router = useRouter();
+// //   const { earnings, fetchEarnings } = useEarnings();
+// //   const [period, setPeriod] = useState('today');
+// //   const [loading, setLoading] = useState(true);
+
+// //   useEffect(() => {
+// //     loadEarnings();
+// //   }, [period]);
+
+// //   const loadEarnings = async () => {
+// //     try {
+// //       setLoading(true);
+// //       await fetchEarnings(period);
+// //     } catch (error) {
+// //       console.error('Error loading earnings:', error);
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   };
+
+// //   const handlePeriodChange = (event, newValue) => {
+// //     setPeriod(newValue);
+// //   };
+
+// //   return (
+// //     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 10 }}>
+// //       {/* App Bar */}
+// //       <AppBar position="static" elevation={0}>
+// //         <Toolbar>
+// //           <IconButton edge="start" color="inherit" onClick={() => router.back()}>
+// //             <BackIcon />
+// //           </IconButton>
+// //           <Typography variant="h6" sx={{ flex: 1 }}>
+// //             Earnings
+// //           </Typography>
+// //         </Toolbar>
+// //         <Tabs
+// //           value={period}
+// //           onChange={handlePeriodChange}
+// //           variant="fullWidth"
+// //           textColor="inherit"
+// //           TabIndicatorProps={{
+// //             sx: { bgcolor: 'white', height: 3 },
+// //           }}
+// //         >
+// //           <Tab label="Today" value="today" />
+// //           <Tab label="Week" value="week" />
+// //           <Tab label="Month" value="month" />
+// //           <Tab label="Year" value="year" />
+// //         </Tabs>
+// //       </AppBar>
+
+// //       <Box sx={{ p: 3 }}>
+// //         {/* Total Earnings Card */}
+// //         <motion.div
+// //           initial={{ opacity: 0, y: 20 }}
+// //           animate={{ opacity: 1, y: 0 }}
+// //         >
+// //           <Paper
+// //             elevation={3}
+// //             sx={{
+// //               p: 4,
+// //               mb: 3,
+// //               borderRadius: 4,
+// //               background: `linear-gradient(135deg, #FFA000 0%, #FF8F00 100%)`,
+// //               color: 'white',
+// //               textAlign: 'center',
+// //             }}
+// //           >
+// //             <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
+// //               Total Earnings
+// //             </Typography>
+// //             <Typography
+// //               variant="h2"
+// //               sx={{
+// //                 fontWeight: 700,
+// //                 fontFamily: "'JetBrains Mono', monospace",
+// //                 mb: 1,
+// //               }}
+// //             >
+// //               {formatCurrency(earnings?.total || 0)}
+// //             </Typography>
+// //             <Typography variant="caption" sx={{ opacity: 0.8 }}>
+// //               {period === 'today' && "Today's"}
+// //               {period === 'week' && 'This Week'}
+// //               {period === 'month' && 'This Month'}
+// //               {period === 'year' && 'This Year'} earnings
+// //             </Typography>
+// //           </Paper>
+// //         </motion.div>
+
+// //         {/* Stats Grid */}
+// //         <Grid container spacing={2} sx={{ mb: 3 }}>
+// //           <Grid item xs={6}>
+// //             <EarningsCard
+// //               title="Cash Rides"
+// //               amount={earnings?.cash || 0}
+// //               icon={<MoneyIcon />}
+// //               color="success"
+// //             />
+// //           </Grid>
+// //           <Grid item xs={6}>
+// //             <EarningsCard
+// //               title="Digital Rides"
+// //               amount={earnings?.digital || 0}
+// //               icon={<MoneyIcon />}
+// //               color="info"
+// //             />
+// //           </Grid>
+// //           <Grid item xs={6}>
+// //             <Paper elevation={2} sx={{ p: 2, borderRadius: 3, textAlign: 'center' }}>
+// //               <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+// //                 {earnings?.totalRides || 0}
+// //               </Typography>
+// //               <Typography variant="caption" color="text.secondary">
+// //                 Total Rides
+// //               </Typography>
+// //             </Paper>
+// //           </Grid>
+// //           <Grid item xs={6}>
+// //             <Paper elevation={2} sx={{ p: 2, borderRadius: 3, textAlign: 'center' }}>
+// //               <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
+// //                 {formatCurrency(earnings?.averageRide || 0)}
+// //               </Typography>
+// //               <Typography variant="caption" color="text.secondary">
+// //                 Avg per Ride
+// //               </Typography>
+// //             </Paper>
+// //           </Grid>
+// //         </Grid>
+
+// //         {/* Quick Actions */}
+// //         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+// //           <Button
+// //             variant="contained"
+// //             fullWidth
+// //             startIcon={<TrendingUpIcon />}
+// //             onClick={() => router.push('/earnings/analytics')}
+// //             sx={{ height: 56, borderRadius: 3 }}
+// //           >
+// //             View Analytics
+// //           </Button>
+// //           <Button
+// //             variant="outlined"
+// //             fullWidth
+// //             startIcon={<MoneyIcon />}
+// //             onClick={() => router.push('/earnings/withdraw')}
+// //             sx={{ height: 56, borderRadius: 3 }}
+// //           >
+// //             Withdraw
+// //           </Button>
+// //         </Box>
+
+// //         {/* Recent Transactions */}
+// //         <Paper elevation={2} sx={{ p: 2, borderRadius: 3 }}>
+// //           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+// //             Recent Transactions
+// //           </Typography>
+// //           {/* Add transaction list here */}
+// //           <Typography variant="body2" color="text.secondary" textAlign="center">
+// //             No transactions yet
+// //           </Typography>
+// //         </Paper>
+// //       </Box>
+// //     </Box>
+// //   );
+// // }
+
+
+// /**
+//  * Earnings Page
+//  * PATH: app/(main)/earnings/page.jsx
+//  */
+// 'use client';
+
+// import { useState, useEffect } from 'react';
+// import {
+//   Box, AppBar, Toolbar, Typography, Tabs, Tab,
+//   Paper, Grid, Button, IconButton, Divider, Chip,
+// } from '@mui/material';
+// import {
+//   ArrowBack as BackIcon,
+//   TrendingUp as TrendingUpIcon,
+//   LocalAtm as MoneyIcon,
+//   Assessment as ChartIcon,
+//   AccountBalanceWallet as WalletIcon,
+//   DirectionsCar as RidesIcon,
+//   Speed as SpeedIcon,
+//   Savings as SavingsIcon,
+//   CreditCard as FloatIcon,
+// } from '@mui/icons-material';
+// import { motion } from 'framer-motion';
+// import { useRouter } from 'next/navigation';
+// import { useDriverStats } from '@/lib/hooks/useDriverStats';
+// import { useDriver }      from '@/lib/hooks/useDriver';
+// import { formatCurrency } from '@/Functions';
+
+// // ── Stat tile used inside the grid ────────────────────────────────────────
+// function Tile({ label, value, sub, color = 'text.primary', onClick }) {
+//   return (
+//     <Paper
+//       elevation={2}
+//       onClick={onClick}
+//       sx={{
+//         p: 2, borderRadius: 3, textAlign: 'center',
+//         cursor: onClick ? 'pointer' : 'default',
+//         '&:hover': onClick ? { bgcolor: 'action.hover' } : {},
+//       }}
+//     >
+//       <Typography variant="h5" sx={{ fontWeight: 700, color, mb: 0.5 }}>
+//         {value}
+//       </Typography>
+//       <Typography variant="caption" color="text.secondary" display="block">
+//         {label}
+//       </Typography>
+//       {sub && (
+//         <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 0.25 }}>
+//           {sub}
+//         </Typography>
+//       )}
+//     </Paper>
+//   );
+// }
+
+// const PERIODS = [
+//   { label: 'Today',  value: 'today' },
+//   { label: 'Week',   value: 'week'  },
+//   { label: 'Month',  value: 'month' },
+//   { label: 'Year',   value: 'year'  },
+// ];
+
+// export default function EarningsPage() {
+//   const router = useRouter();
+//   const { paymentSystemType, driverProfile } = useDriver();
+//   const { stats, loading, fetchStats } = useDriverStats();
+//   const [period, setPeriod] = useState('today');
+
+//   const isFloat = paymentSystemType === 'float_based';
+//   const isSub   = paymentSystemType === 'subscription_based';
+
+//   useEffect(() => { fetchStats(period); }, [period]);
+
+//   const { summary, lifetime, balances } = stats;
+
+//   const handlePeriodChange = (_, v) => setPeriod(v);
+
+//   // Gradient colour based on payment system
+//   const heroGradient = isFloat
+//     ? 'linear-gradient(135deg, #1565C0 0%, #0D47A1 100%)'   // blue  — float
+//     : 'linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%)';  // green — subscription
+
+//   return (
+//     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 10 }}>
+
+//       {/* ── App Bar ─────────────────────────────────────────────────────── */}
+//       <AppBar position="static" elevation={0}>
+//         <Toolbar>
+//           <IconButton edge="start" color="inherit" onClick={() => router.back()}>
+//             <BackIcon />
+//           </IconButton>
+//           <Typography variant="h6" sx={{ flex: 1 }}>Earnings</Typography>
+//         </Toolbar>
+//         <Tabs
+//           value={period}
+//           onChange={handlePeriodChange}
+//           variant="fullWidth"
+//           textColor="inherit"
+//           TabIndicatorProps={{ sx: { bgcolor: 'white', height: 3 } }}
+//         >
+//           {PERIODS.map(p => <Tab key={p.value} label={p.label} value={p.value} />)}
+//         </Tabs>
+//       </AppBar>
+
+//       <Box sx={{ p: 2 }}>
+
+//         {/* ── Hero: Total Earnings ─────────────────────────────────────── */}
+//         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+//           <Paper
+//             elevation={4}
+//             sx={{
+//               p: 4, mb: 2, borderRadius: 4,
+//               background: heroGradient,
+//               color: 'white', textAlign: 'center',
+//             }}
+//           >
+//             <Typography variant="body2" sx={{ opacity: 0.85, mb: 0.5 }}>
+//               Total Earnings
+//             </Typography>
+//             <Typography
+//               variant="h2"
+//               sx={{ fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", mb: 0.5 }}
+//             >
+//               {formatCurrency(summary.totalEarnings)}
+//             </Typography>
+//             <Typography variant="caption" sx={{ opacity: 0.75 }}>
+//               {summary.completedRides} completed ride{summary.completedRides !== 1 ? 's' : ''}
+//               {' · '}
+//               {PERIODS.find(p => p.value === period)?.label}
+//             </Typography>
+
+//             {/* Float system: show float deducted vs earned */}
+//             {isFloat && summary.floatDeducted > 0 && (
+//               <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid rgba(255,255,255,0.25)' }}>
+//                 <Typography variant="caption" sx={{ opacity: 0.8 }}>
+//                   Float deducted this period: {formatCurrency(summary.floatDeducted)}
+//                 </Typography>
+//               </Box>
+//             )}
+//           </Paper>
+//         </motion.div>
+
+//         {/* ── Balances row ─────────────────────────────────────────────── */}
+//         <Grid container spacing={1.5} sx={{ mb: 2 }}>
+//           {isFloat && (
+//             <>
+//               <Grid item xs={6}>
+//                 <Tile
+//                   label="Float Balance"
+//                   value={formatCurrency(balances.floatBalance)}
+//                   color={balances.floatBalance < 0 ? 'error.main' : 'success.main'}
+//                   onClick={() => router.push('/float')}
+//                 />
+//               </Grid>
+//               <Grid item xs={6}>
+//                 <Tile
+//                   label="Withdrawable Float"
+//                   value={formatCurrency(balances.withdrawableFloatBalance)}
+//                   color="info.main"
+//                   onClick={() => router.push('/float')}
+//                 />
+//               </Grid>
+//             </>
+//           )}
+//           {isSub && (
+//             <>
+//               <Grid item xs={6}>
+//                 <Tile
+//                   label="Lifetime Earnings"
+//                   value={formatCurrency(lifetime.totalEarnings)}
+//                   color="success.main"
+//                 />
+//               </Grid>
+//               <Grid item xs={6}>
+//                 <Tile
+//                   label="Commission Saved"
+//                   value={formatCurrency(summary.totalFareCollected * 0.15)}
+//                   sub="vs 15% float rate"
+//                   color="success.dark"
+//                 />
+//               </Grid>
+//             </>
+//           )}
+//         </Grid>
+
+//         {/* ── Ride breakdown ───────────────────────────────────────────── */}
+//         <Grid container spacing={1.5} sx={{ mb: 2 }}>
+//           <Grid item xs={6}>
+//             <Tile label="Cash Rides"    value={summary.cashRides}    sub={`${formatCurrency(summary.cashRides > 0 ? summary.totalEarnings * (summary.cashRides / Math.max(summary.completedRides, 1)) : 0)}`} />
+//           </Grid>
+//           <Grid item xs={6}>
+//             <Tile label="Digital Rides" value={summary.digitalRides} sub={`${formatCurrency(summary.digitalRides > 0 ? summary.totalEarnings * (summary.digitalRides / Math.max(summary.completedRides, 1)) : 0)}`} />
+//           </Grid>
+//           <Grid item xs={6}>
+//             <Tile label="Avg per Ride"  value={formatCurrency(summary.averageRide)} />
+//           </Grid>
+//           <Grid item xs={6}>
+//             <Tile label="Distance"      value={`${summary.totalDistance.toFixed(1)} km`} />
+//           </Grid>
+//           {isSub && (
+//             <Grid item xs={6}>
+//               <Tile label="Subscription Rides" value={summary.subscriptionRides} sub="0% commission" color="success.dark" />
+//             </Grid>
+//           )}
+//           {isFloat && summary.totalCommission > 0 && (
+//             <Grid item xs={6}>
+//               <Tile label="Commission Paid" value={formatCurrency(summary.totalCommission)} color="warning.dark" />
+//             </Grid>
+//           )}
+//         </Grid>
+
+//         <Divider sx={{ my: 2 }} />
+
+//         {/* ── Lifetime performance ─────────────────────────────────────── */}
+//         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600 }}>
+//           Lifetime Performance
+//         </Typography>
+//         <Grid container spacing={1.5} sx={{ mb: 2 }}>
+//           <Grid item xs={4}>
+//             <Tile label="Total Rides"   value={lifetime.totalRides} />
+//           </Grid>
+//           <Grid item xs={4}>
+//             <Tile label="Completion"    value={`${lifetime.completionRate.toFixed(0)}%`} color="success.main" />
+//           </Grid>
+//           <Grid item xs={4}>
+//             <Tile label="Rating"        value={lifetime.averageRating.toFixed(1)} color="warning.main" />
+//           </Grid>
+//           <Grid item xs={4}>
+//             <Tile label="Acceptance"    value={`${lifetime.acceptanceRate.toFixed(0)}%`} />
+//           </Grid>
+//           <Grid item xs={4}>
+//             <Tile label="Cancellation"  value={`${lifetime.cancellationRate.toFixed(0)}%`} color={lifetime.cancellationRate > 20 ? 'error.main' : 'text.primary'} />
+//           </Grid>
+//           <Grid item xs={4}>
+//             <Tile label="Km Driven"     value={`${lifetime.totalDistance.toFixed(0)}`} sub="km" />
+//           </Grid>
+//         </Grid>
+
+//         {/* ── Action buttons ───────────────────────────────────────────── */}
+//         <Box sx={{ display: 'flex', gap: 1.5 }}>
+//           <Button
+//             variant="contained" fullWidth startIcon={<ChartIcon />}
+//             onClick={() => router.push('/earnings/analytics')}
+//             sx={{ height: 52, borderRadius: 3 }}
+//           >
+//             Analytics
+//           </Button>
+//           <Button
+//             variant="outlined" fullWidth startIcon={<MoneyIcon />}
+//             onClick={() => router.push('/earnings/withdraw')}
+//             sx={{ height: 52, borderRadius: 3 }}
+//           >
+//             Withdraw
+//           </Button>
+//         </Box>
+//       </Box>
+//     </Box>
+//   );
+// }
+// PATH: app/(main)/earnings/page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import {
-  Box,
-  AppBar,
-  Toolbar,
-  Typography,
-  Tabs,
-  Tab,
-  Paper,
-  Grid,
-  Button,
-  IconButton,
+  Box, AppBar, Toolbar, Typography, Tabs, Tab, Paper,
+  Grid, Button, IconButton, Divider, Chip,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   ArrowBack as BackIcon,
   TrendingUp as TrendingUpIcon,
   LocalAtm as MoneyIcon,
   Assessment as ChartIcon,
+  AccountBalanceWallet as WalletIcon,
+  DirectionsCar as RidesIcon,
+  Route as DistanceIcon,
+  Percent as CommissionIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { useEarnings } from '@/lib/hooks/useEarnings';
-import { EarningsCard } from '@/components/Driver/EarningsCard';
-import { formatCurrency } from '@/Functions';
+import { useDriverStats }        from '@/lib/hooks/useDriverStats';
+import { useDriver }             from '@/lib/hooks/useDriver';
+import { EarningsPageSkeleton }  from '@/components/Skeletons/EarningsPageSkeleton';
+import { formatCurrency }        from '@/Functions';
+
+// ── Hide scrollbar helper ─────────────────────────────────────────────────
+const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
+
+// ── Stat tile ─────────────────────────────────────────────────────────────
+function Tile({ label, value, sub, color, accent, onClick }) {
+  const theme  = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  return (
+    <motion.div whileTap={{ scale: 0.96 }} style={{ height: '100%', cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
+      <Paper elevation={isDark ? 0 : 2} sx={{
+        p: 2, borderRadius: 3, textAlign: 'center', height: '100%',
+        border: `1px solid ${alpha(accent ?? theme.palette.divider, isDark ? 0.18 : 0.1)}`,
+        background: accent
+          ? isDark
+            ? `linear-gradient(145deg, ${alpha(accent, 0.14)} 0%, transparent 100%)`
+            : `linear-gradient(145deg, ${alpha(accent, 0.06)} 0%, transparent 100%)`
+          : undefined,
+        boxShadow: accent ? `0 2px 12px ${alpha(accent, 0.1)}` : undefined,
+        transition: 'box-shadow 0.2s',
+        '&:hover': onClick ? { boxShadow: `0 4px 20px ${alpha(accent ?? '#000', 0.18)}` } : {},
+      }}>
+        <Typography variant="h5" sx={{ fontWeight: 800, color: color ?? 'text.primary', mb: 0.25, lineHeight: 1.2 }}>
+          {value}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }} display="block">
+          {label}
+        </Typography>
+        {sub && (
+          <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 0.25, fontSize: 10 }}>
+            {sub}
+          </Typography>
+        )}
+      </Paper>
+    </motion.div>
+  );
+}
+
+const PERIODS = [
+  { label: 'Today', value: 'today' },
+  { label: 'Week',  value: 'week'  },
+  { label: 'Month', value: 'month' },
+  { label: 'Year',  value: 'year'  },
+];
 
 export default function EarningsPage() {
   const router = useRouter();
-  const { earnings, fetchEarnings } = useEarnings();
+  const theme  = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const { paymentSystemType } = useDriver();
+  const { stats, loading, fetchStats } = useDriverStats();
   const [period, setPeriod] = useState('today');
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadEarnings();
-  }, [period]);
+  const isFloat = paymentSystemType === 'float_based';
+  const isSub   = paymentSystemType === 'subscription_based';
 
-  const loadEarnings = async () => {
-    try {
-      setLoading(true);
-      await fetchEarnings(period);
-    } catch (error) {
-      console.error('Error loading earnings:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => { fetchStats(period); }, [period]);
 
-  const handlePeriodChange = (event, newValue) => {
-    setPeriod(newValue);
-  };
+  const { summary, lifetime, balances } = stats;
+
+  const heroGradient = isFloat
+    ? isDark ? 'linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)' : 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)'
+    : isDark ? 'linear-gradient(135deg, #065F46 0%, #064E3B 100%)' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+
+  const periodLabel = PERIODS.find(p => p.value === period)?.label ?? '';
+
+  const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
+  const item    = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 24 } } };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 10 }}>
-      {/* App Bar */}
-      <AppBar position="static" elevation={0}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
+
+      {/* ── AppBar ─────────────────────────────────────────────────────── */}
+      <AppBar position="static" elevation={0} sx={{
+        background: isDark
+          ? `linear-gradient(135deg, ${alpha('#1E293B', 0.98)} 0%, ${alpha('#0F172A', 0.98)} 100%)`
+          : `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+      }}>
         <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={() => router.back()}>
-            <BackIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flex: 1 }}>
-            Earnings
-          </Typography>
+          <IconButton edge="start" color="inherit" onClick={() => router.back()}><BackIcon /></IconButton>
+          <Typography variant="h6" sx={{ flex: 1, fontWeight: 700 }}>Earnings</Typography>
         </Toolbar>
-        <Tabs
-          value={period}
-          onChange={handlePeriodChange}
-          variant="fullWidth"
-          textColor="inherit"
-          TabIndicatorProps={{
-            sx: { bgcolor: 'white', height: 3 },
-          }}
-        >
-          <Tab label="Today" value="today" />
-          <Tab label="Week" value="week" />
-          <Tab label="Month" value="month" />
-          <Tab label="Year" value="year" />
+        <Tabs value={period} onChange={(_, v) => setPeriod(v)} variant="fullWidth" textColor="inherit"
+          TabIndicatorProps={{ sx: { bgcolor: 'white', height: 3, borderRadius: '3px 3px 0 0' } }}>
+          {PERIODS.map(p => <Tab key={p.value} label={p.label} value={p.value} sx={{ fontWeight: 600, fontSize: 13 }} />)}
         </Tabs>
       </AppBar>
 
-      <Box sx={{ p: 3 }}>
-        {/* Total Earnings Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Paper
-            elevation={3}
-            sx={{
-              p: 4,
-              mb: 3,
-              borderRadius: 4,
-              background: `linear-gradient(135deg, #FFA000 0%, #FF8F00 100%)`,
-              color: 'white',
-              textAlign: 'center',
-            }}
-          >
-            <Typography variant="body2" sx={{ opacity: 0.9, mb: 1 }}>
-              Total Earnings
-            </Typography>
-            <Typography
-              variant="h2"
-              sx={{
-                fontWeight: 700,
-                fontFamily: "'JetBrains Mono', monospace",
-                mb: 1,
-              }}
-            >
-              {formatCurrency(earnings?.total || 0)}
-            </Typography>
-            <Typography variant="caption" sx={{ opacity: 0.8 }}>
-              {period === 'today' && "Today's"}
-              {period === 'week' && 'This Week'}
-              {period === 'month' && 'This Month'}
-              {period === 'year' && 'This Year'} earnings
-            </Typography>
-          </Paper>
-        </motion.div>
+      {/* ── Body ───────────────────────────────────────────────────────── */}
+      <Box sx={{ flex: 1, overflowY: 'auto', p: 2, pb: 10, ...hideScrollbar }}>
+        {loading ? (
+          <EarningsPageSkeleton />
+        ) : (
+          <motion.div variants={stagger} initial="hidden" animate="show">
 
-        {/* Stats Grid */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6}>
-            <EarningsCard
-              title="Cash Rides"
-              amount={earnings?.cash || 0}
-              icon={<MoneyIcon />}
-              color="success"
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <EarningsCard
-              title="Digital Rides"
-              amount={earnings?.digital || 0}
-              icon={<MoneyIcon />}
-              color="info"
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <Paper elevation={2} sx={{ p: 2, borderRadius: 3, textAlign: 'center' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-                {earnings?.totalRides || 0}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Total Rides
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={6}>
-            <Paper elevation={2} sx={{ p: 2, borderRadius: 3, textAlign: 'center' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
-                {formatCurrency(earnings?.averageRide || 0)}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Avg per Ride
-              </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
+            {/* ── Hero card ──────────────────────────────────────────── */}
+            <motion.div variants={item}>
+              <Paper elevation={0} sx={{
+                p: 3, mb: 2, borderRadius: 4,
+                background: heroGradient,
+                color: 'white',
+                position: 'relative', overflow: 'hidden',
+                boxShadow: isFloat
+                  ? `0 12px 40px ${alpha('#3B82F6', isDark ? 0.4 : 0.32)}`
+                  : `0 12px 40px ${alpha('#10B981', isDark ? 0.4 : 0.32)}`,
+              }}>
+                {/* Decorative blobs */}
+                <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                <Box sx={{ position: 'absolute', bottom: -20, left: -20, width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-        {/* Quick Actions */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Button
-            variant="contained"
-            fullWidth
-            startIcon={<TrendingUpIcon />}
-            onClick={() => router.push('/earnings/analytics')}
-            sx={{ height: 56, borderRadius: 3 }}
-          >
-            View Analytics
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            startIcon={<MoneyIcon />}
-            onClick={() => router.push('/earnings/withdraw')}
-            sx={{ height: 56, borderRadius: 3 }}
-          >
-            Withdraw
-          </Button>
-        </Box>
+                <Typography variant="body2" sx={{ opacity: 0.85, mb: 0.5, fontWeight: 500 }}>
+                  {periodLabel} Total Earnings
+                </Typography>
+                <Typography variant="h2" sx={{ fontWeight: 800, fontFamily: "'JetBrains Mono', monospace", mb: 0.5, lineHeight: 1.1 }}>
+                  {formatCurrency(summary.totalEarnings)}
+                </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.75 }}>
+                  {summary.completedRides} ride{summary.completedRides !== 1 ? 's' : ''} completed
+                  {summary.totalDistance > 0 && ` · ${summary.totalDistance.toFixed(1)} km`}
+                </Typography>
 
-        {/* Recent Transactions */}
-        <Paper elevation={2} sx={{ p: 2, borderRadius: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-            Recent Transactions
-          </Typography>
-          {/* Add transaction list here */}
-          <Typography variant="body2" color="text.secondary" textAlign="center">
-            No transactions yet
-          </Typography>
-        </Paper>
+                {isFloat && summary.floatDeducted > 0 && (
+                  <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid rgba(255,255,255,0.2)', display: 'flex', justifyContent: 'space-between' }}>
+                    <Typography variant="caption" sx={{ opacity: 0.8 }}>Float deducted</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.9 }}>{formatCurrency(summary.floatDeducted)}</Typography>
+                  </Box>
+                )}
+              </Paper>
+            </motion.div>
+
+            {/* ── Balance row ────────────────────────────────────────── */}
+            <motion.div variants={item}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gridAutoRows: '1fr',        // ← forces every row to equal height
+                  gap: 1.5,
+                  mb: 1.5,
+                  '& > *': {                  // every direct child fills its cell
+                    minWidth: 0,
+                    minHeight: 0,
+                  },
+                }}
+              >
+
+                {isFloat ? (
+                  <>
+                    <Grid item xs={6}>
+                      <Tile label="Float Balance" value={formatCurrency(balances.floatBalance)}
+                        color={balances.floatBalance < 0 ? theme.palette.error.main : theme.palette.success.main}
+                        accent={balances.floatBalance < 0 ? '#EF4444' : '#10B981'}
+                        onClick={() => router.push('/float')} />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Tile label="Withdrawable Float" value={formatCurrency(balances.withdrawableFloatBalance)}
+                        color={theme.palette.info.main} accent="#06B6D4"
+                        onClick={() => router.push('/float')} />
+                    </Grid>
+                  </>
+                ) : (
+                  <>
+                    <Grid item xs={6}>
+                      <Tile label="Lifetime Earnings" value={formatCurrency(lifetime.totalEarnings)}
+                        color={theme.palette.success.main} accent="#10B981" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Tile label="Commission Saved" sub="vs 15% float rate"
+                        value={formatCurrency(summary.totalFareCollected * 0.15)}
+                        color={theme.palette.success.dark} accent="#059669" />
+                    </Grid>
+                  </>
+                )}
+              </Box>
+            </motion.div>
+
+            {/* ── Ride breakdown ─────────────────────────────────────── */}
+            <motion.div variants={item}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gridAutoRows: '1fr',        // ← forces every row to equal height
+                  gap: 1.5,
+                  mb: 1.5,
+                  '& > *': {                  // every direct child fills its cell
+                    minWidth: 0,
+                    minHeight: 0,
+                  },
+                }}
+              >
+                <Grid item xs={6}>
+                  <Tile label="Cash Rides"    value={summary.cashRides}    accent="#F59E0B"
+                    sub={formatCurrency(summary.totalEarnings * (summary.cashRides / Math.max(summary.completedRides, 1)))} />
+                </Grid>
+                <Grid item xs={6}>
+                  <Tile label="Digital Rides" value={summary.digitalRides} accent="#3B82F6"
+                    sub={formatCurrency(summary.totalEarnings * (summary.digitalRides / Math.max(summary.completedRides, 1)))} />
+                </Grid>
+                <Grid item xs={6}>
+                  <Tile label="Avg per Ride"  value={formatCurrency(summary.averageRide)} accent="#8B5CF6" />
+                </Grid>
+                <Grid item xs={6}>
+                  <Tile label="Distance"      value={`${summary.totalDistance.toFixed(1)} km`} accent="#06B6D4" />
+                </Grid>
+                {isSub && (
+                  <Grid item xs={6}>
+                    <Tile label="Sub Rides" sub="0% commission" value={summary.subscriptionRides}
+                      color={theme.palette.success.main} accent="#10B981" />
+                  </Grid>
+                )}
+                {isFloat && summary.totalCommission > 0 && (
+                  <Grid item xs={6}>
+                    <Tile label="Commission Paid" value={formatCurrency(summary.totalCommission)}
+                      color={theme.palette.warning.main} accent="#F97316" />
+                  </Grid>
+                )}
+              </Box>
+            </motion.div>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* ── Lifetime performance ─────────────────────────────── */}
+            <motion.div variants={item}>
+              <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700, letterSpacing: 1, display: 'block', mb: 1.5 }}>
+                Lifetime Performance
+              </Typography>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gridAutoRows: '1fr',        // ← forces every row to equal height
+                  gap: 1.5,
+                  mb: 1.5,
+                  '& > *': {                  // every direct child fills its cell
+                    minWidth: 0,
+                    minHeight: 0,
+                  },
+                }}
+              >
+                {[
+                  { label: 'Total Rides',   value: lifetime.totalRides,                             accent: '#3B82F6' },
+                  { label: 'Completion',    value: `${lifetime.completionRate.toFixed(0)}%`,         accent: '#10B981', color: theme.palette.success.main },
+                  { label: 'Rating ★',     value: lifetime.averageRating.toFixed(1),               accent: '#F59E0B', color: theme.palette.warning.main  },
+                  { label: 'Acceptance',    value: `${lifetime.acceptanceRate.toFixed(0)}%`,         accent: '#06B6D4' },
+                  { label: 'Cancellation',  value: `${lifetime.cancellationRate.toFixed(0)}%`,       accent: '#EF4444', color: lifetime.cancellationRate > 20 ? theme.palette.error.main : undefined },
+                  { label: 'Km Driven',     value: `${lifetime.totalDistance.toFixed(0)} km`,        accent: '#8B5CF6' },
+                ].map(t => (
+                  <Grid item xs={4} key={t.label}>
+                    <Tile {...t} />
+                  </Grid>
+                ))}
+              </Box>
+            </motion.div>
+
+            {/* ── Action buttons ─────────────────────────────────────── */}
+            <motion.div variants={item}>
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
+                <Button variant="contained" fullWidth startIcon={<ChartIcon />}
+                  onClick={() => router.push('/earnings/analytics')}
+                  sx={{ height: 52, borderRadius: 3, fontWeight: 700, textTransform: 'none',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                    boxShadow: `0 4px 16px ${alpha(theme.palette.primary.main, 0.36)}` }}>
+                  Analytics
+                </Button>
+                <Button variant="outlined" fullWidth startIcon={<MoneyIcon />}
+                  onClick={() => router.push('/earnings/withdraw')}
+                  sx={{ height: 52, borderRadius: 3, fontWeight: 700, textTransform: 'none' }}>
+                  Withdraw
+                </Button>
+              </Box>
+            </motion.div>
+
+          </motion.div>
+        )}
       </Box>
     </Box>
   );
 }
-

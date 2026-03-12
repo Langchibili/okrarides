@@ -174,6 +174,7 @@ function setupMainServerEventForwarding() {
 
   // Trip started
   mainSocket.on('ride:trip:started', (data) => {
+    console.log('ride:trip:started',data)
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:trip:started', data);
     if (driverId) forwardToUserDevices(driverId, 'ride:trip:started', data);
@@ -187,10 +188,16 @@ function setupMainServerEventForwarding() {
   });
 
   mainSocket.on('ride:payment:requested', (data) => {
+    console.log('ride:payment:requested',data)
     const { riderId, driverId } = data;
-    if (riderId) forwardToUserDevices(riderId, 'ride:payment:requested', data);
+    if (riderId) {
+      if(data.driverId){
+         delete data.driverId
+      }
+      forwardToUserDevices(riderId, 'ride:payment:requested', data)
+    }
     if (driverId) forwardToUserDevices(driverId, 'ride:payment:requested', data);
-  });
+  })
   
 mainSocket.on('payment:received', (data) => {
     const { riderId, driverId } = data;
