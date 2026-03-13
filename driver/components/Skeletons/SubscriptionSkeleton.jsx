@@ -26,10 +26,17 @@ function PlanCardSkel() {
 export function SubscriptionSkeleton() {
   return (
     <Box sx={{ p: 2.5 }}>
-      <Grid container spacing={2}>
+      <Box sx={{
+                display: 'block',
+                gridTemplateColumns: '1fr 1fr',
+                gridAutoRows: '1fr',
+                gap: 1.5,
+                mb: 1.5,
+                '& > *': { minWidth: 0, minHeight: 0 },
+              }}>
         <Grid item xs={12} md={6}><PlanCardSkel /></Grid>
         <Grid item xs={12} md={6}><PlanCardSkel /></Grid>
-      </Grid>
+      </Box>
       <Paper elevation={0} sx={{ p: 2.5, mt: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
         <Skeleton width="40%" height={24} sx={{ mb: 2 }} />
         <Grid container spacing={2}>

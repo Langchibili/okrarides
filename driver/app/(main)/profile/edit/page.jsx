@@ -1,3 +1,4 @@
+//Okrarides\driver\app\(main)\profile\edit\page.jsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,6 +20,7 @@ import {
 import { ArrowBack as BackIcon, CameraAlt as CameraIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
+import { getImageUrl } from '@/Functions';
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -26,7 +28,7 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -41,7 +43,7 @@ export default function EditProfilePage() {
       setFormData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
-        email: user.email || '',
+         email: isUnsetEmail(user.email) ? '' : (user.email || ''),  // treat unset_ as empty
         dateOfBirth: user.dateOfBirth || '',
         gender: user.gender || '',
         address: user.address || '',
@@ -91,7 +93,10 @@ export default function EditProfilePage() {
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.put(`/users/${user.id}`, formData);
+      const response = await apiClient.put(`/users/${user.id}`, 
+                          {...formData,email: formData.email.trim() === '' ? user.email : formData.email,
+                            dateOfBirth: formData.dateOfBirth.trim() === '' ? null : formData.dateOfBirth,
+                          });
 
       if (response) {
         updateUser(formData);
@@ -106,7 +111,7 @@ export default function EditProfilePage() {
       setLoading(false);
     }
   };
-
+  const isUnsetEmail = (email) => email?.startsWith('unset_');
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 10 }}>
       {/* AppBar */}
@@ -140,7 +145,7 @@ export default function EditProfilePage() {
         <Paper elevation={2} sx={{ p: 3, borderRadius: 3, mb: 3, textAlign: 'center' }}>
           <Box sx={{ position: 'relative', display: 'inline-block' }}>
             <Avatar
-              src={user?.profilePicture}
+              src={process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_API_URL + getImageUrl(user?.profilePicture, 'thumbnail')}
               sx={{
                 width: 100,
                 height: 100,
@@ -178,8 +183,15 @@ export default function EditProfilePage() {
         {/* Edit Form */}
         <form onSubmit={handleSubmit}>
           <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+            <Box sx={{
+                            display: 'block',
+                            gridTemplateColumns: '1fr 1fr',
+                            gridAutoRows: '1fr',
+                            gap: 1.5,
+                            mb: 1.5,
+                            '& > *': { minWidth: 0, minHeight: 0 },
+                          }}>
+              <Grid item xs={12} sm={6} sx={{marginBottom:'20px'}}>
                 <TextField
                   fullWidth
                   label="First Name"
@@ -190,7 +202,7 @@ export default function EditProfilePage() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} sx={{marginBottom:'20px'}}>
                 <TextField
                   fullWidth
                   label="Last Name"
@@ -200,20 +212,21 @@ export default function EditProfilePage() {
                   required
                 />
               </Grid>
-
-              <Grid item xs={12}>
+              
+              <Grid item xs={12} sm={6} sx={{marginBottom:'20px'}}>
                 <TextField
-                  fullWidth
-                  label="Email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  helperText="Optional - for receipts and notifications"
-                />
+                fullWidth
+                label="Email"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder={isUnsetEmail(user?.email) ? 'Add email address' : ''}
+                helperText="Optional - for receipts and notifications"
+              />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} sx={{marginBottom:'20px'}}>
                 <TextField
                   fullWidth
                   label="Date of Birth"
@@ -225,7 +238,7 @@ export default function EditProfilePage() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} sx={{marginBottom:'20px'}}>
                 <TextField
                   select
                   fullWidth
@@ -241,7 +254,7 @@ export default function EditProfilePage() {
                 </TextField>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} sx={{marginBottom:'20px'}}>
                 <TextField
                   fullWidth
                   label="Address"
@@ -252,7 +265,7 @@ export default function EditProfilePage() {
                   rows={2}
                 />
               </Grid>
-            </Grid>
+            </Box>
 
             <Button
               type="submit"
@@ -269,4 +282,4 @@ export default function EditProfilePage() {
       </Box>
     </Box>
   );
-}
+}

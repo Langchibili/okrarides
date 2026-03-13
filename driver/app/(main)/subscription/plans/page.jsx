@@ -602,12 +602,19 @@ export default function SubscriptionPlansPage() {
             </AnimatePresence>
 
             {/* ── Plans ────────────────────────────────────────────────── */}
-            <Grid container spacing={1.5}>
+            <Box sx={{
+                display: 'block',
+                gridTemplateColumns: '1fr 1fr',
+                gridAutoRows: '1fr',
+                gap: 1.5,
+                mb: 1.5,
+                '& > *': { minWidth: 0, minHeight: 0 },
+              }}>
               {plans.map((plan, index) => {
                 const accent   = PLAN_COLORS[index % PLAN_COLORS.length];
                 const isCurrent = currentSubscription?.plan?.id === plan.id;
                 return (
-                  <Grid item xs={12} key={plan.id} sx={{ display: 'flex' }}>
+                  <Grid item xs={12} key={plan.id} sx={{ display: 'flex', marginBottom:'20px' }}>
                     <motion.div
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -702,7 +709,7 @@ export default function SubscriptionPlansPage() {
                   </Grid>
                 );
               })}
-            </Grid>
+            </Box>
 
             {/* ── Why subscribe ────────────────────────────────────────── */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>

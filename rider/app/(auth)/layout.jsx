@@ -1,4 +1,4 @@
-// PATH: app/(onboarding)/layout.jsx  (or wherever this layout lives)
+// PATH: app/(auth)/layout.jsx  (or wherever this layout lives)
 'use client';
 
 import { Box, Container, AppBar, Toolbar, Typography, useTheme } from '@mui/material';
@@ -14,11 +14,11 @@ import {
 import { useThemeMode } from '@/components/ThemeProvider';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const GREEN     = '#10B981';
-const GREEN_DIM = '#059669';
+const YELLOW     = '#ffc107';
+const YELLOW_DIM = '#ffc107af';
 
 // ── SVG icons ─────────────────────────────────────────────────────────────────
-function AppsIcon({ size = 20, color = GREEN }) {
+function AppsIcon({ size = 20, color = YELLOW }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <rect x="3"  y="3"  width="7" height="7" rx="2" fill={color} />
@@ -29,7 +29,7 @@ function AppsIcon({ size = 20, color = GREEN }) {
   );
 }
 
-function HelpSvgIcon({ size = 20, color = GREEN }) {
+function HelpSvgIcon({ size = 20, color = YELLOW }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" fill="none" />
@@ -71,7 +71,7 @@ function AnimatedHeaderButton({ label, icon, direction, onClick }) {
     }}>
       <Box className="btn-glow" sx={{
         position: 'absolute', inset: 0, borderRadius: 2,
-        background: `radial-gradient(circle, ${alpha(GREEN, 0.18)} 0%, transparent 70%)`,
+        background: `radial-gradient(circle, ${alpha(YELLOW, 0.18)} 0%, transparent 70%)`,
         opacity: 0, transition: 'opacity 0.2s', pointerEvents: 'none',
       }} />
       <AnimatePresence mode="wait" initial>
@@ -79,23 +79,23 @@ function AnimatedHeaderButton({ label, icon, direction, onClick }) {
           <motion.div key="label" variants={textVariants} initial="enter" animate="center" exit="exit"
             style={{ display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap' }}>
             {direction === 'left' && (
-              <Typography sx={{ fontSize: 14, fontWeight: 900, lineHeight: 1, color: GREEN, mr: 0.25, letterSpacing: -1, fontFamily: 'monospace' }}>«</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 900, lineHeight: 1, color: YELLOW, mr: 0.25, letterSpacing: -1, fontFamily: 'monospace' }}>«</Typography>
             )}
             <Typography sx={{
               fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase',
-              background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DIM} 100%)`,
+              background: `linear-gradient(135deg, ${YELLOW} 0%, ${YELLOW_DIM} 100%)`,
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>
               {label}
             </Typography>
             {direction === 'right' && (
-              <Typography sx={{ fontSize: 14, fontWeight: 900, lineHeight: 1, color: GREEN, ml: 0.25, letterSpacing: -1, fontFamily: 'monospace' }}>»</Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 900, lineHeight: 1, color: YELLOW, ml: 0.25, letterSpacing: -1, fontFamily: 'monospace' }}>»</Typography>
             )}
           </motion.div>
         ) : (
           <motion.div key="icon" variants={iconVariants} initial="enter" animate="center" exit="exit"
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
-              filter: `drop-shadow(0 0 6px ${alpha(GREEN, 0.55)})` }}>
+              filter: `drop-shadow(0 0 6px ${alpha(YELLOW, 0.55)})` }}>
             {icon}
           </motion.div>
         )}
@@ -116,17 +116,17 @@ function ThemeToggle({ isDark, onToggle }) {
     <Box onClick={onToggle} sx={{
       position: 'relative', width: PILL_W, height: PILL_H,
       borderRadius: PILL_H / 2, cursor: 'pointer', overflow: 'hidden', flexShrink: 0,
-      border: `1.5px solid ${isDark ? alpha(GREEN, 0.35) : alpha('#CBD5E1', 0.9)}`,
+      border: `1.5px solid ${isDark ? alpha(YELLOW, 0.35) : alpha('#CBD5E1', 0.9)}`,
       background: isDark
         ? 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)'
         : 'linear-gradient(135deg, #ffffff 0%, #F1F5F9 100%)',
       boxShadow: isDark
-        ? `0 0 12px ${alpha(GREEN, 0.22)}, inset 0 1px 0 ${alpha('#fff', 0.04)}`
+        ? `0 0 12px ${alpha(YELLOW, 0.22)}, inset 0 1px 0 ${alpha('#fff', 0.04)}`
         : `0 1px 6px ${alpha('#94A3B8', 0.3)}, inset 0 1px 0 rgba(255,255,255,0.9)`,
       transition: 'background 0.35s, border-color 0.35s, box-shadow 0.35s',
       '&:hover': {
-        boxShadow: isDark ? `0 0 20px ${alpha(GREEN, 0.38)}` : `0 2px 10px ${alpha('#94A3B8', 0.45)}`,
-        border: isDark ? `1.5px solid ${alpha(GREEN, 0.6)}` : `1.5px solid ${alpha('#94A3B8', 0.7)}`,
+        boxShadow: isDark ? `0 0 20px ${alpha(YELLOW, 0.38)}` : `0 2px 10px ${alpha('#94A3B8', 0.45)}`,
+        border: isDark ? `1.5px solid ${alpha(YELLOW, 0.6)}` : `1.5px solid ${alpha('#94A3B8', 0.7)}`,
       },
     }}>
       {/* Static label — opposite side to thumb */}
@@ -143,7 +143,7 @@ function ThemeToggle({ isDark, onToggle }) {
         <Typography sx={{
           fontSize: 9, fontWeight: 800, letterSpacing: 0.9,
           textTransform: 'uppercase', lineHeight: 1,
-          color: isDark ? alpha(GREEN, 0.85) : alpha('#64748B', 0.9),
+          color: isDark ? alpha(YELLOW, 0.85) : alpha('#64748B', 0.9),
           transition: 'color 0.3s',
         }}>
           {isDark ? 'DARK' : 'LIGHT'}
@@ -158,10 +158,10 @@ function ThemeToggle({ isDark, onToggle }) {
           position: 'absolute', top: THUMB_PAD, left: THUMB_PAD,
           width: THUMB_D, height: THUMB_D, borderRadius: '50%', zIndex: 1,
           background: isDark
-            ? `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DIM} 100%)`
+            ? `linear-gradient(135deg, ${YELLOW} 0%, ${YELLOW_DIM} 100%)`
             : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
           boxShadow: isDark
-            ? `0 2px 8px ${alpha(GREEN, 0.55)}`
+            ? `0 2px 8px ${alpha(YELLOW, 0.55)}`
             : `0 2px 8px ${alpha('#F59E0B', 0.55)}`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
@@ -182,7 +182,7 @@ function ThemeToggle({ isDark, onToggle }) {
 }
 
 // ── Layout ────────────────────────────────────────────────────────────────────
-export default function OnboardingLayout({ children }) {
+export default function AuthLayout({ children }) {
   const theme    = useTheme();
   const isDark   = theme.palette.mode === 'dark';
   const pathname = usePathname();
@@ -200,7 +200,6 @@ export default function OnboardingLayout({ children }) {
     });
   }, []);
 
-  const isWelcomeScreen = pathname.includes('/welcome');
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
@@ -212,10 +211,10 @@ export default function OnboardingLayout({ children }) {
           : 'linear-gradient(135deg, #ffffff 0%, #F8FAFC 100%)',
         backdropFilter: 'blur(12px)',
         borderBottom: isDark
-          ? `1px solid ${alpha(GREEN, 0.12)}`
+          ? `1px solid ${alpha(YELLOW, 0.12)}`
           : `1px solid ${alpha('#CBD5E1', 0.7)}`,
         boxShadow: isDark
-          ? `0 1px 0 ${alpha(GREEN, 0.08)}`
+          ? `0 1px 0 ${alpha(YELLOW, 0.08)}`
           : `0 1px 8px ${alpha('#94A3B8', 0.15)}`,
         transition: 'background 0.35s',
       }}>
@@ -223,7 +222,7 @@ export default function OnboardingLayout({ children }) {
           <AnimatedHeaderButton
             label="APPS"
             direction="left"
-            icon={<AppsIcon size={22} color={GREEN} />}
+            icon={<AppsIcon size={22} color={YELLOW} />}
             onClick={() => { if (landingPageUrl) router.push(landingPageUrl) }}
           />
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -232,7 +231,7 @@ export default function OnboardingLayout({ children }) {
           <AnimatedHeaderButton
             label="HELP"
             direction="right"
-            icon={<HelpSvgIcon size={22} color={GREEN} />}
+            icon={<HelpSvgIcon size={22} color={YELLOW} />}
             onClick={() => router.push('/help')}
           />
         </Toolbar>

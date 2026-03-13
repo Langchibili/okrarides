@@ -1,4 +1,4 @@
-// PATH: app/(onboarding)/layout.jsx  (or wherever this layout lives)
+// PATH: app/(auth)/layout.jsx  (or wherever this layout lives)
 'use client';
 
 import { Box, Container, AppBar, Toolbar, Typography, useTheme } from '@mui/material';
@@ -182,7 +182,7 @@ function ThemeToggle({ isDark, onToggle }) {
 }
 
 // ── Layout ────────────────────────────────────────────────────────────────────
-export default function OnboardingLayout({ children }) {
+export default function AuthLayout({ children }) {
   const theme    = useTheme();
   const isDark   = theme.palette.mode === 'dark';
   const pathname = usePathname();
@@ -200,7 +200,6 @@ export default function OnboardingLayout({ children }) {
     });
   }, []);
 
-  const isWelcomeScreen = pathname.includes('/welcome');
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>

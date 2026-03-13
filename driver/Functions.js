@@ -137,7 +137,7 @@ export const requestWithdrawal = async (amount, method, accountDetails) => {
     console.error('Error requesting withdrawal:', error);
     throw error;
   }
-};
+}
 
 //==========================================
 // SUBSCRIPTION MANAGEMENT
@@ -358,3 +358,33 @@ export const getRelativeTime = (date) => {
   if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
   return 'Just now';
 };
+
+/**
+ * Extracts a URL from a Strapi image object.
+ *
+ * @param {object} image        - The Strapi image object (e.g. user.profilePicture)
+ * @param {'thumbnail'|'small'|'medium'|'large'} [format] - Desired format key
+ * @param {string} [baseUrl]    - Optional API base URL prefix (e.g. 'https://api.okrarides.com')
+ * @returns {string|null}       - Full image URL or null if image is missing
+ *
+ * @example
+ * getImageUrl(user.profilePicture, 'thumbnail')  // → '/uploads/thumbnail_...'
+ * getImageUrl(user.profilePicture, 'small')       // → '/uploads/small_...'
+ * getImageUrl(user.profilePicture)                // → '/uploads/original_...'
+ * getImageUrl(user.profilePicture, 'large')       // falls back to .url if large doesn't exist
+ */
+export function getImageUrl(image, format = null, baseUrl = '') {
+  if (!image) return null;
+
+  // If a format is requested, try to find it in the formats object first
+  if (format && image.formats?.[format]?.url) {
+    return `${baseUrl}${image.formats[format].url}`;
+  }
+
+  // Fall back to the root .url (original)
+  if (image.url) {
+    return `${baseUrl}${image.url}`;
+  }
+
+  return null;
+}

@@ -1,4 +1,3 @@
-
 // // rider/app/(main)/home/page.jsx
 // 'use client';
 
@@ -45,10 +44,8 @@
 // import ClientOnly from '@/components/ClientOnly';
 // import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 // import MapIframe from '@/components/Map/MapIframe';
+// import { apiClient } from '@/lib/api/client';
 
-// // ─────────────────────────────────────────────────────────────────────────────
-// // The gradient header sx — shared between drawer and skeletons
-// // ─────────────────────────────────────────────────────────────────────────────
 // const HEADER_GRADIENT_SX = {
 //   background: 'linear-gradient(-60deg, #FFB300 0%, #FF8A00 25%, #FFC107 50%, #FF6D00 75%, #FFD54F 100%)',
 //   backgroundSize: '300% 300%',
@@ -60,9 +57,6 @@
 //   },
 // };
 
-// // ─────────────────────────────────────────────────────────────────────────────
-// // Strip all border/icon styling from LocationSearch inner input
-// // ─────────────────────────────────────────────────────────────────────────────
 // const CLEAN_INPUT_SX = {
 //   '& .MuiInputBase-root': {
 //     border: 'none !important',
@@ -85,9 +79,6 @@
 //   },
 // };
 
-// // ─────────────────────────────────────────────────────────────────────────────
-// // Skeleton: full modal loading (location fetch in progress)
-// // ─────────────────────────────────────────────────────────────────────────────
 // const ModalLoadingSkeleton = () => (
 //   <Box>
 //     <Box sx={{ ...HEADER_GRADIENT_SX, borderTopLeftRadius: 24, borderTopRightRadius: 24, px: 3, pb: 2.5 }}>
@@ -128,9 +119,6 @@
 //   </Box>
 // );
 
-// // ─────────────────────────────────────────────────────────────────────────────
-// // Skeleton: fare estimates loading inside the ride options sheet
-// // ─────────────────────────────────────────────────────────────────────────────
 // const FareEstimatesSkeleton = ({ onClose, routeInfo }) => (
 //   <Box>
 //     <Box sx={{ ...HEADER_GRADIENT_SX, borderTopLeftRadius: 24, borderTopRightRadius: 24, px: 3, pb: 2.5, position: 'relative', overflow: 'hidden' }}>
@@ -176,14 +164,9 @@
 //   </Box>
 // );
 
-// // ─────────────────────────────────────────────────────────────────────────────
-// // Main Page
-// // ─────────────────────────────────────────────────────────────────────────────
 // export default function HomePage() {
 //   const router = useRouter();
 //   const { user } = useAuth();
-//   // useGeolocation handles web GPS only. In native WebView the GPS comes from
-//   // getNativeLocation(). We disable watchPosition in native to avoid double-polling.
 //   const { location, loading: locationLoading, refresh: refreshWebLocation } = useGeolocation({ watch: true });
 //   const { isNative, getCurrentLocation: getNativeLocation } = useReactNative();
 //   const {
@@ -196,7 +179,6 @@
 //     getRideClasses,
 //   } = useRide();
 
-//   // ── UI State ──
 //   const [mapCenter, setMapCenter]           = useState(null);
 //   const [pickupLocation, setPickupLocation] = useState(null);
 //   const [dropoffLocation, setDropoffLocation] = useState(null);
@@ -207,16 +189,13 @@
 //   const [isRelocating, setIsRelocating]           = useState(false);
 //   const [routeInfo, setRouteInfo]                 = useState(null);
 
-//   // ── Input focus & sheet expansion ──
 //   const [focusedInput, setFocusedInput]       = useState(null);
 //   const [sheetExpanded, setSheetExpanded]     = useState(false);
 //   const [pickupChipVisible, setPickupChipVisible] = useState(false);
 
-//   // ── Skeleton timing ──
 //   const [showModalSkeleton, setShowModalSkeleton] = useState(true);
 //   const skeletonTimerRef = useRef(null);
 
-//   // ── Ride State ──
 //   const [fareEstimates, setFareEstimates]       = useState(null);
 //   const [loadingEstimates, setLoadingEstimates] = useState(false);
 //   const [selectedRideClass, setSelectedRideClass] = useState(null);
@@ -224,78 +203,103 @@
 //   const [promoDiscount, setPromoDiscount]       = useState(null);
 //   const [validatingPromo, setValidatingPromo]   = useState(false);
 
-//   // ── Notifications ──
 //   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // Location-interval refs
-//   //   fastIntervalRef  – 1 s native poller until first GPS fix (native only)
-//   //   slowIntervalRef  – 30 min background refresh (always)
-//   //   locationObtained – flag so we only apply a fix once and switch tiers
-//   //   mapControlsRef   – mirror of mapControls state for use inside intervals
-//   //                      (avoids stale-closure capture of state variable)
-//   // ─────────────────────────────────────────────────────────────────────────
-//   const fastIntervalRef    = useRef(null);
-//   const slowIntervalRef    = useRef(null);
+//   const fastIntervalRef     = useRef(null);
+//   const slowIntervalRef     = useRef(null);
 //   const locationObtainedRef = useRef(false);
-//   const mapControlsRef     = useRef(null);
+//   const mapControlsRef      = useRef(null);
 
-//   // Keep the ref in sync with the state value so intervals can read it fresh
 //   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
-//   // ═══════════════════════════════════════════════════════════════════════
-//   // 5-second skeleton timer
-//   // ═══════════════════════════════════════════════════════════════════════
 //   useEffect(() => {
 //     skeletonTimerRef.current = setTimeout(() => setShowModalSkeleton(false), 5000);
 //     return () => { if (skeletonTimerRef.current) clearTimeout(skeletonTimerRef.current); };
 //   }, []);
 
-//   // ═══════════════════════════════════════════════════════════════════════
-//   // Pickup chip visibility
-//   // ═══════════════════════════════════════════════════════════════════════
+//   // ── Chip visibility: show when pickup IS the user's live position ──────────
+//   // We use the `isCurrentLocation` flag rather than a sentinel placeId so
+//   // the underlying address/name/placeId can hold real geocoded data.
 //   useEffect(() => {
 //     setPickupChipVisible(
-//       pickupLocation?.placeId === 'current_location' && focusedInput !== 'pickup'
+//       pickupLocation?.isCurrentLocation === true && focusedInput !== 'pickup'
 //     );
 //   }, [pickupLocation, focusedInput]);
 
 //   // ═══════════════════════════════════════════════════════════════════════
-//   // applyLocationFix — single place that writes a new GPS reading.
-//   //
-//   //  • Updates mapCenter  → triggers the map-zoom effect below
-//   //  • Resets pickup      → only when it's still "Current Location" (never
-//   //                          overwrites a user-chosen address)
-//   //  • Sets the obtained  → flag so fast-interval can stop
+//   // fetchAndApplyNativeLocation
+//   // Single step for native: trigger the native GPS call, then immediately
+//   // read user.currentLocation from the API (the native app already wrote
+//   // the reverse-geocoded result there) and set pickup with real data.
+//   // ═══════════════════════════════════════════════════════════════════════
+//   const fetchAndApplyNativeLocation = useCallback(async () => {
+//     try {
+//       // 1. Trigger native GPS update (native app updates user.currentLocation)
+//       const nativeLoc = await getNativeLocation();
+//       if (!nativeLoc?.lat) return null;
+
+//       // Zoom map immediately with raw coords while we wait
+//       const coords = { lat: nativeLoc.lat, lng: nativeLoc.lng };
+//       setMapCenter(coords);
+//       if (mapControlsRef.current) mapControlsRef.current.animateToLocation(coords, 16);
+
+//       // 2. Wait 3 seconds for the native app to finish writing currentLocation to the server
+//       await new Promise((r) => setTimeout(r, 3000));
+
+//       // 3. Fetch user.currentLocation (reverse-geocoded by native app)
+//       if (user?.id) {
+//         const res = await apiClient.get(`/users/${user.id}`)
+//         if (res.currentLocation) {
+//           const userData = res
+//           const cl = userData?.currentLocation;
+//           if (cl?.latitude && cl?.longitude) {
+//             locationObtainedRef.current = true;
+//             const loc = {
+//               lat:               cl.latitude,
+//               lng:               cl.longitude,
+//               address:           cl.address   || `${cl.latitude}, ${cl.longitude}`,
+//               name:              cl.name      || cl.address?.split(',')[0] || 'Current Location',
+//               placeId:           cl.placeId   || `geo_${cl.latitude}_${cl.longitude}`,
+//               isCurrentLocation: true,
+//             };
+//             setPickupLocation((prev) => (prev && !prev.isCurrentLocation ? prev : loc));
+//             return loc;
+//           }
+//         }
+//       }
+
+//       // Fallback: user fetch failed, at least mark coords as obtained
+//       locationObtainedRef.current = true;
+//       return coords;
+//     } catch {
+//       return null;
+//     }
+//   }, [user, getNativeLocation]);
+
+//   // ═══════════════════════════════════════════════════════════════════════
+//   // applyLocationFix — used for WEB GPS only.
+//   // Browser geolocation gives coordinates but no address, so we store the
+//   // coords and show them in the header until the user picks a real address.
 //   // ═══════════════════════════════════════════════════════════════════════
 //   const applyLocationFix = useCallback((lat, lng) => {
 //     if (lat == null || lng == null) return;
 //     locationObtainedRef.current = true;
-
-//     // Update map center — the effect below will zoom the map
 //     setMapCenter({ lat, lng });
-
-//     // Only reset pickup if the user hasn't chosen a custom address
 //     setPickupLocation((prev) => {
-//       if (!prev || prev.placeId === 'current_location') {
-//         return {
-//           lat, lng,
-//           address: 'Current Location',
-//           name:    'Current Location',
-//           placeId: 'current_location',
-//         };
-//       }
-//       return prev;
+//       if (prev && !prev.isCurrentLocation) return prev;
+//       return {
+//         lat,
+//         lng,
+//         address:           `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+//         name:              `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+//         placeId:           `geo_${lat}_${lng}`,
+//         isCurrentLocation: true,
+//       };
 //     });
 //   }, []);
 
 //   // ═══════════════════════════════════════════════════════════════════════
 //   // Map zoom — fires whenever mapCenter or mapControls changes.
-//   //
-//   // This handles the race between the two async operations:
-//   //   • mapCenter arrives first  → mapControls not ready yet → queued here
-//   //   • mapControls ready first  → mapCenter not set yet     → queued here
-//   // Either way, as soon as BOTH are present the map will zoom in.
 //   // ═══════════════════════════════════════════════════════════════════════
 //   useEffect(() => {
 //     if (mapControls && mapCenter) {
@@ -304,10 +308,7 @@
 //   }, [mapControls, mapCenter]);
 
 //   // ═══════════════════════════════════════════════════════════════════════
-//   // Web GPS location → apply fix
-//   // useGeolocation only runs on web. When it delivers a location we apply
-//   // it through the same helper, but only if we haven't already got a native
-//   // fix (locationObtainedRef guards against overwriting a better native fix).
+//   // Web GPS → apply fix (web only, guards against overwriting a native fix)
 //   // ═══════════════════════════════════════════════════════════════════════
 //   useEffect(() => {
 //     if (location && !locationObtainedRef.current) {
@@ -318,98 +319,52 @@
 
 //   // ═══════════════════════════════════════════════════════════════════════
 //   // Two-tier location refresh intervals
-//   //
-//   // ┌─ TIER 1 ─ fast poll (1 s, native WebView only) ──────────────────┐
-//   // │ Runs as long as no GPS fix has been obtained.                     │
-//   // │ Calls getNativeLocation() every second until it returns coords,  │
-//   // │ then immediately clears itself and lets Tier 2 take over.        │
-//   // │ Purpose: close the cold-start gap where the WebView hasn't yet   │
-//   // │ delivered the first GPS reading.                                  │
-//   // └───────────────────────────────────────────────────────────────────┘
-//   //
-//   // ┌─ TIER 2 ─ slow refresh (30 min, always) ─────────────────────────┐
-//   // │ Keeps location current for users on long sessions.               │
-//   // │ Prefers native GPS, falls back to web GPS via refreshWebLocation.│
-//   // └───────────────────────────────────────────────────────────────────┘
 //   // ═══════════════════════════════════════════════════════════════════════
 //   useEffect(() => {
-//     const FAST_MS = 1_000;          // 1 second
-//     const SLOW_MS = 30 * 60_000;   // 30 minutes
+//     const FAST_MS = 1_000;
+//     const SLOW_MS = 4 * 60_000;
 
-//     // ── Tier 1 — fast native poll until first fix ────────────────────────
 //     if (isNative && !locationObtainedRef.current) {
 //       fastIntervalRef.current = setInterval(async () => {
 //         if (locationObtainedRef.current) {
-//           // Fix obtained — stop this interval, Tier 2 handles the rest
 //           clearInterval(fastIntervalRef.current);
 //           fastIntervalRef.current = null;
 //           return;
 //         }
-//         try {
-//           const nativeLoc = await getNativeLocation();
-//           if (nativeLoc?.lat != null) {
-//             applyLocationFix(nativeLoc.lat, nativeLoc.lng);
-//             // Zoom the map immediately if controls are ready
-//             if (mapControlsRef.current) {
-//               mapControlsRef.current.animateToLocation(
-//                 { lat: nativeLoc.lat, lng: nativeLoc.lng }, 16
-//               );
-//             }
-//             clearInterval(fastIntervalRef.current);
-//             fastIntervalRef.current = null;
-//           }
-//         } catch { /* silent — will retry next tick */ }
+//         const result = await fetchAndApplyNativeLocation();
+//         if (result) {
+//           clearInterval(fastIntervalRef.current);
+//           fastIntervalRef.current = null;
+//         }
 //       }, FAST_MS);
 //     }
 
-//     // ── Tier 2 — 30-min background refresh ──────────────────────────────
 //     slowIntervalRef.current = setInterval(async () => {
 //       try {
 //         let refreshed = false;
-
 //         if (isNative && getNativeLocation) {
-//           const nativeLoc = await getNativeLocation();
-//           if (nativeLoc?.lat != null) {
-//             applyLocationFix(nativeLoc.lat, nativeLoc.lng);
-//             refreshed = true;
-//           }
+//           await fetchAndApplyNativeLocation();
+//           refreshed = true;
 //         }
-
-//         // Web fallback: refresh() re-runs navigator.geolocation.getCurrentPosition.
-//         // When it resolves, `location` state in useGeolocation updates, which then
-//         // triggers the useEffect above that calls applyLocationFix.
 //         if (!refreshed) {
 //           await refreshWebLocation();
 //         }
-//       } catch { /* silent — next cycle will retry */ }
+//       } catch { /* silent */ }
 //     }, SLOW_MS);
 
-//     // Cleanup both intervals on unmount
 //     return () => {
 //       if (fastIntervalRef.current) clearInterval(fastIntervalRef.current);
 //       if (slowIntervalRef.current) clearInterval(slowIntervalRef.current);
 //     };
 //   // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, []); // Run once on mount — isNative and callbacks are stable refs
+//   }, []);
 
 //   // ═══════════════════════════════════════════════════════════════════════
 //   // Eager native location on mount
-//   //
-//   // Before the intervals kick in, attempt one immediate native call so the
-//   // user sees their location as quickly as possible.  If it fails we rely
-//   // on the fast-poll interval to keep trying.
 //   // ═══════════════════════════════════════════════════════════════════════
 //   useEffect(() => {
 //     if (!isNative) return;
-//     const tryNativeEager = async () => {
-//       try {
-//         const nativeLoc = await getNativeLocation();
-//         if (nativeLoc?.lat != null) {
-//           applyLocationFix(nativeLoc.lat, nativeLoc.lng);
-//         }
-//       } catch { /* interval will retry */ }
-//     };
-//     tryNativeEager();
+//     fetchAndApplyNativeLocation();
 //   // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, []);
 
@@ -449,9 +404,6 @@
 //     // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, [pickupLocation, dropoffLocation]);
 
-//   // ═══════════════════════════════════════════════════════════════════════
-//   // Load fare estimates
-//   // ═══════════════════════════════════════════════════════════════════════
 //   const loadFareEstimates = async () => {
 //     if (!pickupLocation || !dropoffLocation) return;
 //     setLoadingEstimates(true);
@@ -471,9 +423,6 @@
 //     }
 //   };
 
-//   // ═══════════════════════════════════════════════════════════════════════
-//   // Promo code validation
-//   // ═══════════════════════════════════════════════════════════════════════
 //   const handleValidatePromoCode = async (code) => {
 //     if (!code || !selectedRideClass) return;
 //     setValidatingPromo(true);
@@ -494,9 +443,6 @@
 //     }
 //   };
 
-//   // ═══════════════════════════════════════════════════════════════════════
-//   // Confirm ride booking
-//   // ═══════════════════════════════════════════════════════════════════════
 //   const handleConfirmRide = async (rideDetails) => {
 //     if (!pickupLocation || !dropoffLocation || !selectedRideClass) {
 //       setSnackbar({ open: true, message: 'Please select pickup and dropoff locations', severity: 'warning' });
@@ -532,11 +478,9 @@
 //     }
 //   };
 
-//   // ═══════════════════════════════════════════════════════════════════════
-//   // Location management
-//   // ═══════════════════════════════════════════════════════════════════════
 //   const saveToRecent = useCallback((loc) => {
-//     if (loc.placeId === 'current_location') return;
+//     // Never save the live current position as a "recent" destination
+//     if (loc.isCurrentLocation) return;
 //     const newRecent = [
 //       loc,
 //       ...recentLocations.filter((l) => l.placeId !== loc.placeId && l.address !== loc.address),
@@ -576,8 +520,10 @@
 //   }, [focusedInput, handlePickupSelect, handleDropoffSelect]);
 
 //   const handleReset = () => {
-//     if (location) {
-//       setPickupLocation({ lat: location.lat, lng: location.lng, address: 'Current Location', name: 'Current Location', placeId: 'current_location' });
+//     if (isNative) {
+//       fetchAndApplyNativeLocation();
+//     } else if (location) {
+//       applyLocationFix(location.lat, location.lng);
 //     } else {
 //       setPickupLocation(null);
 //     }
@@ -608,38 +554,37 @@
 //   };
 
 //   const handleIAmHere = () => {
-//     const currentLoc = {
-//       lat: location?.lat ?? pickupLocation?.lat,
-//       lng: location?.lng ?? pickupLocation?.lng,
-//       address: 'Current Location',
-//       name:    'Current Location',
-//       placeId: 'current_location',
-//     };
-//     setPickupLocation(currentLoc);
+//     if (isNative) {
+//       fetchAndApplyNativeLocation();
+//       setFocusedInput(null);
+//       return;
+//     }
+//     const lat = location?.lat ?? pickupLocation?.lat;
+//     const lng = location?.lng ?? pickupLocation?.lng;
+//     if (lat == null || lng == null) return;
+//     applyLocationFix(lat, lng);
 //     setFocusedInput(null);
-//     if (mapControls && location) mapControls.animateToLocation(currentLoc, 16);
+//     if (mapControls) mapControls.animateToLocation({ lat, lng }, 16);
 //   };
 
 //   const handleRelocate = async () => {
 //     setIsRelocating(true);
 //     try {
-//       let newLocation = null;
 //       if (isNative) {
-//         try {
-//           const nativeLoc = await getNativeLocation();
-//           if (nativeLoc) newLocation = { lat: nativeLoc.lat, lng: nativeLoc.lng };
-//         } catch {}
-//       }
-//       if (!newLocation) {
+//         const result = await fetchAndApplyNativeLocation();
+//         if (!result) throw new Error('no_location');
+//         if (result.lat && mapControls) mapControls.animateToLocation({ lat: result.lat, lng: result.lng }, 16);
+//       } else {
 //         await refreshWebLocation();
 //         await new Promise((r) => setTimeout(r, 500));
-//         if (location) newLocation = { lat: location.lat, lng: location.lng };
+//         if (location && mapControls) {
+//           mapControls.animateToLocation({ lat: location.lat, lng: location.lng }, 16);
+//           applyLocationFix(location.lat, location.lng);
+//         } else {
+//           throw new Error('no_location');
+//         }
 //       }
-//       if (newLocation && mapControls) {
-//         mapControls.animateToLocation(newLocation, 16);
-//         applyLocationFix(newLocation.lat, newLocation.lng);
-//         setSnackbar({ open: true, message: 'Location updated', severity: 'success' });
-//       } else throw new Error('no_location');
+//       setSnackbar({ open: true, message: 'Location updated', severity: 'success' });
 //       setTimeout(() => setIsRelocating(false), 1500);
 //     } catch {
 //       setIsRelocating(false);
@@ -658,16 +603,17 @@
 
 //   const locationDisplayText = (() => {
 //     if (!pickupLocation) return 'Detecting location…';
-//     if (pickupLocation.placeId === 'current_location') {
+//     if (pickupLocation.isCurrentLocation) {
+//       // Native: real address from user.currentLocation
+//       // Web: formatted coordinates until user picks a real address
+//       const label = pickupLocation.name || pickupLocation.address;
+//       if (label) return label.split(',')[0];
 //       if (location) return `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
-//       return 'Current Location';
+//       return 'Detecting location…';
 //     }
 //     return pickupLocation.name || pickupLocation.address?.split(',')[0] || 'Current Location';
 //   })();
 
-//   // ═══════════════════════════════════════════════════════════════════════
-//   // Full-page loading (before any location)
-//   // ═══════════════════════════════════════════════════════════════════════
 //   if (locationLoading && !location && !pickupLocation) {
 //     return (
 //       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
@@ -677,9 +623,6 @@
 //     );
 //   }
 
-//   // ═══════════════════════════════════════════════════════════════════════
-//   // Render
-//   // ═══════════════════════════════════════════════════════════════════════
 //   return (
 //     <ClientOnly>
 //       <Box
@@ -802,7 +745,7 @@
 //                     transition={{ duration: 0.28 }}
 //                     style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '100%', overflow: 'hidden' }}
 //                   >
-//                     {/* ════ UNIFIED GRADIENT ZONE — pill + header info + inputs ════ */}
+//                     {/* ════ UNIFIED GRADIENT ZONE ════ */}
 //                     <Box
 //                       sx={{
 //                         ...HEADER_GRADIENT_SX,
@@ -866,16 +809,6 @@
 //                         <Box sx={{ px: 2.5, pt: 0.5, pb: 2.5, width: '100%', boxSizing: 'border-box' }}>
 //                           {rideError && <Alert severity="error" sx={{ mb: 1.5, borderRadius: 2 }}>{rideError}</Alert>}
 
-//                           {routeInfo && (
-//                             <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-//                               <Box sx={{ display: 'flex', gap: 1, mb: 1.5, px: 1.5, py: 0.6, bgcolor: 'rgba(255,255,255,0.18)', borderRadius: 2, border: '1px solid rgba(255,255,255,0.3)' }}>
-//                                 <Typography variant="caption" sx={{ color: 'white', fontWeight: 700 }}>📍 {routeInfo.distance}</Typography>
-//                                 <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)' }}>·</Typography>
-//                                 <Typography variant="caption" sx={{ color: 'white', fontWeight: 700 }}>⏱ {routeInfo.duration}</Typography>
-//                               </Box>
-//                             </motion.div>
-//                           )}
-
 //                           {/* ─── Pickup ─── */}
 //                           <Box sx={{ mb: 0.75 }}>
 //                             <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, transition: 'color 0.2s ease', color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)' }}>
@@ -901,10 +834,10 @@
 //                                 ) : (
 //                                   <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
 //                                     <LocationSearch
-//                                       placeholder={pickupLocation?.address && pickupLocation.placeId !== 'current_location' ? pickupLocation.address : 'Enter pickup location'}
+//                                       placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'}
 //                                       onSelectLocation={handlePickupSelect}
 //                                       mapControls={mapControls}
-//                                       value={focusedInput === 'pickup' ? (pickupLocation?.placeId === 'current_location' ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')}
+//                                       value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')}
 //                                       autoFocus={focusedInput === 'pickup'}
 //                                       onFocus={() => handleInputFocus('pickup')}
 //                                       onBlur={handleInputBlur}
@@ -1069,7 +1002,7 @@
 //     </ClientOnly>
 //   );
 // }
-// rider/app/(main)/home/page.jsx
+// PATH: rider/app/(main)/home/page.jsx
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -1103,7 +1036,11 @@ import {
   Flag as FlagIcon,
   LocationOn as LocationIcon,
   AccessTime as AccessTimeIcon,
+  // ── NEW: theme toggle icons ──
+  LightMode as LightIcon,
+  DarkMode  as DarkIcon,
 } from '@mui/icons-material';
+import { alpha, useTheme }     from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useGeolocation } from '@/lib/hooks/useGeolocation';
@@ -1115,6 +1052,187 @@ import SwipeableBottomSheet, { BottomSheetDragPill } from '@/components/ui/Swipe
 import ClientOnly from '@/components/ClientOnly';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import MapIframe from '@/components/Map/MapIframe';
+import { apiClient } from '@/lib/api/client';
+// ── NEW ──
+import { useThemeMode } from '@/components/ThemeProvider';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Toolbar shared constants
+// ─────────────────────────────────────────────────────────────────────────────
+const GREEN     = '#ffc107';
+const GREEN_DIM = '#ffc107af';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Toolbar SVG icons
+// ─────────────────────────────────────────────────────────────────────────────
+function AppsIcon({ size = 20, color = GREEN }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3"  y="3"  width="7" height="7" rx="2" fill={color} />
+      <rect x="14" y="3"  width="7" height="7" rx="2" fill={color} opacity="0.7" />
+      <rect x="3"  y="14" width="7" height="7" rx="2" fill={color} opacity="0.7" />
+      <rect x="14" y="14" width="7" height="7" rx="2" fill={color} opacity="0.5" />
+    </svg>
+  );
+}
+
+function HelpSvgIcon({ size = 20, color = GREEN }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" fill="none" />
+      <path d="M9.5 9.5C9.5 8.12 10.62 7 12 7C13.38 7 14.5 8.12 14.5 9.5C14.5 10.88 12 12 12 13.5"
+            stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="12" cy="16.5" r="0.9" fill={color} />
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AnimatedHeaderButton — identical to driver page
+// direction 'left'  → «LABEL slides in from right, exits left,  icon enters from right
+// direction 'right' →  LABEL» slides in from left,  exits right, icon enters from left
+// ─────────────────────────────────────────────────────────────────────────────
+function AnimatedHeaderButton({ label, icon, direction, onClick }) {
+  const [phase, setPhase] = useState(0);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    const t = setTimeout(() => { if (mounted.current) setPhase(1); }, 1800);
+    return () => { mounted.current = false; clearTimeout(t); };
+  }, []);
+
+  const textVariants = {
+    enter:  { x: direction === 'left' ? 18 : -18, opacity: 0 },
+    center: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 340, damping: 28 } },
+    exit:   { x: direction === 'left' ? -22 : 22, opacity: 0, transition: { duration: 0.22, ease: 'easeIn' } },
+  };
+
+  const iconVariants = {
+    enter:  { x: direction === 'left' ? 18 : -18, opacity: 0 },
+    center: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 340, damping: 26 } },
+    exit:   { x: 0, opacity: 0, transition: { duration: 0.15 } },
+  };
+
+  return (
+    <Box onClick={onClick} sx={{
+      cursor: 'pointer', minWidth: 48, height: 36,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'relative', overflow: 'hidden', borderRadius: 2, px: 0.5,
+      '&:hover': { '& .btn-glow': { opacity: 1 } },
+    }}>
+      <Box className="btn-glow" sx={{
+        position: 'absolute', inset: 0, borderRadius: 2,
+        background: `radial-gradient(circle, ${alpha(GREEN, 0.18)} 0%, transparent 70%)`,
+        opacity: 0, transition: 'opacity 0.2s', pointerEvents: 'none',
+      }} />
+
+      <AnimatePresence mode="wait" initial>
+        {phase === 0 ? (
+          <motion.div key="label" variants={textVariants} initial="enter" animate="center" exit="exit"
+            style={{ display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap' }}>
+            {direction === 'left' && (
+              <Typography sx={{ fontSize: 14, fontWeight: 900, lineHeight: 1, color: GREEN, mr: 0.25, letterSpacing: -1, fontFamily: 'monospace' }}>«</Typography>
+            )}
+            <Typography sx={{
+              fontSize: 11, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase',
+              background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DIM} 100%)`,
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            }}>
+              {label}
+            </Typography>
+            {direction === 'right' && (
+              <Typography sx={{ fontSize: 14, fontWeight: 900, lineHeight: 1, color: GREEN, ml: 0.25, letterSpacing: -1, fontFamily: 'monospace' }}>»</Typography>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div key="icon" variants={iconVariants} initial="enter" animate="center" exit="exit"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', filter: `drop-shadow(0 0 6px ${alpha(GREEN, 0.55)})` }}>
+            {icon}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Box>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ThemeToggle — identical to driver page
+// Dark:  ( DARK 🌙 )   Light: ( ☀️ LIGHT )
+// ─────────────────────────────────────────────────────────────────────────────
+const PILL_W  = 74;
+const PILL_H  = 30;
+const THUMB_D = 22;
+const THUMB_PAD = 3;
+const THUMB_TRAVEL = PILL_W - THUMB_D - THUMB_PAD * 3; // how far thumb moves
+
+function ThemeToggle({ isDark, onToggle }) {
+  return (
+    <Box onClick={onToggle} sx={{
+      position: 'relative', width: PILL_W, height: PILL_H,
+      borderRadius: PILL_H / 2, cursor: 'pointer', overflow: 'hidden', flexShrink: 0,
+      border: `1.5px solid ${isDark ? alpha(GREEN, 0.35) : alpha('#CBD5E1', 0.9)}`,
+      background: isDark
+        ? 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)'
+        : 'linear-gradient(135deg, #ffffff 0%, #F1F5F9 100%)',
+      boxShadow: isDark
+        ? `0 0 12px ${alpha(GREEN, 0.22)}, inset 0 1px 0 ${alpha('#fff', 0.04)}`
+        : `0 1px 6px ${alpha('#94A3B8', 0.3)}, inset 0 1px 0 rgba(255,255,255,0.9)`,
+      transition: 'background 0.35s, border-color 0.35s, box-shadow 0.35s',
+      '&:hover': {
+        boxShadow: isDark ? `0 0 20px ${alpha(GREEN, 0.38)}` : `0 2px 10px ${alpha('#94A3B8', 0.45)}`,
+        border: isDark ? `1.5px solid ${alpha(GREEN, 0.6)}` : `1.5px solid ${alpha('#94A3B8', 0.7)}`,
+      },
+    }}>
+      {/* Static label — opposite side to thumb */}
+      <Box sx={{
+        position: 'absolute', top: 0, bottom: 0,
+        ...(isDark
+          ? { left: THUMB_PAD + 3, right: THUMB_D + THUMB_PAD * 2 }
+          : { left: THUMB_D + THUMB_PAD * 2, right: THUMB_PAD + 3 }
+        ),
+        display: 'flex', alignItems: 'center',
+        justifyContent: isDark ? 'flex-start' : 'flex-end',
+        pointerEvents: 'none', overflow: 'hidden',
+      }}>
+        <Typography sx={{
+          fontSize: 9, fontWeight: 800, letterSpacing: 0.9, textTransform: 'uppercase', lineHeight: 1,
+          color: isDark ? alpha(GREEN, 0.85) : alpha('#64748B', 0.9),
+          transition: 'color 0.3s',
+        }}>
+          {isDark ? 'DARK' : 'LIGHT'}
+        </Typography>
+      </Box>
+
+      {/* Sliding thumb */}
+      <motion.div
+        animate={{ x: isDark ? THUMB_TRAVEL : 0 }}
+        transition={{ type: 'spring', stiffness: 480, damping: 34 }}
+        style={{
+          position: 'absolute', top: THUMB_PAD, left: THUMB_PAD,
+          width: THUMB_D, height: THUMB_D, borderRadius: '50%', zIndex: 1,
+          background: isDark
+            ? `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DIM} 100%)`
+            : 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+          boxShadow: isDark ? `0 2px 8px ${alpha(GREEN, 0.55)}` : `0 2px 8px ${alpha('#F59E0B', 0.55)}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
+        <motion.div animate={{ rotate: isDark ? 0 : 20 }} transition={{ duration: 0.4, ease: 'easeOut' }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {isDark
+            ? <DarkIcon  sx={{ fontSize: 13, color: '#fff' }} />
+            : <LightIcon sx={{ fontSize: 13, color: '#fff' }} />
+          }
+        </motion.div>
+      </motion.div>
+    </Box>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// (All existing constants below — unchanged)
+// ─────────────────────────────────────────────────────────────────────────────
 
 const HEADER_GRADIENT_SX = {
   background: 'linear-gradient(-60deg, #FFB300 0%, #FF8A00 25%, #FFC107 50%, #FF6D00 75%, #FFD54F 100%)',
@@ -1249,6 +1367,22 @@ export default function HomePage() {
     getRideClasses,
   } = useRide();
 
+  // ── NEW: theme + landing url ──────────────────────────────────────────────
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const { toggleTheme } = useThemeMode();
+  const [landingPageUrl, setLandingPageUrl] = useState(null);
+
+  useEffect(() => {
+    const getFrontendUrl = async () => {
+      const res = await apiClient.get('/frontend-url').catch(() => null);
+      const url = res?.data?.paths?.['okra-frontend-app'];
+      if (url) setLandingPageUrl(url);
+    };
+    getFrontendUrl();
+  }, []);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const [mapCenter, setMapCenter]           = useState(null);
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
@@ -1275,10 +1409,10 @@ export default function HomePage() {
 
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
-  const fastIntervalRef    = useRef(null);
-  const slowIntervalRef    = useRef(null);
+  const fastIntervalRef     = useRef(null);
+  const slowIntervalRef     = useRef(null);
   const locationObtainedRef = useRef(false);
-  const mapControlsRef     = useRef(null);
+  const mapControlsRef      = useRef(null);
 
   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
@@ -1289,73 +1423,91 @@ export default function HomePage() {
 
   useEffect(() => {
     setPickupChipVisible(
-      pickupLocation?.placeId === 'current_location' && focusedInput !== 'pickup'
+      pickupLocation?.isCurrentLocation === true && focusedInput !== 'pickup'
     );
   }, [pickupLocation, focusedInput]);
+
+  const fetchAndApplyNativeLocation = useCallback(async () => {
+    try {
+      const nativeLoc = await getNativeLocation();
+      if (!nativeLoc?.lat) return null;
+
+      const coords = { lat: nativeLoc.lat, lng: nativeLoc.lng };
+      setMapCenter(coords);
+      if (mapControlsRef.current) mapControlsRef.current.animateToLocation(coords, 16);
+
+      await new Promise((r) => setTimeout(r, 3000));
+
+      if (user?.id) {
+        const res = await apiClient.get(`/users/${user.id}`)
+        if (res.currentLocation) {
+          const userData = res
+          const cl = userData?.currentLocation;
+          if (cl?.latitude && cl?.longitude) {
+            locationObtainedRef.current = true;
+            const loc = {
+              lat:               cl.latitude,
+              lng:               cl.longitude,
+              address:           cl.address   || `${cl.latitude}, ${cl.longitude}`,
+              name:              cl.name      || cl.address?.split(',')[0] || 'Current Location',
+              placeId:           cl.placeId   || `geo_${cl.latitude}_${cl.longitude}`,
+              isCurrentLocation: true,
+            };
+            setPickupLocation((prev) => (prev && !prev.isCurrentLocation ? prev : loc));
+            return loc;
+          }
+        }
+      }
+
+      locationObtainedRef.current = true;
+      return coords;
+    } catch {
+      return null;
+    }
+  }, [user, getNativeLocation]);
 
   const applyLocationFix = useCallback((lat, lng) => {
     if (lat == null || lng == null) return;
     locationObtainedRef.current = true;
     setMapCenter({ lat, lng });
     setPickupLocation((prev) => {
-      if (!prev || prev.placeId === 'current_location') {
-        return { lat, lng, address: 'Current Location', name: 'Current Location', placeId: 'current_location' };
-      }
-      return prev;
+      if (prev && !prev.isCurrentLocation) return prev;
+      return {
+        lat, lng,
+        address:           `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+        name:              `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+        placeId:           `geo_${lat}_${lng}`,
+        isCurrentLocation: true,
+      };
     });
   }, []);
 
   useEffect(() => {
-    if (mapControls && mapCenter) {
-      mapControls.animateToLocation(mapCenter, 16);
-    }
+    if (mapControls && mapCenter) mapControls.animateToLocation(mapCenter, 16);
   }, [mapControls, mapCenter]);
 
   useEffect(() => {
-    if (location && !locationObtainedRef.current) {
-      applyLocationFix(location.lat, location.lng);
-    }
+    if (location && !locationObtainedRef.current) applyLocationFix(location.lat, location.lng);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   useEffect(() => {
     const FAST_MS = 1_000;
-    const SLOW_MS = 30 * 60_000;
+    const SLOW_MS = 4 * 60_000;
 
     if (isNative && !locationObtainedRef.current) {
       fastIntervalRef.current = setInterval(async () => {
-        if (locationObtainedRef.current) {
-          clearInterval(fastIntervalRef.current);
-          fastIntervalRef.current = null;
-          return;
-        }
-        try {
-          const nativeLoc = await getNativeLocation();
-          if (nativeLoc?.lat != null) {
-            applyLocationFix(nativeLoc.lat, nativeLoc.lng);
-            if (mapControlsRef.current) {
-              mapControlsRef.current.animateToLocation({ lat: nativeLoc.lat, lng: nativeLoc.lng }, 16);
-            }
-            clearInterval(fastIntervalRef.current);
-            fastIntervalRef.current = null;
-          }
-        } catch { /* silent */ }
+        if (locationObtainedRef.current) { clearInterval(fastIntervalRef.current); fastIntervalRef.current = null; return; }
+        const result = await fetchAndApplyNativeLocation();
+        if (result) { clearInterval(fastIntervalRef.current); fastIntervalRef.current = null; }
       }, FAST_MS);
     }
 
     slowIntervalRef.current = setInterval(async () => {
       try {
         let refreshed = false;
-        if (isNative && getNativeLocation) {
-          const nativeLoc = await getNativeLocation();
-          if (nativeLoc?.lat != null) {
-            applyLocationFix(nativeLoc.lat, nativeLoc.lng);
-            refreshed = true;
-          }
-        }
-        if (!refreshed) {
-          await refreshWebLocation();
-        }
+        if (isNative && getNativeLocation) { await fetchAndApplyNativeLocation(); refreshed = true; }
+        if (!refreshed) await refreshWebLocation();
       } catch { /* silent */ }
     }, SLOW_MS);
 
@@ -1368,15 +1520,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!isNative) return;
-    const tryNativeEager = async () => {
-      try {
-        const nativeLoc = await getNativeLocation();
-        if (nativeLoc?.lat != null) {
-          applyLocationFix(nativeLoc.lat, nativeLoc.lng);
-        }
-      } catch { /* interval will retry */ }
-    };
-    tryNativeEager();
+    fetchAndApplyNativeLocation();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1384,9 +1528,7 @@ export default function HomePage() {
     const load = async () => {
       if (typeof window !== 'undefined') {
         const saved = localStorage.getItem('okra_rides_recent_locations');
-        if (saved) {
-          try { setRecentLocations(JSON.parse(saved)); } catch {}
-        }
+        if (saved) { try { setRecentLocations(JSON.parse(saved)); } catch {} }
       }
       try {
         const types = await getTaxiTypes();
@@ -1456,13 +1598,10 @@ export default function HomePage() {
     }
     try {
       const result = await requestRide({
-        taxiType: 'taxi',
-        rideType: 'taxi',
-        rider: user,
+        taxiType: 'taxi', rideType: 'taxi', rider: user,
         rideClass: selectedRideClass.rideClassId || selectedRideClass.id,
         rideClassId: selectedRideClass.rideClassId || selectedRideClass.id,
-        pickupLocation,
-        dropoffLocation,
+        pickupLocation, dropoffLocation,
         paymentMethod:    rideDetails.paymentMethod || 'cash',
         promoCode:        promoCode || null,
         estimatedFare:    rideDetails.totalFare || selectedRideClass.subtotal,
@@ -1485,110 +1624,70 @@ export default function HomePage() {
   };
 
   const saveToRecent = useCallback((loc) => {
-    if (loc.placeId === 'current_location') return;
-    const newRecent = [
-      loc,
-      ...recentLocations.filter((l) => l.placeId !== loc.placeId && l.address !== loc.address),
-    ].slice(0, 5);
+    if (loc.isCurrentLocation) return;
+    const newRecent = [loc, ...recentLocations.filter((l) => l.placeId !== loc.placeId && l.address !== loc.address)].slice(0, 5);
     setRecentLocations(newRecent);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('okra_rides_recent_locations', JSON.stringify(newRecent));
-    }
+    if (typeof window !== 'undefined') localStorage.setItem('okra_rides_recent_locations', JSON.stringify(newRecent));
   }, [recentLocations]);
 
   const handlePickupSelect = useCallback((loc) => {
-    setPickupLocation(loc);
-    saveToRecent(loc);
+    setPickupLocation(loc); saveToRecent(loc);
     if (mapControls) mapControls.animateToLocation(loc, 15);
     setTimeout(() => setFocusedInput(null), 150);
-    setFareEstimates(null);
-    setSelectedRideClass(null);
-    setPromoDiscount(null);
+    setFareEstimates(null); setSelectedRideClass(null); setPromoDiscount(null);
   }, [mapControls, saveToRecent]);
 
   const handleDropoffSelect = useCallback((loc) => {
-    setDropoffLocation(loc);
-    saveToRecent(loc);
+    setDropoffLocation(loc); saveToRecent(loc);
     if (mapControls) mapControls.animateToLocation(loc, 15);
     setTimeout(() => setFocusedInput(null), 150);
-    setFareEstimates(null);
-    setSelectedRideClass(null);
-    setPromoDiscount(null);
+    setFareEstimates(null); setSelectedRideClass(null); setPromoDiscount(null);
   }, [mapControls, saveToRecent]);
 
   const handleSelectRecentLocation = useCallback((loc) => {
-    if (focusedInput === 'pickup') {
-      handlePickupSelect(loc);
-    } else {
-      handleDropoffSelect(loc);
-    }
+    if (focusedInput === 'pickup') handlePickupSelect(loc);
+    else handleDropoffSelect(loc);
   }, [focusedInput, handlePickupSelect, handleDropoffSelect]);
 
   const handleReset = () => {
-    if (location) {
-      setPickupLocation({ lat: location.lat, lng: location.lng, address: 'Current Location', name: 'Current Location', placeId: 'current_location' });
-    } else {
-      setPickupLocation(null);
-    }
-    setDropoffLocation(null);
-    setFareEstimates(null);
-    setSelectedRideClass(null);
-    setPromoCode('');
-    setPromoDiscount(null);
-    setShowRideOptions(false);
-    setShowLocationSheet(true);
-    setRouteInfo(null);
-    setFocusedInput(null);
-    setSheetExpanded(false);
+    if (isNative) fetchAndApplyNativeLocation();
+    else if (location) applyLocationFix(location.lat, location.lng);
+    else setPickupLocation(null);
+    setDropoffLocation(null); setFareEstimates(null); setSelectedRideClass(null);
+    setPromoCode(''); setPromoDiscount(null); setShowRideOptions(false);
+    setShowLocationSheet(true); setRouteInfo(null); setFocusedInput(null); setSheetExpanded(false);
   };
 
-  const handleInputFocus = (input) => {
-    setFocusedInput(input);
-    if (!sheetExpanded) setSheetExpanded(true);
-  };
-
-  const handleInputBlur = () => {
-    setTimeout(() => setFocusedInput(null), 180);
-  };
-
-  const handleChangeLocation = () => {
-    setPickupChipVisible(false);
-    handleInputFocus('pickup');
-  };
+  const handleInputFocus = (input) => { setFocusedInput(input); if (!sheetExpanded) setSheetExpanded(true); };
+  const handleInputBlur  = () => { setTimeout(() => setFocusedInput(null), 180); };
+  const handleChangeLocation = () => { setPickupChipVisible(false); handleInputFocus('pickup'); };
 
   const handleIAmHere = () => {
-    const currentLoc = {
-      lat: location?.lat ?? pickupLocation?.lat,
-      lng: location?.lng ?? pickupLocation?.lng,
-      address: 'Current Location',
-      name:    'Current Location',
-      placeId: 'current_location',
-    };
-    setPickupLocation(currentLoc);
+    if (isNative) { fetchAndApplyNativeLocation(); setFocusedInput(null); return; }
+    const lat = location?.lat ?? pickupLocation?.lat;
+    const lng = location?.lng ?? pickupLocation?.lng;
+    if (lat == null || lng == null) return;
+    applyLocationFix(lat, lng);
     setFocusedInput(null);
-    if (mapControls && location) mapControls.animateToLocation(currentLoc, 16);
+    if (mapControls) mapControls.animateToLocation({ lat, lng }, 16);
   };
 
   const handleRelocate = async () => {
     setIsRelocating(true);
     try {
-      let newLocation = null;
       if (isNative) {
-        try {
-          const nativeLoc = await getNativeLocation();
-          if (nativeLoc) newLocation = { lat: nativeLoc.lat, lng: nativeLoc.lng };
-        } catch {}
-      }
-      if (!newLocation) {
+        const result = await fetchAndApplyNativeLocation();
+        if (!result) throw new Error('no_location');
+        if (result.lat && mapControls) mapControls.animateToLocation({ lat: result.lat, lng: result.lng }, 16);
+      } else {
         await refreshWebLocation();
         await new Promise((r) => setTimeout(r, 500));
-        if (location) newLocation = { lat: location.lat, lng: location.lng };
+        if (location && mapControls) {
+          mapControls.animateToLocation({ lat: location.lat, lng: location.lng }, 16);
+          applyLocationFix(location.lat, location.lng);
+        } else throw new Error('no_location');
       }
-      if (newLocation && mapControls) {
-        mapControls.animateToLocation(newLocation, 16);
-        applyLocationFix(newLocation.lat, newLocation.lng);
-        setSnackbar({ open: true, message: 'Location updated', severity: 'success' });
-      } else throw new Error('no_location');
+      setSnackbar({ open: true, message: 'Location updated', severity: 'success' });
       setTimeout(() => setIsRelocating(false), 1500);
     } catch {
       setIsRelocating(false);
@@ -1597,19 +1696,17 @@ export default function HomePage() {
   };
 
   const handleCloseRideOptions = () => {
-    setShowRideOptions(false);
-    setShowLocationSheet(true);
-    setSheetExpanded(false);
-    setFareEstimates(null);
-    setDropoffLocation(null);
-    setSelectedRideClass(null);
+    setShowRideOptions(false); setShowLocationSheet(true); setSheetExpanded(false);
+    setFareEstimates(null); setDropoffLocation(null); setSelectedRideClass(null);
   };
 
   const locationDisplayText = (() => {
     if (!pickupLocation) return 'Detecting location…';
-    if (pickupLocation.placeId === 'current_location') {
+    if (pickupLocation.isCurrentLocation) {
+      const label = pickupLocation.name || pickupLocation.address;
+      if (label) return label.split(',')[0];
       if (location) return `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
-      return 'Current Location';
+      return 'Detecting location…';
     }
     return pickupLocation.name || pickupLocation.address?.split(',')[0] || 'Current Location';
   })();
@@ -1625,17 +1722,8 @@ export default function HomePage() {
 
   return (
     <ClientOnly>
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          width: '100%',
-          height: '100%',
-          overflow: 'hidden',
-          maxWidth: '100vw',
-          boxSizing: 'border-box',
-        }}
-      >
+      <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden', maxWidth: '100vw', boxSizing: 'border-box' }}>
+
         {/* ── Map ── */}
         <Box sx={{ position: 'absolute', inset: 0, zIndex: 1 }}>
           <MapIframe
@@ -1652,12 +1740,7 @@ export default function HomePage() {
         <AnimatePresence>
           {isRelocating && (
             <Backdrop open sx={{ zIndex: 1400, backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                style={{ textAlign: 'center' }}
-              >
+              <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }} style={{ textAlign: 'center' }}>
                 <Box sx={{ width: 80, height: 80, borderRadius: '50%', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3, mx: 'auto', animation: 'pulse 2s infinite', '@keyframes pulse': { '0%': { boxShadow: '0 0 0 0 rgba(255,193,7,0.7)' }, '70%': { boxShadow: '0 0 0 20px rgba(255,193,7,0)' }, '100%': { boxShadow: '0 0 0 0 rgba(255,193,7,0)' } } }}>
                   <MyLocationIcon sx={{ fontSize: 40, color: 'white' }} />
                 </Box>
@@ -1669,50 +1752,48 @@ export default function HomePage() {
           )}
         </AnimatePresence>
 
-        {/* ── AppBar ── */}
-        <AppBar
-          position="absolute"
-          sx={{
-            backgroundColor: 'rgba(255,255,255,0.95)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: 'none',
-            borderBottom: '1px solid rgba(0,0,0,0.07)',
-            zIndex: 10,
-          }}
-        >
-          <Toolbar sx={{ minHeight: 56 }}>
-            <IconButton edge="start" sx={{ mr: 1 }} onClick={() => router.push('/menu')}>
-              <MenuIcon />
-            </IconButton>
-            <Box sx={{ flexGrow: 1 }} />
-            <IconButton onClick={() => router.push('/notifications')} sx={{ mr: 1 }}>
-              <Badge badgeContent={3} color="error" variant="dot">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-            <IconButton onClick={() => router.push('/profile')}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
-                {user?.firstName?.[0] || 'U'}
-              </Avatar>
-            </IconButton>
+        {/* ══════════════════════════════════════════════════
+            ── AppBar — updated toolbar ──
+        ══════════════════════════════════════════════════ */}
+        <AppBar position="absolute" sx={{
+          background: isDark
+            ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)'
+            : 'linear-gradient(135deg, #ffffff 0%, #F8FAFC 100%)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: 'none',
+          borderBottom: isDark ? `1px solid ${alpha(GREEN, 0.12)}` : '1px solid rgba(0,0,0,0.07)',
+          zIndex: 10,
+          transition: 'background 0.35s',
+        }}>
+          <Toolbar sx={{ minHeight: 56, justifyContent: 'space-between', gap: 1 }}>
+
+            {/* LEFT: apps link */}
+            <AnimatedHeaderButton
+              label="APPS"
+              direction="left"
+              icon={<AppsIcon size={22} color={GREEN} />}
+              onClick={() => { if (landingPageUrl) router.push(landingPageUrl) }}
+            />
+
+            {/* CENTER: theme toggle */}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+            </Box>
+
+            {/* RIGHT: help link */}
+            <AnimatedHeaderButton
+              label="HELP"
+              direction="right"
+              icon={<HelpSvgIcon size={22} color={GREEN} />}
+              onClick={() => router.push('/help')}
+            />
+
           </Toolbar>
         </AppBar>
 
         {/* ── Map Controls ── */}
-        <Box
-          sx={{
-            position: 'absolute',
-            right: 16,
-            bottom: showLocationSheet ? 360 : 100,
-            zIndex: 5,
-            transition: 'bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
-          <MapControls
-            onLocateMe={handleRelocate}
-            onZoomIn={() => mapControls?.zoomIn()}
-            onZoomOut={() => mapControls?.zoomOut()}
-          />
+        <Box sx={{ position: 'absolute', right: 16, bottom: showLocationSheet ? 360 : 100, zIndex: 5, transition: 'bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+          <MapControls onLocateMe={handleRelocate} onZoomIn={() => mapControls?.zoomIn()} onZoomOut={() => mapControls?.zoomOut()} />
         </Box>
 
         {/* ══════════════════════════════════════════════════
@@ -1720,128 +1801,48 @@ export default function HomePage() {
         ══════════════════════════════════════════════════ */}
         <AnimatePresence>
           {showLocationSheet && (
-            <SwipeableBottomSheet
-              open
-              initialHeight="80%"
-              maxHeight="90%"
-              minHeight={280}
-              expandedHeight={sheetExpanded ? '90%' : null}
-              persistHeight={sheetExpanded}
-              onSwipeDown={() => {
-                setSheetExpanded(false);
-                setFocusedInput(null);
-              }}
-            >
+            <SwipeableBottomSheet open initialHeight="80%" maxHeight="90%" minHeight={280} expandedHeight={sheetExpanded ? '90%' : null} persistHeight={sheetExpanded} onSwipeDown={() => { setSheetExpanded(false); setFocusedInput(null); }}>
               <AnimatePresence mode="wait">
                 {showModalSkeleton ? (
                   <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
                     <ModalLoadingSkeleton />
                   </motion.div>
                 ) : (
-                  <motion.div
-                    key="content"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.28 }}
-                    style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '100%', overflow: 'hidden' }}
-                  >
-                    {/* ════ UNIFIED GRADIENT ZONE ════ */}
-                    <Box
-                      sx={{
-                        ...HEADER_GRADIENT_SX,
-                        borderTopLeftRadius: 24,
-                        borderTopRightRadius: 24,
-                        flexShrink: 0,
-                        overflow: 'hidden',
-                        position: 'relative',
-                        '&::before': {
-                          content: '""', position: 'absolute',
-                          top: -30, right: -30, width: 120, height: 120,
-                          borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)',
-                          pointerEvents: 'none',
-                        },
-                      }}
-                    >
+                  <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.28 }} style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
+                    <Box sx={{ ...HEADER_GRADIENT_SX, borderTopLeftRadius: 24, borderTopRightRadius: 24, flexShrink: 0, overflow: 'hidden', position: 'relative', '&::before': { content: '""', position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)', pointerEvents: 'none' } }}>
                       <BottomSheetDragPill colored />
-
-                      {/* Header info — exits upward when an input is focused */}
                       <AnimatePresence>
                         {!focusedInput && (
-                          <motion.div
-                            key="header-info"
-                            initial={{ opacity: 0, y: -16 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -28 }}
-                            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                            style={{ overflow: 'hidden' }}
-                          >
+                          <motion.div key="header-info" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -28 }} transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }} style={{ overflow: 'hidden' }}>
                             <Box sx={{ px: 3, pb: 2 }}>
-                              <Typography variant="h6" sx={{ fontWeight: 900, color: 'white', fontSize: '1.15rem', letterSpacing: '0.3px', textShadow: '0 1px 4px rgba(0,0,0,0.15)', mb: 1.25 }}>
-                                Okra Rides
-                              </Typography>
+                              <Typography variant="h6" sx={{ fontWeight: 900, color: 'white', fontSize: '1.15rem', letterSpacing: '0.3px', textShadow: '0 1px 4px rgba(0,0,0,0.15)', mb: 1.25 }}>Okra Rides</Typography>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.25, gap: 1 }}>
                                 <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.85)', fontWeight: 600, flexShrink: 0 }}>Your location</Typography>
-                                <Typography variant="caption" sx={{ color: 'white', fontWeight: 700, maxWidth: 200, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.72rem' }}>
-                                  {locationDisplayText}
-                                </Typography>
+                                <Typography variant="caption" sx={{ color: 'white', fontWeight: 700, maxWidth: 200, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.72rem' }}>{locationDisplayText}</Typography>
                               </Box>
                               <Box sx={{ display: 'flex', gap: 1 }}>
-                                <Button fullWidth size="small" onClick={handleChangeLocation}
-                                  sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', py: 0.75, border: '1px solid rgba(255,255,255,0.3)', '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' }, '&:focus': { outline: 'none' } }}>
-                                  Change
-                                </Button>
-                                <Button fullWidth size="small" onClick={handleIAmHere}
-                                  sx={{ bgcolor: 'white', color: '#E65100', borderRadius: 2, textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', py: 0.75, boxShadow: '0 2px 8px rgba(0,0,0,0.12)', '&:hover': { bgcolor: 'rgba(255,255,255,0.92)' }, '&:focus': { outline: 'none' } }}>
-                                  I am here
-                                </Button>
+                                <Button fullWidth size="small" onClick={handleChangeLocation} sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', py: 0.75, border: '1px solid rgba(255,255,255,0.3)', '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' }, '&:focus': { outline: 'none' } }}>Change</Button>
+                                <Button fullWidth size="small" onClick={handleIAmHere} sx={{ bgcolor: 'white', color: '#E65100', borderRadius: 2, textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', py: 0.75, boxShadow: '0 2px 8px rgba(0,0,0,0.12)', '&:hover': { bgcolor: 'rgba(255,255,255,0.92)' }, '&:focus': { outline: 'none' } }}>I am here</Button>
                               </Box>
                             </Box>
                           </motion.div>
                         )}
                       </AnimatePresence>
-
-                      {/* Inputs — layout-animated upward when header info exits */}
-                      <motion.div
-                        layout
-                        transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }}
-                        style={{ width: '100%' }}
-                      >
+                      <motion.div layout transition={{ duration: 0.26, ease: [0.4, 0, 0.2, 1] }} style={{ width: '100%' }}>
                         <Box sx={{ px: 2.5, pt: 0.5, pb: 2.5, width: '100%', boxSizing: 'border-box' }}>
                           {rideError && <Alert severity="error" sx={{ mb: 1.5, borderRadius: 2 }}>{rideError}</Alert>}
-
-                          {/* ─── Pickup ─── */}
                           <Box sx={{ mb: 0.75 }}>
-                            <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, transition: 'color 0.2s ease', color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)' }}>
-                              Pickup
-                            </Typography>
+                            <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, transition: 'color 0.2s ease', color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)' }}>Pickup</Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.88)', minHeight: 52, width: '100%', maxWidth: '100%', boxSizing: 'border-box', transition: 'all 0.22s ease', overflow: 'hidden' }}>
                               <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup' ? 'rgba(255,193,7,0.08)' : 'rgba(255,255,255,0.15)', transition: 'all 0.22s ease' }}>
                                 <PersonIcon sx={{ fontSize: 19, color: focusedInput === 'pickup' ? 'primary.main' : pickupLocation ? 'success.main' : 'rgba(0,0,0,0.4)', transition: 'color 0.22s ease' }} />
                               </Box>
-                              <Box
-                                sx={{ flex: 1, px: 1.5, py: 1, display: 'flex', alignItems: 'center', cursor: 'text', minWidth: 0 }}
-                                onClick={() => { if (pickupChipVisible) { setPickupChipVisible(false); handleInputFocus('pickup'); } }}
-                              >
+                              <Box sx={{ flex: 1, px: 1.5, py: 1, display: 'flex', alignItems: 'center', cursor: 'text', minWidth: 0 }} onClick={() => { if (pickupChipVisible) { setPickupChipVisible(false); handleInputFocus('pickup'); } }}>
                                 {pickupChipVisible ? (
-                                  <Chip
-                                    icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />}
-                                    label="Current Location"
-                                    onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }}
-                                    onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }}
-                                    size="small"
-                                    sx={{ bgcolor: 'rgba(255,193,7,0.15)', color: '#E65100', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#E65100', opacity: 0.7 }, '& .MuiChip-icon': { color: '#E65100' } }}
-                                  />
+                                  <Chip icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />} label="Current Location" onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }} onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }} size="small" sx={{ bgcolor: 'rgba(255,193,7,0.15)', color: '#E65100', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#E65100', opacity: 0.7 }, '& .MuiChip-icon': { color: '#E65100' } }} />
                                 ) : (
                                   <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
-                                    <LocationSearch
-                                      placeholder={pickupLocation?.address && pickupLocation.placeId !== 'current_location' ? pickupLocation.address : 'Enter pickup location'}
-                                      onSelectLocation={handlePickupSelect}
-                                      mapControls={mapControls}
-                                      value={focusedInput === 'pickup' ? (pickupLocation?.placeId === 'current_location' ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')}
-                                      autoFocus={focusedInput === 'pickup'}
-                                      onFocus={() => handleInputFocus('pickup')}
-                                      onBlur={handleInputBlur}
-                                    />
+                                    <LocationSearch placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'} onSelectLocation={handlePickupSelect} mapControls={mapControls} value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')} autoFocus={focusedInput === 'pickup'} onFocus={() => handleInputFocus('pickup')} onBlur={handleInputBlur} />
                                   </Box>
                                 )}
                               </Box>
@@ -1852,32 +1853,18 @@ export default function HomePage() {
                               )}
                             </Box>
                           </Box>
-
-                          {/* Connector line */}
                           <Box sx={{ display: 'flex', alignItems: 'center', pl: '21px', my: 0.2 }}>
                             <Box sx={{ width: 2, height: 18, bgcolor: pickupLocation && dropoffLocation ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)', borderRadius: 1, transition: 'background-color 0.3s ease' }} />
                           </Box>
-
-                          {/* ─── Dropoff ─── */}
                           <Box>
-                            <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, transition: 'color 0.2s ease', color: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.65)' }}>
-                              Destination
-                            </Typography>
+                            <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, transition: 'color 0.2s ease', color: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.65)' }}>Destination</Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.88)', minHeight: 52, width: '100%', maxWidth: '100%', boxSizing: 'border-box', transition: 'all 0.22s ease', overflow: 'hidden' }}>
                               <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'dropoff' ? 'rgba(255,193,7,0.08)' : 'rgba(255,255,255,0.15)', transition: 'all 0.22s ease' }}>
                                 <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? 'primary.main' : dropoffLocation ? 'error.main' : 'rgba(0,0,0,0.4)', transition: 'color 0.22s ease' }} />
                               </Box>
                               <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
                                 <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
-                                  <LocationSearch
-                                    placeholder="Where to?"
-                                    onSelectLocation={handleDropoffSelect}
-                                    mapControls={mapControls}
-                                    value={dropoffLocation?.address || ''}
-                                    autoFocus={focusedInput === 'dropoff'}
-                                    onFocus={() => handleInputFocus('dropoff')}
-                                    onBlur={handleInputBlur}
-                                  />
+                                  <LocationSearch placeholder="Where to?" onSelectLocation={handleDropoffSelect} mapControls={mapControls} value={dropoffLocation?.address || ''} autoFocus={focusedInput === 'dropoff'} onFocus={() => handleInputFocus('dropoff')} onBlur={handleInputBlur} />
                                 </Box>
                               </Box>
                               {dropoffLocation && (
@@ -1889,18 +1876,9 @@ export default function HomePage() {
                           </Box>
                         </Box>
                       </motion.div>
-                    </Box>{/* end gradient zone */}
+                    </Box>
 
-                    {/* ── SCROLL AREA — recent locations ── */}
-                    <Box
-                      sx={{
-                        flex: 1, minHeight: 0,
-                        overflowY: 'auto', overflowX: 'hidden',
-                        scrollbarWidth: 'none', msOverflowStyle: 'none',
-                        '&::-webkit-scrollbar': { display: 'none' },
-                        width: '100%', maxWidth: '100%', boxSizing: 'border-box',
-                      }}
-                    >
+                    <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none', '&::-webkit-scrollbar': { display: 'none' }, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
                       <AnimatePresence>
                         {recentLocations.length > 0 && (
                           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
@@ -1915,19 +1893,11 @@ export default function HomePage() {
                               <List disablePadding>
                                 {recentLocations.map((loc, index) => (
                                   <motion.div key={`${loc.placeId}-${index}`} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.04, duration: 0.2 }}>
-                                    <ListItem
-                                      onClick={() => handleSelectRecentLocation(loc)}
-                                      sx={{ py: 1, px: 1.5, borderRadius: 2, mb: 0.5, cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { bgcolor: 'action.hover', transform: 'translateX(3px)' }, '&:active': { transform: 'translateX(1px)' }, '&:focus': { outline: 'none' } }}
-                                    >
+                                    <ListItem onClick={() => handleSelectRecentLocation(loc)} sx={{ py: 1, px: 1.5, borderRadius: 2, mb: 0.5, cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { bgcolor: 'action.hover', transform: 'translateX(3px)' }, '&:active': { transform: 'translateX(1px)' }, '&:focus': { outline: 'none' } }}>
                                       <ListItemIcon sx={{ minWidth: 36, width: 36, height: 36, borderRadius: '50%', bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1.5, flexShrink: 0 }}>
                                         <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                                       </ListItemIcon>
-                                      <ListItemText
-                                        primary={loc.name || loc.address?.split(',')[0]}
-                                        secondary={loc.name && loc.name !== loc.address ? loc.address : null}
-                                        primaryTypographyProps={{ fontWeight: 600, fontSize: '0.875rem', noWrap: true }}
-                                        secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary', noWrap: true }}
-                                      />
+                                      <ListItemText primary={loc.name || loc.address?.split(',')[0]} secondary={loc.name && loc.name !== loc.address ? loc.address : null} primaryTypographyProps={{ fontWeight: 600, fontSize: '0.875rem', noWrap: true }} secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary', noWrap: true }} />
                                     </ListItem>
                                   </motion.div>
                                 ))}
@@ -1936,7 +1906,7 @@ export default function HomePage() {
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </Box>{/* end scroll area */}
+                    </Box>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -1949,51 +1919,20 @@ export default function HomePage() {
         ══════════════════════════════════════════════════ */}
         <AnimatePresence mode="wait">
           {showRideOptions && pickupLocation && dropoffLocation && (
-            <SwipeableBottomSheet
-              key="ride-options-sheet"
-              open
-              initialHeight="80%"
-              maxHeight="90%"
-              minHeight={280}
-              expandedHeight="90%"
-              persistHeight
-              draggable={false}
-            >
+            <SwipeableBottomSheet key="ride-options-sheet" open initialHeight="80%" maxHeight="90%" minHeight={280} expandedHeight="90%" persistHeight draggable={false}>
               {loadingEstimates ? (
                 <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <FareEstimatesSkeleton onClose={handleCloseRideOptions} routeInfo={routeInfo} />
                 </Box>
               ) : (
-                <RideOptionsSheet
-                  pickupLocation={pickupLocation}
-                  dropoffLocation={dropoffLocation}
-                  routeInfo={routeInfo}
-                  fareEstimates={fareEstimates}
-                  loadingEstimates={loadingEstimates}
-                  selectedRideClass={selectedRideClass}
-                  onSelectRideClass={setSelectedRideClass}
-                  promoCode={promoCode}
-                  onPromoCodeChange={setPromoCode}
-                  promoDiscount={promoDiscount}
-                  onValidatePromo={handleValidatePromoCode}
-                  validatingPromo={validatingPromo}
-                  onClose={handleCloseRideOptions}
-                  onConfirmRide={handleConfirmRide}
-                  loading={rideLoading}
-                  bottomPadding={80}
-                />
+                <RideOptionsSheet pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} routeInfo={routeInfo} fareEstimates={fareEstimates} loadingEstimates={loadingEstimates} selectedRideClass={selectedRideClass} onSelectRideClass={setSelectedRideClass} promoCode={promoCode} onPromoCodeChange={setPromoCode} promoDiscount={promoDiscount} onValidatePromo={handleValidatePromoCode} validatingPromo={validatingPromo} onClose={handleCloseRideOptions} onConfirmRide={handleConfirmRide} loading={rideLoading} bottomPadding={80} />
               )}
             </SwipeableBottomSheet>
           )}
         </AnimatePresence>
 
         {/* ── Snackbar ── */}
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        >
+        <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar((s) => ({ ...s, open: false }))} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
           <Alert onClose={() => setSnackbar((s) => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%', borderRadius: 2 }}>
             {snackbar.message}
           </Alert>
