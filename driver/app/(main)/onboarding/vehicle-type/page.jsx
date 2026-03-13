@@ -1,3 +1,4 @@
+//Okrarides\driver\app\(main)\onboarding\vehicle-type\page.jsx
 'use client'
 
 import { useEffect, useState } from 'react'

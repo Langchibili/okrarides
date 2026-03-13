@@ -772,6 +772,7 @@ import SwipeableBottomSheet from '@/components/ui/SwipeableBottomSheet';
 import ClientOnly from '@/components/ClientOnly';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import MapIframe from '@/components/Map/MapIframe';
+import { getImageUrl } from '@/Functions';
 
 const RIDE_STATUS_CONFIG = {
   accepted:          { title: 'Driver is on the way',  color: 'info',    icon: '🚗', description: 'Your driver is heading to your pickup location' },
@@ -1106,7 +1107,7 @@ export default function TrackingPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5, flexShrink: 0 }}>
               <Box sx={{ position: 'relative', mr: 2 }}>
                 <Avatar
-                  src={driver?.profilePicture}
+                  src={process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_API_URL + getImageUrl(driver?.profilePicture, 'thumbnail')}
                   sx={{
                     width: 64,
                     height: 64,
