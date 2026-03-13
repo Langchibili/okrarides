@@ -3151,6 +3151,7 @@ export interface ApiSupportTicketSupportTicket
       'api::support-ticket.support-ticket'
     > &
       Schema.Attribute.Private;
+    phoneNumber: Schema.Attribute.String;
     priority: Schema.Attribute.Enumeration<
       ['low', 'medium', 'high', 'urgent']
     > &
@@ -3173,7 +3174,7 @@ export interface ApiSupportTicketSupportTicket
       'manyToOne',
       'api::driver-subscription.driver-subscription'
     >;
-    tags: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
+    tags: Schema.Attribute.JSON;
     ticketId: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
@@ -3187,8 +3188,7 @@ export interface ApiSupportTicketSupportTicket
     user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
   };
 }
 

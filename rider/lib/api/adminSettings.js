@@ -344,8 +344,26 @@ export function isAllowRidePaymentWithOkraPay(settings) {
   if (!settings) return false;
   return settings.okrapayEnabled !== false && settings.allowRidePaymentWithOkraPay !== false;
 }
+// ─── Support Contacts ─────────────────────────────────────────────────────────
 
+/**
+ * Array of support phone numbers.
+ * Each item may be a plain string or an object { name, number }
+ */
+export const getAdminSupportNumbers = (settings) => {
+  return settings?.adminSupportNumbers || [];
+};
+
+/**
+ * Array of support email addresses.
+ * Each item may be a plain string or an object { name, email }
+ */
+export const getAdminSupportEmails = (settings) => {
+  return settings?.adminSupportEmails || [];
+};
 export default {
+  getAdminSupportNumbers,
+  getAdminSupportEmails,
   getAdminSettings,
   updateAdminSettings,
   // Helper functions

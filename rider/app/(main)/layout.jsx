@@ -107,7 +107,7 @@ export default function MainLayout({ children }) {
         router.push(`/trip-summary?rideId=${id}`);
       }
     }
-  }, [activeRide, router]);
+  }, [activeRide, router, isAuthenticated]);
 
   useEffect(() => {
     // Force MUI to re-evaluate styles on route change

@@ -107,7 +107,9 @@ export function useAdminSettings() {
     error,
     refresh,
     lastFetched,
-
+    // Support Contacts
+    adminSupportNumbers: AdminSettingsHelpers.getAdminSupportNumbers(settings),
+    adminSupportEmails:  AdminSettingsHelpers.getAdminSupportEmails(settings),
     // Payment System
     allowFloatTopUpWithOkraPay:     AdminSettingsHelpers.isAllowFloatTopUpWithOkraPay(settings),
     allowRidePaymentWithOkraPay:    AdminSettingsHelpers.isAllowRidePaymentWithOkraPay(settings),
@@ -255,10 +257,12 @@ export function useAdminSettingsStandalone() {
     loading,
     error,
     refresh: fetchSettings,
-
+    // Support Contacts
+    adminSupportNumbers: AdminSettingsHelpers.getAdminSupportNumbers(settings),
+    adminSupportEmails:  AdminSettingsHelpers.getAdminSupportEmails(settings),
     // All helper functions
-    allowFloatTopUpWithOkraPay:     AdminSettingsHelpers.isAllowFloatTopUpWithOkraPay(settings),
-    allowRidePaymentWithOkraPay:    AdminSettingsHelpers.isAllowRidePaymentWithOkraPay(settings),
+    allowFloatTopUpWithOkraPay: AdminSettingsHelpers.isAllowFloatTopUpWithOkraPay(settings),
+    allowRidePaymentWithOkraPay: AdminSettingsHelpers.isAllowRidePaymentWithOkraPay(settings),
     paymentSystemType: AdminSettingsHelpers.getPaymentSystemType(settings),
     isFloatSystemEnabled: AdminSettingsHelpers.isFloatSystemEnabled(settings),
     isSubscriptionSystemEnabled: AdminSettingsHelpers.isSubscriptionSystemEnabled(settings),

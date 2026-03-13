@@ -10,6 +10,14 @@
   "options": {
     "draftAndPublish": false
   },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
   "attributes": {
     "ticketId": {
       "type": "string",
@@ -19,11 +27,11 @@
     "user": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
-      "required": true
+      "target": "plugin::users-permissions.user"
     },
     "category": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "ride_issue",
         "payment_issue",
@@ -33,8 +41,7 @@
         "feature_request",
         "complaint",
         "other"
-      ],
-      "required": true
+      ]
     },
     "subject": {
       "type": "string",
@@ -46,24 +53,24 @@
     },
     "priority": {
       "type": "enumeration",
+      "default": "medium",
       "enum": [
         "low",
         "medium",
         "high",
         "urgent"
-      ],
-      "default": "medium"
+      ]
     },
     "ticketStatus": {
       "type": "enumeration",
+      "default": "open",
       "enum": [
         "open",
         "in_progress",
         "waiting_for_user",
         "resolved",
         "closed"
-      ],
-      "default": "open"
+      ]
     },
     "ride": {
       "type": "relation",
@@ -91,8 +98,8 @@
     },
     "responses": {
       "type": "component",
-      "repeatable": true,
-      "component": "support.ticket-response"
+      "component": "support.ticket-response",
+      "repeatable": true
     },
     "resolvedAt": {
       "type": "datetime"
@@ -106,16 +113,10 @@
       "max": 5
     },
     "tags": {
-      "type": "json",
-      "default": []
-    }
-  },
-  "pluginOptions": {
-    "content-manager": {
-      "visible": true
+      "type": "json"
     },
-    "content-type-builder": {
-      "visible": true
+    "phoneNumber": {
+      "type": "string"
     }
   }
 }

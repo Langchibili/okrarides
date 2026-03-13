@@ -34,7 +34,9 @@ function buildReturnValue({ settings, loading, error, refresh, lastFetched }) {
     paymentSystemType,
     isFloatSystemEnabled,
     isSubscriptionSystemEnabled,
-
+    // Support Contacts
+    adminSupportNumbers: AdminSettingsHelpers.getAdminSupportNumbers(settings),
+    adminSupportEmails:  AdminSettingsHelpers.getAdminSupportEmails(settings),
     // ── Withdrawal ────────────────────────────────────────────────────────────
     // 'float'    → driver withdraws from withdrawableFloatBalance
     // 'earnings' → driver withdraws from currentBalance / earnings
