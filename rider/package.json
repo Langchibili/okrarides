@@ -28,6 +28,7 @@
     "react-spring-bottom-sheet": "^3.4.1",
     "react-swipeable-views": "^0.14.1",
     "react-virtuoso": "^4.18.3",
+    "shimmer-effects-react": "^1.0.4",
     "socket.io-client": "^4.8.3"
   },
   "devDependencies": {

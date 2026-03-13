@@ -8,6 +8,7 @@ import { useRouter }        from 'next/navigation';
 import { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
 import { useRide }          from '@/lib/hooks/useRide';
 import { apiClient }        from '@/lib/api/client';
+import HomePageSkeleton from '@/components/Skeletons/HomePageSkeleton';
 
 
 export default function MainLayout({ children }) {
@@ -73,7 +74,9 @@ export default function MainLayout({ children }) {
       }
     }
   }, [currentRide, router, isAuthenticated])
-
+  if(loading || checkingAuth) {
+    return <HomePageSkeleton/>
+  }
   return (
     <Box sx={{ minHeight: '100vh', pb: '68px', bgcolor: 'background.default', overflowX: 'hidden' }}>
       {children}
