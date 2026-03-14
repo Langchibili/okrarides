@@ -8,6 +8,7 @@ import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { RIDE_STATUS } from '@/Constants';
 import { SOCKET_EVENTS } from '@/Constants';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '../api/client';
 
 export function useRide(initialRideId = null) {
   const [ride, setRide]               = useState(null);
@@ -469,6 +470,19 @@ export function useRide(initialRideId = null) {
     finally { setLoading(false); }
   }, []);
 
+  const loadRideDriverProfilePicUrl = useCallback(async (driverId) => {
+    if (!driverId) return null;
+    setLoading(true); setError(null);
+    try {
+      const result = await apiClient.get('/users/'+driverId+"?populate=profilePicture");
+      if (result && result.profilePicture) { 
+        return result.profilePicture
+      }
+      setError(result.error); return null;
+    } catch (err) { setError(err.message || 'Failed to driver profilePicture'); throw err; }
+    finally { setLoading(false); }
+  }, []);
+
   // ============================================
   // Get Active Ride
   // ============================================
@@ -552,7 +566,7 @@ export function useRide(initialRideId = null) {
     requestRide, createRide, cancelRide, confirmPickup, completeRide, rateDriver,
     loadRide, loadActiveRide, loadRideHistory,
     startTracking, stopTracking, startPollingRideStatus, stopPollingRideStatus,
-    getTaxiTypes, getRideClasses, reportIssue, getReceipt, shareTracking,
+    getTaxiTypes, getRideClasses, reportIssue, getReceipt, shareTracking,loadRideDriverProfilePicUrl
   };
 }
 
