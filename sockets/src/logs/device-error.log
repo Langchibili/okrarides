@@ -328,3 +328,11 @@
 {"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-02-27T04:20:03.348Z"}
 {"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-02-27T04:20:05.688Z"}
 {"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-02-27T04:20:08.096Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-12T01:23:05.894Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-13T02:50:52.818Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-13T02:51:03.689Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-13T02:51:09.407Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-13T02:51:11.109Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-13T02:51:11.158Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-13T02:51:22.667Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-13T02:51:24.306Z"}

@@ -20,7 +20,7 @@ export default function PendingPage() {
 
   return (
     <Box sx={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3,
+      minHeight: '100vh', marginLeft:'-20px', marginRight:'-20px', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3,
       background: isDark
         ? 'linear-gradient(160deg, #0F172A 0%, #1E293B 100%)'
         : 'linear-gradient(160deg, #F0FDF4 0%, #ECFDF5 100%)',
@@ -130,12 +130,12 @@ export default function PendingPage() {
             </Paper>
           </motion.div>
 
-          <motion.div variants={item}>
+          {/* <motion.div variants={item}>
             <Button fullWidth variant="outlined" size="large" onClick={() => router.push('/')}
               sx={{ height: 56, borderRadius: 3.5, fontWeight: 600 }}>
               Back to Home
             </Button>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
       </Box>
     </Box>
