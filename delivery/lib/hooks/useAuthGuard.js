@@ -1,0 +1,108 @@
+//Okrarides\driver\lib\hooks\useAuthGuard.js
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from './useAuth';
+import { useDriver } from './useDriver';
+import { VERIFICATION_STATUS } from '@/Constants';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+export const useAuthGuard = (options = {}) => {
+  const {
+    requireAuth = true,
+    requireVerification = false,
+    requireSubscription = false,
+    redirectTo = '/login',
+  } = options;
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { driverProfile, adminSettings,loadingDriverProfile } = useDriver();
+  const {sendToNative} = useReactNative()
+  
+  useEffect(() => {
+    // Wait for auth to load
+    if (authLoading) return;
+
+    // Check authentication
+    if (requireAuth && !isAuthenticated()) {
+      router.push(redirectTo);
+      return;
+    }
+   
+    if(loadingDriverProfile){
+      return
+    }
+     sendToNative('LOG_DATA', {info: 'driverProfileHere',driverProfile})
+    if (requireVerification) {
+      const driverVerified   = user?.driverProfile?.verificationStatus   === VERIFICATION_STATUS.APPROVED;
+      const deliveryVerified = user?.deliveryProfile?.verificationStatus  === VERIFICATION_STATUS.APPROVED;
+      const hasDeliveryVehicle = user?.deliveryProfile?.activeVehicleType &&
+                                user?.deliveryProfile?.activeVehicleType !== 'none';
+
+      if (!driverVerified || !deliveryVerified || !hasDeliveryVehicle) {
+        router.push('/onboarding/setup-driver');
+        return;
+      }
+    }
+
+    // Check verification status
+    // if (requireVerification) {
+    //   const verificationStatus = driverProfile?.verificationStatus;
+
+    //   if (verificationStatus !== VERIFICATION_STATUS.APPROVED) {
+    //     // Allow access to verification-related pages
+    //     const allowedPaths = [
+    //       '/verification',
+    //       '/verification/documents',
+    //       '/vehicle/add',
+    //       '/profile',
+    //     ];
+
+    //     if (!allowedPaths.some((path) => pathname.startsWith(path))) {
+    //       router.push('/verification');
+    //       return;
+    //     }
+    //   }
+    // }
+
+    // Check subscription (if system is subscription-based)
+    if (requireSubscription && adminSettings?.subscriptionSystemEnabled) {
+      const subscriptionStatus = driverProfile?.subscriptionStatus;
+      const allowedStatuses = ['active', 'trial'];
+
+      if (!allowedStatuses.includes(subscriptionStatus)) {
+        // Allow access to subscription pages
+        const allowedPaths = ['/subscription', '/profile'];
+
+        if (!allowedPaths.some((path) => pathname.startsWith(path))) {
+          router.push('/subscription/plans');
+          return;
+        }
+      }
+    }
+  }, [
+    authLoading,
+    isAuthenticated,
+    user,
+    driverProfile,
+    adminSettings,
+    requireAuth,
+    requireVerification,
+    requireSubscription,
+    router,
+    pathname,
+    redirectTo,
+  ]);
+
+  return {
+    isAuthenticated: isAuthenticated(),
+    user,
+    driverProfile,
+    loading: authLoading,
+  };
+};
+
+export default useAuthGuard;
+

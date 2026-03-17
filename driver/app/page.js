@@ -291,6 +291,7 @@ import { useReactNative }  from '@/lib/contexts/ReactNativeWrapper';
 import { useRide }         from '@/lib/hooks/useRide';
 import { apiClient }       from '@/lib/api/client';
 import DriverHomePage      from './(main)/home/page';
+import { useThemeMode } from '@/components/ThemeProvider';
 
 function LoadingSplash() {
   const theme  = useTheme();
@@ -343,7 +344,7 @@ export default function Home() {
   const router = useRouter();
   const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
   const { currentRide } = useRide();
-
+  const { setAccentColor } = useThemeMode()
   // ── KEY FIX: initialise from `loading`, not always `true`
   // Hard refresh  → loading is true  → splash shows once then clears
   // Soft nav      → loading is false → checkingAuth starts false → no splash
@@ -394,7 +395,12 @@ export default function Home() {
       }
     }
   }, [user, loading, isAuthenticated, router]);
-
+  
+  useEffect(()=>{
+    // Set different colours for each mode
+    setAccentColor('#065F46', '#0F172A')
+  })
+  
   useEffect(() => {
     if (currentRide) {
       const { rideStatus, id } = currentRide;

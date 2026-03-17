@@ -174,7 +174,7 @@ function setupMainServerEventForwarding() {
 
   // Trip started
   mainSocket.on('ride:trip:started', (data) => {
-    console.log('ride:trip:started',data)
+    console.log('ride:payment:requested',data)
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:trip:started', data);
     if (driverId) forwardToUserDevices(driverId, 'ride:trip:started', data);
@@ -190,12 +190,7 @@ function setupMainServerEventForwarding() {
   mainSocket.on('ride:payment:requested', (data) => {
     console.log('ride:payment:requested',data)
     const { riderId, driverId } = data;
-    if (riderId) {
-      if(data.driverId){
-         delete data.driverId
-      }
-      forwardToUserDevices(riderId, 'ride:payment:requested', data)
-    }
+    if (riderId) forwardToUserDevices(riderId, 'ride:payment:requested', data);
     if (driverId) forwardToUserDevices(driverId, 'ride:payment:requested', data);
   })
   
@@ -429,7 +424,68 @@ mainSocket.on('payment:received', (data) => {
     const { deliveryPersonId } = data;
     if (deliveryPersonId) forwardToUserDevices(deliveryPersonId, 'delivery:session-replaced', data);
   });
-
+// ==================== DELIVERY EVENT FORWARDING ====================
+ 
+  mainSocket.on('delivery:request:created', (data) => {
+    const { senderId } = data;
+    if (senderId) forwardToUserDevices(senderId, 'delivery:request:created', data);
+  });
+ 
+  mainSocket.on('delivery:request:received', (data) => {
+    const { driverId } = data;
+    if (driverId) forwardToUserDevices(driverId, 'delivery:request:received', data);
+  });
+ 
+  mainSocket.on('delivery:request:new', (data) => {
+    const { driverId } = data;
+    if (driverId) forwardToUserDevices(driverId, 'delivery:request:new', data);
+  });
+ 
+  mainSocket.on('delivery:accepted', (data) => {
+    const { senderId, delivererId } = data;
+    if (senderId)    forwardToUserDevices(senderId,    'delivery:accepted', data);
+    if (delivererId) forwardToUserDevices(delivererId, 'delivery:accepted', data);
+  });
+ 
+  mainSocket.on('delivery:taken', (data) => {
+    const { driverId } = data;
+    if (driverId) forwardToUserDevices(driverId, 'delivery:taken', data);
+  });
+ 
+  mainSocket.on('delivery:driver:arrived', (data) => {
+    const { senderId, delivererId } = data;
+    if (senderId)    forwardToUserDevices(senderId,    'delivery:driver:arrived', data);
+    if (delivererId) forwardToUserDevices(delivererId, 'delivery:driver:arrived', data);
+  });
+ 
+  mainSocket.on('delivery:started', (data) => {
+    const { senderId, delivererId } = data;
+    if (senderId)    forwardToUserDevices(senderId,    'delivery:started', data);
+    if (delivererId) forwardToUserDevices(delivererId, 'delivery:started', data);
+  });
+ 
+  mainSocket.on('delivery:payment:requested', (data) => {
+    const { senderId, delivererId } = data;
+    if (senderId)    forwardToUserDevices(senderId,    'delivery:payment:requested', data);
+    if (delivererId) forwardToUserDevices(delivererId, 'delivery:payment:requested', data);
+  });
+ 
+  mainSocket.on('delivery:completed', (data) => {
+    const { senderId, delivererId } = data;
+    if (senderId)    forwardToUserDevices(senderId,    'delivery:completed', data);
+    if (delivererId) forwardToUserDevices(delivererId, 'delivery:completed', data);
+  });
+ 
+  mainSocket.on('delivery:cancelled', (data) => {
+    const { senderId, delivererId } = data;
+    if (senderId)    forwardToUserDevices(senderId,    'delivery:cancelled', data);
+    if (delivererId) forwardToUserDevices(delivererId, 'delivery:cancelled', data);
+  });
+ 
+  mainSocket.on('delivery:no_drivers', (data) => {
+    const { senderId } = data;
+    if (senderId) forwardToUserDevices(senderId, 'delivery:no_drivers', data);
+  });
   // ==================== DRAW-OVER EVENTS ====================
   
   mainSocket.on('device:drawover:show', (data) => {

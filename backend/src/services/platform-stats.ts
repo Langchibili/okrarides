@@ -1,155 +1,187 @@
+// // /**
+// //  * Platform Statistics Calculator
+// //  * PATH: src/services/platform-stats.ts
+// //  *
+// //  * Queries all relevant tables and upserts the single-type
+// //  * platform_stats record with fresh aggregated values.
+// //  *
+// //  * Called by the cron task — do not call directly in request handlers
+// //  * (it is intentionally slow and lock-free).
+// //  */
+
 // /**
 //  * Platform Statistics Calculator
 //  * PATH: src/services/platform-stats.ts
 //  *
-//  * Queries all relevant tables and upserts the single-type
-//  * platform_stats record with fresh aggregated values.
-//  *
-//  * Called by the cron task — do not call directly in request handlers
-//  * (it is intentionally slow and lock-free).
+//  * Uses only strapi.db.query() — no raw Knex.
+//  * count() is used for counting, findMany() with minimal field selection
+//  * is used for summations (reduced in JS).
 //  */
+
+// // ─── Tiny helper to sum a numeric field across an array of records ───────────
+// const sumField = (records: any[], field: string): number =>
+//   records.reduce((acc, r) => acc + (parseFloat(r[field]) || 0), 0);
 
 // export async function recalculatePlatformStats(): Promise<void> {
 //   try {
 //     strapi.log.info('[platform-stats] Starting recalculation…');
 
-//     // ─── Knex instance for raw aggregations ──────────────────────────────────
-//     const knex = strapi.db.connection;
-
 //     // =========================================================================
-//     // 1.  RIDE-LEVEL STATS
-//     //     All from the `rides` table (collectionName = "rides")
+//     // 1. RIDE COUNTS
 //     // =========================================================================
 
-//     // Completed / cancelled counts
-//     const [{ count: totalRidesCompleted }] = await knex('rides')
-//       .where('ride_status', 'completed')
-//       .count('id as count');
+//     const totalRidesCompleted = await strapi.db
+//       .query('api::ride.ride')
+//       .count({ where: { rideStatus: 'completed' } });
 
-//     const [{ count: totalRidesCancelled }] = await knex('rides')
-//       .where('ride_status', 'cancelled')
-//       .count('id as count');
+//     const totalRidesCancelled = await strapi.db
+//       .query('api::ride.ride')
+//       .count({ where: { rideStatus: 'cancelled' } });
 
-//     // Subscription rides — wasSubscriptionRide = true (any status, mirrors the flag)
-//     const [{ count: totalSubscriptionRides }] = await knex('rides')
-//       .where('was_subscription_ride', true)
-//       .count('id as count');
+//     const totalSubscriptionRides = await strapi.db
+//       .query('api::ride.ride')
+//       .count({ where: { wasSubscriptionRide: true } });
 
-//     // Float rides — commission was deducted, not a subscription ride
-//     const [{ count: totalFloatRides }] = await knex('rides')
-//       .where('commission_deducted', true)
-//       .where('was_subscription_ride', false)
-//       .count('id as count');
+//     const totalFloatRides = await strapi.db
+//       .query('api::ride.ride')
+//       .count({ where: { commissionDeducted: true, wasSubscriptionRide: false } });
 
-//     // Cash / digital split (completed rides only)
-//     const [{ count: totalCashRides }] = await knex('rides')
-//       .where('ride_status', 'completed')
-//       .where('payment_method', 'cash')
-//       .count('id as count');
+//     const totalCashRides = await strapi.db
+//       .query('api::ride.ride')
+//       .count({ where: { rideStatus: 'completed', paymentMethod: 'cash' } });
 
-//     const [{ count: totalDigitalRides }] = await knex('rides')
-//       .where('ride_status', 'completed')
-//       .where('payment_method', 'okrapay')
-//       .count('id as count');
-
-//     // Driver earnings & commission — completed rides only
-//     const [earningsRow] = await knex('rides')
-//       .where('ride_status', 'completed')
-//       .sum({ totalDriverEarnings: 'driver_earnings', totalPlatformCommission: 'commission' });
-
-//     const totalDriverEarnings     = parseFloat(earningsRow?.totalDriverEarnings  ?? 0) || 0;
-//     const totalPlatformCommission = parseFloat(earningsRow?.totalPlatformCommission ?? 0) || 0;
+//     const totalDigitalRides = await strapi.db
+//       .query('api::ride.ride')
+//       .count({ where: { rideStatus: 'completed', paymentMethod: 'okrapay' } });
 
 //     // =========================================================================
-//     // 2.  TRANSACTION-LEVEL STATS
-//     //     From the `transactions` table
+//     // 2. RIDE EARNINGS & COMMISSION  (completed rides only)
 //     // =========================================================================
 
-//     // Subscription revenue — completed subscription_payment transactions
-//     const [subRevenueRow] = await knex('transactions')
-//       .where('type', 'subscription_payment')
-//       .where('transaction_status', 'completed')
-//       .sum({ total: 'amount' });
+//     const completedRideFinancials = await strapi.db
+//       .query('api::ride.ride')
+//       .findMany({
+//         where: { rideStatus: 'completed' },
+//         select: ['driverEarnings', 'commission'],
+//       });
 
-//     const totalSubscriptionRevenue = parseFloat(subRevenueRow?.total ?? 0) || 0;
-
-//     // Float sold — completed float_topup transactions
-//     const [floatSoldRow] = await knex('transactions')
-//       .where('type', 'float_topup')
-//       .where('transaction_status', 'completed')
-//       .sum({ total: 'amount' });
-
-//     const totalFloatSold = parseFloat(floatSoldRow?.total ?? 0) || 0;
-
-//     // Withdrawals processed — completed withdrawal transactions
-//     const [withdrawProcessedRow] = await knex('transactions')
-//       .where('type', 'withdrawal')
-//       .where('transaction_status', 'completed')
-//       .sum({ total: 'amount' });
-
-//     const totalWithdrawalsProcessed = parseFloat(withdrawProcessedRow?.total ?? 0) || 0;
-
-//     // Pending withdrawals — pending withdrawal transactions
-//     const [withdrawPendingRow] = await knex('transactions')
-//       .where('type', 'withdrawal')
-//       .where('transaction_status', 'pending')
-//       .sum({ total: 'amount' });
-
-//     const totalPendingWithdrawals = parseFloat(withdrawPendingRow?.total ?? 0) || 0;
+//     const totalDriverEarnings     = sumField(completedRideFinancials, 'driverEarnings');
+//     const totalPlatformCommission = sumField(completedRideFinancials, 'commission');
 
 //     // =========================================================================
-//     // 3.  DRIVER PROFILE FLOAT STATS
-//     //     Driver profiles are stored as a Strapi component.
-//     //     The component table is: components_driver_profiles_driver_profiles
-//     //     Only rows that are linked to a user exist (entity_id is set internally
-//     //     by Strapi's component join table: users_driver_profile_components).
-//     //     We query the component table directly for float aggregations.
+//     // 3. TRANSACTION SUMS
 //     // =========================================================================
 
-//     // Active float — sum of positive balances
-//     const [activeFloatRow] = await knex('components_driver_profiles_driver_profiles')
-//       .where('float_balance', '>', 0)
-//       .sum({ total: 'float_balance' });
+//     const subscriptionPayments = await strapi.db
+//       .query('api::transaction.transaction')
+//       .findMany({
+//         where: { type: 'subscription_payment', transactionStatus: 'completed' },
+//         select: ['amount'],
+//       });
 
-//     const totalActiveFloat = parseFloat(activeFloatRow?.total ?? 0) || 0;
+//     const totalSubscriptionRevenue = sumField(subscriptionPayments, 'amount');
 
-//     // Negative float — sum of absolute negative balances
-//     const [negFloatRow] = await knex('components_driver_profiles_driver_profiles')
-//       .where('float_balance', '<', 0)
-//       .sum({ total: knex.raw('ABS(float_balance)') });
+//     const floatTopups = await strapi.db
+//       .query('api::transaction.transaction')
+//       .findMany({
+//         where: { type: 'float_topup', transactionStatus: 'completed' },
+//         select: ['amount'],
+//       });
 
-//     const totalNegativeFloat = parseFloat(negFloatRow?.total ?? 0) || 0;
+//     const totalFloatSold = sumField(floatTopups, 'amount');
 
-//     // Count of drivers in negative float
-//     const [{ count: driversWithNegativeFloat }] = await knex(
-//       'components_driver_profiles_driver_profiles'
-//     )
-//       .where('float_balance', '<', 0)
-//       .count('id as count');
+//     const processedWithdrawals = await strapi.db
+//       .query('api::transaction.transaction')
+//       .findMany({
+//         where: { type: 'withdrawal', transactionStatus: 'completed' },
+//         select: ['amount'],
+//       });
 
-//     // =========================================================================
-//     // 4.  DRIVER / SUBSCRIBER COUNTS
-//     // =========================================================================
+//     const totalWithdrawalsProcessed = sumField(processedWithdrawals, 'amount');
 
-//     // Active drivers — driver profile isActive = true
-//     const [{ count: activeDriverCount }] = await knex(
-//       'components_driver_profiles_driver_profiles'
-//     )
-//       .where('is_active', true)
-//       .count('id as count');
+//     const pendingWithdrawals = await strapi.db
+//       .query('api::transaction.transaction')
+//       .findMany({
+//         where: { type: 'withdrawal', transactionStatus: 'pending' },
+//         select: ['amount'],
+//       });
 
-//     // Active subscribers — driver_subscriptions with status 'active'
-//     const [{ count: activeSubscriberCount }] = await knex('driver_subscriptions')
-//       .where('subscription_status', 'active')
-//       .count('id as count');
-
-//     // Trial subscribers — driver_subscriptions with status 'trial'
-//     const [{ count: trialSubscriberCount }] = await knex('driver_subscriptions')
-//       .where('subscription_status', 'trial')
-//       .count('id as count');
+//     const totalPendingWithdrawals = sumField(pendingWithdrawals, 'amount');
 
 //     // =========================================================================
-//     // 5.  UPSERT platform_stats (single type — always one row)
+//     // 4. FLOAT STATS
+//     //    Driver profiles are components on the User — we query users and
+//     //    filter/populate driverProfile to read floatBalance.
+//     // =========================================================================
+
+//     const driversWithPositiveFloat = await strapi.db
+//       .query('plugin::users-permissions.user')
+//       .findMany({
+//         where: {
+//           driverProfile: {
+//             floatBalance: { $gt: 0 },
+//           },
+//         },
+//         populate: {
+//           driverProfile: {
+//             select: ['floatBalance'],
+//           },
+//         },
+//         select: ['id'],
+//       });
+
+//     const totalActiveFloat = driversWithPositiveFloat.reduce(
+//       (acc, u) => acc + (parseFloat(u.driverProfile?.floatBalance) || 0),
+//       0
+//     );
+
+//     const driversInNegativeFloat = await strapi.db
+//       .query('plugin::users-permissions.user')
+//       .findMany({
+//         where: {
+//           driverProfile: {
+//             floatBalance: { $lt: 0 },
+//           },
+//         },
+//         populate: {
+//           driverProfile: {
+//             select: ['floatBalance'],
+//           },
+//         },
+//         select: ['id'],
+//       });
+
+//     const totalNegativeFloat = driversInNegativeFloat.reduce(
+//       (acc, u) => acc + Math.abs(parseFloat(u.driverProfile?.floatBalance) || 0),
+//       0
+//     );
+
+//     const driversWithNegativeFloat = driversInNegativeFloat.length;
+
+//     // =========================================================================
+//     // 5. DRIVER & SUBSCRIBER COUNTS
+//     // =========================================================================
+
+//     const activeDriverCount = await strapi.db
+//       .query('plugin::users-permissions.user')
+//       .count({
+//         where: {
+//           driverProfile: {
+//             isActive: true,
+//           },
+//         },
+//       });
+
+//     const activeSubscriberCount = await strapi.db
+//       .query('api::driver-subscription.driver-subscription')
+//       .count({ where: { subscriptionStatus: 'active' } });
+
+//     const trialSubscriberCount = await strapi.db
+//       .query('api::driver-subscription.driver-subscription')
+//       .count({ where: { subscriptionStatus: 'trial' } });
+
+//     // =========================================================================
+//     // 6. UPSERT the single-type platform_stats record
 //     // =========================================================================
 
 //     const existing = await strapi.db
@@ -159,28 +191,28 @@
 //     const statsPayload = {
 //       lastCalculatedAt: new Date(),
 
-//       totalDriverEarnings:      totalDriverEarnings,
-//       totalPlatformCommission:  totalPlatformCommission,
-//       totalSubscriptionRevenue: totalSubscriptionRevenue,
+//       totalDriverEarnings,
+//       totalPlatformCommission,
+//       totalSubscriptionRevenue,
 
-//       totalFloatSold:           totalFloatSold,
-//       totalActiveFloat:         totalActiveFloat,
-//       totalNegativeFloat:       totalNegativeFloat,
-//       driversWithNegativeFloat: Number(driversWithNegativeFloat),
+//       totalFloatSold,
+//       totalActiveFloat,
+//       totalNegativeFloat,
+//       driversWithNegativeFloat,
 
-//       totalWithdrawalsProcessed: totalWithdrawalsProcessed,
-//       totalPendingWithdrawals:   totalPendingWithdrawals,
+//       totalWithdrawalsProcessed,
+//       totalPendingWithdrawals,
 
-//       totalRidesCompleted:    Number(totalRidesCompleted),
-//       totalRidesCancelled:    Number(totalRidesCancelled),
-//       totalSubscriptionRides: Number(totalSubscriptionRides),
-//       totalFloatRides:        Number(totalFloatRides),
-//       totalCashRides:         Number(totalCashRides),
-//       totalDigitalRides:      Number(totalDigitalRides),
+//       totalRidesCompleted,
+//       totalRidesCancelled,
+//       totalSubscriptionRides,
+//       totalFloatRides,
+//       totalCashRides,
+//       totalDigitalRides,
 
-//       activeDriverCount:      Number(activeDriverCount),
-//       activeSubscriberCount:  Number(activeSubscriberCount),
-//       trialSubscriberCount:   Number(trialSubscriberCount),
+//       activeDriverCount,
+//       activeSubscriberCount,
+//       trialSubscriberCount,
 //     };
 
 //     if (existing) {
@@ -200,7 +232,7 @@
 //     });
 //   } catch (err) {
 //     strapi.log.error('[platform-stats] Recalculation failed:', err);
-//     // Never rethrow — cron tasks should be silent failures to avoid process crashes
+//     // Never rethrow — keeps the cron process alive on failure
 //   }
 // }
 /**
@@ -208,11 +240,8 @@
  * PATH: src/services/platform-stats.ts
  *
  * Uses only strapi.db.query() — no raw Knex.
- * count() is used for counting, findMany() with minimal field selection
- * is used for summations (reduced in JS).
  */
 
-// ─── Tiny helper to sum a numeric field across an array of records ───────────
 const sumField = (records: any[], field: string): number =>
   records.reduce((acc, r) => acc + (parseFloat(r[field]) || 0), 0);
 
@@ -304,23 +333,13 @@ export async function recalculatePlatformStats(): Promise<void> {
 
     // =========================================================================
     // 4. FLOAT STATS
-    //    Driver profiles are components on the User — we query users and
-    //    filter/populate driverProfile to read floatBalance.
     // =========================================================================
 
     const driversWithPositiveFloat = await strapi.db
       .query('plugin::users-permissions.user')
       .findMany({
-        where: {
-          driverProfile: {
-            floatBalance: { $gt: 0 },
-          },
-        },
-        populate: {
-          driverProfile: {
-            select: ['floatBalance'],
-          },
-        },
+        where: { driverProfile: { floatBalance: { $gt: 0 } } },
+        populate: { driverProfile: { select: ['floatBalance'] } },
         select: ['id'],
       });
 
@@ -332,16 +351,8 @@ export async function recalculatePlatformStats(): Promise<void> {
     const driversInNegativeFloat = await strapi.db
       .query('plugin::users-permissions.user')
       .findMany({
-        where: {
-          driverProfile: {
-            floatBalance: { $lt: 0 },
-          },
-        },
-        populate: {
-          driverProfile: {
-            select: ['floatBalance'],
-          },
-        },
+        where: { driverProfile: { floatBalance: { $lt: 0 } } },
+        populate: { driverProfile: { select: ['floatBalance'] } },
         select: ['id'],
       });
 
@@ -358,13 +369,7 @@ export async function recalculatePlatformStats(): Promise<void> {
 
     const activeDriverCount = await strapi.db
       .query('plugin::users-permissions.user')
-      .count({
-        where: {
-          driverProfile: {
-            isActive: true,
-          },
-        },
-      });
+      .count({ where: { driverProfile: { isActive: true } } });
 
     const activeSubscriberCount = await strapi.db
       .query('api::driver-subscription.driver-subscription')
@@ -375,7 +380,49 @@ export async function recalculatePlatformStats(): Promise<void> {
       .count({ where: { subscriptionStatus: 'trial' } });
 
     // =========================================================================
-    // 6. UPSERT the single-type platform_stats record
+    // 6. DELIVERY COUNTS
+    // =========================================================================
+
+    const totalDeliveriesCompleted = await strapi.db
+      .query('api::delivery.delivery')
+      .count({ where: { rideStatus: 'completed' } });
+
+    const totalDeliveriesCancelled = await strapi.db
+      .query('api::delivery.delivery')
+      .count({ where: { rideStatus: 'cancelled' } });
+
+    const totalCashDeliveries = await strapi.db
+      .query('api::delivery.delivery')
+      .count({ where: { rideStatus: 'completed', paymentMethod: 'cash' } });
+
+    const totalDigitalDeliveries = await strapi.db
+      .query('api::delivery.delivery')
+      .count({ where: { rideStatus: 'completed', paymentMethod: 'okrapay' } });
+
+    // =========================================================================
+    // 7. DELIVERY EARNINGS & COMMISSION
+    // =========================================================================
+
+    const completedDeliveryFinancials = await strapi.db
+      .query('api::delivery.delivery')
+      .findMany({
+        where: { rideStatus: 'completed' },
+        select: ['driverEarnings', 'commission'],
+      });
+
+    const totalDeliveryDriverEarnings     = sumField(completedDeliveryFinancials, 'driverEarnings');
+    const totalDeliveryPlatformCommission = sumField(completedDeliveryFinancials, 'commission');
+
+    // =========================================================================
+    // 8. ACTIVE DELIVERY DRIVER COUNT
+    // =========================================================================
+
+    const activeDeliveryDriverCount = await strapi.db
+      .query('plugin::users-permissions.user')
+      .count({ where: { deliveryProfile: { isActive: true } } });
+
+    // =========================================================================
+    // 9. UPSERT the single-type platform_stats record
     // =========================================================================
 
     const existing = await strapi.db
@@ -407,6 +454,15 @@ export async function recalculatePlatformStats(): Promise<void> {
       activeDriverCount,
       activeSubscriberCount,
       trialSubscriberCount,
+
+      // ─── Deliveries ────────────────────────────────────────────────────
+      totalDeliveriesCompleted,
+      totalDeliveriesCancelled,
+      totalDeliveryDriverEarnings,
+      totalDeliveryPlatformCommission,
+      totalCashDeliveries,
+      totalDigitalDeliveries,
+      activeDeliveryDriverCount,
     };
 
     if (existing) {
@@ -423,9 +479,11 @@ export async function recalculatePlatformStats(): Promise<void> {
       totalRidesCompleted,
       totalDriverEarnings,
       activeDriverCount,
+      totalDeliveriesCompleted,
+      totalDeliveryDriverEarnings,
+      activeDeliveryDriverCount,
     });
   } catch (err) {
     strapi.log.error('[platform-stats] Recalculation failed:', err);
-    // Never rethrow — keeps the cron process alive on failure
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   Box,
@@ -20,6 +20,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { ridesAPI } from '@/lib/api/rides';
 import { RATING_TAGS } from '@/Constants';
+import useRide from '@/lib/hooks/useRide';
+import { getImageUrl } from '@/Functions';
 
 export const RatingModal = ({
   open,
@@ -32,6 +34,15 @@ export const RatingModal = ({
   const [selectedTags, setSelectedTags] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [driverProfilePic, setDriverProfilePic] = useState(null)
+  const { loadRideDriverProfilePicUrl } = useRide()
+
+  useEffect(()=>{
+    const getDriverProfilePic = async () => {
+      setDriverProfilePic(await loadRideDriverProfilePicUrl(ride?.driver?.id));
+    }
+    getDriverProfilePic();
+  },[ride])
 
   const handleTagToggle = (tag) => {
     setSelectedTags(prev =>
@@ -120,7 +131,7 @@ export const RatingModal = ({
                 }}
               >
                 <Avatar
-                  src={driver?.profilePicture}
+                  src={process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_API_URL + getImageUrl(driverProfilePic, 'thumbnail')}
                   sx={{ width: 80, height: 80, mb: 2 }}
                 >
                   {driver?.firstName?.[0]}

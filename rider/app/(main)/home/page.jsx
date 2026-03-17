@@ -49,7 +49,6 @@ import ClientOnly from '@/components/ClientOnly';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import MapIframe from '@/components/Map/MapIframe';
 import { apiClient } from '@/lib/api/client';
-// ── NEW ──
 import { useThemeMode } from '@/components/ThemeProvider';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -352,7 +351,7 @@ export default function HomePage() {
   const router = useRouter();
   const { user } = useAuth();
   const { location, loading: locationLoading, refresh: refreshWebLocation } = useGeolocation({ watch: true });
-  const { isNative, getCurrentLocation: getNativeLocation } = useReactNative();
+  const { getCurrentLocation: getNativeLocation } = useReactNative();
   const {
     loading: rideLoading,
     error: rideError,
@@ -368,6 +367,7 @@ export default function HomePage() {
   const isDark = theme.palette.mode === 'dark';
   const { toggleTheme } = useThemeMode();
   const [landingPageUrl, setLandingPageUrl] = useState(null);
+  const { setAccentColor } = useThemeMode()
 
   useEffect(() => {
     const getFrontendUrl = async () => {
@@ -377,6 +377,11 @@ export default function HomePage() {
     };
     getFrontendUrl();
   }, []);
+
+  useEffect(()=>{
+    // Set different colours for each mode
+    setAccentColor('#FFFFFF', 'orange')
+  })
   // ─────────────────────────────────────────────────────────────────────────
 
   const [mapCenter, setMapCenter]           = useState(null);
@@ -409,6 +414,7 @@ export default function HomePage() {
   const slowIntervalRef     = useRef(null);
   const locationObtainedRef = useRef(false);
   const mapControlsRef      = useRef(null);
+  const { isNative, reconnectDeviceSocket } = useReactNative();
 
   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
@@ -560,6 +566,7 @@ export default function HomePage() {
       } else {
         setSnackbar({ open: true, message: 'Failed to load fare estimates', severity: 'error' });
       }
+      reconnectDeviceSocket( user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
     } catch {
       setSnackbar({ open: true, message: 'Error calculating fare. Please try again.', severity: 'error' });
     } finally {

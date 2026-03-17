@@ -1,3 +1,4 @@
+//Okrarides\backend\src\paymentGatewayAdapters\IPaymentGateway.ts
 /**
  * IPaymentGateway — contract every gateway adapter must satisfy.
  * PATH: backend/src/paymentGatewayAdapters/IPaymentGateway.ts

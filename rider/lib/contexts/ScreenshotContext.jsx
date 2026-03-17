@@ -1,57 +1,145 @@
+// 'use client';
+// import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+
+// const ScreenshotCtx = createContext(null);
+
+// const STORAGE_KEY        = 'draft_support_ticket_id';
+// const STORAGE_COUNT_KEY  = 'draft_screenshot_count';
+
+// export function ScreenshotProvider({ children }) {
+//   const [takingScreenshot, setTakingScreenshot] = useState(false);
+//   const [draftTicketId,    setDraftTicketId]    = useState(null);
+//   const [screenshotCount,  setScreenshotCount]  = useState(0);
+//   const [captureCallback,  setCaptureCallback]  = useState(null);
+
+//   // Rehydrate from localStorage on mount
+//   useEffect(() => {
+//     const id    = localStorage.getItem(STORAGE_KEY);
+//     const count = parseInt(localStorage.getItem(STORAGE_COUNT_KEY) || '0', 10);
+//     if (id) {
+//       setDraftTicketId(id);
+//       setScreenshotCount(count);
+//     }
+//   }, []);
+
+//   const startScreenshotMode = useCallback((ticketId, onCaptureDone) => {
+//     localStorage.setItem(STORAGE_KEY, ticketId);
+//     localStorage.setItem(STORAGE_COUNT_KEY, '0');
+//     setDraftTicketId(ticketId);
+//     setScreenshotCount(0);
+//     setCaptureCallback(() => onCaptureDone ?? null);
+//     setTakingScreenshot(true);
+//   }, []);
+
+//   const stopScreenshotMode = useCallback(() => {
+//     setTakingScreenshot(false);
+//     setCaptureCallback(null);
+//   }, []);
+
+//   const onCaptured = useCallback(() => {
+//     setScreenshotCount(prev => {
+//       const next = prev + 1;
+//       localStorage.setItem(STORAGE_COUNT_KEY, String(next));
+//       return next;
+//     });
+//     captureCallback?.();
+//   }, [captureCallback]);
+
+//   const clearDraft = useCallback(() => {
+//     localStorage.removeItem(STORAGE_KEY);
+//     localStorage.removeItem(STORAGE_COUNT_KEY);
+//     setDraftTicketId(null);
+//     setScreenshotCount(0);
+//     setTakingScreenshot(false);
+//     setCaptureCallback(null);
+//   }, []);
+
+//   return (
+//     <ScreenshotCtx.Provider value={{
+//       takingScreenshot,
+//       draftTicketId,
+//       screenshotCount,
+//       startScreenshotMode,
+//       stopScreenshotMode,
+//       onCaptured,
+//       clearDraft,
+//       MAX_SCREENSHOTS: 5,
+//     }}>
+//       {children}
+//     </ScreenshotCtx.Provider>
+//   );
+// }
+
+// export const useScreenshot = () => {
+//   const ctx = useContext(ScreenshotCtx);
+//   if (!ctx) throw new Error('useScreenshot must be used within ScreenshotProvider');
+//   return ctx;
+// };
 'use client';
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const ScreenshotCtx = createContext(null);
 
-const STORAGE_KEY        = 'draft_support_ticket_id';
-const STORAGE_COUNT_KEY  = 'draft_screenshot_count';
+const KEYS = {
+  ticketId:  'draft_support_ticket_id',
+  count:     'draft_screenshot_count',
+  subject:   'draft_subject',
+  category:  'draft_category',
+};
 
 export function ScreenshotProvider({ children }) {
   const [takingScreenshot, setTakingScreenshot] = useState(false);
   const [draftTicketId,    setDraftTicketId]    = useState(null);
   const [screenshotCount,  setScreenshotCount]  = useState(0);
-  const [captureCallback,  setCaptureCallback]  = useState(null);
+  const [draftSubject,     setDraftSubject]     = useState('');
+  const [draftCategory,    setDraftCategory]    = useState(null);
 
-  // Rehydrate from localStorage on mount
+  // Rehydrate on mount
   useEffect(() => {
-    const id    = localStorage.getItem(STORAGE_KEY);
-    const count = parseInt(localStorage.getItem(STORAGE_COUNT_KEY) || '0', 10);
+    const id       = localStorage.getItem(KEYS.ticketId);
+    const count    = parseInt(localStorage.getItem(KEYS.count) || '0', 10);
+    const subject  = localStorage.getItem(KEYS.subject)  || '';
+    const category = localStorage.getItem(KEYS.category) || null;
     if (id) {
       setDraftTicketId(id);
       setScreenshotCount(count);
+      setDraftSubject(subject);
+      setDraftCategory(category);
+      setTakingScreenshot(true); // restore floating button
     }
   }, []);
 
-  const startScreenshotMode = useCallback((ticketId, onCaptureDone) => {
-    localStorage.setItem(STORAGE_KEY, ticketId);
-    localStorage.setItem(STORAGE_COUNT_KEY, '0');
+  const startScreenshotMode = useCallback((ticketId, subject, category) => {
+    localStorage.setItem(KEYS.ticketId,  String(ticketId));
+    localStorage.setItem(KEYS.count,     '0');
+    localStorage.setItem(KEYS.subject,   subject  || '');
+    localStorage.setItem(KEYS.category,  category || '');
     setDraftTicketId(ticketId);
     setScreenshotCount(0);
-    setCaptureCallback(() => onCaptureDone ?? null);
+    setDraftSubject(subject  || '');
+    setDraftCategory(category || null);
     setTakingScreenshot(true);
   }, []);
 
   const stopScreenshotMode = useCallback(() => {
     setTakingScreenshot(false);
-    setCaptureCallback(null);
   }, []);
 
   const onCaptured = useCallback(() => {
     setScreenshotCount(prev => {
       const next = prev + 1;
-      localStorage.setItem(STORAGE_COUNT_KEY, String(next));
+      localStorage.setItem(KEYS.count, String(next));
       return next;
     });
-    captureCallback?.();
-  }, [captureCallback]);
+  }, []);
 
   const clearDraft = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_COUNT_KEY);
+    Object.values(KEYS).forEach(k => localStorage.removeItem(k));
     setDraftTicketId(null);
     setScreenshotCount(0);
+    setDraftSubject('');
+    setDraftCategory(null);
     setTakingScreenshot(false);
-    setCaptureCallback(null);
   }, []);
 
   return (
@@ -59,6 +147,8 @@ export function ScreenshotProvider({ children }) {
       takingScreenshot,
       draftTicketId,
       screenshotCount,
+      draftSubject,
+      draftCategory,
       startScreenshotMode,
       stopScreenshotMode,
       onCaptured,

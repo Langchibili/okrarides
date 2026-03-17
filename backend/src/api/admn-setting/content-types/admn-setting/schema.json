@@ -267,6 +267,14 @@
     "minimumWithdrawAmount": {
       "type": "integer",
       "default": 10
+    },
+    "autoApproveDrivers": {
+      "type": "boolean",
+      "default": false
+    },
+    "autoApproveDeliverers": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

@@ -11,7 +11,13 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "list": {
+    "cars": {
+      "type": "json"
+    },
+    "motorbikes": {
+      "type": "json"
+    },
+    "bikes": {
       "type": "json"
     }
   }

@@ -1,0 +1,60 @@
+/* styles/google-maps-fix.css */
+/* Critical fixes for Google Maps + Material-UI conflicts */
+
+/* Fix Google Maps breaking images globally */
+.gm-style img,
+.gm-style-iw img {
+  max-width: none !important;
+  box-sizing: content-box !important;
+}
+
+/* Fix input elements */
+.gm-style input,
+.gm-style-iw input {
+  box-sizing: content-box !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Fix button elements */
+.gm-style button,
+.gm-style-iw button {
+  box-sizing: content-box !important;
+}
+
+/* Prevent Google Maps from affecting labels */
+.gm-style label {
+  width: auto !important;
+  display: inline !important;
+}
+
+/* Fix font smoothing */
+.gm-style {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure map controls don't break */
+.gm-control-active {
+  box-sizing: content-box !important;
+}
+
+/* Fix any remaining box-sizing issues */
+.gm-style * {
+  box-sizing: content-box !important;
+}
+
+/* Isolate map container from global styles */
+.google-map-container {
+  isolation: isolate;
+}
+
+.google-map-container * {
+  all: revert;
+}
+
+/* Ensure the map itself renders correctly */
+.google-map-container > div {
+  all: revert;
+}

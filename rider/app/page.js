@@ -16,7 +16,7 @@ export default function Home({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const { activeRide } = useRide();
-  const theme = useThemeMode();
+ const { setAccentColor } = useThemeMode()
   const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
 
   // Redirect to login if not authenticated
@@ -29,7 +29,7 @@ export default function Home({ children }) {
           user.id,
           'rider', // frontendName
           process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL
-        );
+        )
        
         if (window.ReactNativeWebView || result.success) {
             if (typeof window !== 'undefined') {
@@ -92,6 +92,10 @@ export default function Home({ children }) {
     }
   }, [user, loading, isAuthenticated, router]);
 
+  useEffect(()=>{
+    // Set different colours for each mode
+    setAccentColor('#FFFFFF', 'orange')
+  })
   // ============================================
   // Redirect Logic for Active Rides
   // ============================================

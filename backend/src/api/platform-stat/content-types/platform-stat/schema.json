@@ -101,6 +101,39 @@
     "trialSubscriberCount": {
       "type": "integer",
       "default": 0
+    },
+
+    "totalDeliveriesCompleted": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalDeliveriesCancelled": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalDeliveryDriverEarnings": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Sum of all delivery driver earnings across completed deliveries"
+    },
+    "totalDeliveryPlatformCommission": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total commission collected by the platform from deliveries"
+    },
+    "totalCashDeliveries": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalDigitalDeliveries": {
+      "type": "integer",
+      "default": 0,
+      "description": "Completed deliveries paid via OkraPay"
+    },
+    "activeDeliveryDriverCount": {
+      "type": "integer",
+      "default": 0,
+      "description": "Drivers with an active deliveryProfile"
     }
   }
 }

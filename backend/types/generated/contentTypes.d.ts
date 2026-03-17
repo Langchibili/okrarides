@@ -458,6 +458,10 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
       Schema.Attribute.DefaultTo<true>;
     appsServerPollingIntervalInSeconds: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<20>;
+    autoApproveDeliverers: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    autoApproveDrivers: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     autoRenewByDefault: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<true>;
     blockCashRidesOnInsufficientFloat: Schema.Attribute.Boolean &
@@ -1278,6 +1282,216 @@ export interface ApiCurrencyCurrency extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDeliveryClassDeliveryClass
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'delivery_classes';
+  info: {
+    displayName: 'Delivery Class';
+    name: 'deliveryClass';
+    pluralName: 'delivery-classes';
+    singularName: 'delivery-class';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    baseFare: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    commissionPercentage: Schema.Attribute.Decimal;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    displayOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    extraChargeForFragileItem: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<10>;
+    extraWeightCharge: Schema.Attribute.Decimal;
+    icon: Schema.Attribute.Media<'images'>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::delivery-class.delivery-class'
+    > &
+      Schema.Attribute.Private;
+    maxDimensions: Schema.Attribute.String;
+    maxWeightKg: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    minimumFare: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    perKmRate: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    perMinuteRate: Schema.Attribute.Decimal;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    vehicles: Schema.Attribute.Relation<'manyToMany', 'api::vehicle.vehicle'>;
+  };
+}
+
+export interface ApiDeliveryDriverDeliveryDriver
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'delivery_drivers';
+  info: {
+    displayName: 'deliveryDriver';
+    pluralName: 'delivery-drivers';
+    singularName: 'delivery-driver';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::delivery-driver.delivery-driver'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDeliveryDelivery extends Struct.CollectionTypeSchema {
+  collectionName: 'deliveries';
+  info: {
+    displayName: 'delivery';
+    pluralName: 'deliveries';
+    singularName: 'delivery';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    acceptedAt: Schema.Attribute.DateTime;
+    actualDistance: Schema.Attribute.Decimal;
+    actualDuration: Schema.Attribute.Integer;
+    arrivedAt: Schema.Attribute.DateTime;
+    baseFare: Schema.Attribute.Decimal;
+    behindBusDistance: Schema.Attribute.Decimal;
+    behindBusSurcharge: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    busRoute: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::bus-route.bus-route'
+    >;
+    cancellationFee: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    cancellationReason: Schema.Attribute.Text;
+    cancelledAt: Schema.Attribute.DateTime;
+    cancelledBy: Schema.Attribute.Enumeration<
+      ['sender', 'deliverer', 'system']
+    >;
+    commission: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    commissionDeducted: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    declinedDrivers: Schema.Attribute.JSON;
+    deliverer: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    distanceFare: Schema.Attribute.Decimal;
+    driverEarnings: Schema.Attribute.Decimal;
+    driverRating: Schema.Attribute.Relation<'oneToOne', 'api::rating.rating'>;
+    dropoffLocation: Schema.Attribute.JSON & Schema.Attribute.Required;
+    dropoffStation: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::bus-station.bus-station'
+    >;
+    estimatedDistance: Schema.Attribute.Decimal;
+    estimatedDuration: Schema.Attribute.Integer;
+    isDelivery: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isPassengerBehindBus: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::delivery.delivery'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    package: Schema.Attribute.Relation<'oneToOne', 'api::package.package'>;
+    passengerCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
+    paymentMethod: Schema.Attribute.Enumeration<['cash', 'okrapay']> &
+      Schema.Attribute.Required;
+    paymentStatus: Schema.Attribute.Enumeration<
+      ['pending', 'completed', 'failed']
+    >;
+    pickupLocation: Schema.Attribute.JSON & Schema.Attribute.Required;
+    pickupStation: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::bus-station.bus-station'
+    >;
+    promoCode: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::promo-code.promo-code'
+    >;
+    promoDiscount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    requestedAt: Schema.Attribute.DateTime;
+    requestedDriverAccounts: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
+    requestedDrivers: Schema.Attribute.JSON;
+    rideClass: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::ride-class.ride-class'
+    >;
+    rideCode: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    riderRating: Schema.Attribute.Relation<'oneToOne', 'api::rating.rating'>;
+    rideStatus: Schema.Attribute.Enumeration<
+      [
+        'pending',
+        'accepted',
+        'arrived',
+        'passenger_onboard',
+        'awaiting_payment',
+        'completed',
+        'cancelled',
+        'no_drivers_available',
+      ]
+    > &
+      Schema.Attribute.Required;
+    rideType: Schema.Attribute.Enumeration<['taxi', 'bus', 'delivery']> &
+      Schema.Attribute.Required;
+    scheduledFor: Schema.Attribute.DateTime;
+    sender: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    specialRequests: Schema.Attribute.JSON;
+    subscriptionId: Schema.Attribute.String;
+    subtotal: Schema.Attribute.Decimal;
+    surgeFare: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    taxiType: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::taxi-type.taxi-type'
+    >;
+    timeFare: Schema.Attribute.Decimal;
+    totalFare: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    transaction: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::transaction.transaction'
+    >;
+    tripCompletedAt: Schema.Attribute.DateTime;
+    tripStartedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    vehicle: Schema.Attribute.Relation<'manyToOne', 'api::vehicle.vehicle'>;
+    wasSubscriptionRide: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
   };
 }
 
@@ -2378,6 +2592,8 @@ export interface ApiPlatformStatPlatformStat extends Struct.SingleTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    activeDeliveryDriverCount: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     activeDriverCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     activeSubscriberCount: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<0>;
@@ -2395,7 +2611,19 @@ export interface ApiPlatformStatPlatformStat extends Struct.SingleTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     totalActiveFloat: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    totalCashDeliveries: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     totalCashRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    totalDeliveriesCancelled: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    totalDeliveriesCompleted: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    totalDeliveryDriverEarnings: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalDeliveryPlatformCommission: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalDigitalDeliveries: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     totalDigitalRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     totalDriverEarnings: Schema.Attribute.Decimal &
       Schema.Attribute.DefaultTo<0>;
@@ -3480,16 +3708,18 @@ export interface ApiVehicleMakesAndModelVehicleMakesAndModel
     draftAndPublish: true;
   };
   attributes: {
+    bikes: Schema.Attribute.JSON;
+    cars: Schema.Attribute.JSON;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    list: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::vehicle-makes-and-model.vehicle-makes-and-model'
     > &
       Schema.Attribute.Private;
+    motorbikes: Schema.Attribute.JSON;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -3525,6 +3755,10 @@ export interface ApiVehicleVehicle extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    deliveryClasses: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::delivery-class.delivery-class'
+    >;
     fitnessDocument: Schema.Attribute.Media<'images' | 'files'>;
     fitnessExpiryDate: Schema.Attribute.Date;
     insuranceCertificate: Schema.Attribute.Media<'images' | 'files'>;
@@ -4283,6 +4517,9 @@ declare module '@strapi/strapi' {
       'api::commission-tier.commission-tier': ApiCommissionTierCommissionTier;
       'api::country.country': ApiCountryCountry;
       'api::currency.currency': ApiCurrencyCurrency;
+      'api::delivery-class.delivery-class': ApiDeliveryClassDeliveryClass;
+      'api::delivery-driver.delivery-driver': ApiDeliveryDriverDeliveryDriver;
+      'api::delivery.delivery': ApiDeliveryDelivery;
       'api::device-tracking.device-tracking': ApiDeviceTrackingDeviceTracking;
       'api::device.device': ApiDeviceDevice;
       'api::doc.doc': ApiDocDoc;

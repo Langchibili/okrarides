@@ -1,0 +1,76 @@
+{
+  "kind": "collectionType",
+  "collectionName": "delivery_classes",
+  "info": {
+    "singularName": "delivery-class",
+    "pluralName": "delivery-classes",
+    "displayName": "Delivery Class",
+    "name": "deliveryClass"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "maxWeightKg": {
+      "type": "decimal",
+      "required": true
+    },
+    "maxDimensions": {
+      "type": "string"
+    },
+    "baseFare": {
+      "type": "decimal",
+      "required": true
+    },
+    "perKmRate": {
+      "type": "decimal",
+      "required": true
+    },
+    "perMinuteRate": {
+      "type": "decimal"
+    },
+    "minimumFare": {
+      "type": "decimal",
+      "required": true
+    },
+    "extraWeightCharge": {
+      "type": "decimal"
+    },
+    "commissionPercentage": {
+      "type": "decimal"
+    },
+    "icon": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "displayOrder": {
+      "type": "integer",
+      "default": 0
+    },
+    "vehicles": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::vehicle.vehicle",
+      "inversedBy": "deliveryClasses"
+    },
+    "extraChargeForFragileItem": {
+      "type": "decimal",
+      "default": 10
+    }
+  }
+}

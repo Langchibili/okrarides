@@ -133,6 +133,12 @@
       "relation": "manyToMany",
       "target": "api::ride-class.ride-class",
       "mappedBy": "vehicles"
+    },
+    "deliveryClasses": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::delivery-class.delivery-class",
+      "mappedBy": "vehicles"
     }
   }
 }

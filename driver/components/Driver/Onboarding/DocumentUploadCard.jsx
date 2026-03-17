@@ -403,12 +403,13 @@ import {
   Image as ImageIcon,
 } from '@mui/icons-material'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getImageUrl } from '@/Functions'
 
 export const DocumentUploadCard = ({
   title,
   description,
   acceptedFormats = 'image/*,application/pdf',
-  maxSize = 5, // MB
+  maxSize = 10, // MB
   onUpload,
   uploadedFile,
   onRemove,
@@ -432,14 +433,8 @@ export const DocumentUploadCard = ({
     
     // If it's a Strapi media object with url
     if (uploadedFile.url) {
-      // Handle both absolute and relative URLs
-      const url = uploadedFile.url
-      if (url.startsWith('http')) {
-        return url
-      }
       // If it's a relative URL, prepend with Strapi URL
-      const baseUrl = process.env.NEXT_UPLOAD_PUBLIC_API_URL || 'http://localhost:1343'
-      return `${baseUrl}${url}`
+      return process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_API_URL+getImageUrl(uploadedFile,'thumbnail')
     }
     
     // If it's just an ID (from the initial load), we might need to fetch it

@@ -60,6 +60,10 @@ export interface DeliveryProfilesDeliveryProfile
     icon: 'box';
   };
   attributes: {
+    acceptedDeliveryClasses: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::delivery-class.delivery-class'
+    >;
     activeVehicleType: Schema.Attribute.Enumeration<
       ['none', 'taxi', 'motorbike', 'motorcycle', 'truck']
     > &
@@ -71,9 +75,14 @@ export interface DeliveryProfilesDeliveryProfile
     completedDeliveries: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<0>;
     currentBalance: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    currentDelivery: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::delivery.delivery'
+    >;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     isAvailable: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     isEnroute: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    isOnline: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     motorbike: Schema.Attribute.Component<'delivery-vehicles.motorbike', false>;
     motorcycle: Schema.Attribute.Component<
       'delivery-vehicles.motorcycle',

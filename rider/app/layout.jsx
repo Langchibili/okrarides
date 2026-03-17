@@ -126,23 +126,23 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body>
-        <ThemeProvider>
-          <ReactNativeWrapper>
-            <AdminSettingsProvider>
-              <AuthProvider>
-                 <ScreenshotProvider>
-                  <SocketProvider>
-                    <MapsProvider>
-                      {children}            {/* ← loads immediately in the background */}
-                      <LoadingSplash visible={splashVisible} />   {/* ← overlays for 800ms then fades */}
-                    </MapsProvider>
-                  </SocketProvider>
-                    <FloatingCaptureButton />
-                  </ScreenshotProvider>
-              </AuthProvider>
-            </AdminSettingsProvider>
-          </ReactNativeWrapper>
-        </ThemeProvider>
+         <ReactNativeWrapper>
+          <ThemeProvider>
+              <AdminSettingsProvider>
+                <AuthProvider>
+                  <ScreenshotProvider>
+                    <SocketProvider>
+                      <MapsProvider>
+                        {children}            {/* ← loads immediately in the background */}
+                        <LoadingSplash visible={splashVisible} />   {/* ← overlays for 800ms then fades */}
+                      </MapsProvider>
+                    </SocketProvider>
+                      <FloatingCaptureButton />
+                    </ScreenshotProvider>
+                </AuthProvider>
+              </AdminSettingsProvider>
+          </ThemeProvider>
+        </ReactNativeWrapper>
       </body>
     </html>
   );

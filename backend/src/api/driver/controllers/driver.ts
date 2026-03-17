@@ -776,17 +776,18 @@ async toggleOnline(ctx) {
       
      const { adminNumbers } = await strapi.db.query("api::phone-numbers-list.phone-numbers-list").findOne({where: { id: 1 }})
      const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({where: { id: 1 }})
-     
+     const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+     const adminEmailMessage = settings?.autoApproveDrivers? 'A driver has been outo approved on OkraRides. User ID: '+ctx.state.user.id :  "A driver is looking for vehicle verification on okrarides, the driver's account id is: "+ctx.state.user.id
      await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: user.driverProfile.id },
         data: {
-          verificationStatus: 'pending', // Mapped to schema enum 'pending'
+          verificationStatus: settings?.autoApproveDrivers? 'approved':'pending', // Mapped to schema enum 'pending'
           // submittedAt: new Date(), // Schema doesn't show 'submittedAt', only 'verifiedAt'. Add to schema if needed.
         },
       })
       try{
          adminEmailAddresses.forEach((email)=>{ 
-          SendEmailNotification(email, "a driver is looking for vehicle verification on okrarides, the driver's account id is: "+ctx.state.user.id)
+          SendEmailNotification(email, adminEmailMessage)
          }) 
       }
       catch(e){

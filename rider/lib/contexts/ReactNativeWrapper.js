@@ -354,6 +354,7 @@ export function ReactNativeWrapper({ children }) {
   // ============================================
   // Service Initialization
   // ============================================
+  
   const initializeNativeServices = useCallback(async (userId, frontendName, socketServerUrl) => {
     if (!isNative)           return { success: false, reason: 'not_native' };
     if (servicesInitialized) return { success: true,  reason: 'already_initialized' };
@@ -372,7 +373,26 @@ export function ReactNativeWrapper({ children }) {
       console.error('[RNWrapper] initializeNativeServices:', err);
       return { success: false, error: err.message };
     }
+    
   }, [isNative, servicesInitialized, sendToNative, loadPermissionsFromBackend]);
+  
+  const reconnectDeviceSocket = useCallback(async (userId, frontendName, socketServerUrl) => {
+    if (!isNative) return { success: false, reason: 'not_native' };
+    try {
+      const result = await sendToNative('RECONNECT_SOCKET', {
+        userId, frontendName,
+        socketServerUrl: socketServerUrl || process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL,
+      })
+      userIdRef.current   = userId;
+      deviceIdRef.current = result.deviceId;
+      setCurrentFrontend(frontendName);
+      return { success: true, ...result };
+    } catch (err) {
+      console.error('[RECONNECT SOCKET] reconnectDeviceSocket:', err);
+      return { success: false, error: err.message };
+    }
+    
+  }, [isNative, sendToNative]);
 
   // ============================================
   // Location Services
@@ -433,8 +453,13 @@ export function ReactNativeWrapper({ children }) {
   const stopLocationTracking = useCallback(async () => {
     if (isNative) return sendToNative('STOP_LOCATION_TRACKING', {});
     return Promise.resolve();
-  }, [isNative, sendToNative]);
+  }, [isNative, sendToNative])
 
+
+  const handleChangeThemeMode  = useCallback(async ({ color, mode } ) => {
+    if (isNative) return await sendToNative('THEME_MODE_CHANGE', { color, mode } );
+    return { success: true };
+  }, [isNative, sendToNative])
   // ============================================
   // Notification Services
   // ============================================
@@ -459,6 +484,8 @@ export function ReactNativeWrapper({ children }) {
     sendToNative, on,
     requestPermission, checkPermission,
     initializeNativeServices,
+    handleChangeThemeMode,
+    reconnectDeviceSocket,
     getCurrentLocation, startLocationTracking, stopLocationTracking,
     showNotification,
   };

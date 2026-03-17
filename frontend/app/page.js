@@ -2915,9 +2915,9 @@ const Scene = ({ isActive }) => {
 // ─── MAIN LANDING PAGE ────────────────────────────────────────────────────────
 const OkraLandingPage = () => {
   const [frontendUrls, setFrontendUrls] = useState({
-    riderApp: 'http://10.27.147.23:3001/home',
-    driverApp: 'http://10.27.147.23:3002/home',
-    deliveryApp: 'https://delivery.okra.tech',
+    riderApp: 'http://10.27.147.23:3001',
+    driverApp: 'http://10.27.147.23:3002',
+    deliveryApp: 'http://10.27.147.23:3003',
   });
   const [loading, setLoading] = useState(true);
   const [headerPhase, setHeaderPhase] = useState('brand');
@@ -2933,9 +2933,9 @@ const OkraLandingPage = () => {
         const j = await r.json();
         const p = j?.data?.paths || {};
         setFrontendUrls({
-          riderApp: p['okra-rider-app'] || 'http://10.27.147.23:3001/home',
-          driverApp: p['okra-driver-app'] || 'http://10.27.147.23:3002/home',
-          deliveryApp: p['okra-delivery-app'] || 'https://delivery.okra.tech',
+          riderApp: p['okra-rider-app'] || 'http://10.27.147.23:3001/',
+          driverApp: p['okra-driver-app'] || 'http://10.27.147.23:3002/',
+          deliveryApp: p['okra-delivery-app'] || 'http://10.27.147.23:3003/',
         });
       } catch (_) {}
       setLoading(false);

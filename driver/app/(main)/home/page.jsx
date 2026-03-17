@@ -233,7 +233,7 @@ export default function DriverHomePage() {
   const isSubscriptionExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 7;
   const isOnTrial = subscriptionStatus === 'trial';
   const floatBalance    = driverProfile?.floatBalance || 0;
-  const isFloatNegative = floatBalance < 0;
+  const isFloatNegative = floatBalance <= 0;
   const isFloatAtLimit  = isFloatNegative && negativeFloatLimit > 0 && Math.abs(floatBalance) >= negativeFloatLimit;
   const isFloatLow      = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
   const showVerificationAlert         = needsVerification || needsVehicle;

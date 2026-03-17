@@ -531,7 +531,7 @@ export default function ProfilePage() {
     {
       title: 'Support',
       items: [
-        { icon: <HelpIcon sx={{ fontSize: 18 }} />, label: 'Help Center', action: () => router.push('/profile/help') },
+        { icon: <HelpIcon sx={{ fontSize: 18 }} />, label: 'Help Center', action: () => router.push('/help') },
         { icon: <InfoIcon sx={{ fontSize: 18 }} />, label: 'About', action: () => router.push('/profile/about') },
       ],
     },

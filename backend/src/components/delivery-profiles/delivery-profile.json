@@ -31,6 +31,15 @@
       "type": "boolean",
       "default": false
     },
+    "isOnline": {
+      "type": "boolean",
+      "default": false
+    },
+    "currentDelivery": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::delivery.delivery"
+    },
     "taxi": {
       "type": "component",
       "repeatable": false,
@@ -61,6 +70,11 @@
         "truck"
       ],
       "default": "none"
+    },
+    "acceptedDeliveryClasses": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::delivery-class.delivery-class"
     },
     "totalDeliveries": {
       "type": "integer",
