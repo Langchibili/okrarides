@@ -63,7 +63,7 @@ export default function ProofOfAddressPage() {
         document: null,
       })
 
-      router.push('/onboarding/delivery-vehicle-type')
+      router.push('/onboarding/vehicle-type')
     } catch (err) {
       console.error(err)
       setError(err.message || 'Failed to save address information')

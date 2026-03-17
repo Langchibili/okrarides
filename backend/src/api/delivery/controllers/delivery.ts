@@ -37,8 +37,14 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
   const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
     where: { id: delivererId },
     populate: {
-      driverProfile:   { populate: { currentSubscription: true } },
-      deliveryProfile: { select: ['id', 'floatBalance', 'withdrawableFloatBalance', 'currentBalance', 'completedDeliveries', 'totalDeliveries', 'totalEarnings'] },
+       driverProfile: {
+        select: ['id', 'floatBalance', 'withdrawableFloatBalance'],
+        populate: { currentSubscription: true },
+      },
+      // delivery-specific counters / balance live on deliveryProfile
+      deliveryProfile: {
+        select: ['id', 'currentBalance', 'completedDeliveries', 'totalDeliveries', 'totalEarnings'],
+      }
     },
   });
 

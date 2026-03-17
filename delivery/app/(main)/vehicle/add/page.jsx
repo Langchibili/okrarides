@@ -14,6 +14,7 @@ import {
   Box, Typography, TextField, Button, Paper, MenuItem,
   IconButton, Alert, Chip, Dialog, DialogContent, DialogActions,
   Tooltip, CircularProgress, Autocomplete,
+  Snackbar,
 } from '@mui/material';
 import {
   ArrowBack as BackIcon, Edit as EditIcon, Check as CheckIcon,
@@ -453,8 +454,8 @@ export default function AddDeliveryVehiclePage() {
         <Box sx={{ flex:1, overflowY:'scroll', pb:10, '&::-webkit-scrollbar':{display:'none'}, scrollbarWidth:'none' }}>
           <Box sx={{ p:3 }}>
 
-            {error   && <Alert severity="error"   sx={{mb:3}} onClose={()=>setError(null)}>{error}</Alert>}
-            {success && <Alert severity="success" sx={{mb:3}} onClose={()=>setSuccess(null)}>{success}</Alert>}
+            {/* {error   && <Alert severity="error"   sx={{mb:3}} onClose={()=>setError(null)}>{error}</Alert>}
+            {success && <Alert severity="success" sx={{mb:3}} onClose={()=>setSuccess(null)}>{success}</Alert>} */}
             {isEditMode && existingVehicle && isInsuranceExpired()      && <Alert severity="error"   icon={<WarningIcon/>} sx={{mb:3}}>Your insurance has expired! Please update your documents and expiry date.</Alert>}
             {isEditMode && existingVehicle && isInsuranceExpiringSoon() && <Alert severity="warning" icon={<WarningIcon/>} sx={{mb:3}}>Your insurance is expiring soon! Please renew and update your documents.</Alert>}
 
@@ -628,6 +629,38 @@ export default function AddDeliveryVehiclePage() {
             )}
           </Box>
         </Box>
+        {/* ── replace with these two Snackbars, placed anywhere inside the root Box, outside the scrollable area ── */}
+        <Snackbar
+          open={!!error}
+          autoHideDuration={5000}
+          onClose={() => setError(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          sx={{ zIndex: 9999 }}
+        >
+          <Alert
+            severity="error"
+            onClose={() => setError(null)}
+            sx={{ width: '100%', borderRadius: 2.5 }}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={!!success}
+          autoHideDuration={5000}
+          onClose={() => setSuccess(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          sx={{ zIndex: 9999 }}
+        >
+          <Alert
+            severity="success"
+            onClose={() => setSuccess(null)}
+            sx={{ width: '100%', borderRadius: 2.5 }}
+          >
+            {success}
+          </Alert>
+        </Snackbar>
       </Box>
     </>
   );

@@ -1366,7 +1366,7 @@ export interface ApiDeliveryDelivery extends Struct.CollectionTypeSchema {
     singularName: 'delivery';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     acceptedAt: Schema.Attribute.DateTime;

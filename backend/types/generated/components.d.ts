@@ -91,6 +91,7 @@ export interface DeliveryProfilesDeliveryProfile
     taxi: Schema.Attribute.Component<'delivery-vehicles.taxi', false>;
     totalDeliveries: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     totalEarnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    totalRatings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     truck: Schema.Attribute.Component<'delivery-vehicles.truck', false>;
     verificationNotes: Schema.Attribute.Text;
     verificationStatus: Schema.Attribute.Enumeration<

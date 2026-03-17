@@ -106,7 +106,7 @@ export const useDelivery = () => {
       String(data.deliveryId) === String(currentDeliveryRef.current?.id);
 
     const handleRequest = (data) => {
-      setIncomingDelivery(data);
+      setIncomingDelivery(data)
       const audio = new Audio('/sounds/ride-request.mp3');
       audio.play().catch(() => {});
       if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
@@ -177,6 +177,7 @@ export const useDelivery = () => {
     try {
       setLoading(true);
       const response = await apiClient.post(`/deliveries/${deliveryId}/accept`);
+      console.log('response acceptDelivery',response)
       if (response && (response.id || response.success || response.data)) {
         setCurrentDelivery(response.data ?? response);
         setIncomingDelivery(null);
@@ -197,6 +198,7 @@ export const useDelivery = () => {
     try {
       setLoading(true);
       const response = await apiClient.post(`/deliveries/${deliveryId}/decline`, { reason });
+      console.log('response declineDelivery',response)
       setIncomingDelivery(null);
       setError(null);
       return response;

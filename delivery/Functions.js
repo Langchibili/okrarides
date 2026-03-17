@@ -286,7 +286,7 @@ export const getPerformanceMetrics = async (period = 'month') => {
 //==========================================
 export const validatePhoneNumber = (phone) => {
   const cleaned = phone.replace(/\D/g, '');
-  return cleaned.length === 9 && /^[97]/.test(cleaned);
+  return cleaned.length === 9 && /^[123456789]/.test(cleaned);
 };
 
 export const calculateDistance = (lat1, lon1, lat2, lon2) => {

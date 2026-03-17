@@ -1304,18 +1304,25 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       });
 
       if (!user?.deliveryProfile) return ctx.badRequest('Delivery profile not found');
-
       // Load all sub-components to get their ids for direct updates
       const deliveryProfile = await strapi.db.query('delivery-profiles.delivery-profile').findOne({
         where: { id: user.deliveryProfile.id },
-        populate: {
-          taxi:       true,
-          motorbike:  true,
-          motorcycle: true,
-          truck:      true,
-        },
-      });
-
+         populate: { 
+            taxi: {
+                populate: true // Populate all relations inside taxiDriver
+            },
+            motorbike: {
+                populate: true // Populate all relations inside busDriver
+            },
+            motorcycle: {
+                populate: true // Populate all relations inside motorbikeRider
+            },
+            truck: {
+                populate: true // Populate all relations inside motorbikeRider
+            }
+        }
+      })
+      
       const allTypes = ['taxi', 'motorbike', 'motorcycle', 'truck'];
 
       // Activate the chosen sub-component directly
@@ -1324,7 +1331,18 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         await strapi.db.query(`delivery-vehicles.${vehicleType}`).update({
           where: { id: chosen.id },
           data:  { isActive: true },
-        });
+        })
+      }
+      else{
+       const vehicleTypeEntry = await strapi.db.query(`delivery-vehicles.${vehicleType}`).create({
+          data:  { isActive: true }
+        })
+        await strapi.db.query('delivery-profiles.delivery-profile').update({
+           where: { id: user.deliveryProfile.id },
+           data:  {  
+            [vehicleType]: vehicleTypeEntry
+           },
+        })
       }
 
       // Deactivate all other sub-components directly

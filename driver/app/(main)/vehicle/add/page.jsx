@@ -19,6 +19,7 @@ import {
   Tooltip,
   CircularProgress,
   Autocomplete,
+   Snackbar
 } from '@mui/material'
 import {
   ArrowBack as BackIcon,
@@ -245,7 +246,7 @@ export default function AddVehiclePage() {
         if (response.success && response.hasVehicle) {
           const vehicle = response.vehicle
           setExistingVehicle(vehicle)
-          setVehicleId(vehicle.id)
+          setVehicleId(vehicle?.id)
           setHasBasicInfoSaved(true)
           setVehicleData({
             vehicleType: vehicle.vehicleType || getVehicleTypeFromDriverProfile,
@@ -302,14 +303,15 @@ export default function AddVehiclePage() {
     if (!vehicleData.numberPlate.trim()) { setError('Number plate is required'); return }
     if (!vehicleData.make.trim()) { setError('Vehicle make is required'); return }
     if (!vehicleData.model.trim()) { setError('Vehicle model is required'); return }
+    if (!vehicleData.color.trim()) { setError('Please select the color of the vehicle'); return }
     if (!vehicleData.insuranceExpiryDate) { setError('Insurance expiry date is required'); return }
     setSavingBasicInfo(true)
     setError(null)
     try {
       const response = await addVehicle({ ...vehicleData })
       if (response.success) {
-        setVehicleId(response.vehicle.id)
-        setExistingVehicle(response.vehicle)
+        setVehicleId(response?.newVehicle?.id)
+        setExistingVehicle(response.newVehicle)
         setHasBasicInfoSaved(true)
         setSuccess('Vehicle information saved! Now upload the required documents.')
       } else {
@@ -408,7 +410,7 @@ export default function AddVehiclePage() {
     setSuccess(null)
     setSavingBasicInfo(true)
     try {
-      const response = await updateVehicle(existingVehicle.id, vehicleData)
+      const response = await updateVehicle(existingVehicle?.id, vehicleData)
       if (response.success) {
         setSuccess('Vehicle details updated successfully!')
         setEditDialogOpen(false)
@@ -539,12 +541,13 @@ export default function AddVehiclePage() {
           <Box sx={{ p: 3, }}>
 
             {/* Alert Messages */}
-            {error && (
-              <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>{error}</Alert>
-            )}
-            {success && (
-              <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>{success}</Alert>
-            )}
+            {/* ── remove these two blocks ── */}
+{/* {error && (
+  <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>{error}</Alert>
+)}
+{success && (
+  <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>{success}</Alert>
+)} */}
 
             {/* Insurance Expiry Warnings */}
             {isEditMode && existingVehicle && isInsuranceExpired() && (
@@ -1149,7 +1152,7 @@ export default function AddVehiclePage() {
             </Box>
 
             {/* Submit section – edit mode */}
-            {isEditMode && (
+            {isEditMode || hasBasicInfoSaved && (
               <>
                 <Alert severity="info" icon={<WarningIcon />} sx={{ mb: 3, borderRadius: 2.5 }}>
                   <Typography variant="body2" fontWeight="medium" gutterBottom>
@@ -1188,6 +1191,38 @@ export default function AddVehiclePage() {
 
           </Box>
         </Box>{/* end scrollable area */}
+        {/* ── replace with these two Snackbars, placed anywhere inside the root Box, outside the scrollable area ── */}
+        <Snackbar
+          open={!!error}
+          autoHideDuration={5000}
+          onClose={() => setError(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          sx={{ zIndex: 9999 }}
+        >
+          <Alert
+            severity="error"
+            onClose={() => setError(null)}
+            sx={{ width: '100%', borderRadius: 2.5 }}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={!!success}
+          autoHideDuration={5000}
+          onClose={() => setSuccess(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          sx={{ zIndex: 9999 }}
+        >
+          <Alert
+            severity="success"
+            onClose={() => setSuccess(null)}
+            sx={{ width: '100%', borderRadius: 2.5 }}
+          >
+            {success}
+          </Alert>
+        </Snackbar>
       </Box>
     </>
   )

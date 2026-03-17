@@ -237,17 +237,16 @@ export default function DriverHomePage() {
 
   const handleToggleOnline = async () => {
     try {
-      const result = await toggleOnline(!isOnline);
+      const result = await toggleOnline(!isOnline)
       if (!result.allowed) {
         if (result.action === 'subscribe')   { if (window.confirm(result.message + '\n\nView plans?')) router.push('/subscription/plans'); }
         if (result.action === 'topup_float') { if (window.confirm(result.message + '\n\nTop up now?')) router.push('/float/topup'); }
       }
     } catch (e) { console.error('Error toggling online:', e); }
-  };
+  }
 
-  const handleAcceptRide  = async (id) => { try { await acceptRide(id);  router.push(`/active-delivery/${id}`); } catch (e) { console.error(e); } };
-  const handleDeclineRide = async (id) => { try { await declineRide(id, 'Driver declined'); } catch (e) { console.error(e); } };
-console.log('driverProfile',driverProfile)
+  const handleAcceptRide  = async (id) => { try { await acceptRide(id);  router.push(`/active-delivery/${id}`) } catch (e) { console.error(e) } }
+  const handleDeclineRide = async (id) => { try { await declineRide(id, 'Driver declined') } catch (e) { console.error(e) } }
   const subscriptionStatus    = driverProfile?.subscriptionStatus;
   const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
   const isOnSubscriptionSystem = paymentSystemType === 'subscription_based' || (paymentSystemType === 'hybrid' && ['active', 'trial'].includes(subscriptionStatus));
@@ -526,7 +525,7 @@ console.log('driverProfile',driverProfile)
         {/* ── Ride Request Modal ──────────────────────────────────────── */}
         <AnimatePresence>
           {incomingRide && (
-            <DeliveryRequestModal open={!!incomingRide} rideRequest={incomingRide}
+            <DeliveryRequestModal open={!!incomingRide} deliveryRequest={incomingRide}
               onAccept={handleAcceptRide} onDecline={handleDeclineRide} />
           )}
         </AnimatePresence>

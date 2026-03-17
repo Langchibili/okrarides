@@ -92,6 +92,10 @@
       "type": "decimal",
       "default": 0
     },
+    "totalRatings": {
+      "type": "decimal",
+      "default": 0
+    },
     "totalEarnings": {
       "type": "decimal",
       "default": 0

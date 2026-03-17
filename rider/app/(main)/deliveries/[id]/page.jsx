@@ -19,7 +19,7 @@ import {
 import { motion } from 'framer-motion';
 import MapIframe from '@/components/Map/MapIframe';
 import { getDelivery, cancelDelivery, rateDelivery } from '@/lib/api/deliveries';
-import { formatCurrency, formatDateTime } from '@/Functions';
+import { formatCurrency, formatDate} from '@/Functions';
 
 const AMBER = '#F59E0B';
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
@@ -289,7 +289,7 @@ export default function DeliveryDetailPage() {
                     <Typography variant="body2" fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {delivery.pickupLocation?.address}
                     </Typography>
-                    {delivery.acceptedAt && <Typography variant="caption" color="text.disabled">{formatDateTime(delivery.acceptedAt)}</Typography>}
+                    {delivery.acceptedAt && <Typography variant="caption" color="text.disabled">{formatDate(delivery.acceptedAt)}</Typography>}
                   </Box>
                 </Box>
                 <Box sx={{ width: 2, height: 16, bgcolor: alpha(theme.palette.divider,0.5), ml: 2, mb: 1.5, borderRadius: 1 }} />
@@ -302,7 +302,7 @@ export default function DeliveryDetailPage() {
                     <Typography variant="body2" fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {delivery.dropoffLocation?.address}
                     </Typography>
-                    {delivery.tripCompletedAt && <Typography variant="caption" color="text.disabled">{formatDateTime(delivery.tripCompletedAt)}</Typography>}
+                    {delivery.tripCompletedAt && <Typography variant="caption" color="text.disabled">{formatDate(delivery.tripCompletedAt)}</Typography>}
                   </Box>
                 </Box>
               </SectionCard>

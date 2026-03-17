@@ -1,10 +1,9 @@
-//Okrarides\delivery\app\(main)\profile\page.jsx
 'use client';
 import { useRouter }   from 'next/navigation';
 import {
   Box, AppBar, Toolbar, Typography, Avatar, Paper,
   List, ListItemIcon, ListItemText, ListItemButton,
-  Divider, IconButton, Chip,
+  Divider, IconButton, Chip, Modal, Button,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import {
@@ -15,6 +14,7 @@ import {
   Description as DocumentIcon, Logout as LogoutIcon,
   ChevronRight as ChevronIcon, Star as StarIcon,
   AccountBalance as AccountBalanceIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth }   from '@/lib/hooks/useAuth';
@@ -26,9 +26,95 @@ import { getDriverVehicle } from '@/lib/api/vehicle';
 import { useEffect, useState } from 'react';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
+const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
+const fadeUp  = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } } };
 
-const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
-const fadeUp  = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } } }
+// ── Logout confirmation modal ─────────────────────────────────────────────────
+function LogoutModal({ open, onConfirm, onCancel }) {
+  const theme  = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  return (
+    <Modal open={open} onClose={onCancel}>
+      <Box sx={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        p: 2,
+      }}>
+        <motion.div
+          initial={{ scale: 0.85, opacity: 0, y: 20 }}
+          animate={{ scale: 1,    opacity: 1, y: 0  }}
+          exit={{   scale: 0.85, opacity: 0, y: 20  }}
+          transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+        >
+          <Paper elevation={24} sx={{
+            p: 3.5, borderRadius: 4, maxWidth: 320, width: '100%',
+            background: isDark
+              ? 'linear-gradient(145deg, #1E293B 0%, #0F172A 100%)'
+              : '#ffffff',
+            border: `1px solid ${alpha('#EF4444', isDark ? 0.22 : 0.12)}`,
+            boxShadow: `0 24px 64px ${alpha('#000', isDark ? 0.55 : 0.18)}`,
+            textAlign: 'center',
+          }}>
+            {/* Icon */}
+            <motion.div
+              initial={{ rotate: -12, scale: 0.7 }}
+              animate={{ rotate: 0, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.05 }}
+            >
+              <Box sx={{
+                width: 64, height: 64, borderRadius: '50%', mx: 'auto', mb: 2.5,
+                background: `linear-gradient(135deg, ${alpha('#EF4444', 0.18)} 0%, ${alpha('#B91C1C', 0.1)} 100%)`,
+                border: `2px solid ${alpha('#EF4444', 0.25)}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: `0 4px 20px ${alpha('#EF4444', 0.22)}`,
+              }}>
+                <LogoutIcon sx={{ fontSize: 28, color: '#EF4444' }} />
+              </Box>
+            </motion.div>
+
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.75, letterSpacing: -0.2 }}>
+              Log Out?
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
+              Are you sure you want to log out of OkraRides?
+            </Typography>
+
+            {/* Buttons */}
+            <Box sx={{ display: 'flex', gap: 1.25 }}>
+              <Button
+                fullWidth variant="outlined" size="large"
+                onClick={onCancel}
+                sx={{
+                  height: 48, borderRadius: 3, fontWeight: 700, textTransform: 'none',
+                  borderColor: alpha(theme.palette.divider, 0.6),
+                  color: 'text.secondary',
+                  '&:hover': { borderColor: 'text.secondary', bgcolor: alpha('#000', 0.03) },
+                }}
+              >
+                No, Stay
+              </Button>
+              <Button
+                fullWidth variant="contained" size="large"
+                onClick={onConfirm}
+                sx={{
+                  height: 48, borderRadius: 3, fontWeight: 700, textTransform: 'none',
+                  background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                  boxShadow: `0 4px 16px ${alpha('#EF4444', 0.38)}`,
+                  '&:hover': { boxShadow: `0 6px 20px ${alpha('#EF4444', 0.48)}` },
+                }}
+              >
+                Yes, Log Out
+              </Button>
+            </Box>
+          </Paper>
+        </motion.div>
+      </Box>
+    </Modal>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
   const router  = useRouter();
@@ -37,7 +123,8 @@ export default function ProfilePage() {
   const { user, logout } = useAuth();
   const { driverProfile } = useDriver();
   const { isSubscriptionSystemEnabled } = useAdminSettings();
-  const [vehile, setVehicle] = useState(null)
+  const [vehicle,        setVehicle]        = useState(null);
+  const [showLogout,     setShowLogout]     = useState(false);   // ← new
 
   const verStatus = driverProfile?.verificationStatus;
   const verBadge = {
@@ -58,15 +145,16 @@ export default function ProfilePage() {
     { icon: VerifiedIcon,    primary: 'Verification',    secondary: verStatus || 'Not started',
       path: verStatus === VERIFICATION_STATUS.PENDING ? '/onboarding/pending' : '/onboarding/welcome',
       color: verStatus === VERIFICATION_STATUS.APPROVED ? '#10B981' : '#F59E0B' },
-    { icon: VehicleIcon,     primary: 'Vehicle',         secondary: vehile
-        ? `${vehile.make} ${vehile.model}` : 'No vehicle',
+    { icon: VehicleIcon,     primary: 'Vehicle',         secondary: vehicle
+        ? `${vehicle.make} ${vehicle.model}` : 'No vehicle',
       path: '/onboarding/delivery-vehicle-type', color: '#8B5CF6' },
     { icon: PerformanceIcon, primary: 'Performance',     secondary: 'Stats, ratings, completion',
       path: '/earnings/analytics', color: '#06B6D4' },
   ];
 
   const financeItems = [
-    { icon: AccountBalanceIcon, primary: 'Mobile Money Numbers', secondary: driverProfile?.paymentPhoneNumbers?.length > 0
+    { icon: AccountBalanceIcon, primary: 'Mobile Money Numbers',
+      secondary: driverProfile?.paymentPhoneNumbers?.length > 0
         ? `${driverProfile.paymentPhoneNumbers.length} saved` : 'Add payout numbers',
       path: '/mobile-money-numbers', color: '#3B82F6' },
     { icon: DocumentIcon, primary: 'Withdrawals',      secondary: 'Request withdrawal',
@@ -94,13 +182,15 @@ export default function ProfilePage() {
     { label: 'Earnings & Finance', items: financeItems  },
     { label: 'Support & Settings', items: supportItems  },
   ];
-  useEffect(()=>{
-    const runGetDriverVehicle = async ()=>{
-      const vehicle = await getDriverVehicle()
-      setVehicle(vehicle?.vehicle)
-    }
-    runGetDriverVehicle()
-  })
+
+  useEffect(() => {
+    const runGetDriverVehicle = async () => {
+      const v = await getDriverVehicle();
+      setVehicle(v?.vehicle);
+    };
+    runGetDriverVehicle();
+  }, []);
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
       <AppBar position="static" elevation={0} sx={{
@@ -122,7 +212,7 @@ export default function ProfilePage() {
       <Box sx={{ flex: 1, overflowY: 'auto', p: 2, pb: 4, ...hideScrollbar }}>
         <motion.div variants={stagger} initial="hidden" animate="show">
 
-          {/* ── Profile hero ──────────────────────────────────────────── */}
+          {/* ── Profile hero ───────────────────────────────────────── */}
           <motion.div variants={fadeUp}>
             <Paper elevation={isDark ? 0 : 3} sx={{
               p: 3, mb: 2, borderRadius: 4, textAlign: 'center',
@@ -133,24 +223,11 @@ export default function ProfilePage() {
               boxShadow: isDark ? 'none' : `0 6px 30px rgba(0,0,0,0.09)`,
               position: 'relative', overflow: 'hidden',
             }}>
-              <Box sx={{
-                position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%',
-                background: `radial-gradient(circle, ${alpha('#3B82F6', isDark ? 0.12 : 0.07)} 0%, transparent 70%)`,
-                pointerEvents: 'none',
-              }} />
-              <Box sx={{
-                position: 'absolute', bottom: -20, left: -20, width: 80, height: 80, borderRadius: '50%',
-                background: `radial-gradient(circle, ${alpha('#10B981', isDark ? 0.1 : 0.06)} 0%, transparent 70%)`,
-                pointerEvents: 'none',
-              }} />
+              <Box sx={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: `radial-gradient(circle, ${alpha('#3B82F6', isDark ? 0.12 : 0.07)} 0%, transparent 70%)`, pointerEvents: 'none' }} />
+              <Box sx={{ position: 'absolute', bottom: -20, left: -20, width: 80, height: 80, borderRadius: '50%', background: `radial-gradient(circle, ${alpha('#10B981', isDark ? 0.1 : 0.06)} 0%, transparent 70%)`, pointerEvents: 'none' }} />
 
-              {/* Avatar ring */}
               <Box sx={{ position: 'relative', display: 'inline-block', mb: 1.75 }}>
-                <Box sx={{
-                  position: 'absolute', inset: -3, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)',
-                  zIndex: 0,
-                }} />
+                <Box sx={{ position: 'absolute', inset: -3, borderRadius: '50%', background: 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)', zIndex: 0 }} />
                 <Avatar
                   src={process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_API_URL + getImageUrl(user?.profilePicture, 'thumbnail')}
                   sx={{ width: 88, height: 88, position: 'relative', zIndex: 1, border: '3px solid', borderColor: 'background.paper' }}
@@ -165,11 +242,7 @@ export default function ProfilePage() {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>{user?.phoneNumber}</Typography>
               <Chip label={verBadge.label} color={verBadge.color} size="small" sx={{ fontWeight: 700, mb: 2 }} />
 
-              {/* Stats row */}
-              <Box sx={{
-                display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0.5,
-                pt: 2, borderTop: `1px solid ${isDark ? alpha('#fff', 0.08) : alpha('#000', 0.07)}`,
-              }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 0.5, pt: 2, borderTop: `1px solid ${isDark ? alpha('#fff', 0.08) : alpha('#000', 0.07)}` }}>
                 {statItems.map(({ value, label, color }) => (
                   <Box key={label} sx={{ py: 0.5 }}>
                     <Typography variant="h6" fontWeight={800} sx={{ color, mb: 0.1, letterSpacing: -0.3 }}>{value}</Typography>
@@ -180,7 +253,7 @@ export default function ProfilePage() {
             </Paper>
           </motion.div>
 
-          {/* ── Sections ──────────────────────────────────────────────── */}
+          {/* ── Sections ─────────────────────────────────────────────── */}
           {sections.map(({ label, items }) => (
             <motion.div key={label} variants={fadeUp}>
               <Paper elevation={isDark ? 0 : 2} sx={{
@@ -189,15 +262,8 @@ export default function ProfilePage() {
                 background: isDark ? undefined : '#ffffff',
                 boxShadow: isDark ? 'none' : `0 2px 14px rgba(0,0,0,0.06)`,
               }}>
-                <Box sx={{
-                  px: 2, py: 1,
-                  bgcolor: isDark ? alpha('#fff', 0.03) : '#F8FAFC',
-                  borderBottom: `1px solid ${isDark ? alpha('#fff', 0.05) : alpha('#000', 0.05)}`,
-                }}>
-                  <Typography variant="caption" sx={{
-                    fontWeight: 700, letterSpacing: 0.9, color: 'text.disabled',
-                    fontSize: 10, textTransform: 'uppercase',
-                  }}>
+                <Box sx={{ px: 2, py: 1, bgcolor: isDark ? alpha('#fff', 0.03) : '#F8FAFC', borderBottom: `1px solid ${isDark ? alpha('#fff', 0.05) : alpha('#000', 0.05)}` }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, letterSpacing: 0.9, color: 'text.disabled', fontSize: 10, textTransform: 'uppercase' }}>
                     {label}
                   </Typography>
                 </Box>
@@ -211,7 +277,8 @@ export default function ProfilePage() {
                       }}>
                         <ListItemIcon sx={{ minWidth: 42 }}>
                           <Box sx={{
-                            width: 34, height: 34, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            width: 34, height: 34, borderRadius: 2,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
                             background: isDark
                               ? `linear-gradient(135deg, ${alpha(color, 0.2)} 0%, ${alpha(color, 0.1)} 100%)`
                               : `linear-gradient(135deg, ${alpha(color, 0.12)} 0%, ${alpha(color, 0.06)} 100%)`,
@@ -235,7 +302,7 @@ export default function ProfilePage() {
             </motion.div>
           ))}
 
-          {/* ── Logout ────────────────────────────────────────────────── */}
+          {/* ── Logout ───────────────────────────────────────────────── */}
           <motion.div variants={fadeUp}>
             <Paper elevation={isDark ? 0 : 2} sx={{
               borderRadius: 3, mb: 2, overflow: 'hidden',
@@ -244,11 +311,13 @@ export default function ProfilePage() {
               boxShadow: isDark ? 'none' : `0 2px 12px ${alpha('#EF4444', 0.07)}`,
             }}>
               <ListItemButton
-                onClick={() => { if (window.confirm('Log out of OkraRides?')) logout(); }}
-                sx={{ py: 1.75, px: 2, '&:hover': { bgcolor: alpha('#EF4444', 0.06) } }}>
+                onClick={() => setShowLogout(true)}   // ← opens modal instead
+                sx={{ py: 1.75, px: 2, '&:hover': { bgcolor: alpha('#EF4444', 0.06) } }}
+              >
                 <ListItemIcon sx={{ minWidth: 42 }}>
                   <Box sx={{
-                    width: 34, height: 34, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 34, height: 34, borderRadius: 2,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: isDark
                       ? `linear-gradient(135deg, ${alpha('#EF4444', 0.2)} 0%, ${alpha('#EF4444', 0.1)} 100%)`
                       : `linear-gradient(135deg, ${alpha('#EF4444', 0.12)} 0%, ${alpha('#FEE2E2', 1)} 100%)`,
@@ -267,6 +336,13 @@ export default function ProfilePage() {
           </Typography>
         </motion.div>
       </Box>
+
+      {/* ── Logout confirmation modal ─────────────────────────────────── */}
+      <LogoutModal
+        open={showLogout}
+        onCancel={() => setShowLogout(false)}
+        onConfirm={() => { setShowLogout(false); logout(); }}
+      />
     </Box>
-  );
+  )
 }

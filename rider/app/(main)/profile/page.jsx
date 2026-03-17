@@ -1,374 +1,3 @@
-// //Okrarides\rider\app\(main)\profile\page.jsx
-// 'use client';
-
-// import { useState } from 'react';
-// import { useRouter } from 'next/navigation';
-// import {
-//   Box,
-//   Typography,
-//   Avatar,
-//   Paper,
-//   List,
-//   ListItem,
-//   ListItemIcon,
-//   ListItemText,
-//   Divider,
-//   IconButton,
-//   Switch,
-// } from '@mui/material';
-// import {
-//   Edit as EditIcon,
-//   ChevronRight as ChevronRightIcon,
-//   LocationOn as LocationIcon,
-//   ContactPhone as ContactIcon,
-//   LocalOffer as PromoIcon,
-//   People as ReferralIcon,
-//   Settings as SettingsIcon,
-//   Help as HelpIcon,
-//   Info as InfoIcon,
-//   ExitToApp as LogoutIcon,
-//   Star as StarIcon,
-//   CardGiftcard as GiftIcon,
-//   DarkMode as DarkModeIcon,
-//   Notifications as NotificationsIcon,
-// } from '@mui/icons-material';
-// import { motion } from 'framer-motion';
-// import { useAuth } from '@/lib/hooks/useAuth';
-// import { useThemeMode } from '@/components/ThemeProvider';
-// import { formatPhoneNumber } from '@/Functions';
-
-// export default function ProfilePage() {
-//   const router = useRouter();
-//   const { user, logout } = useAuth();
-//   const { mode, toggleTheme } = useThemeMode();
-  
-//   const [notificationsEnabled, setNotificationsEnabled] = useState(
-//     user?.riderProfile?.pushNotifications ?? true
-//   );
-
-//   const stats = [
-//     {
-//       label: 'Total Trips',
-//       value: user?.riderProfile?.totalRides || 0,
-//       icon: <StarIcon />,
-//     },
-//     {
-//       label: 'Rating',
-//       value: user?.riderProfile?.averageRating?.toFixed(1) || '0.0',
-//       icon: <StarIcon />,
-//     },
-//     {
-//       label: 'Total Spent',
-//       value: `K${user?.riderProfile?.totalSpent?.toFixed(2) || '0.00'}`,
-//       icon: <GiftIcon />,
-//     },
-//   ];
-
-//   const menuSections = [
-//     {
-//       title: 'Account',
-//       items: [
-//         {
-//           icon: <EditIcon />,
-//           label: 'Edit Profile',
-//           action: () => router.push('/profile/edit'),
-//         },
-//         {
-//           icon: <LocationIcon />,
-//           label: 'Favorite Locations',
-//           action: () => router.push('/profile/favorite-locations'),
-//         },
-//         {
-//           icon: <ContactIcon />,
-//           label: 'Emergency Contacts',
-//           action: () => router.push('/profile/emergency-contacts'),
-//         },
-//       ],
-//     },
-//     {
-//       title: 'Rewards & Promotions',
-//       items: [
-//         {
-//           icon: <ReferralIcon />,
-//           label: 'Refer & Earn',
-//           action: () => router.push('/profile/referrals'),
-//           badge: user?.affiliateProfile?.pointsBalance || 0,
-//         },
-//         {
-//           icon: <PromoIcon />,
-//           label: 'Promo Codes',
-//           action: () => router.push('/profile/promo-codes'),
-//         },
-//       ],
-//     },
-//     {
-//       title: 'Settings',
-//       items: [
-//         {
-//           icon: <NotificationsIcon />,
-//           label: 'Push Notifications',
-//           toggle: true,
-//           value: notificationsEnabled,
-//           onChange: setNotificationsEnabled,
-//         },
-//         {
-//           icon: <DarkModeIcon />,
-//           label: 'Dark Mode',
-//           toggle: true,
-//           value: mode === 'dark',
-//           onChange: toggleTheme,
-//         },
-//         {
-//           icon: <SettingsIcon />,
-//           label: 'App Settings',
-//           action: () => router.push('/profile/settings'),
-//         },
-//       ],
-//     },
-//     {
-//       title: 'Support',
-//       items: [
-//         {
-//           icon: <HelpIcon />,
-//           label: 'Help Center',
-//           action: () => router.push('/profile/help'),
-//         },
-//         {
-//           icon: <InfoIcon />,
-//           label: 'About',
-//           action: () => router.push('/profile/about'),
-//         },
-//       ],
-//     },
-//   ];
-
-//   const handleLogout = () => {
-//     if (confirm('Are you sure you want to logout?')) {
-//       logout();
-//     }
-//   };
-
-//   return (
-//     <Box
-//       sx={{
-//         minHeight: '100vh',
-//         bgcolor: 'background.default',
-//       }}
-//     >
-//       {/* Header */}
-//       <Box
-//         sx={{
-//           p: 3,
-//           pt: 4,
-//           bgcolor: 'background.paper',
-//           borderBottom: 1,
-//           borderColor: 'divider',
-//         }}
-//       >
-//         <Typography variant="h5" sx={{ fontWeight: 700 }}>
-//           Profile
-//         </Typography>
-//       </Box>
-
-//       {/* Profile Card */}
-//       <Box sx={{ p: 2 }}>
-//         <motion.div
-//           initial={{ opacity: 0, y: 20 }}
-//           animate={{ opacity: 1, y: 0 }}
-//         >
-//           <Paper sx={{ p: 3, mb: 3 }}>
-//             <Box
-//               sx={{
-//                 display: 'flex',
-//                 alignItems: 'center',
-//                 mb: 3,
-//               }}
-//             >
-//               <Avatar
-//                 src={user?.profilePicture}
-//                 sx={{ width: 80, height: 80, mr: 2 }}
-//               >
-//                 {user?.firstName?.[0]}
-//                 {user?.lastName?.[0]}
-//               </Avatar>
-//               <Box sx={{ flex: 1 }}>
-//                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-//                   {user?.firstName} {user?.lastName}
-//                 </Typography>
-//                 <Typography variant="body2" color="text.secondary">
-//                   {formatPhoneNumber(user?.phoneNumber)}
-//                 </Typography>
-//               </Box>
-//               <IconButton
-//                 onClick={() => router.push('/profile/edit')}
-//                 sx={{ bgcolor: 'action.hover' }}
-//               >
-//                 <EditIcon />
-//               </IconButton>
-//             </Box>
-
-//             {/* Stats */}
-//             <Box
-//               sx={{
-//                 display: 'grid',
-//                 gridTemplateColumns: 'repeat(3, 1fr)',
-//                 gap: 2,
-//               }}
-//             >
-//               {stats.map((stat, index) => (
-//                 <Box key={stat.label} sx={{ textAlign: 'center' }}>
-//                   <Typography
-//                     variant="h6"
-//                     sx={{ fontWeight: 700, mb: 0.5 }}
-//                   >
-//                     {stat.value}
-//                   </Typography>
-//                   <Typography variant="caption" color="text.secondary">
-//                     {stat.label}
-//                   </Typography>
-//                 </Box>
-//               ))}
-//             </Box>
-//           </Paper>
-//         </motion.div>
-
-//         {/* Menu Sections */}
-//         {menuSections.map((section, sectionIndex) => (
-//           <motion.div
-//             key={section.title}
-//             initial={{ opacity: 0, y: 20 }}
-//             animate={{ opacity: 1, y: 0 }}
-//             transition={{ delay: sectionIndex * 0.05 }}
-//           >
-//             <Typography
-//               variant="caption"
-//               color="text.secondary"
-//               sx={{ px: 2, mb: 1, display: 'block', fontWeight: 600 }}
-//             >
-//               {section.title}
-//             </Typography>
-//             <Paper sx={{ mb: 2 }}>
-//               <List disablePadding>
-//                 {section.items.map((item, index) => (
-//                   <Box key={item.label}>
-//                     {index > 0 && <Divider />}
-//                     <ListItem
-//                       button={!item.toggle}
-//                       onClick={!item.toggle ? item.action : undefined}
-//                     >
-//                       <ListItemIcon>
-//                         <Box
-//                           sx={{
-//                             width: 40,
-//                             height: 40,
-//                             borderRadius: 2,
-//                             bgcolor: 'action.hover',
-//                             display: 'flex',
-//                             alignItems: 'center',
-//                             justifyContent: 'center',
-//                           }}
-//                         >
-//                           {item.icon}
-//                         </Box>
-//                       </ListItemIcon>
-//                       <ListItemText
-//                         primary={item.label}
-//                         primaryTypographyProps={{
-//                           fontWeight: 500,
-//                         }}
-//                       />
-//                       {item.badge !== undefined && item.badge > 0 && (
-//                         <Box
-//                           sx={{
-//                             bgcolor: 'primary.main',
-//                             color: 'primary.contrastText',
-//                             borderRadius: '12px',
-//                             px: 1.5,
-//                             py: 0.5,
-//                             fontSize: '0.75rem',
-//                             fontWeight: 600,
-//                             mr: 1,
-//                           }}
-//                         >
-//                           {item.badge}
-//                         </Box>
-//                       )}
-//                       {item.toggle ? (
-//                         <Switch
-//                           checked={item.value}
-//                           onChange={(e) => item.onChange(e.target.checked)}
-//                           onClick={(e) => e.stopPropagation()}
-//                         />
-//                       ) : (
-//                         <IconButton size="small">
-//                           <ChevronRightIcon />
-//                         </IconButton>
-//                       )}
-//                     </ListItem>
-//                   </Box>
-//                 ))}
-//               </List>
-//             </Paper>
-//           </motion.div>
-//         ))}
-
-//         {/* Logout Button */}
-//         <motion.div
-//           initial={{ opacity: 0 }}
-//           animate={{ opacity: 1 }}
-//           transition={{ delay: 0.3 }}
-//           whileTap={{ scale: 0.98 }}
-//         >
-//           <Paper
-//             onClick={handleLogout}
-//             sx={{
-//               p: 2,
-//               display: 'flex',
-//               alignItems: 'center',
-//               cursor: 'pointer',
-//               '&:hover': {
-//                 bgcolor: 'action.hover',
-//               },
-//             }}
-//           >
-//             <Box
-//               sx={{
-//                 width: 40,
-//                 height: 40,
-//                 borderRadius: 2,
-//                 bgcolor: 'error.light',
-//                 display: 'flex',
-//                 alignItems: 'center',
-//                 justifyContent: 'center',
-//                 color: 'error.dark',
-//                 mr: 2,
-//               }}
-//             >
-//               <LogoutIcon />
-//             </Box>
-//             <Typography
-//               variant="body1"
-//               sx={{ fontWeight: 600, color: 'error.main', flex: 1 }}
-//             >
-//               Logout
-//             </Typography>
-//           </Paper>
-//         </motion.div>
-
-//         {/* App Version */}
-//         <Typography
-//           variant="caption"
-//           color="text.secondary"
-//           sx={{ display: 'block', textAlign: 'center', mt: 3, mb: 2 }}
-//         >
-//           OkraRides v1.0.0
-//         </Typography>
-//       </Box>
-//     </Box>
-//   );
-// }
-
-
 'use client';
 // PATH: rider/app/(main)/profile/page.jsx
 import { useState } from 'react';
@@ -386,6 +15,7 @@ import {
   IconButton,
   Switch,
   useTheme,
+  Modal, Button
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -485,7 +115,89 @@ const ICON_COLORS = {
   'App Settings': '#795548',
   'Help Center': '#00BCD4',
   'About': '#9E9E9E',
-};
+}
+
+// ── add this component above ProfilePage ─────────────────────────────────────
+function LogoutModal({ open, onConfirm, onCancel }) {
+  const theme  = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  return (
+    <Modal open={open} onClose={onCancel}>
+      <Box sx={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        p: 2,
+      }}>
+        <motion.div
+          initial={{ scale: 0.85, opacity: 0, y: 20 }}
+          animate={{ scale: 1,    opacity: 1, y: 0  }}
+          exit={{   scale: 0.85, opacity: 0, y: 20  }}
+          transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+        >
+          <Paper elevation={24} sx={{
+            p: 3.5, borderRadius: 4, maxWidth: 320, width: '100%',
+            background: isDark
+              ? 'linear-gradient(145deg, #1E293B 0%, #0F172A 100%)'
+              : '#ffffff',
+            border: `1px solid rgba(244,67,54,${isDark ? 0.22 : 0.12})`,
+            boxShadow: `0 24px 64px rgba(0,0,0,${isDark ? 0.55 : 0.18})`,
+            textAlign: 'center',
+          }}>
+            <motion.div
+              initial={{ rotate: -12, scale: 0.7 }}
+              animate={{ rotate: 0,   scale: 1   }}
+              transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.05 }}
+            >
+              <Box sx={{
+                width: 64, height: 64, borderRadius: '50%', mx: 'auto', mb: 2.5,
+                background: 'linear-gradient(135deg, rgba(244,67,54,0.18) 0%, rgba(185,28,28,0.1) 100%)',
+                border: '2px solid rgba(244,67,54,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 20px rgba(244,67,54,0.22)',
+              }}>
+                <LogoutIcon sx={{ fontSize: 28, color: 'error.main' }} />
+              </Box>
+            </motion.div>
+
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 0.75, letterSpacing: -0.2 }}>
+              Log Out?
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
+              Are you sure you want to log out of OkraRides?
+            </Typography>
+
+            <Box sx={{ display: 'flex', gap: 1.25 }}>
+              <Button
+                fullWidth variant="outlined" size="large"
+                onClick={onCancel}
+                sx={{
+                  height: 48, borderRadius: 3, fontWeight: 700, textTransform: 'none',
+                  borderColor: 'divider', color: 'text.secondary',
+                  '&:hover': { borderColor: 'text.secondary', bgcolor: 'rgba(0,0,0,0.03)' },
+                }}
+              >
+                No, Stay
+              </Button>
+              <Button
+                fullWidth variant="contained" size="large"
+                onClick={onConfirm}
+                sx={{
+                  height: 48, borderRadius: 3, fontWeight: 700, textTransform: 'none',
+                  background: 'linear-gradient(135deg, #EF4444 0%, #B91C1C 100%)',
+                  boxShadow: '0 4px 16px rgba(239,68,68,0.38)',
+                  '&:hover': { boxShadow: '0 6px 20px rgba(239,68,68,0.48)' },
+                }}
+              >
+                Yes, Log Out
+              </Button>
+            </Box>
+          </Paper>
+        </motion.div>
+      </Box>
+    </Modal>
+  );
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -494,6 +206,7 @@ export default function ProfilePage() {
   const shimmerMode = theme.palette.mode;
   const { user, logout } = useAuth();
   const { mode, toggleTheme } = useThemeMode();
+  const [showLogout, setShowLogout] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     user?.riderProfile?.pushNotifications ?? true
   );
@@ -537,9 +250,7 @@ export default function ProfilePage() {
     },
   ];
 
-  const handleLogout = () => {
-    if (confirm('Are you sure you want to logout?')) logout();
-  };
+  const handleLogout = () => setShowLogout(true);
 
   // If still loading user data, show skeleton
   if (!user) {
@@ -881,6 +592,11 @@ export default function ProfilePage() {
           </Typography>
         </Box>
       </Box>
+    <LogoutModal
+      open={showLogout}
+      onCancel={() => setShowLogout(false)}
+      onConfirm={() => { setShowLogout(false); logout(); }}
+    />
     </Box>
   );
 }
