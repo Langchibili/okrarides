@@ -468,55 +468,100 @@ const OkraLandingPage = () => {
       </div>
 
       {/* ── HEADER — logo left, tagline right, NO animation div ── */}
-      <motion.header
-        initial={{ y: -72, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', damping: 22, stiffness: 180 }}
-        className="glass-header fixed top-0 inset-x-0 z-50"
-        style={{ height: 64 }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
+     {/* ── HEADER ── */}
+<motion.header
+  initial={{ y: -72, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{ type: 'spring', damping: 22, stiffness: 180 }}
+  className="glass-header fixed top-0 inset-x-0 z-50"
+  style={{ height: 64, overflow: 'hidden' }}
+>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
 
-          {/* Logo — left side only */}
-          <div className="flex items-center gap-2.5">
-            <div className="relative w-10 h-10 flex items-center justify-center">
-              <img src="/icon.png" alt="Okra" style={{ width: 40, height: 40, objectFit: 'contain' }}
-                onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'block'; }} />
-              <span style={{ fontSize: 32, display: 'none', lineHeight: 1 }}>🥬</span>
-            </div>
-            <div>
-              <div className="font-sora text-hero leading-none tracking-tight" style={{ fontSize: 20, fontWeight: 800 }}>Okra</div>
-              <div className="relative overflow-hidden" style={{ height: 16 }}>
-                <AnimatePresence mode="wait">
-                  {headerPhase === 'brand' ? (
-                    <motion.span key="brand"
-                      initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -16, opacity: 0 }}
-                      transition={{ duration: 0.28 }}
-                      className="absolute inset-0 flex items-center text-gray-400"
-                      style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                      Technologies
-                    </motion.span>
-                  ) : (
-                    <motion.span key="slide"
-                      initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -16, opacity: 0 }}
-                      transition={{ duration: 0.28 }}
-                      className="absolute inset-0 flex items-center font-sora font-semibold"
-                      style={{ fontSize: 10, whiteSpace: 'nowrap', background: 'linear-gradient(90deg,#15803d,#22c55e,#0d9488)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                      slide into your ride &gt;&gt;
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
-
-          {/* Tagline — right side, hidden on small screens */}
-          <div className="hidden md:flex items-center gap-1.5">
-            <span className="pulse-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-            <span className="text-gray-500" style={{ fontSize: 12, fontWeight: 500 }}>Your Journey, Your Way</span>
-          </div>
+    {/* Logo — left side, z-indexed above gif */}
+    <div className="flex items-center gap-2.5" style={{ position: 'relative', zIndex: 10 }}>
+      <div className="relative w-10 h-10 flex items-center justify-center">
+        <img
+          src="/icon.png"
+          alt="Okra"
+          style={{ width: 40, height: 40, objectFit: 'contain' }}
+          onError={e => {
+            e.currentTarget.style.display = 'none';
+            e.currentTarget.nextSibling.style.display = 'block';
+          }}
+        />
+        <span style={{ fontSize: 32, display: 'none', lineHeight: 1 }}>🥬</span>
+      </div>
+      <div>
+        <div className="font-sora text-hero leading-none tracking-tight" style={{ fontSize: 20, fontWeight: 800 }}>
+          Okra
         </div>
-      </motion.header>
+        <div className="relative" style={{ height: 16 }}>
+          <AnimatePresence mode="wait">
+            {headerPhase === 'brand' ? (
+              <motion.span
+                key="brand"
+                initial={{ y: 16, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -16, opacity: 0 }}
+                transition={{ duration: 0.28 }}
+                className="absolute inset-0 flex items-center text-gray-400"
+                style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'capitalize' }}
+              >
+                Technologies
+              </motion.span>
+            ) : (
+              <motion.span
+                key="slide"
+                initial={{ y: 16, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -16, opacity: 0 }}
+                transition={{ duration: 0.28 }}
+                className="absolute inset-0 flex items-center font-sora font-semibold"
+                style={{
+                  zIndex:100,
+                  fontSize: 10, whiteSpace: 'nowrap',
+                  background: 'linear-gradient(90deg,#15803d,#22c55e,#0d9488)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                slide into your ride &gt;&gt;
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+
+    {/* GIF — top right, clipped to header height, pointer-events off so it never blocks clicks */}
+    <div style={{
+      position: 'absolute',
+      top: 5,
+      right: 20,
+      height: 60,
+      width: 130,
+      overflow: 'hidden',
+      pointerEvents: 'none',
+      zIndex: 1,          // ← behind the logo (z:10) so it never overlaps text
+    }}>
+      <img
+        src="/okra-car-slide-animation.gif"
+        alt=""
+        style={{
+          height: '100%',
+          width: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          opacity: 0.92,
+          display: 'block',
+        }}
+      />
+    </div>
+
+  </div>
+</motion.header>
 
       {/* ── MAIN ── */}
       <main className="relative z-10 pt-24 pb-20 px-4 sm:px-6">
@@ -527,17 +572,17 @@ const OkraLandingPage = () => {
           transition={{ delay: 0.22, type: 'spring', damping: 22, stiffness: 140 }}
           className="text-center mb-14 max-w-3xl mx-auto"
         >
-          <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          {/* <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.08, type: 'spring', stiffness: 200 }}
             className="badge mx-auto mb-5">
             <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} />
             Zambia's #1 Ride &amp; Delivery Platform
-          </motion.div>
+          </motion.div> */}
 
-          <h1 className="font-sora text-hero tracking-tight mb-5"
+          {/* <h1 className="font-sora text-hero tracking-tight mb-5"
             style={{ fontSize: 'clamp(2.4rem,5.5vw,4rem)', fontWeight: 900, lineHeight: 1.08 }}>
             Choose Your<br />Service
-          </h1>
+          </h1> */}
 
           <HeroSubtitle />
         </motion.section>
@@ -573,7 +618,7 @@ const OkraLandingPage = () => {
             onClick={() => setShowMore(v => !v)}
             whileTap={{ scale: 0.96 }}
           >
-            <span>{showMore ? 'Show Less' : 'More About Us'}</span>
+            <span>{showMore ? 'Show Less' : 'About Us'}</span>
             <motion.span
               className="more-btn-arrow"
               animate={{ rotate: showMore ? 180 : 0 }}
