@@ -1,10 +1,10 @@
 'use client';
 
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 import { BottomNav } from '@/components/Layout/BottomNav';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useThemeMode } from '@/components/ThemeProvider';
 import { useRide } from '@/lib/hooks/useRide';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
