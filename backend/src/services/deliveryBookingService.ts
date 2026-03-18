@@ -251,7 +251,7 @@ export default {
             pickupAddress: delivery.pickupLocation.address || delivery.pickupLocation.name,
             dropoffAddress: delivery.dropoffLocation.address || delivery.dropoffLocation.name,
             senderName: `${delivery.sender.firstName} ${delivery.sender.lastName}`,
-            autoTimeout: 30000,
+            autoTimeout: 60000,
           });
         } catch (err) {
           strapi.log.error(`[DeliveryBooking] Draw-over error for driver ${driver.id}:`, err);
@@ -308,7 +308,7 @@ export default {
    */
   async scheduleDeliveryRequestTimeout(deliveryId: string | number) {
     const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
-    const timeoutSeconds = settings?.rideRequestTimeoutSeconds || 30;
+    const timeoutSeconds = settings?.deliveryRequestTimeoutSeconds || 60;
 
     setTimeout(async () => {
       try {

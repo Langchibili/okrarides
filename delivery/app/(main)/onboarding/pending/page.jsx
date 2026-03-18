@@ -9,7 +9,8 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import useDelivery from '@/lib/hooks/useDelivery';
+import useDeliveryDriver from '@/lib/hooks/useDeliveryDriver';
+import { VERIFICATION_STATUS } from '@/Constants';
 
 export default function PendingPage() {
   const router = useRouter();
@@ -18,8 +19,7 @@ export default function PendingPage() {
 
   const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
   const item    = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 24 } } };
-  const { driverProfile, deliveryProfile } = useDelivery()
-
+  const { driverProfile, deliveryProfile } = useDeliveryDriver()
   if(deliveryProfile?.verificationStatus === VERIFICATION_STATUS.APPROVED && driverProfile?.verificationStatus === VERIFICATION_STATUS.APPROVED){
      window.location = '/'
   }

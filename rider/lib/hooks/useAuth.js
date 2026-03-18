@@ -141,7 +141,10 @@ export function AuthProvider({ children }) {
   const logout = () => {
     authAPI.logout();
     setUser(null);
-    router.push('/login');
+    if(typeof window !== 'undefined'){
+      localStorage.clear();
+      window.location.href = '/login';
+    }
   };
   
   // Update user

@@ -74,7 +74,14 @@ const io = new Server(httpServer, {
 
 // ==================== DEVICE CONNECTION TRACKING ====================
 const deviceConnections = new Map(); // deviceId -> { socketId, userId, userType, metadata }
-const userDevices = new Map(); // userId -> Set of deviceIds
+const userDevices = new Map();       // userId (string) -> Set of deviceIds
+
+// ==================== HELPER: Normalize userId to string ====================
+// FIX: Always coerce userId to string so Map lookups are consistent
+// regardless of whether the caller passes a number or a string.
+function normalizeUserId(userId) {
+  return String(userId);
+}
 
 // ==================== SOCKET.IO CLIENT TO MAIN SERVER ====================
 const { io: ioClient } = require("socket.io-client");
@@ -106,10 +113,13 @@ function connectToMainServer() {
 }
 
 // ==================== HELPER FUNCTION ====================
+// FIX: Normalize userId on every lookup so string/number mismatches never
+// silently drop events.
 function forwardToUserDevices(userId, eventName, data) {
-  const deviceIds = userDevices.get(userId);
+  const key = normalizeUserId(userId);
+  const deviceIds = userDevices.get(key);
   if (!deviceIds || deviceIds.size === 0) {
-    console.log(`No devices found for user ${userId} for event ${eventName}`);
+    console.log(`No devices found for user ${key} for event ${eventName}`);
     return;
   }
 
@@ -125,62 +135,52 @@ function forwardToUserDevices(userId, eventName, data) {
     }
   });
 
-  console.log(`📤 Forwarded '${eventName}' to ${sentCount} device(s) for user ${userId}`);
+  console.log(`📤 Forwarded '${eventName}' to ${sentCount} device(s) for user ${key}`);
 }
 
 function setupMainServerEventForwarding() {
   // ==================== RIDE EVENTS ====================
   
-  // Ride request created (to rider)
   mainSocket.on('ride:request:created', (data) => {
     const { riderId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:request:created', data);
   });
 
-  // New ride request (to drivers - broadcast)
   mainSocket.on('ride:request:new', (data) => {
-    
-    console.log('user devices',userDevices)
-    
-    console.log('driverId',driverId)
+    console.log('user devices', userDevices);
     const { driverId } = data;
+    console.log('driverId', driverId);
     if (driverId) forwardToUserDevices(driverId, 'ride:request:new', data);
-  })
+  });
 
-  // Ride request received (to specific driver)
   mainSocket.on('ride:request:received', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'ride:request:received', data);
   });
 
-  // Ride accepted (to rider)
   mainSocket.on('ride:accepted', (data) => {
     const { riderId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:accepted', data);
   });
 
-  // Ride taken by another driver
   mainSocket.on('ride:taken', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'ride:taken', data);
   });
 
-  // Driver arrived at pickup
   mainSocket.on('ride:driver:arrived', (data) => {
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:driver:arrived', data);
     if (driverId) forwardToUserDevices(driverId, 'ride:driver:arrived', data);
   });
 
-  // Trip started
   mainSocket.on('ride:trip:started', (data) => {
-    console.log('ride:payment:requested',data)
+    console.log('ride:trip:started', data);
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:trip:started', data);
     if (driverId) forwardToUserDevices(driverId, 'ride:trip:started', data);
   });
 
-  // Trip completed
   mainSocket.on('ride:trip:completed', (data) => {
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:trip:completed', data);
@@ -188,18 +188,18 @@ function setupMainServerEventForwarding() {
   });
 
   mainSocket.on('ride:payment:requested', (data) => {
-    console.log('ride:payment:requested',data)
+    console.log('ride:payment:requested', data);
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:payment:requested', data);
     if (driverId) forwardToUserDevices(driverId, 'ride:payment:requested', data);
-  })
-  
-mainSocket.on('payment:received', (data) => {
+  });
+
+  mainSocket.on('payment:received', (data) => {
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'payment:received', data);
     if (driverId) forwardToUserDevices(driverId, 'payment:received', data);
-})
-  // Ride cancelled
+  });
+
   mainSocket.on('ride:cancelled', (data) => {
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'ride:cancelled', data);
@@ -207,129 +207,109 @@ mainSocket.on('payment:received', (data) => {
   });
 
   // ==================== LOCATION EVENTS ====================
-  
-  // Driver location updated (to rider)
+
   mainSocket.on('driver:location:updated', (data) => {
     const { riderId } = data;
     if (riderId) forwardToUserDevices(riderId, 'driver:location:updated', data);
   });
 
-  // Rider location updated (to driver)
   mainSocket.on('rider:location:updated', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'rider:location:updated', data);
   });
 
-  // Location request from backend
   mainSocket.on('device:location:request', (data) => {
     const { userId } = data;
     if (userId) forwardToUserDevices(userId, 'getCurrentLocation', data);
   });
 
   // ==================== DRIVER AVAILABILITY EVENTS ====================
-  
-  // Driver online success
+
   mainSocket.on('driver:online:success', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'driver:online:success', data);
   });
 
-  // Driver offline success
   mainSocket.on('driver:offline:success', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'driver:offline:success', data);
   });
 
-  // Driver forced offline
   mainSocket.on('driver:forced:offline', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'driver:forced:offline', data);
   });
 
   // ==================== SUBSCRIPTION EVENTS ====================
-  
-  // Subscription expiring warning
+
   mainSocket.on('subscription:expiring:warning', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'subscription:expiring:warning', data);
   });
 
-  // Subscription expired
   mainSocket.on('subscription:expired', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'subscription:expired', data);
   });
 
-  // Subscription activated
   mainSocket.on('subscription:activated', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'subscription:activated', data);
   });
 
   // ==================== PAYMENT EVENTS ====================
-  
-  // Payment success
+
   mainSocket.on('payment:success', (data) => {
     const { userId } = data;
     if (userId) forwardToUserDevices(userId, 'payment:success', data);
   });
 
-  // Payment failed
   mainSocket.on('payment:failed', (data) => {
     const { userId } = data;
     if (userId) forwardToUserDevices(userId, 'payment:failed', data);
   });
 
-  // Withdrawal processed
   mainSocket.on('withdrawal:processed', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'withdrawal:processed', data);
   });
 
   // ==================== RATING EVENTS ====================
-  
-  // Rating request
+
   mainSocket.on('rating:request', (data) => {
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'rating:request', data);
     if (driverId) forwardToUserDevices(driverId, 'rating:request', data);
   });
 
-  // Rating request to rider
   mainSocket.on('rating:request:rider', (data) => {
     const { riderId } = data;
     if (riderId) forwardToUserDevices(riderId, 'rating:request', data);
   });
 
-  // Rating request to driver
   mainSocket.on('rating:request:driver', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'rating:request', data);
   });
 
-  // Rating submitted
   mainSocket.on('rating:submitted', (data) => {
     const { userId } = data;
     if (userId) forwardToUserDevices(userId, 'rating:submitted', data);
   });
 
   // ==================== NOTIFICATION EVENTS ====================
-  
-  // New notification
+
   mainSocket.on('notification:new', (data) => {
     const { userId } = data;
     if (userId) forwardToUserDevices(userId, 'notification:new', data);
   });
 
-  // Notification send (device specific)
   mainSocket.on('device:notification:send', (data) => {
     const { userId, notification } = data;
     if (userId) forwardToUserDevices(userId, 'showNotification', notification);
   });
 
-  // Broadcast notification
   mainSocket.on('notification:broadcast', (data) => {
-    // Broadcast to ALL connected devices
     deviceConnections.forEach((device) => {
       const socket = io.sockets.sockets.get(device.socketId);
       if (socket) {
@@ -340,59 +320,49 @@ mainSocket.on('payment:received', (data) => {
   });
 
   // ==================== SOS & EMERGENCY EVENTS ====================
-  
-  // SOS triggered confirmation
+
   mainSocket.on('sos:triggered', (data) => {
     const { userId } = data;
     if (userId) forwardToUserDevices(userId, 'sos:triggered', data);
   });
 
-  // SOS acknowledged
   mainSocket.on('sos:acknowledged', (data) => {
     const { userId } = data;
     if (userId) forwardToUserDevices(userId, 'sos:acknowledged', data);
   });
 
-  // SOS alert (to admins - handled separately as they don't use device socket)
   mainSocket.on('sos:alert', (data) => {
-    // This goes to admin panel, not mobile devices
     console.log('SOS alert received (admin-only event)');
   });
 
   // ==================== BUS ROUTE EVENTS ====================
-  
-  // Bus route started
+
   mainSocket.on('bus:route:started', (data) => {
     const { riderId, driverId } = data;
     if (riderId) forwardToUserDevices(riderId, 'bus:route:started', data);
     if (driverId) forwardToUserDevices(driverId, 'bus:route:started', data);
   });
 
-  // Bus location updated
   mainSocket.on('bus:location:updated', (data) => {
     const { riderId } = data;
     if (riderId) forwardToUserDevices(riderId, 'bus:location:updated', data);
   });
 
   // ==================== AFFILIATE EVENTS ====================
-  
-  // Referral signup
+
   mainSocket.on('affiliate:referral:signup', (data) => {
     const { affiliateId } = data;
     if (affiliateId) forwardToUserDevices(affiliateId, 'affiliate:referral:signup', data);
   });
 
-  // Commission earned
   mainSocket.on('affiliate:commission:earned', (data) => {
     const { affiliateId } = data;
     if (affiliateId) forwardToUserDevices(affiliateId, 'affiliate:commission:earned', data);
   });
 
   // ==================== SYSTEM EVENTS ====================
-  
-  // System announcement
+
   mainSocket.on('system:announcement', (data) => {
-    // Broadcast to ALL devices
     deviceConnections.forEach((device) => {
       const socket = io.sockets.sockets.get(device.socketId);
       if (socket) {
@@ -402,9 +372,8 @@ mainSocket.on('payment:received', (data) => {
     console.log(`📢 System announcement sent to ${deviceConnections.size} devices`);
   });
 
-  // ==================== CONNECTION EVENTS ====================
-  
-  // Session replaced events
+  // ==================== SESSION REPLACED EVENTS ====================
+
   mainSocket.on('rider:session-replaced', (data) => {
     const { riderId } = data;
     if (riderId) forwardToUserDevices(riderId, 'rider:session-replaced', data);
@@ -424,100 +393,99 @@ mainSocket.on('payment:received', (data) => {
     const { deliveryPersonId } = data;
     if (deliveryPersonId) forwardToUserDevices(deliveryPersonId, 'delivery:session-replaced', data);
   });
-// ==================== DELIVERY EVENT FORWARDING ====================
- 
+
+  // ==================== DELIVERY EVENT FORWARDING ====================
+
   mainSocket.on('delivery:request:created', (data) => {
     const { senderId } = data;
     if (senderId) forwardToUserDevices(senderId, 'delivery:request:created', data);
   });
- 
+
   mainSocket.on('delivery:request:received', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'delivery:request:received', data);
   });
- 
+
   mainSocket.on('delivery:request:new', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'delivery:request:new', data);
   });
- 
+
   mainSocket.on('delivery:accepted', (data) => {
     const { senderId, delivererId } = data;
     if (senderId)    forwardToUserDevices(senderId,    'delivery:accepted', data);
     if (delivererId) forwardToUserDevices(delivererId, 'delivery:accepted', data);
   });
- 
+
   mainSocket.on('delivery:taken', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'delivery:taken', data);
   });
- 
+
   mainSocket.on('delivery:driver:arrived', (data) => {
     const { senderId, delivererId } = data;
     if (senderId)    forwardToUserDevices(senderId,    'delivery:driver:arrived', data);
     if (delivererId) forwardToUserDevices(delivererId, 'delivery:driver:arrived', data);
   });
- 
+
   mainSocket.on('delivery:started', (data) => {
     const { senderId, delivererId } = data;
     if (senderId)    forwardToUserDevices(senderId,    'delivery:started', data);
     if (delivererId) forwardToUserDevices(delivererId, 'delivery:started', data);
   });
- 
+
   mainSocket.on('delivery:payment:requested', (data) => {
     const { senderId, delivererId } = data;
     if (senderId)    forwardToUserDevices(senderId,    'delivery:payment:requested', data);
     if (delivererId) forwardToUserDevices(delivererId, 'delivery:payment:requested', data);
   });
- 
+
   mainSocket.on('delivery:completed', (data) => {
     const { senderId, delivererId } = data;
     if (senderId)    forwardToUserDevices(senderId,    'delivery:completed', data);
     if (delivererId) forwardToUserDevices(delivererId, 'delivery:completed', data);
   });
- 
+
   mainSocket.on('delivery:cancelled', (data) => {
     const { senderId, delivererId } = data;
     if (senderId)    forwardToUserDevices(senderId,    'delivery:cancelled', data);
     if (delivererId) forwardToUserDevices(delivererId, 'delivery:cancelled', data);
   });
- 
+
   mainSocket.on('delivery:no_drivers', (data) => {
     const { senderId } = data;
     if (senderId) forwardToUserDevices(senderId, 'delivery:no_drivers', data);
   });
+
   // ==================== DRAW-OVER EVENTS ====================
-  
+
   mainSocket.on('device:drawover:show', (data) => {
     const { userId, overlayData } = data;
     if (userId) forwardToUserDevices(userId, 'showDrawOver', overlayData);
   });
 
   // ==================== SUCCESS/CONFIRMATION EVENTS ====================
-  
-  // Ride accept success
+
   mainSocket.on('ride:accept:success', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'ride:accept:success', data);
   });
 
-  // Ride decline success
   mainSocket.on('ride:decline:success', (data) => {
     const { driverId } = data;
     if (driverId) forwardToUserDevices(driverId, 'ride:decline:success', data);
   });
 
   // ==================== ERROR EVENTS ====================
-  
+
   mainSocket.on('error', (data) => {
     const { userId } = data;
     if (userId) forwardToUserDevices(userId, 'error', data);
   });
 
   // ==================== PONG EVENTS ====================
-  
+
   mainSocket.on('pong', (data) => {
-    // Pong is handled locally, no need to forward
     console.log('Received pong from main server');
   });
 }
@@ -526,24 +494,50 @@ mainSocket.on('payment:received', (data) => {
 io.on("connection", (socket) => {
   console.log(`📱 New device connection: ${socket.id}`);
 
-  // Device registration
+  // ── Device registration ────────────────────────────────────────────────
   socket.on('device:register', async (data) => {
-    const { 
-      deviceId, 
-      userId,
-      userType, 
+    const {
+      deviceId,
+      userType,
       frontendName,
       notificationToken,
       deviceInfo,
-      socketServerUrl 
+      socketServerUrl
     } = data;
+
+    // FIX: Normalize userId to string immediately so all Map operations
+    // use the same type, preventing silent lookup misses after reconnects.
+    const userId = normalizeUserId(data.userId);
 
     if (!deviceId || !userId || !userType) {
       socket.emit('device:register:error', { message: 'Missing required fields' });
       return;
     }
 
-    // Store device connection
+    // FIX: Handle re-registration from the same device (reconnect scenario).
+    // If this deviceId was previously registered under a different socketId,
+    // clean up the stale userDevices entry for the OLD userId before writing
+    // the new one.  This prevents ghost entries that point to dead sockets
+    // and silently swallow forwarded events.
+    const existingDevice = deviceConnections.get(deviceId);
+    if (existingDevice && existingDevice.socketId !== socket.id) {
+      const oldUserId = normalizeUserId(existingDevice.userId);
+      const oldSocket = io.sockets.sockets.get(existingDevice.socketId);
+
+      // Only evict the ghost if the old socket is already gone. If it is
+      // still alive the user has two active sessions — leave it alone so the
+      // disconnect handler can tidy up naturally.
+      if (!oldSocket) {
+        const oldUserDeviceSet = userDevices.get(oldUserId);
+        if (oldUserDeviceSet) {
+          oldUserDeviceSet.delete(deviceId);
+          if (oldUserDeviceSet.size === 0) userDevices.delete(oldUserId);
+        }
+        console.log(`🧹 Evicted stale device entry for deviceId=${deviceId} (old socketId=${existingDevice.socketId})`);
+      }
+    }
+
+    // Always write the latest socketId so forwarding targets the live socket.
     deviceConnections.set(deviceId, {
       socketId: socket.id,
       userId,
@@ -554,13 +548,12 @@ io.on("connection", (socket) => {
       registeredAt: Date.now()
     });
 
-    // Track user devices
     if (!userDevices.has(userId)) {
       userDevices.set(userId, new Set());
     }
     userDevices.get(userId).add(deviceId);
 
-    console.log(`✅ Device ${deviceId} registered for user ${userId} (${userType})`);
+    console.log(`✅ Device ${deviceId} registered for user ${userId} (${userType}) on socket ${socket.id}`);
 
     // Notify main socket server about device registration
     if (mainSocket && mainSocket.connected) {
@@ -574,7 +567,7 @@ io.on("connection", (socket) => {
       });
     }
 
-    // Send device info to backend API for storage
+    // Persist device info to backend API
     try {
       await axios.post(`${process.env.BACKEND_URL || 'http://localhost:1343'}/api/devices/register`, {
         userId,
@@ -592,7 +585,7 @@ io.on("connection", (socket) => {
 
     socket.emit('device:register:success', { deviceId, userId });
 
-    // Subscribe to main socket server with user credentials
+    // Join the relevant room on the main socket server
     if (mainSocket && mainSocket.connected) {
       const joinEvent = `${userType}:join`;
       mainSocket.emit(joinEvent, {
@@ -602,14 +595,15 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Location update from device
-  socket.on('device:location:update', async(data) => {
+  // ── Location update from device ────────────────────────────────────────
+  socket.on('device:location:update', async (data) => {
     const { deviceId, location, heading, speed } = data;
     const device = deviceConnections.get(deviceId);
     if (!device) {
       logger.warn(`Location update from unregistered device: ${deviceId}`);
       return;
     }
+
     try {
       await axios.post(`${process.env.BACKEND_URL || 'http://localhost:1343'}/api/devices/updatecurrentloc`, {
         deviceId,
@@ -623,33 +617,28 @@ io.on("connection", (socket) => {
           speed: location.speed,
           location: location.location
         }
-      })
+      });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       logger.error('Error saving current location to backend:', error.message);
     }
-    
 
-    // Forward to main socket server
-    if (mainSocket && mainSocket.connected) {
-      if(device?.userType){
-        const locationEvent = `${device.userType}:location:update`;
-        mainSocket.emit(locationEvent, {
-          [`${device.userType}Id`]: device.userId,
-          location,
-          heading,
-          speed
-        })
-       }
+    if (mainSocket && mainSocket.connected && device?.userType) {
+      const locationEvent = `${device.userType}:location:update`;
+      mainSocket.emit(locationEvent, {
+        [`${device.userType}Id`]: device.userId,
+        location,
+        heading,
+        speed
+      });
     }
 
     logger.debug(`Location update from device ${deviceId}`);
-  })
+  });
 
-  // Notification acknowledgment
+  // ── Notification acknowledgment ────────────────────────────────────────
   socket.on('device:notification:acknowledged', (data) => {
     const { deviceId, notificationId } = data;
-    
     const device = deviceConnections.get(deviceId);
     if (device && mainSocket && mainSocket.connected) {
       mainSocket.emit('device:notification:acknowledged', {
@@ -659,10 +648,9 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Draw-over dismissed
+  // ── Draw-over dismissed ────────────────────────────────────────────────
   socket.on('device:drawover:dismissed', (data) => {
     const { deviceId, overlayId } = data;
-    
     const device = deviceConnections.get(deviceId);
     if (device && mainSocket && mainSocket.connected) {
       mainSocket.emit('device:drawover:dismissed', {
@@ -672,14 +660,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Permission status update
+  // ── Permission status update ───────────────────────────────────────────
   socket.on('device:permissions:update', async (data) => {
     const { deviceId, permissions } = data;
-    
     const device = deviceConnections.get(deviceId);
     if (!device) return;
 
-    // Update backend
     try {
       await axios.patch(
         `${process.env.BACKEND_URL || 'http://localhost:1343'}/api/devices/${device.userId}/${deviceId}`,
@@ -690,40 +676,39 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Generic message forwarding to main server
+  // ── Generic forwarding to main server ─────────────────────────────────
   socket.on('forward:to:main', (data) => {
     const { event, payload } = data;
-    
     if (mainSocket && mainSocket.connected) {
       mainSocket.emit(event, payload);
     }
   });
 
-  // Ping/Pong for keepalive
+  // ── Keepalive ──────────────────────────────────────────────────────────
   socket.on('ping', () => {
     socket.emit('pong', { timestamp: Date.now() });
   });
 
-  // Disconnect handler
+  // ── Disconnect handler ─────────────────────────────────────────────────
+  // FIX: Normalize userId when cleaning up so the Map key matches what was
+  // written during registration.
   socket.on('disconnect', (reason) => {
     console.log(`📱 Device disconnected: ${socket.id}, reason: ${reason}`);
 
-    // Find and remove device
     for (const [deviceId, device] of deviceConnections.entries()) {
       if (device.socketId === socket.id) {
-        // Remove from user devices
-        const userDeviceSet = userDevices.get(device.userId);
+        const userId = normalizeUserId(device.userId);
+
+        const userDeviceSet = userDevices.get(userId);
         if (userDeviceSet) {
           userDeviceSet.delete(deviceId);
           if (userDeviceSet.size === 0) {
-            userDevices.delete(device.userId);
+            userDevices.delete(userId);
           }
         }
 
-        // Remove device connection
         deviceConnections.delete(deviceId);
-        
-        console.log(`Cleaned up device ${deviceId}`);
+        console.log(`🧹 Cleaned up device ${deviceId} for user ${userId}`);
         break;
       }
     }
@@ -746,7 +731,7 @@ httpServer.on('request', (req, res) => {
     }));
   } else if (req.url === '/stats') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    
+
     const devicesByType = {};
     deviceConnections.forEach(device => {
       devicesByType[device.userType] = (devicesByType[device.userType] || 0) + 1;

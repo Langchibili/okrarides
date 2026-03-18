@@ -10,15 +10,94 @@ import { useRide } from '@/lib/hooks/useRide';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { ridesAPI } from '@/lib/api/rides';
 import HomePage from './(main)/home/page';
+import { motion, AnimatePresence } from 'framer-motion';
+
+
+// ── Splash overlay — renders ABOVE the app, app loads behind it ──────────────
+function LoadingSplash({ visible }) {
+  const theme  = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          key="splash"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 24,
+            background: isDark
+              ? 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)'
+              : 'linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%)',
+          }}
+        >
+          {/* Logo */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.82 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22, delay: 0.05 }}
+          >
+            <motion.div
+              animate={{ scale: [1, 1.06, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Box
+                component="img"
+                src="/okra-rides-logo-transparent.png"
+                alt="OkraRides"
+                sx={{
+                  width: 110,
+                  height: 110,
+                  objectFit: 'contain',
+                  filter: isDark ? 'brightness(1)' : 'none',
+                  // Subtle glow matching your brand green
+                  dropShadow: `drop-shadow(0 0 24px rgba(16,185,129,0.38))`,
+                }}
+              />
+            </motion.div>
+          </motion.div>
+
+          {/* Dots */}
+          <Box sx={{ display: 'flex', gap: 0.75 }}>
+            {[0, 1, 2].map(i => (
+              <motion.div
+                key={i}
+                animate={{ opacity: [0.2, 1, 0.2], y: [0, -5, 0] }}
+                transition={{ duration: 1.1, repeat: Infinity, delay: i * 0.18, ease: 'easeInOut' }}
+              >
+                <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10B981' }} />
+              </motion.div>
+            ))}
+          </Box>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default function Home({ children }) {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { activeRide } = useRide();
- const { setAccentColor } = useThemeMode()
+  const { setAccentColor } = useThemeMode()
   const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+  const [splashVisible, setSplashVisible] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(() => loading);
 
+  useEffect(() => {
+    const t = setTimeout(() => setSplashVisible(false), 2500);
+    return () => clearTimeout(t);
+  }, []);
   // Redirect to login if not authenticated
    useEffect(() => {
     const initializeNativeCode = async () => {
@@ -124,11 +203,7 @@ export default function Home({ children }) {
     document.body.classList.remove('map-loaded', 'google-maps-initialized');
   }, [pathname]);
 
-  // Show loading or nothing while checking auth
-  if (loading || !isAuthenticated()) {
-    return null;
-  }
-
+  if (loading || checkingAuth) return <LoadingSplash />;
   return (
     <Box
       sx={{
@@ -138,6 +213,7 @@ export default function Home({ children }) {
     >
       <HomePage />
       <BottomNav userType="rider" />
+      <LoadingSplash visible={splashVisible} />   {/* ← overlays for 800ms then fades */}
     </Box>
   );
 }

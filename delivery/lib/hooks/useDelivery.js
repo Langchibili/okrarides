@@ -177,7 +177,6 @@ export const useDelivery = () => {
     try {
       setLoading(true);
       const response = await apiClient.post(`/deliveries/${deliveryId}/accept`);
-      console.log('response acceptDelivery',response)
       if (response && (response.id || response.success || response.data)) {
         setCurrentDelivery(response.data ?? response);
         setIncomingDelivery(null);

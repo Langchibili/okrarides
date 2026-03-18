@@ -67,7 +67,7 @@ export default function SendPackagePage() {
 
   // ── Location hooks — exact same as rides home page ─────────────────────
   const { location, loading: locationLoading, refresh: refreshWebLocation } = useGeolocation({ watch: true });
-  const { isNative, getCurrentLocation: getNativeLocation } = useReactNative();
+  const { isNative, reconnectDeviceSocket, getCurrentLocation: getNativeLocation } = useReactNative();
 
   // ── Delivery booking ───────────────────────────────────────────────────
   const { bookDelivery, booking, currentDelivery } = useDeliveryBooking();
@@ -80,7 +80,6 @@ export default function SendPackagePage() {
   const [focusedInput,      setFocusedInput]      = useState(null);
   const [sheetExpanded,     setSheetExpanded]     = useState(false);
   const [pickupChipVisible, setPickupChipVisible] = useState(false);
-
   // ── Sheet visibility ───────────────────────────────────────────────────
   const [showLocationSheet,   setShowLocationSheet]   = useState(true);
   const [showDeliveryOptions, setShowDeliveryOptions] = useState(false);
@@ -111,7 +110,7 @@ export default function SendPackagePage() {
         const { rideStatus, id } = currentDelivery;
   
         if (rideStatus === 'pending') {
-          router.push(`/deliveries/finding-deliverer`)
+          router.push(`/deliveries/finding-deliverer?id=${id}`)
         } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
           router.push(`/deliveries/${id}/tracking`);
         } else if (rideStatus === 'completed') {
@@ -279,6 +278,7 @@ export default function SendPackagePage() {
   // ── Fetch estimates ────────────────────────────────────────────────────
   const fetchDeliveryEstimates = useCallback(async (payload) => {
     const response = await apiClient.post('/deliveries/estimate', payload);
+    reconnectDeviceSocket( user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
     return response?.data ?? response;
   }, []);
 

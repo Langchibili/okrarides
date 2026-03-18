@@ -280,6 +280,8 @@ export default function DriverHomePage() {
   const appBarBg = isDark
     ? `linear-gradient(135deg, #1E293B 0%, #0F172A 100%)`
     : `linear-gradient(135deg, #065F46 0%, #059669 100%)`;
+  
+    
 
   return (
     <ClientOnly>

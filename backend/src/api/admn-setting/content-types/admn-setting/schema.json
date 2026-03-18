@@ -49,6 +49,10 @@
       "type": "integer",
       "default": 30
     },
+     "deliveryRequestTimeoutSeconds": {
+      "type": "integer",
+      "default": 60
+    },
     "driverCancellationCooldownMinutes": {
       "type": "integer",
       "default": 15

@@ -10,7 +10,6 @@ import { useRide }          from '@/lib/hooks/useRide';
 import { apiClient }        from '@/lib/api/client';
 import HomePageSkeleton from '@/components/Skeletons/HomePageSkeleton';
 
-
 export default function MainLayout({ children }) {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
@@ -54,7 +53,7 @@ export default function MainLayout({ children }) {
           }
         }
       }
-    };
+   }
 
     if (!loading) {
       if (!isAuthenticated()) {
@@ -74,6 +73,7 @@ export default function MainLayout({ children }) {
       }
     }
   }, [currentRide, router, isAuthenticated])
+
   if(loading || checkingAuth) {
     return <HomePageSkeleton/>
   }

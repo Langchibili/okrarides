@@ -27,25 +27,29 @@ if (environment === 'local' || environment === 'development') {
     'http://localhost:3008',  // Device socket server
   ];
 } else if (environment === 'test') {
+  let clientUrls;
+
+if (environment === 'production') {
   clientUrls = [
-    'https://test.okrarides.com',
-    'https://book.test.okrarides.com',
-    'https://driver.test.okrarides.com',
-    'https://conductor.test.okrarides.com',
-    'https://delivery.test.okrarides.com',
-    'https://admin.test.okrarides.com',
+    'https://okratest.online',
+    'https://book.okratest.online',
+    'https://driver.okratest.online',
+    'https://conductor.okratest.online',
+    'https://delivery.okratest.online',
+    'https://admin.okratest.online',
   ];
-} else if (environment === 'production') {
+} else if (environment === 'development' || environment === 'staging' || environment === 'test') {
   clientUrls = [
-    'https://okrarides.com',
-    'https://book.okrarides.com',
-    'https://driver.okrarides.com',
-    'https://conductor.okrarides.com',
-    'https://delivery.okrarides.com',
-    'https://admin.okrarides.com',
+    'https://test.okratest.online',
+    'https://book.test.okratest.online',
+    'https://driver.test.okratest.online',
+    'https://conductor.test.okratest.online',
+    'https://delivery.test.okratest.online',
+    'https://admin.test.okratest.online',
   ];
 } else {
   clientUrls = ['http://localhost:3000'];
+}
 }
 
 // ==================== LOGGER SETUP ====================

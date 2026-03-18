@@ -427,6 +427,24 @@ export function ReactNativeWrapper({ children }) {
     }
   }, [isNative, servicesInitialized, sendToNative, loadPermissionsFromBackend]);
 
+  const reconnectDeviceSocket = useCallback(async (userId, frontendName, socketServerUrl) => {
+    if (!isNative) return { success: false, reason: 'not_native' };
+    try {
+      const result = await sendToNative('RECONNECT_SOCKET', {
+        userId, frontendName,
+        socketServerUrl: socketServerUrl || process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL,
+      })
+      userIdRef.current   = userId;
+      deviceIdRef.current = result.deviceId;
+      setCurrentFrontend(frontendName);
+      return { success: true, ...result };
+    } catch (err) {
+      console.error('[RECONNECT SOCKET] reconnectDeviceSocket:', err);
+      return { success: false, error: err.message };
+    }
+    
+  }, [isNative, sendToNative]);
+
   // ============================================
   // Location Services
   // ============================================
@@ -560,6 +578,7 @@ export function ReactNativeWrapper({ children }) {
     permissions,
     deviceInfo,
     servicesInitialized,
+    reconnectDeviceSocket,
     currentFrontend,
     sendToNative,
     on,
