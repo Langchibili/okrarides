@@ -13,7 +13,8 @@ import { generateUniqueRideCode } from '../../../services/generateUniqueRideCode
 import DeliveryBookingService from '../../../services/deliveryBookingService';
 import RiderBlockingService from '../../../services/riderBlockingService';
 import socketService from '../../../services/socketService';
-
+import { processAffiliatePoints } from '../../../services/affiliateService';
+import { checkAndApplyDeliveryDiscount } from '../../../services/affiliatePromotionService';
 // ─── Complete delivery helper ─────────────────────────────────────────────
 interface HandleCompleteDeliveryInput {
   deliveryId: string | number;
@@ -185,12 +186,25 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
     });
   }
 
-  strapi.log.info(
-    `[handleCompleteDelivery] Delivery ${deliveryId} finalised. ` +
-    `System: ${paymentSystemType}${isSubscriptionDelivery ? ' (subscription)' : ''}. ` +
-    `Fare: ${delivery.totalFare}, Commission: ${commission}, ` +
-    `FloatDeduction: ${floatDeduction}, DriverEarnings: ${driverEarnings}.`
-  );
+strapi.log.info(
+  `[handleCompleteDelivery] Delivery ${deliveryId} finalised. ` +
+  `System: ${paymentSystemType}${isSubscriptionDelivery ? ' (subscription)' : ''}. ` +
+  `Fare: ${delivery.totalFare}, Commission: ${commission}, ` +
+  `FloatDeduction: ${floatDeduction}, DriverEarnings: ${driverEarnings}.`
+)
+
+processAffiliatePoints({
+    eventType: 'onDeliveryCompletion',
+    triggeringUserId: Number(delivererId),
+    fare: delivery.totalFare,
+    deliveryId: Number(deliveryId)
+})
+// fire-and-forget — safe, errors are swallowed internally
+processAffiliatePoints({
+    eventType: 'onDeliveryBooking',
+    triggeringUserId: Number(delivery.sender.id),
+    deliveryId: Number(delivery.id)
+})
 
   return {
     updatedDelivery,
@@ -326,6 +340,22 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
 
       data.rideCode    = data.rideCode || await generateUniqueRideCode({ prefix: 'DEL' });
       data.sender      = senderId;
+      // ── Affiliate promotion discount (delivery) ───────────────────────────
+      let affiliateDeliveryDiscount = 0;
+      if (data.totalFare || data.estimatedFare) {
+      const baseFare = parseFloat(data.totalFare ?? data.estimatedFare ?? 0);
+      if (baseFare > 0) {
+            const discountResult = await checkAndApplyDeliveryDiscount(senderId, baseFare);
+            if (discountResult.discountAmount > 0) {
+            data.promoDiscount                = (parseFloat(data.promoDiscount ?? 0)) + discountResult.discountAmount;
+            data.totalFare                    = discountResult.discountedFare;
+            data.subtotal                     = discountResult.discountedFare;
+            data.appliedAffiliatePromoCode    = discountResult.appliedCode;
+            data.appliedAffiliatePromotionId  = discountResult.promotionId;
+            }
+        }
+      }
+      // ── End affiliate promotion discount (delivery) ───────────────────────
       data.rideStatus  = 'pending';
       data.requestedAt = new Date();
       data.isDelivery  = true;
@@ -550,7 +580,7 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         populate: {
           deliveryProfile: { populate: { taxi: { populate: { vehicle: true } }, motorbike: { populate: { vehicle: true } }, motorcycle: { populate: { vehicle: true } }, truck: { populate: { vehicle: true } } } },
         },
-      });
+      })
 
       if (!driver?.deliveryProfile) return ctx.badRequest('Delivery profile not found');
 

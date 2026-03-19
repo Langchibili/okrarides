@@ -1,0 +1,7 @@
+/**
+ * affiliate-points-conversion router
+ */
+
+import { factories } from '@strapi/strapi';
+
+export default factories.createCoreRouter('api::affiliate-points-conversion.affiliate-points-conversion');

@@ -338,6 +338,16 @@
     },
     "paymentPhoneNumbers": {
       "type": "json"
+    },
+    "affiliateFloatApplied": {
+      "type": "boolean",
+      "default": false,
+      "description": "True once a float-topup promotion has been applied at account creation — prevents double-crediting"
+    },
+    "affiliateFloatAmount": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total float credited via affiliate promotions (for reference/auditing)"
     }
   }
 }

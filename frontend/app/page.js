@@ -344,6 +344,7 @@ const OkraLandingPage = () => {
   const [mousePos,      setMousePos]      = useState({ x: 0, y: 0 });
   const [showMore,      setShowMore]      = useState(false);   // ← "More About Us"
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1343';
+  const [affiliateEnabled, setAffiliateEnabled] = useState(true);
 
   useEffect(() => {
     const go = async () => {
@@ -382,6 +383,32 @@ const OkraLandingPage = () => {
     return () => window.removeEventListener('mousemove', h);
   }, []);
 
+  
+  useEffect(() => {
+    // 1. Check if affiliate system is enabled
+    fetch(`${API_URL}/admn-settings`)
+      .then(r => r.json())
+      .then(d => {
+        setAffiliateEnabled(d?.data?.affiliateSystemEnabled ?? true);
+      })
+      .catch(() => {});
+ 
+    // 2. Track impression if ?ref= param is present
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    if (refCode) {
+      fetch(`${API_URL}/affiliate/track-impression`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          affiliateCode: refCode,
+          userAgent: navigator.userAgent,
+        }),
+      }).catch(() => {});
+    }
+  }, []);
+
+
   const nav = (url, id) => {
     setActiveService(id);
     setTimeout(() => { window.location.href = url; }, 200);
@@ -392,8 +419,8 @@ const OkraLandingPage = () => {
     { id: 'deliver',      label: 'Deliver A Package',         icon: '📦', bg: 'rgba(255,255,255,0.92)', iconBg: 'rgba(22,163,74,0.1)',    textColor: '#14532d', shadow: 'rgba(22,163,74,0.18)',  accent: '#16a34a', url: frontendUrls.deliveryApp },
     { id: 'drive',        label: 'Earn Money Driving',        icon: '🚕', bg: 'var(--g-hero)',          iconBg: 'rgba(255,255,255,0.22)', textColor: 'white',   shadow: 'rgba(13,148,136,0.42)', url: frontendUrls.driverApp },
     { id: 'deliver-earn', label: 'Earn Money Delivering',     icon: '🛵', bg: 'rgba(255,255,255,0.92)', iconBg: 'rgba(22,163,74,0.1)',    textColor: '#14532d', shadow: 'rgba(22,163,74,0.18)',  accent: '#16a34a', url: frontendUrls.deliveryApp },
-    { id: 'affiliates',   label: 'Earn With Okra Affiliates', icon: '💸', bg: 'rgba(255,255,255,0.92)', iconBg: 'rgba(109,40,217,0.08)', textColor: '#4c1d95', shadow: 'rgba(124,58,237,0.18)', accent: '#7c3aed', url: '#' },
-    { id: 'track',        label: 'Track Order',               icon: '📍', bg: 'rgba(255,255,255,0.92)', iconBg: 'rgba(8,145,178,0.1)',    textColor: '#164e63', shadow: 'rgba(8,145,178,0.18)',  accent: '#0891b2', url: frontendUrls.riderApp },
+    { id: 'affiliates',   label: 'Earn With Okra Affiliates', icon: '💸', bg: 'rgba(255,255,255,0.92)', iconBg: 'rgba(109,40,217,0.08)', textColor: '#4c1d95', shadow: 'rgba(124,58,237,0.18)', accent: '#7c3aed',  url: affiliateEnabled? (frontendUrls.riderApp + '/affiliate') : '#' },
+    { id: 'track',        label: 'Track Order',               icon: '📍', bg: 'rgba(255,255,255,0.92)', iconBg: 'rgba(8,145,178,0.1)',    textColor: '#164e63', shadow: 'rgba(8,145,178,0.18)',  accent: '#0891b2', url: frontendUrls.riderApp + '/tracking-order' },
   ];
 
   const services = [
@@ -604,9 +631,9 @@ const OkraLandingPage = () => {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', damping: 18, stiffness: 260, delay: i * 0.055 }}
-              style={{ height: '112px' }}
+              style={{ opacity: a.disabled ? 0.4 : 1, cursor: a.disabled ? 'not-allowed' : 'pointer' }}
             >
-              <RippleBtn action={a} onClick={() => nav(a.url, a.id)} />
+              <RippleBtn action={a} onClick={a.disabled ? undefined : () => nav(a.url, a.id)} />
             </motion.div>
           ))}
         </div>

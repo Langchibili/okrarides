@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "account_exist_checks",
+  "info": {
+    "singularName": "account-exist-check",
+    "pluralName": "account-exist-checks",
+    "displayName": "accountExistCheck"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "aboutRoute": {
+      "type": "blocks"
+    }
+  }
+}

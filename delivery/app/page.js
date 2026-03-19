@@ -8,7 +8,6 @@ import { useAuth }         from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { useRouter }       from 'next/navigation';
 import { useReactNative }  from '@/lib/contexts/ReactNativeWrapper';
-import { useRide }         from '@/lib/hooks/useRide';
 import { apiClient }       from '@/lib/api/client';
 import DriverHomePage      from './(main)/home/page';
 import { useThemeMode } from '@/components/ThemeProvider';
@@ -90,7 +89,7 @@ function LoadingSplash({ visible }) {
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const { isNative, servicesInitialized, reconnectDeviceSocket, initializeNativeServices } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
   const { currentDelivery } = useDelivery();
   const { setAccentColor } = useThemeMode()
   const [checkingAuth, setCheckingAuth] = useState(() => loading);
@@ -154,10 +153,6 @@ export default function Home() {
         } else {
           console.error('❌ Failed to initialize native services:', result.error);
         }
-      }
-      else if(isNative && servicesInitialized){
-        reconnectDeviceSocket( user?.id, 'delivery', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
-         // this is because each time a user switches app, they must reconnect to the current app for all events
       }
     };
  

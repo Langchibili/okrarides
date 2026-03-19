@@ -87,7 +87,7 @@ function LoadingSplash({ visible }) {
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const { isNative, servicesInitialized, reconnectDeviceSocket,  initializeNativeServices } = useReactNative();
+  const { isNative, servicesInitialized,  initializeNativeServices } = useReactNative();
   const { currentRide } = useRide();
   const { setAccentColor } = useThemeMode()
   const [checkingAuth, setCheckingAuth] = useState(() => loading);
@@ -132,9 +132,6 @@ export default function Home() {
             );
           }
         }
-      }
-      else if(isNative && servicesInitialized){
-        reconnectDeviceSocket( user?.id, 'driver', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL) // this is because each time a user switches app, they must reconnect to the current app for all events
       }
     };
 

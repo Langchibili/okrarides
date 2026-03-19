@@ -14,6 +14,10 @@ export interface AffiliateAffiliateProfile extends Struct.ComponentSchema {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     pendingEarnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     pointsBalance: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    promotions: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::affiliate-promotion.affiliate-promotion'
+    >;
     qrCode: Schema.Attribute.Media<'images'>;
     totalEarnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     totalPoints: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
@@ -209,6 +213,10 @@ export interface DriverProfilesDriverProfile extends Struct.ComponentSchema {
       ['none', 'taxi', 'bus', 'motorbike']
     > &
       Schema.Attribute.DefaultTo<'none'>;
+    affiliateFloatAmount: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    affiliateFloatApplied: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     allowedCountries: Schema.Attribute.Relation<
       'manyToMany',
       'api::country.country'
@@ -391,6 +399,7 @@ export interface RiderProfilesRiderProfile extends Struct.ComponentSchema {
     icon: 'user';
   };
   attributes: {
+    affiliateCodes: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<{}>;
     averageRating: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     blockedDrivers: Schema.Attribute.JSON;

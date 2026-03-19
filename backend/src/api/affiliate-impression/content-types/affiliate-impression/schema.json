@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "affiliate_impressions",
+  "info": {
+    "singularName": "affiliate-impression",
+    "pluralName": "affiliate-impressions",
+    "displayName": "AffiliateImpression",
+    "description": "Tracks guest visitors who arrived via an affiliate link. Used to attribute sign-ups."
+  },
+  "options": { "draftAndPublish": false },
+  "pluginOptions": {
+    "content-manager": { "visible": true },
+    "content-type-builder": { "visible": true }
+  },
+  "attributes": {
+    "ipSignatureHash": {
+      "type": "string",
+      "required": true,
+      "description": "SHA-256 hash of browser fingerprint: IP + UserAgent + screen + timezone"
+    },
+    "affiliateCode": {
+      "type": "string",
+      "required": true,
+      "description": "The raw affiliate code from the URL param (?ref=CODE)"
+    },
+    "affiliateOwner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "description": "Resolved user who owns this affiliate code"
+    },
+    "convertedUser": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "description": "Set once a user registers and matches this impression"
+    },
+    "converted": {
+      "type": "boolean",
+      "default": false,
+      "description": "True once a registration has been matched to this impression"
+    },
+    "userAgent": { "type": "text" },
+    "ipAddress": { "type": "string" },
+    "referrerUrl": { "type": "string" }
+  }
+}

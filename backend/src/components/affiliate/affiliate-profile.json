@@ -49,6 +49,12 @@
     "blocked": {
       "type": "boolean",
       "default": false
+    },
+    "promotions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::affiliate-promotion.affiliate-promotion",
+      "description": "Active promotions that referred users of this affiliate will receive"
     }
   }
 }

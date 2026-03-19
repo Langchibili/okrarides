@@ -22,9 +22,6 @@ async toggleOnline(ctx) {
         riderProfile: {
           select: ['id']
         },
-        deliveryProfile: {
-          select: ['id']
-        },
         conductorProfile: {
           select: ['id']
         }
@@ -128,115 +125,79 @@ async toggleOnline(ctx) {
     return ctx.internalServerError('Failed to update status');
   }
 },
-  // async toggleOnline(ctx) {
-  //   try {
-  //     const userId = ctx.state.user.id;
-      
-  //     const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-  //       where: { id: userId },
-  //       // 1. Limit fields on the main User object
-  //       select: ['id', 'username',"isOnline"], 
-  //       populate: { 
-  //         driverProfile: {
-  //           // 2. Only fetch fields used in your logic (ID and status)
-  //           select: ['id', 'isOnline', 'subscriptionStatus'] 
-  //         },
-  //         riderProfile: {
-  //           // 3. We only need the ID to perform the update later
-  //           select: ['id'] 
-  //         },
-  //         deliveryProfile: {
-  //           select: ['id']
-  //         },
-  //         conductorProfile: {
-  //           select: ['id'] 
-  //         }
-  //       }
-  //     })
-  //     if (!user?.driverProfile) {
-  //       return ctx.badRequest('Driver profile not found');
-  //     }
+async goOffline(ctx) {
+  try {
+    const userId = ctx.state.user.id;
 
-  //     const newOnlineStatus = !user.driverProfile.isOnline;
-      
-  //     // Check subscription status before going online
-  //     // if (newOnlineStatus) { 
-  //     //   const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
-        
-  //     //   if (settings?.subscriptionSystemEnabled) {
-  //     //     if (!['active', 'trial'].includes(user.driverProfile.subscriptionStatus)) {
-  //     //       return ctx.forbidden('Active subscription required to go online');
-  //     //     }
-  //     //   }
-  //     // }
-  //      console.log('newOnlineStatus',newOnlineStatus)
-  //     // Update driver profile - getting component ID and updating it
-  //     await strapi.db.query('plugin::users-permissions.user').update({
-  //       where: { id: userId },
-  //       data: {
-  //         isOnline: newOnlineStatus,
-  //         activeProfile: 'driver',
-  //         profileActivityStatus: {
-  //           "rider": false,
-  //           "driver": true,
-  //           "delivery": false,
-  //           "conductor": false
-  //         },
-  //         lastSeen: new Date()
-  //       }
-  //     })
-  //     await strapi.db.query('driver-profiles.driver-profile').update({
-  //       where: { id: user.driverProfile.id },  
-  //       data: {
-  //           isOnline: newOnlineStatus,
-  //           isAvailable: newOnlineStatus === true? true : newOnlineStatus,
-  //           isActive: true
-  //        }
-  //     })
-  //     await strapi.db.query('rider-profiles.rider-profile').update({
-  //       where: { id: user.riderProfile.id },   
-  //       data: {
-  //           isOnline: false,
-  //           isAvailable: false,
-  //           isActive: false
-  //       }
-  //     })
-  //     await strapi.db.query('delivery-profiles.delivery-profile').update({
-  //        where: { id: user.deliveryProfile.id },   
-  //        data: {
-  //           isOnline: false,
-  //           isAvailable: false,
-  //           isActive: false
-  //        }
-  //     })
-  //     await strapi.db.query('conductor-profiles.conductor-profile').update({
-  //         where: { id: user.conductorProfile.id },   
-  //         data: {
-  //           isOnline: false,
-  //           isAvailable: false,
-  //           isActive: false
-  //         }
-  //     })
+    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: userId },
+      select: ['id'],
+      populate: {
+        driverProfile:   { select: ['id'] },
+        riderProfile:    { select: ['id'] },
+        conductorProfile:{ select: ['id'] },
+      }
+    });
 
-  //     // Emit WebSocket event
-  //     strapi.eventHub.emit('driver:status:changed', {
-  //       driverId: userId,
-  //       status: newOnlineStatus ? 'online' : 'offline'
-  //     });
+    if (!user?.driverProfile) {
+      return ctx.badRequest('Driver profile not found');
+    }
 
-  //     return ctx.send({
-  //       success: true,
-  //       isOnline: newOnlineStatus,
-  //       message: `Driver is now ${newOnlineStatus ? 'online' : 'offline'}`
-  //     });
-  //   } catch (error) {
-  //     strapi.log.error('Toggle online error:', error);
-  //     return ctx.internalServerError('Failed to update status');
-  //   }
-  // },
+    // ── User record ──────────────────────────────────────────────────────
+    await strapi.db.query('plugin::users-permissions.user').update({
+      where: { id: userId },
+      data: {
+        isOnline:              true,   // user is still active, just as a rider now
+        activeProfile:         'rider',
+        profileActivityStatus: {
+          rider:     true,
+          driver:    false,
+          conductor: false,
+        }
+      }
+    });
 
-  // Update driver location
-  async updateLocation(ctx) {
+    // ── Driver profile → offline ──────────────────────────────────────────
+    await strapi.db.query('driver-profiles.driver-profile').update({
+      where: { id: user.driverProfile.id },
+      data: { isOnline: false, isAvailable: false, isActive: false }
+    });
+
+    // ── Rider profile → active ────────────────────────────────────────────
+    if (user.riderProfile) {
+      await strapi.db.query('rider-profiles.rider-profile').update({
+        where: { id: user.riderProfile.id },
+        data: { isActive: true }
+      });
+    }
+
+    // ── Conductor profile → offline ───────────────────────────────────────
+    if (user.conductorProfile) {
+      await strapi.db.query('conductor-profiles.conductor-profile').update({
+        where: { id: user.conductorProfile.id },
+        data: { isOnline: false, isAvailable: false, isActive: false }
+      });
+    }
+
+    // ── WebSocket event ───────────────────────────────────────────────────
+    strapi.eventHub.emit('driver:status:changed', {
+      driverId: userId,
+      status:   'offline',
+    });
+
+    return ctx.send({
+      success:       true,
+      isOnline:      false,
+      activeProfile: 'rider',
+      message:       'Driver is now offline. Switched to rider mode.',
+    });
+
+  } catch (error) {
+    strapi.log.error('Go offline error:', error);
+    return ctx.internalServerError('Failed to go offline');
+  }
+},
+ async updateLocation(ctx) {
     try {
       const userId = ctx.state.user.id;
       const { lat, lng, heading, speed } = ctx.request.body;

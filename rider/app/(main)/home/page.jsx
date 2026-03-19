@@ -378,10 +378,7 @@ export default function HomePage() {
     getFrontendUrl();
   }, []);
 
-  useEffect(()=>{
-    // Set different colours for each mode
-    setAccentColor('#FFFFFF', 'orange')
-  })
+  
   // ─────────────────────────────────────────────────────────────────────────
 
   const [mapCenter, setMapCenter]           = useState(null);
@@ -438,7 +435,7 @@ export default function HomePage() {
       setMapCenter(coords);
       if (mapControlsRef.current) mapControlsRef.current.animateToLocation(coords, 16);
 
-      await new Promise((r) => setTimeout(r, 3000));
+      await new Promise((r) => setTimeout(r, 2000));
 
       if (user?.id) {
         const res = await apiClient.get(`/users/${user.id}`)
@@ -554,6 +551,8 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickupLocation, dropoffLocation]);
 
+
+  
   const loadFareEstimates = async () => {
     if (!pickupLocation || !dropoffLocation) return;
     setLoadingEstimates(true);
@@ -566,7 +565,12 @@ export default function HomePage() {
       } else {
         setSnackbar({ open: true, message: 'Failed to load fare estimates', severity: 'error' });
       }
-      reconnectDeviceSocket( user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
+      if(isNative){
+         reconnectDeviceSocket( user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
+      }
+      // you cannot receive rides if you are trying to book rides, so we set you offline if you are a driver, for now
+      await apiClient.post('/driver/toggle-offline'); // the /driver/toggle-offline endpoint toggles the driver profile offline 
+      await apiClient.post('/delivery-driver/toggle-offline'); // the delivery-driver/toggle-offline endpoint toggles  the deliverer offline
     } catch {
       setSnackbar({ open: true, message: 'Error calculating fare. Please try again.', severity: 'error' });
     } finally {

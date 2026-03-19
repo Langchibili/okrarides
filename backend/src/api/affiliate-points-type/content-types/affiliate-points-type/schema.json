@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "affiliate_points_types",
+  "info": {
+    "singularName": "affiliate-points-type",
+    "pluralName": "affiliate-points-types",
+    "displayName": "AffiliatePointsType",
+    "description": "Defines the rules for awarding affiliate points on specific platform events"
+  },
+  "options": { "draftAndPublish": false },
+  "pluginOptions": {
+    "content-manager": { "visible": true },
+    "content-type-builder": { "visible": true }
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "description": "Human-readable rule name, e.g. 'Ride Completion Flat Bonus'"
+    },
+    "eventType": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "onRideCompletion",
+        "onRideBooking",
+        "onDeliveryCompletion",
+        "onDeliveryBooking",
+        "onReferralSignup",
+        "onFirstRideAsRider",
+        "onFirstRideAsDriver",
+        "onFirstDelivery"
+      ],
+      "description": "Which platform event triggers this rule"
+    },
+    "isEnabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Toggle individual rules without deleting them"
+    },
+    "rewardType": {
+      "type": "enumeration",
+      "required": true,
+      "enum": ["flat", "percentage"],
+      "description": "flat = fixed points regardless of fare; percentage = points proportional to fare"
+    },
+    "value": {
+      "type": "decimal",
+      "required": true,
+      "description": "For flat: number of points. For percentage: % of fare converted to points (e.g. 10 = 10%)"
+    },
+    "description": {
+      "type": "text",
+      "description": "Admin notes explaining this rule"
+    }
+  }
+}

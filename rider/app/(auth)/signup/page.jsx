@@ -16,6 +16,7 @@ import {
   MenuItem,
   Select,
   FormControl,
+  Snackbar,
 } from '@mui/material';
 import {
   Phone as PhoneIcon,
@@ -26,6 +27,7 @@ import {
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { validatePhoneNumber } from '@/Functions';
+import { apiClient } from '@/lib/api/client';
 
 const steps = ['Country', 'Phone', 'Details', 'Verify'];
 
@@ -39,7 +41,8 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
-  
+  const [existsSnackbar, setExistsSnackbar] = useState(false);
+
   // Form data
   const [formData, setFormData] = useState({
     phoneNumber: '',
@@ -50,7 +53,18 @@ export default function SignupPage() {
 
   // Fetch countries on mount
   useEffect(() => {
-    fetchCountries();
+    fetchCountries()
+  }, []);
+  
+  useEffect(() => {
+    if(typeof window !== "undefined"){
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref') || localStorage.getItem('affiliateRef');
+      if (ref) {
+        localStorage.setItem('affiliateRef', ref);
+        setReferralCode(ref);  // set into registration form state
+      }
+    }
   }, []);
 
   const fetchCountries = async () => {
@@ -103,10 +117,44 @@ export default function SignupPage() {
     // Step 1: Validate phone number
     else if (activeStep === 1) {
       const cleanPhone = formData.phoneNumber.replace(/\D/g, '');
-      
+
       if (!validatePhoneNumber(cleanPhone)) {
         setError('Please enter a valid phone number');
         return;
+      }
+
+      // Build the username exactly as the backend stores it — no leading +
+      const phoneCode    = selectedCountry.phoneCode.replace('+', '');
+      const fullUsername = `${phoneCode}${cleanPhone}`;
+
+      try {
+        setLoading(true);
+        const res = await apiClient.post('/account-exist-check/check-user', {
+          username: fullUsername,
+        })
+
+        if (res?.userExists) {
+          setExistsSnackbar(true);
+          try{
+            await sendOTP(fullUsername, 'login');
+          }
+          catch(err){
+             console.error(err)
+          }
+          finally{
+            setTimeout(() => {
+              router.push(
+                `/verify-phone?phone=${encodeURIComponent(fullUsername)}&purpose=login`
+              );
+            }, 800);
+          }
+          return;
+        }
+      } catch (err) {
+        // Non-blocking — if the check fails, just continue to registration
+        console.warn('Account existence check failed:', err);
+      } finally {
+        setLoading(false);
       }
 
       setActiveStep(2);
@@ -410,6 +458,19 @@ export default function SignupPage() {
       >
         Already have an account? <strong>&nbsp;Sign In</strong>
       </Button>
+      <Snackbar
+        open={existsSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        onClose={() => setExistsSnackbar(false)}
+        message="Account already exists, redirecting you otp screen"
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            bgcolor: 'primary.main',
+            fontWeight: 600,
+            borderRadius: 3,
+          },
+        }}
+      />
     </Box>
   );
 }

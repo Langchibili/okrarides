@@ -145,7 +145,7 @@ export default function SendPackagePage() {
       const coords = { lat: nativeLoc.lat, lng: nativeLoc.lng };
       setMapCenter(coords);
       if (mapControlsRef.current) mapControlsRef.current.animateToLocation(coords, 16);
-      await new Promise((r) => setTimeout(r, 3000));
+      await new Promise((r) => setTimeout(r, 2000));
       if (user?.id) {
         const res = await apiClient.get(`/users/${user.id}`);
         const cl  = res?.currentLocation;

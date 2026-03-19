@@ -261,6 +261,19 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::users-permissions.user"
+    },
+    "appliedAffiliatePromoCode": {
+      "type": "string",
+      "description": "Affiliate code whose promotion was discounted on this ride/delivery"
+    },
+    "appliedAffiliatePromotionId": {
+      "type": "integer",
+      "description": "ID of the affiliate_promotion record that was applied"
+    },
+    "affiliatePromoDiscount": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Amount deducted from fare via an affiliate promotion"
     }
   }
 }

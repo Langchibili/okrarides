@@ -134,6 +134,36 @@
       "type": "integer",
       "default": 0,
       "description": "Drivers with an active deliveryProfile"
+    },
+    "totalAffiliatePoints": {
+    "type": "integer",
+    "default": 0,
+    "description": "Total points ever awarded across all affiliates"
+    },
+    "totalAffiliatePayouts": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Total cash paid out to affiliates via withdrawals"
+    },
+    "totalPendingAffiliateBalance": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Sum of all affiliate withdrawableBalance not yet withdrawn"
+    },
+    "activeAffiliateCount": {
+      "type": "integer",
+      "default": 0,
+      "description": "Affiliates with at least one confirmed referral"
+    },
+    "totalAffiliateReferrals": {
+      "type": "integer",
+      "default": 0,
+      "description": "Total users who registered via an affiliate link"
+    },
+    "totalAffiliateTransactions": {
+      "type": "integer",
+      "default": 0,
+      "description": "Count of all affiliate point-award events"
     }
   }
 }

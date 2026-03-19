@@ -11,11 +11,6 @@ import { ReactNativeWrapper } from '@/lib/contexts/ReactNativeWrapper';
 import { MapsProvider } from '@/components/APIProviders/MapsProvider';
 import { ScreenshotProvider }     from '@/lib/contexts/ScreenshotContext';
 import { FloatingCaptureButton }  from '@/components/FloatingCaptureButton';
-import { Box, Typography }  from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect } from 'react';
-import { useState } from 'react';
 
 // we are getting the native code wrapper here because we are using it as a hook inside the layout file for main pages or authenticated pages
 

@@ -71,7 +71,7 @@ export const useDriver = () => {
       console.error('Error toggling online:', error);
       return { allowed: false, message: error.message };
     }
-  };
+  }
 
   const canGoOnline = useCallback(() => {
     if (!driverProfile) return false;

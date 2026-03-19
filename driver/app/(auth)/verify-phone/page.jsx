@@ -99,10 +99,14 @@ export default function VerifyPhonePage() {
       
       // Redirect based on purpose
       if (purpose === 'login') {
-         window.location = "/"
+         if(typeof window !== "undefined"){
+          window.location.href = "/"
+         }
         // router.push('/home');
       } else {
-         window.location = "/"
+         if(typeof window !== "undefined"){
+          window.location.href = "/"
+         }
         // router.push('/home');
       }
     } catch (err) {

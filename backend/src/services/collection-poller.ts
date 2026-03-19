@@ -461,6 +461,71 @@ async function handleCollectionFailed(
   const role   = record.purpose === 'ridepay' ? 'rider' : 'driver';
   socketService.emitPaymentFailed(userId, role, record.amount, reason, record.paymentId);
 }
+async function handleAffiliatePayoutSuccess(
+  record: OkrapayRecord,
+  userId: number,
+  lencoData: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const affiliateTxId = (record.metadata as any)?.affiliateTransactionId;
+
+    // 1. Mark affiliate_transaction as completed
+    if (affiliateTxId) {
+      await strapi.db
+        .query('api::affiliate-transaction.affiliate-transaction')
+        .update({
+          where: { id: affiliateTxId },
+          data: {
+            affiliate_transaction_status: 'completed',
+            processedAt: new Date(),
+          },
+        });
+    }
+
+    // 2. Clear pendingEarnings on affiliate profile
+    const user = await strapi.db
+      .query('plugin::users-permissions.user')
+      .findOne({
+        where: { id: userId },
+        populate: { affiliateProfile: true },
+      });
+    const ap = user?.affiliateProfile;
+    if (ap) {
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: userId },
+        data: {
+          affiliateProfile: {
+            id: ap.id,
+            pendingEarnings: 0,
+          },
+        },
+      });
+    }
+
+    // 3. Create transaction record
+    await strapi.db.query('api::transaction.transaction').create({
+      data: {
+        transactionId: `TXN-AFF-${Date.now()}`,
+        user: userId,
+        type: 'withdrawal',
+        paymentMethod: 'okrapay',
+        amount: record.amount,
+        transactionStatus: 'completed',
+        gatewayReference: record.gatewayReference,
+        gatewayResponse: lencoData,
+        processedAt: new Date(),
+      },
+    });
+
+    socketService.emitPaymentSuccess(
+      userId, 'rider', record.amount, record.paymentId, 'affiliate_payout',
+    );
+
+    strapi.log.info(`[Poller:affiliatePayout] Completed for user ${userId}`);
+  } catch (err) {
+    strapi.log.error('[Poller:affiliatePayout]', err);
+  }
+}
 
 // ─── Route to correct domain handler ─────────────────────────────────────────
 
@@ -481,6 +546,9 @@ async function dispatchSuccess(
       break;
     case 'walletTopup':
       await handleWalletTopupSuccess(record, userId, lencoData);
+      break;
+    case 'affiliatePayout':
+      await handleAffiliatePayoutSuccess(record, userId, lencoData);
       break;
     default:
       strapi.log.warn(`[Poller] Unhandled purpose '${record.purpose}' ref ${record.reference}`);

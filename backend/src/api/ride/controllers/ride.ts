@@ -7,6 +7,13 @@ import  RideBookingService  from '../../../services/rideBookingService';
 import  RiderBlockingService  from '../../../services/riderBlockingService';
 import socketService from '../../../services/socketService';
 import { getDriverStats, StatPeriod } from '../../../services/driverStatsService';
+import { processAffiliatePoints } from '../../../services/affiliateService';
+import {
+  checkAndApplyRideDiscount,
+  recordPromotionUsage,
+  applyCodeManually,
+} from '../../../services/affiliatePromotionService';
+
 const { emitRatingSubmitted  } = require('../../../utils/socketUtils');
 
 interface Location {
@@ -220,8 +227,32 @@ async function handleCompleteTrip(
     `Fare: ${ride.totalFare}, Commission: ${commission}, ` +
     `FloatDeduction: ${floatDeduction}, DriverEarnings: ${driverEarnings}. ` +
     `NewFloat: ${newFloatBalance}, NewBalance: ${newCurrentBalance}`
-  );
+  )
 
+  // Award affiliate points to whoever referred this rider
+  const riderId = ride.rider?.id ?? ride.rider;
+  processAffiliatePoints({
+    eventType: 'onRideCompletion',
+    triggeringUserId: Number(driverId),
+    fare: ride.totalFare,
+    rideId: Number(rideId)
+  })// fire-and-forget — safe, errors are swallowed internally
+  processAffiliatePoints({
+    eventType: 'onRideBooking',
+    triggeringUserId: Number(riderId),
+    rideId: ride.id
+  })
+   // ── Record affiliate promotion usage on completion ────────────────────
+    // appliedAffiliateCode and appliedPromotionId were set at ride creation and
+    // stored on the ride record (add them as optional string/integer fields on
+    // the ride schema if you want strict persistence; otherwise read from ride data).
+    const { appliedAffiliatePromoCode, appliedAffiliatePromotionId } = ride;
+    if (appliedAffiliatePromoCode && appliedAffiliatePromotionId) {
+      const riderId = ride.rider?.id ?? ride.rider;
+      recordPromotionUsage(riderId, appliedAffiliatePromoCode, appliedAffiliatePromotionId)
+        .catch((e: any) => strapi.log.warn('[ride:completeTrip] promo usage record failed:', e));
+    }
+    // ── End affiliate promotion usage recording ───────────────────────────
   return {
     updatedRide,
     driverEarnings,
@@ -231,7 +262,7 @@ async function handleCompleteTrip(
     paymentSystemType,
     newFloatBalance,
     newCurrentBalance,
-  };
+  }
 }
 // ─── Helper ────────────────────────────────────────────────────────────────
 
@@ -583,11 +614,38 @@ async create(ctx) {
       }
 
       data.rider = riderId;
+     
+      // ── Affiliate promotion discount ──────────────────────────────────────
+      // Check whether the rider has any active ride-discount promotions in their
+      // riderProfile.affiliateCodes. If so, apply the best available discount.
+      let affiliatePromoDiscount = 0;
+      let appliedAffiliateCode: string | null = null;
+      let appliedPromotionId: number | null = null;
+      let affiliatePromoDescription: string | null = null;
+
+      
+     if (data.totalFare || data.estimatedFare) {
+      const baseFare = parseFloat(data.totalFare ?? data.estimatedFare ?? 0);
+      if (baseFare > 0) {
+        const discountResult = await checkAndApplyRideDiscount(riderId, baseFare);
+          if (discountResult.discountAmount > 0) {
+            affiliatePromoDiscount   = discountResult.discountAmount;
+            appliedAffiliateCode     = discountResult.appliedCode;
+            appliedPromotionId       = discountResult.promotionId;
+            affiliatePromoDescription= discountResult.promotionDescription;
+
+            // Reflect discount in the fare fields being saved
+            data.promoDiscount   = (parseFloat(data.promoDiscount ?? 0)) + affiliatePromoDiscount;
+            data.totalFare       = discountResult.discountedFare;
+            data.subtotal        = discountResult.discountedFare;
+          }
+        }
+      }
+      // ── End affiliate promotion discount ──────────────────────────────────
       data.rideStatus = 'pending';
       data.requestedAt = new Date();
       data.requestedDrivers = [];
       data.declinedDrivers = [];
-
       const ride = await strapi.db.query('api::ride.ride').create({
         data,
         populate: true

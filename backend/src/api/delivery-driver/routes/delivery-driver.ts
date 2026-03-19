@@ -11,6 +11,13 @@ export default {
       handler: 'delivery-driver.toggleDeliveryDriverOnline',
       config: { policies: [] },
     },
+    {
+      method: 'POST',
+      path:   '/delivery-driver/toggle-offline',
+      handler: 'delivery-driver.goOffline',
+      config: { policies: [] },
+    },
+    
     // ─── Location update ──────────────────────────────────────────────────
     {
       method: 'POST',

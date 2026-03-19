@@ -4,6 +4,12 @@ import QRCode from 'qrcode';
 import { Readable } from 'stream';
 import { uploadQRCodeWithClient } from "../services/uploadQrCode"
 import { SendSmsNotification } from '../services/messages'; // ← CHANGE 1: new import
+// ← ADDITION: affiliate promotion service imports
+import {
+  createDefaultPromotion,
+  applyImmediatePromotions,
+} from '../services/affiliatePromotionService';
+
 // Interface definitions
 interface User {
   id: number;
@@ -211,7 +217,8 @@ async function initializeUserProfiles(
         totalRatings: 0,
         savedLocations: JSON.stringify([]),
         ridePreferences: JSON.stringify({}),
-        blocked: false
+        blocked: false,
+        affiliateCodes: {}, // ← ADDITION: tracks affiliate code usage per code per promotion
       },
       driverProfile: {
         verificationStatus: 'not_started',
@@ -222,7 +229,10 @@ async function initializeUserProfiles(
         subscriptionStatus: 'inactive',
         subscriptionPlan: null,
         currentSubscription: null,
-        blocked: false
+        blocked: false,
+        // ← ADDITION: affiliate float promotion tracking
+        affiliateFloatApplied: false,
+        affiliateFloatAmount: 0,
       },
       deliveryProfile: {
         verificationStatus: 'not_started',
@@ -282,6 +292,16 @@ async function initializeUserProfiles(
       }
     }
     console.log(`✅ User ${user.id} profiles initialized successfully with QR code`);
+
+    // ← ADDITION: Create a default promotion for this user's affiliate profile
+    // so any user who registers via their link immediately gets a welcome benefit.
+    try {
+      await createDefaultPromotion(user.id);
+    } catch (promoCreateError) {
+      // Non-fatal — profile setup already succeeded
+      console.error('Error creating default promotion:', promoCreateError);
+    }
+
   } catch (error) {
     console.error('❌ Error initializing user profiles:', error);
     throw error;
@@ -361,6 +381,20 @@ async function handleReferralBonus(
     if (adminSettings?.smsEnabled && referrer.phoneNumber) {
       strapi.log?.info(`SMS notification would be sent to ${referrer.phoneNumber} for referral`);
     }
+
+    // ← ADDITION: Apply the referrer's active affiliate promotions to the new user.
+    // This handles float-topup, wallet-credit, and records discount promotions in
+    // riderProfile.affiliateCodes so they are used at ride/delivery booking time.
+    try {
+      const affCode = currentAffiliateProfile.affiliateCode || '';
+      if (affCode) {
+        await applyImmediatePromotions(user.id, affCode, referrer.id);
+      }
+    } catch (promoError) {
+      // Non-fatal — referral bonus already succeeded
+      console.error('Error applying affiliate promotions:', promoError);
+    }
+
   } catch (error) {
     console.error('Error processing referrer bonus:', error);
   }

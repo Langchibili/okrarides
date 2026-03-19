@@ -27,6 +27,8 @@
 
 import { factories } from '@strapi/strapi'
 import verifyOtp from "../../../services/verifyOtp"
+import { matchImpressionToUser } from '../../../services/affiliateService';
+const crypto = require('crypto');
 
 module.exports = factories.createCoreController(
   'api::verifyotp.verifyotp',
@@ -62,6 +64,14 @@ module.exports = factories.createCoreController(
         .service('jwt')
         .issue({ id: user.id }) : null
 
+      if(purpose === "registration"){ // check if user's ip address is in the database, and is linked to an affiliate user, so log the impression
+        const ipSig = crypto
+          .createHash('sha256')
+          .update(`${ctx.request.ip}|${ctx.request.headers['user-agent'] ?? ''}`)
+          .digest('hex');
+        await matchImpressionToUser(user.id, ipSig);
+      }
+      
       // 3. Return response
       return {
         message: "OTP verified",

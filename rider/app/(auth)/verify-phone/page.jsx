@@ -99,9 +99,15 @@ export default function VerifyPhonePage() {
       
       // Redirect based on purpose
       if (purpose === 'login') {
-        router.push('/home');
+         if(typeof window !== "undefined"){
+          window.location.href = "/"
+         }
+        // router.push('/home');
       } else {
-        router.push('/home');
+         if(typeof window !== "undefined"){
+          window.location.href = "/"
+         }
+        // router.push('/home');
       }
     } catch (err) {
       setError(err.message || 'Invalid OTP. Please try again.');

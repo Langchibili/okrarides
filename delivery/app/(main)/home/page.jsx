@@ -201,14 +201,19 @@ export default function DriverHomePage() {
     fetchStats,
   } = useDeliveryStats();
 
-  const { isNative, getCurrentLocation } = useReactNative();
+  const { isNative, getCurrentLocation, reconnectDeviceSocket } = useReactNative();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [landingPageUrl,  setLandingPageUrl]  = useState(null);
 
   useEffect(() => {
     fetchStats('today');
     requestLocationOnMount();
-  }, []);
+    if(isNative){
+        reconnectDeviceSocket( user?.id, 'delivery', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
+    }
+    apiClient.post('/driver/toggle-offline'); // the /driver/toggle-offline endpoint toggles the driver profile offline 
+   // this is because each time a user switches app, they must reconnect to the current app for all events
+  }, [])
 
   useEffect(() => {
     const getFrontendUrl = async () => {

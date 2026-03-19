@@ -430,6 +430,35 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiAccountExistCheckAccountExistCheck
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'account_exist_checks';
+  info: {
+    displayName: 'accountExistCheck';
+    pluralName: 'account-exist-checks';
+    singularName: 'account-exist-check';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    aboutRoute: Schema.Attribute.Blocks;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::account-exist-check.account-exist-check'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
   collectionName: 'admn_settings';
   info: {
@@ -484,6 +513,8 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
     defaultFlatCommission: Schema.Attribute.Decimal;
     defaultFreeTrialDays: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<7>;
+    deliveryRequestTimeoutSeconds: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<60>;
     driverCancellationCooldownMinutes: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<15>;
     driverOrderRequestRingtone: Schema.Attribute.Media<'audios'>;
@@ -622,6 +653,208 @@ export interface ApiAdmnUserPermissionAdmnUserPermission
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+  };
+}
+
+export interface ApiAffiliateImpressionAffiliateImpression
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'affiliate_impressions';
+  info: {
+    description: 'Tracks guest visitors who arrived via an affiliate link. Used to attribute sign-ups.';
+    displayName: 'AffiliateImpression';
+    pluralName: 'affiliate-impressions';
+    singularName: 'affiliate-impression';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: true;
+    };
+    'content-type-builder': {
+      visible: true;
+    };
+  };
+  attributes: {
+    affiliateCode: Schema.Attribute.String & Schema.Attribute.Required;
+    affiliateOwner: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    converted: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    convertedUser: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    ipAddress: Schema.Attribute.String;
+    ipSignatureHash: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::affiliate-impression.affiliate-impression'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    referrerUrl: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userAgent: Schema.Attribute.Text;
+  };
+}
+
+export interface ApiAffiliatePointsConversionAffiliatePointsConversion
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'affiliate_points_conversions';
+  info: {
+    displayName: 'affiliatePointsConversion';
+    pluralName: 'affiliate-points-conversions';
+    singularName: 'affiliate-points-conversion';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    affiliatePoints: Schema.Attribute.Integer;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currency: Schema.Attribute.Relation<'oneToOne', 'api::currency.currency'>;
+    currencyAmount: Schema.Attribute.Decimal;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::affiliate-points-conversion.affiliate-points-conversion'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiAffiliatePointsTypeAffiliatePointsType
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'affiliate_points_types';
+  info: {
+    description: 'Defines the rules for awarding affiliate points on specific platform events';
+    displayName: 'AffiliatePointsType';
+    pluralName: 'affiliate-points-types';
+    singularName: 'affiliate-points-type';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: true;
+    };
+    'content-type-builder': {
+      visible: true;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    eventType: Schema.Attribute.Enumeration<
+      [
+        'onRideCompletion',
+        'onRideBooking',
+        'onDeliveryCompletion',
+        'onDeliveryBooking',
+        'onReferralSignup',
+        'onFirstRideAsRider',
+        'onFirstRideAsDriver',
+        'onFirstDelivery',
+      ]
+    > &
+      Schema.Attribute.Required;
+    isEnabled: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::affiliate-points-type.affiliate-points-type'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    rewardType: Schema.Attribute.Enumeration<['flat', 'percentage']> &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    value: Schema.Attribute.Decimal & Schema.Attribute.Required;
+  };
+}
+
+export interface ApiAffiliatePromotionAffiliatePromotion
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'affiliate_promotions';
+  info: {
+    description: 'Promotions offered by an affiliate; applied to referred users at sign-up or during bookings';
+    displayName: 'AffiliatePromotion';
+    pluralName: 'affiliate-promotions';
+    singularName: 'affiliate-promotion';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: true;
+    };
+    'content-type-builder': {
+      visible: true;
+    };
+  };
+  attributes: {
+    action: Schema.Attribute.Enumeration<
+      [
+        'float-topup',
+        'ride-discount',
+        'delivery-discount',
+        'subscription-discount',
+        'wallet-credit',
+      ]
+    > &
+      Schema.Attribute.Required;
+    affiliateOwner: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    amount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    expiresAt: Schema.Attribute.DateTime;
+    for: Schema.Attribute.Enumeration<['rider', 'driver', 'all']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'all'>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isDefault: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::affiliate-promotion.affiliate-promotion'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    percentageAmount: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    usageLimit: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<1>;
   };
 }
 
@@ -2592,6 +2825,8 @@ export interface ApiPlatformStatPlatformStat extends Struct.SingleTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    activeAffiliateCount: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     activeDeliveryDriverCount: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<0>;
     activeDriverCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
@@ -2611,6 +2846,14 @@ export interface ApiPlatformStatPlatformStat extends Struct.SingleTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     totalActiveFloat: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    totalAffiliatePayouts: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalAffiliatePoints: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    totalAffiliateReferrals: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
+    totalAffiliateTransactions: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<0>;
     totalCashDeliveries: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<0>;
     totalCashRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
@@ -2630,6 +2873,8 @@ export interface ApiPlatformStatPlatformStat extends Struct.SingleTypeSchema {
     totalFloatRides: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     totalFloatSold: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     totalNegativeFloat: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    totalPendingAffiliateBalance: Schema.Attribute.Decimal &
       Schema.Attribute.DefaultTo<0>;
     totalPendingWithdrawals: Schema.Attribute.Decimal &
       Schema.Attribute.DefaultTo<0>;
@@ -2939,6 +3184,10 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
     acceptedAt: Schema.Attribute.DateTime;
     actualDistance: Schema.Attribute.Decimal;
     actualDuration: Schema.Attribute.Integer;
+    affiliatePromoDiscount: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    appliedAffiliatePromoCode: Schema.Attribute.String;
+    appliedAffiliatePromotionId: Schema.Attribute.Integer;
     arrivedAt: Schema.Attribute.DateTime;
     baseFare: Schema.Attribute.Decimal;
     behindBusDistance: Schema.Attribute.Decimal;
@@ -4501,8 +4750,13 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::account-exist-check.account-exist-check': ApiAccountExistCheckAccountExistCheck;
       'api::admn-setting.admn-setting': ApiAdmnSettingAdmnSetting;
       'api::admn-user-permission.admn-user-permission': ApiAdmnUserPermissionAdmnUserPermission;
+      'api::affiliate-impression.affiliate-impression': ApiAffiliateImpressionAffiliateImpression;
+      'api::affiliate-points-conversion.affiliate-points-conversion': ApiAffiliatePointsConversionAffiliatePointsConversion;
+      'api::affiliate-points-type.affiliate-points-type': ApiAffiliatePointsTypeAffiliatePointsType;
+      'api::affiliate-promotion.affiliate-promotion': ApiAffiliatePromotionAffiliatePromotion;
       'api::affiliate-transaction.affiliate-transaction': ApiAffiliateTransactionAffiliateTransaction;
       'api::affiliate.affiliate': ApiAffiliateAffiliate;
       'api::allowed-vehicle-year.allowed-vehicle-year': ApiAllowedVehicleYearAllowedVehicleYear;

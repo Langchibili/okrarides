@@ -47,6 +47,11 @@
     "savedLocations": {
       "type": "json"
     },
+    "affiliateCodes": {
+      "type": "json",
+      "default": {},
+      "description": "Tracks every affiliate code the user has used and per-promotion consumption. Shape: { [affiliateCode]: { usage: number, appliedAt: string, referrerId: number, promotions: { [promotionId]: { action, percentageAmount, amount, usageLimit, usageCount, lastUsedAt } } } }"
+    },
     "ridePreferences": {
       "type": "json"
     },
