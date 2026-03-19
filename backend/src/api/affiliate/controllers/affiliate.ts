@@ -181,7 +181,7 @@ export default factories.createCoreController(
     async getDashboard(ctx) {
       const userId = ctx.state.user?.id;
       if (!userId) return ctx.unauthorized('Authentication required');
-
+      console.log('affiliate dashboard')
       try {
         const settings = await strapi.db
           .query('api::admn-setting.admn-setting')

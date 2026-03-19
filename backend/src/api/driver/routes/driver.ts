@@ -11,6 +11,13 @@ export default {
     },
     {
       method: 'POST',
+      path: '/driver/toggle-offline',
+      handler: 'driver.goOffline',
+      config: { policies: [] }
+    },
+    
+    {
+      method: 'POST',
       path: '/driver/update-location',
       handler: 'driver.updateLocation',
       config: { policies: [] }

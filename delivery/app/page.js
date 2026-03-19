@@ -11,7 +11,6 @@ import { useReactNative }  from '@/lib/contexts/ReactNativeWrapper';
 import { apiClient }       from '@/lib/api/client';
 import DriverHomePage      from './(main)/home/page';
 import { useThemeMode } from '@/components/ThemeProvider';
-import useDelivery from '@/lib/hooks/useDelivery';
 import HomePageSkeleton from '@/components/Skeletons/HomePageSkeleton';
 
 // ── Splash overlay — renders ABOVE the app, app loads behind it ──────────────
@@ -90,15 +89,29 @@ export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
-  const { currentDelivery } = useDelivery();
   const { setAccentColor } = useThemeMode()
   const [checkingAuth, setCheckingAuth] = useState(() => loading);
-  const [splashVisible, setSplashVisible] = useState(true);
+  const [splashVisible, setSplashVisible] = useState(() => {
+    // Only show splash if this is a fresh page load — not an in-app navigation
+    if (typeof window === 'undefined') return false;
+    const already = sessionStorage.getItem('okra_splash_shown');
+    return !already;
+  })
 
   useEffect(() => {
     const t = setTimeout(() => setSplashVisible(false), 2500);
     return () => clearTimeout(t);
   }, []);
+
+   useEffect(() => {
+      if (!splashVisible) return;
+      const t = setTimeout(() => {
+        setSplashVisible(false);
+        sessionStorage.setItem('okra_splash_shown', '1');
+      }, 2500);
+      return () => clearTimeout(t);
+    }, [splashVisible]);
+  
 
   useEffect(() => {
     const initializeNativeCode = async () => {
@@ -166,21 +179,14 @@ export default function Home() {
     }
   }, [user, loading, isAuthenticated, router]);
  
+  useEffect(() => {
+    if (!loading) setCheckingAuth(false);
+  }, [loading])
+
    useEffect(()=>{
     // Set different colours for each mode
     setAccentColor('#065F46', '#0F172A')
   })
-
-  // Redirect logic for active deliveries
-  useEffect(() => {
-    if (currentDelivery && isAuthenticated) {
-      const { rideStatus, id } = currentDelivery;
-      if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
-        router.push(`/active-delivery/${id}`);
-      }
-    }
-  }, [currentDelivery, router, isAuthenticated]);
-  
 
   if (loading || checkingAuth) return <LoadingSplash />;
 

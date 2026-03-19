@@ -417,7 +417,7 @@ export default function SignupPage() {
       )}
 
       {/* Spacer */}
-      <Box sx={{ flex: 1 }} />
+      <Box sx={{ flex: 0.5 }} />
 
       {/* Actions */}
       {!countriesLoading && (

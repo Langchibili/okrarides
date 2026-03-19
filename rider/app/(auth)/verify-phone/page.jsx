@@ -95,19 +95,24 @@ export default function VerifyPhonePage() {
     
     setLoading(true);
     try {
-      await verifyOTP(phoneNumber, otpValue, purpose);
-      
-      // Redirect based on purpose
-      if (purpose === 'login') {
+      const response = await verifyOTP(phoneNumber, otpValue, purpose);
+      if(response?.message === "OTP verified" || response?.status === true){
+         // Redirect based on purpose
+        if (purpose === 'login') {
+          if(typeof window !== "undefined"){
+            window.location.href = "/"
+          }
+          // router.push('/home');
+        } 
+        else {
          if(typeof window !== "undefined"){
           window.location.href = "/"
          }
-        // router.push('/home');
-      } else {
-         if(typeof window !== "undefined"){
-          window.location.href = "/"
-         }
-        // router.push('/home');
+        }
+      }
+      else{
+        setError('Please enter correct OTP');
+        return
       }
     } catch (err) {
       setError(err.message || 'Invalid OTP. Please try again.');

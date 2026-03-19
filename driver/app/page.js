@@ -9,7 +9,6 @@ import { useAuth }         from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { useRouter }       from 'next/navigation';
 import { useReactNative }  from '@/lib/contexts/ReactNativeWrapper';
-import { useRide }         from '@/lib/hooks/useRide';
 import { apiClient }       from '@/lib/api/client';
 import DriverHomePage      from './(main)/home/page';
 import { useThemeMode } from '@/components/ThemeProvider';
@@ -88,7 +87,7 @@ export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const { isNative, servicesInitialized,  initializeNativeServices } = useReactNative();
-  const { currentRide } = useRide();
+
   const { setAccentColor } = useThemeMode()
   const [checkingAuth, setCheckingAuth] = useState(() => loading);
 // only load splash screen here because it's the root page
@@ -150,14 +149,7 @@ export default function Home() {
     setAccentColor('#065F46', '#0F172A')
   })
   
-  useEffect(() => {
-    if (currentRide && isAuthenticated) {
-      const { rideStatus, id } = currentRide;
-      if (['accepted', 'arrived', 'passenger_onboard', 'completed'].includes(rideStatus)) {
-        router.push(`/active-ride/${id}`);
-      }
-    }
-  }, [currentRide, router, isAuthenticated]);
+
 
   if (loading || checkingAuth) return <LoadingSplash />;
 

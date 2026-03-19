@@ -12,8 +12,8 @@ import { alpha, useTheme } from '@mui/material/styles';
 
 const NAV_ITEMS = [
   { label: 'Book',       icon: HomeIcon,     path: '/home'            },
-  { label: 'Deliver',    icon: DeliveryIcon, path: '/deliveries/send' },
   { label: 'Trips',      icon: HistoryIcon,  path: '/trips'           },
+  { label: 'Deliveries',    icon: DeliveryIcon, path: '/deliveries' },
   { label: 'Profile',    icon: ProfileIcon,  path: '/profile'         },
 ];
 

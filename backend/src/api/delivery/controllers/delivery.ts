@@ -324,7 +324,37 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       return ctx.internalServerError('Failed to fetch delivery');
     }
   },
+// ─── Get delivery by ride code (public — no auth required) ───────────────
+async getDeliveryByRideCode(ctx) {
+  try {
+    const { rideCode } = ctx.params;
 
+    if (!rideCode) return ctx.badRequest('rideCode is required');
+
+    const delivery = await strapi.db.query('api::delivery.delivery').findOne({
+      where: { rideCode },
+      populate: {
+        sender:    { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+        deliverer: {
+          fields: ['id', 'firstName', 'lastName', 'phoneNumber'],
+          populate: {
+            deliveryProfile: { fields: ['id', 'averageRating', 'completedDeliveries'] },
+          },
+        },
+        package: true,
+        vehicle: true,
+      },
+    });
+
+    if (!delivery) return ctx.notFound('Delivery not found');
+
+    const sanitized = await this.sanitizeOutput(delivery, ctx);
+    return ctx.send({ data: sanitized });
+  } catch (error) {
+    strapi.log.error('[Delivery] getDeliveryByRideCode error:', error);
+    return ctx.internalServerError('Failed to fetch delivery by ride code');
+  }
+},
   // ─── Create delivery request ──────────────────────────────────────────────
   async create(ctx) {
     try {

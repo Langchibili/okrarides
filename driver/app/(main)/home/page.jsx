@@ -175,11 +175,20 @@ export default function DriverHomePage() {
   const { driverProfile, isOnline, toggleOnline, needsVerification, needsVehicle, needsSubscription, paymentSystemType, loadingDriverProfile } = useDriver();
   const { isNegativeFloatAllowed, negativeFloatLimit, minimumFloatTopup, defaultCommissionPercentage, isFloatSystemEnabled, isSubscriptionSystemEnabled } = useAdminSettings();
   const { user } = useAuthGuard({ requireAuth: true, requireVerification: true, redirectTo: '/home' });
-  const { incomingRide, acceptRide, declineRide } = useRide();
+  const { incomingRide, acceptRide, declineRide, currentRide } = useRide();
   const { isNative, getCurrentLocation, reconnectDeviceSocket } = useReactNative();
   const { summary, lifetime, loading: statsLoading, fetchStats } = useDriverStats();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [landingPageUrl,  setLandingPageUrl]  = useState(null);
+  
+  useEffect(() => {
+    if (currentRide) {
+      const { rideStatus, id } = currentRide;
+      if (['accepted', 'arrived', 'passenger_onboard', 'completed'].includes(rideStatus)) {
+        router.push(`/active-ride/${id}`);
+      }
+    }
+  }, [currentRide, router]);
 
   useEffect(() => {
     fetchStats('today')

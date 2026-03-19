@@ -12,6 +12,12 @@ export default {
       config:  { policies: [], middlewares: [] },
     },
     {
+     method:  'GET',
+     path:    '/deliveries/ridecode/:rideCode',
+     handler: 'delivery.getDeliveryByRideCode',
+     config:  { policies: [], middlewares: [] },
+    },
+    {
       method:  'GET',
       path:    '/deliveries/active',
       handler: 'delivery.getActiveDelivery',

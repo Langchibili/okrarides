@@ -6,7 +6,6 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useThemeMode } from '@/components/ThemeProvider';
-import { useRide } from '@/lib/hooks/useRide';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { ridesAPI } from '@/lib/api/rides';
 import HomePage from './(main)/home/page';
@@ -17,7 +16,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 function LoadingSplash({ visible }) {
   const theme  = useTheme();
   const isDark = theme.palette.mode === 'dark';
-
   return (
     <AnimatePresence>
       {visible && (
@@ -84,20 +82,35 @@ function LoadingSplash({ visible }) {
   );
 }
 
-export default function Home({ children }) {
+export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { activeRide } = useRide();
   const { setAccentColor } = useThemeMode()
   const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
-  const [splashVisible, setSplashVisible] = useState(true);
-  const [checkingAuth, setCheckingAuth] = useState(() => loading);
-
+  const [checkingAuth, setCheckingAuth] = useState(() => loading)
+  const [splashVisible, setSplashVisible] = useState(() => {
+    // Only show splash if this is a fresh page load — not an in-app navigation
+    if (typeof window === 'undefined') return false;
+    const already = sessionStorage.getItem('okra_splash_shown');
+    return !already;
+  })
   useEffect(() => {
     const t = setTimeout(() => setSplashVisible(false), 2500);
     return () => clearTimeout(t);
   }, []);
+
+
+
+  useEffect(() => {
+    if (!splashVisible) return;
+    const t = setTimeout(() => {
+      setSplashVisible(false);
+      sessionStorage.setItem('okra_splash_shown', '1');
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [splashVisible])
+
   // Redirect to login if not authenticated
    useEffect(() => {
     const initializeNativeCode = async () => {
@@ -171,26 +184,18 @@ export default function Home({ children }) {
     }
   }, [user, loading, isAuthenticated, router]);
 
+  useEffect(() => {
+    if (!loading) setCheckingAuth(false);
+  }, [loading])
+
   useEffect(()=>{
     // Set different colours for each mode
     setAccentColor('#FFFFFF', 'orange')
-  })
+  },[])
   // ============================================
   // Redirect Logic for Active Rides
   // ============================================
-  useEffect(() => {
-    if (activeRide) {
-      const { rideStatus, id } = activeRide;
-
-      if (rideStatus === 'pending') {
-        router.push(`/finding-driver?rideId=${id}`);
-      } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
-        router.push(`/tracking?rideId=${id}`);
-      } else if (rideStatus === 'completed') {
-        router.push(`/trip-summary?rideId=${id}`);
-      }
-    }
-  }, [activeRide, router]);
+ 
 
   useEffect(() => {
     // Force MUI to re-evaluate styles on route change
@@ -203,12 +208,13 @@ export default function Home({ children }) {
     document.body.classList.remove('map-loaded', 'google-maps-initialized');
   }, [pathname]);
 
-  if (loading || checkingAuth) return <LoadingSplash />;
+  if (loading || checkingAuth) return <LoadingSplash visible />;
   return (
     <Box
       sx={{
         minHeight: '100vh',
         pb: '80px', // Space for bottom nav
+        bgcolor: 'background.default', overflowX: 'hidden' 
       }}
     >
       <HomePage />

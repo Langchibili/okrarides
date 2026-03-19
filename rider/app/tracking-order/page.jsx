@@ -50,13 +50,14 @@ function normalizeCoords(loc) {
 
 // ── Public API calls (no auth token needed) ───────────────────────────────────
 const getDeliveryByCode = async (delicode) => {
-  const res = await apiClient.get(`/deliveries/track/${delicode}`);
+  const res = await apiClient.get(`/deliveries/ridecode/${delicode}`);
   return res?.data ?? res;
 };
 
-const getDelivererLocationPublic = async (delicode) => {
-  const res = await apiClient.get(`/deliveries/track/${delicode}/location`);
-  return res?.data ?? res;
+// Single endpoint that returns delivery status + deliverer location + ETA
+const trackDeliveryById = async (deliveryId) => {
+  const res = await apiClient.get(`/deliveries/${deliveryId}/track`);
+  return res ?? null;
 };
 
 // ── Status config ─────────────────────────────────────────────────────────────
@@ -316,62 +317,71 @@ export default function PublicTrackingPage() {
   // ── Status polling (public, no auth) ─────────────────────────────────────
   const rideStatus = delivery?.rideStatus;
 
-  useEffect(() => {
-    if (!delicode) return;
-    pollRef.current = setInterval(async () => {
-      if (!mountedRef.current) return;
-      try {
-        const data = await getDeliveryByCode(delicode);
-        if (!data || !mountedRef.current) return;
-        setDelivery(prev => prev ? { ...prev, ...data } : data);
-      } catch {}
-    }, 15000);
-    return () => clearInterval(pollRef.current);
-  }, [delicode]);
+// ── Remove these two separate effects entirely ────────────────────────────────
+// (the status polling useEffect and the location polling useEffect)
+// Replace with this single unified one:
 
-  // ── Live deliverer location ───────────────────────────────────────────────
-  useEffect(() => {
-    if (!delivery || !delicode || ['completed', 'cancelled'].includes(rideStatus)) return;
+useEffect(() => {
+  if (!delivery?.id) return;
 
-    const updateLoc = async () => {
-      if (!mountedRef.current) return;
-      try {
-        const raw = await getDelivererLocationPublic(delicode);
-        const loc = normalizeCoords(raw);
-        if (!loc || !mountedRef.current) return;
+  const poll = async () => {
+    if (!mountedRef.current) return;
+    try {
+      const res = await trackDeliveryById(delivery.id);
+      if (!res || !mountedRef.current) return;
 
+      const { delivery: d, deliverer, tracking } = res;
+
+      // ── Update delivery status ────────────────────────────────────────
+      if (d) {
+        setDelivery(prev => prev ? { ...prev, ...d } : d);
+      }
+
+      // ── Update deliverer location ─────────────────────────────────────
+      const rawLoc = deliverer?.currentLocation;
+      const loc    = normalizeCoords(rawLoc);
+
+      if (loc) {
         setDelivererLoc(loc);
         mapControlsRef.current?.updateDriverLocation(loc);
+      }
 
-        const etaDest = rideStatus === 'accepted'
-          ? normalizeCoords(delivery.pickupLocation)
-          : normalizeCoords(delivery.dropoffLocation);
-        if (etaDest) {
-          const km = haversine(loc, etaDest);
-          if (mountedRef.current) { setDistance(km); setEta(estimateMins(km)); }
-        }
+      // ── Update ETA and distance from backend calculation ──────────────
+      if (tracking?.eta) {
+        const mins = parseInt(tracking.eta);
+        if (!isNaN(mins)) setEta(mins);
+      }
+      if (tracking?.distance) {
+        const km = parseFloat(tracking.distance);
+        if (!isNaN(km)) setDistance(km);
+      }
 
-        if (rideStatus === 'accepted' && routeStatusRef.current !== 'accepted') {
-          routeStatusRef.current = 'accepted';
-          setRoutePickup(loc);
-          setRouteDropoff(normalizeCoords(delivery.pickupLocation));
-          setRouteReady(true);
-        }
-        if (rideStatus === 'passenger_onboard' && routeStatusRef.current !== 'passenger_onboard') {
-          routeStatusRef.current = 'passenger_onboard';
-          setRoutePickup(loc);
-          setRouteDropoff(normalizeCoords(delivery.dropoffLocation));
-          setRouteReady(true);
-        }
-      } catch {}
-    };
+      // ── Update route lines on status change ───────────────────────────
+      const status = d?.rideStatus ?? delivery.rideStatus;
 
-    updateLoc();
-    locPollRef.current = setInterval(updateLoc, 5000);
-    return () => clearInterval(locPollRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [delicode, rideStatus, delivery?.deliverer?.id]);
+      if (loc && status === 'accepted' && routeStatusRef.current !== 'accepted') {
+        routeStatusRef.current = 'accepted';
+        setRoutePickup(loc);
+        setRouteDropoff(normalizeCoords(d?.pickupLocation ?? delivery.pickupLocation));
+        setRouteReady(true);
+      }
+      if (loc && status === 'passenger_onboard' && routeStatusRef.current !== 'passenger_onboard') {
+        routeStatusRef.current = 'passenger_onboard';
+        setRoutePickup(loc);
+        setRouteDropoff(normalizeCoords(d?.dropoffLocation ?? delivery.dropoffLocation));
+        setRouteReady(true);
+      }
 
+    } catch {}
+  };
+
+  // Poll immediately then every 8 seconds
+  poll();
+  pollRef.current = setInterval(poll, 8000);
+  return () => clearInterval(pollRef.current);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [delivery?.id]);
   const markers    = useMemo(() => [], []);
   const curStep    = STATUS_STEPS.find(s => s.status === rideStatus) ?? STATUS_STEPS[0];
   const bannerColor = rideStatus === 'accepted' ? '#10B981' : AMBER;

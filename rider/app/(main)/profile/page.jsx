@@ -229,7 +229,7 @@ export default function ProfilePage() {
     {
       title: 'Rewards & Promotions',
       items: [
-        { icon: <ReferralIcon sx={{ fontSize: 18 }} />, label: 'Refer & Earn', action: () => router.push('/profile/referrals'), badge: user?.affiliateProfile?.pointsBalance || 0 },
+        { icon: <ReferralIcon sx={{ fontSize: 18 }} />, label: 'Refer & Earn', action: () => router.push('/affiliate'), badge: user?.affiliateProfile?.pointsBalance || 0 },
         { icon: <PromoIcon sx={{ fontSize: 18 }} />, label: 'Promo Codes', action: () => router.push('/profile/promo-codes') },
       ],
     },
@@ -519,6 +519,22 @@ export default function ProfilePage() {
                               onChange={(e) => item.onChange(e.target.checked)}
                               onClick={(e) => e.stopPropagation()}
                               size="small"
+                              sx={{
+                                '& .MuiSwitch-switchBase.Mui-checked': {
+                                  color: '#fff',
+                                },
+                                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                  backgroundColor: '#FFC107',
+                                  opacity: 1,
+                                },
+                                '& .MuiSwitch-track': {
+                                  borderRadius: 22,
+                                  opacity: isDark ? 0.3 : 0.25,
+                                },
+                                '& .MuiSwitch-thumb': {
+                                  boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                                },
+                              }}
                             />
                           ) : (
                             <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled' }} />

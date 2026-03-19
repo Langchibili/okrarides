@@ -34,6 +34,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
+import useAdminSettings from '@/lib/hooks/useAdminSettings';
+
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const POLL_INTERVAL_MS = 3_000;
@@ -335,7 +337,7 @@ function WithdrawOverlay({ open, amount, currency, phoneCode, acceptedMM, onClos
   if (!open) return null;
 
   return (
-    <Box sx={{ position: 'fixed', inset: 0, zIndex: 1300, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-end' }}>
+    <Box sx={{ height: '100vh', overflow: 'hidden', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>
       <motion.div
         initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 32 }}
@@ -476,6 +478,7 @@ export default function AffiliateDashboard() {
   const [withdrawAmt,  setWithdrawAmt]  = useState('');
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [withdrawErr,  setWithdrawErr]  = useState('');
+  const { isAffiliateSystemEnabled } = useAdminSettings();
 
   // ── Fetch dashboard data ─────────────────────────────────────────────────
   useEffect(() => {
@@ -487,6 +490,8 @@ export default function AffiliateDashboard() {
           apiClient.get('/affiliate/dashboard'),
           apiClient.get('/affiliate/transactions?pageSize=20'),
         ]);
+        const res = await apiClient.get('/affiliate/dashboard')
+        console.log('res',res)
         setData(dash?.data);
         setTxs(txRes?.data || []);
       } catch (err) {
@@ -548,7 +553,7 @@ export default function AffiliateDashboard() {
   }
 
   // ── Affiliate system disabled ─────────────────────────────────────────────
-  if (!data?.affiliateSystemEnabled) {
+  if (!isAffiliateSystemEnabled) {
     return (
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         <AppBar position="static" elevation={0} sx={{ background: 'linear-gradient(135deg,#14532d,#15803d)' }}>
@@ -564,7 +569,7 @@ export default function AffiliateDashboard() {
           </Typography>
         </Box>
       </Box>
-    );
+    )
   }
 
   // ── Derived values ───────────────────────────────────────────────────────
@@ -595,8 +600,16 @@ export default function AffiliateDashboard() {
       </AppBar>
 
       {/* ── Body ────────────────────────────────────────────────────────── */}
-      <Box sx={{ flex: 1, overflowY: 'auto', pb: 10, ...hideScrollbar }}>
-
+      <Box sx={{
+        position: 'absolute',
+        top: 64,        // AppBar height
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflowY: 'auto',
+        pb: 10,
+        ...hideScrollbar,
+        }}>
         {/* Blocked banner */}
         <AnimatePresence>
           {profile.blocked && (

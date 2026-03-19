@@ -259,6 +259,7 @@ const CLEAN_INPUT_SX = {
     p: '0 !important',
     fontSize: '0.9rem',
     fontWeight: 500,
+    color: 'inherit',   // ← add this line
   },
 };
 
@@ -360,6 +361,7 @@ export default function HomePage() {
     requestRide,
     getTaxiTypes,
     getRideClasses,
+    activeRide
   } = useRide();
 
   // ── NEW: theme + landing url ──────────────────────────────────────────────
@@ -367,7 +369,6 @@ export default function HomePage() {
   const isDark = theme.palette.mode === 'dark';
   const { toggleTheme } = useThemeMode();
   const [landingPageUrl, setLandingPageUrl] = useState(null);
-  const { setAccentColor } = useThemeMode()
 
   useEffect(() => {
     const getFrontendUrl = async () => {
@@ -416,7 +417,7 @@ export default function HomePage() {
   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
   useEffect(() => {
-    skeletonTimerRef.current = setTimeout(() => setShowModalSkeleton(false), 5000);
+    skeletonTimerRef.current = setTimeout(() => setShowModalSkeleton(false), 2500);
     return () => { if (skeletonTimerRef.current) clearTimeout(skeletonTimerRef.current); };
   }, []);
 
@@ -522,6 +523,20 @@ export default function HomePage() {
     fetchAndApplyNativeLocation();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+   useEffect(() => {
+      if (activeRide) {
+        const { rideStatus, id } = activeRide;
+  
+        if (rideStatus === 'pending') {
+          router.push(`/finding-driver?rideId=${id}`);
+        } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
+          router.push(`/tracking?rideId=${id}`);
+        } else if (rideStatus === 'completed') {
+          router.push(`/trip-summary?rideId=${id}`);
+        }
+      }
+    }, [activeRide, router]);
 
   useEffect(() => {
     const load = async () => {
@@ -840,8 +855,12 @@ export default function HomePage() {
                           {rideError && <Alert severity="error" sx={{ mb: 1.5, borderRadius: 2 }}>{rideError}</Alert>}
                           <Box sx={{ mb: 0.75 }}>
                             <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, transition: 'color 0.2s ease', color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)' }}>Pickup</Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.88)', minHeight: 52, width: '100%', maxWidth: '100%', boxSizing: 'border-box', transition: 'all 0.22s ease', overflow: 'hidden' }}>
-                              <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup' ? 'rgba(255,193,7,0.08)' : 'rgba(255,255,255,0.15)', transition: 'all 0.22s ease' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup'
+  ? (isDark ? '#1E293B' : 'white')
+  : (isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.88)'), minHeight: 52, width: '100%', maxWidth: '100%', boxSizing: 'border-box', transition: 'all 0.22s ease', overflow: 'hidden' }}>
+                              <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup'
+  ? 'rgba(255,193,7,0.12)'
+  : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.15)'), transition: 'all 0.22s ease' }}>
                                 <PersonIcon sx={{ fontSize: 19, color: focusedInput === 'pickup' ? 'primary.main' : pickupLocation ? 'success.main' : 'rgba(0,0,0,0.4)', transition: 'color 0.22s ease' }} />
                               </Box>
                               <Box sx={{ flex: 1, px: 1.5, py: 1, display: 'flex', alignItems: 'center', cursor: 'text', minWidth: 0 }} onClick={() => { if (pickupChipVisible) { setPickupChipVisible(false); handleInputFocus('pickup'); } }}>
@@ -865,8 +884,20 @@ export default function HomePage() {
                           </Box>
                           <Box>
                             <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, transition: 'color 0.2s ease', color: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.65)' }}>Destination</Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.88)', minHeight: 52, width: '100%', maxWidth: '100%', boxSizing: 'border-box', transition: 'all 0.22s ease', overflow: 'hidden' }}>
-                              <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'dropoff' ? 'rgba(255,193,7,0.08)' : 'rgba(255,255,255,0.15)', transition: 'all 0.22s ease' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff'
+                                ? (isDark ? '#1E293B' : 'white')
+                                : (isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.88)'), minHeight: 52, width: '100%', maxWidth: '100%', boxSizing: 'border-box', transition: 'all 0.22s ease', overflow: 'hidden' }}>
+                                                            <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', color: focusedInput === 'pickup'
+                                ? 'primary.main'
+                                : pickupLocation
+                                  ? 'success.main'
+                                  : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'),
+
+                              color: focusedInput === 'dropoff'
+                                ? 'primary.main'
+                                : dropoffLocation
+                                  ? 'error.main'
+                                  : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'all 0.22s ease' }}>
                                 <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? 'primary.main' : dropoffLocation ? 'error.main' : 'rgba(0,0,0,0.4)', transition: 'color 0.22s ease' }} />
                               </Box>
                               <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
@@ -898,10 +929,10 @@ export default function HomePage() {
                                 <AccessTimeIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
                               </Box>
                               <List disablePadding>
-                                {recentLocations.map((loc, index) => (
+                                {recentLocations.slice(0, 2).map((loc, index) => (
                                   <motion.div key={`${loc.placeId}-${index}`} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.04, duration: 0.2 }}>
                                     <ListItem onClick={() => handleSelectRecentLocation(loc)} sx={{ py: 1, px: 1.5, borderRadius: 2, mb: 0.5, cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { bgcolor: 'action.hover', transform: 'translateX(3px)' }, '&:active': { transform: 'translateX(1px)' }, '&:focus': { outline: 'none' } }}>
-                                      <ListItemIcon sx={{ minWidth: 36, width: 36, height: 36, borderRadius: '50%', bgcolor: 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1.5, flexShrink: 0 }}>
+                                      <ListItemIcon sx={{ minWidth: 36, width: 36, height: 36, borderRadius: '50%', bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1.5, flexShrink: 0 }}>
                                         <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                                       </ListItemIcon>
                                       <ListItemText primary={loc.name || loc.address?.split(',')[0]} secondary={loc.name && loc.name !== loc.address ? loc.address : null} primaryTypographyProps={{ fontWeight: 600, fontSize: '0.875rem', noWrap: true }} secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary', noWrap: true }} />
@@ -913,7 +944,116 @@ export default function HomePage() {
                           </motion.div>
                         )}
                       </AnimatePresence>
+                      {/* ── Send a Package CTA ── */}
+                    <Box sx={{ px: 2.5, pt: 1, pb: 3 }}>
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15, type: 'spring', stiffness: 280, damping: 24 }}
+                      >
+                        <Box
+                          onClick={() => router.push('/deliveries/send')}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            px: 2.5,
+                            py: 1.75,
+                            borderRadius: 3,
+                            cursor: 'pointer',
+                            border: `1.5px solid ${alpha(GREEN, 0.35)}`,
+                            background: `linear-gradient(135deg, ${alpha(GREEN, 0.08)} 0%, ${alpha(GREEN, 0.03)} 100%)`,
+                            transition: 'all 0.2s cubic-bezier(0.34,1.3,0.64,1)',
+                            '&:hover': {
+                              border: `1.5px solid ${alpha(GREEN, 0.65)}`,
+                              background: `linear-gradient(135deg, ${alpha(GREEN, 0.14)} 0%, ${alpha(GREEN, 0.06)} 100%)`,
+                              transform: 'translateX(3px)',
+                            },
+                            '&:active': { transform: 'scale(0.97)' },
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Box sx={{
+                              width: 36, height: 36, borderRadius: 2,
+                              bgcolor: alpha(GREEN, 0.15),
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 18,
+                            }}>
+                              📦
+                            </Box>
+                            <Box>
+                              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'text.primary', lineHeight: 1.2 }}>
+                                Send a Package
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                Fast &amp; reliable delivery
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          {/* Arrow chevron */}
+                          <Box sx={{
+                            display: 'flex', alignItems: 'center', gap: 0.25,
+                            color: GREEN, fontWeight: 900, fontSize: 18,
+                          }}>
+                            <Box sx={{
+                              width: 28, height: 28, borderRadius: '50%',
+                              bgcolor: alpha(GREEN, 0.12),
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 18l6-6-6-6" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </motion.div>
+
+                      {/* ── Person + package graphic ── */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25, type: 'spring', stiffness: 240, damping: 22 }}
+                      >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 2.5, pb: 1, gap: 1 }}>
+                          {/* SVG illustration — person holding a package */}
+                          <svg width="110" height="96" viewBox="0 0 110 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Shadow */}
+                            <ellipse cx="55" cy="91" rx="28" ry="5" fill={alpha(GREEN, 0.12)} />
+                            {/* Body */}
+                            <rect x="38" y="52" width="22" height="28" rx="6" fill={alpha(GREEN, 0.25)} />
+                            {/* Head */}
+                            <circle cx="49" cy="38" r="11" fill="#FBBF24" />
+                            {/* Eyes */}
+                            <circle cx="45.5" cy="37" r="1.5" fill="#1E293B" />
+                            <circle cx="52.5" cy="37" r="1.5" fill="#1E293B" />
+                            {/* Smile */}
+                            <path d="M45.5 41.5 Q49 44 52.5 41.5" stroke="#1E293B" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+                            {/* Left arm */}
+                            <path d="M38 60 Q28 58 26 66" stroke={alpha(GREEN, 0.55)} strokeWidth="5" strokeLinecap="round"/>
+                            {/* Right arm — holding package */}
+                            <path d="M60 58 Q70 54 72 60" stroke={alpha(GREEN, 0.55)} strokeWidth="5" strokeLinecap="round"/>
+                            {/* Package */}
+                            <rect x="67" y="56" width="22" height="20" rx="4" fill={GREEN} />
+                            <rect x="67" y="56" width="22" height="20" rx="4" stroke={alpha('#000', 0.08)} strokeWidth="1" />
+                            {/* Package ribbon H */}
+                            <line x1="78" y1="56" x2="78" y2="76" stroke="white" strokeWidth="2" opacity="0.6"/>
+                            {/* Package ribbon V */}
+                            <line x1="67" y1="66" x2="89" y2="66" stroke="white" strokeWidth="2" opacity="0.6"/>
+                            {/* Bow */}
+                            <path d="M75 56 Q78 52 81 56" stroke="white" strokeWidth="1.5" fill="none" opacity="0.7"/>
+                            {/* Legs */}
+                            <rect x="41" y="78" width="7" height="14" rx="3.5" fill={alpha(GREEN, 0.3)} />
+                            <rect x="50" y="78" width="7" height="14" rx="3.5" fill={alpha(GREEN, 0.3)} />
+                          </svg>
+
+                          <Typography variant="caption" color="text.disabled" sx={{ fontWeight: 600, textAlign: 'center', fontSize: '0.7rem' }}>
+                            Door-to-door delivery, anytime
+                          </Typography>
+                        </Box>
+                      </motion.div>
                     </Box>
+                     </Box>
                   </motion.div>
                 )}
               </AnimatePresence>

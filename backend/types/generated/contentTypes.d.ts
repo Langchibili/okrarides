@@ -549,6 +549,8 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
     negativeFloatLimit: Schema.Attribute.Decimal &
       Schema.Attribute.DefaultTo<0>;
     okrapayEnabled: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    overideOtpCode: Schema.Attribute.String &
+      Schema.Attribute.DefaultTo<'121212'>;
     paymentSystemType: Schema.Attribute.Enumeration<
       ['float_based', 'subscription_based', 'hybrid']
     > &

@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-19T02:14:10.934Z"
+    "x-generation-date": "2026-03-19T08:22:47.617Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -13491,6 +13491,87 @@
         ],
         "parameters": [],
         "operationId": "post/driver/toggle-online",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DriverRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/driver/toggle-offline": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Driver"
+        ],
+        "parameters": [],
+        "operationId": "post/driver/toggle-offline",
         "requestBody": {
           "required": true,
           "content": {
@@ -35158,6 +35239,9 @@
               "autoApproveDeliverers": {
                 "type": "boolean"
               },
+              "overideOtpCode": {
+                "type": "string"
+              },
               "locale": {
                 "type": "string"
               },
@@ -36105,6 +36189,9 @@
           "autoApproveDeliverers": {
             "type": "boolean"
           },
+          "overideOtpCode": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -36498,6 +36585,9 @@
                 },
                 "autoApproveDeliverers": {
                   "type": "boolean"
+                },
+                "overideOtpCode": {
+                  "type": "string"
                 },
                 "createdAt": {
                   "type": "string",

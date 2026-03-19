@@ -262,7 +262,7 @@ export default function LoginPage() {
       return;
     }
     
-    const fullPhone = `${selectedCountry.phoneCode}${cleanPhone}`;
+    const fullPhone = `${selectedCountry.phoneCode.replace('+', '')}${cleanPhone}`;
     
     try {
       setLoading(true);
@@ -447,7 +447,7 @@ export default function LoginPage() {
       )}
 
       {/* Spacer */}
-      <Box sx={{ flex: 1 }} />
+      <Box sx={{ flex: 0.5 }} />
       
       {/* Actions for country selection */}
       {step === 0 && !countriesLoading && (

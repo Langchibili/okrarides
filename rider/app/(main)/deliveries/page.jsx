@@ -19,6 +19,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDeliveryHistory } from '@/lib/api/deliveries';
 import { formatCurrency, formatDate, getRelativeTime, formatDateTime } from '@/Functions';
+import useDeliveryBooking from '@/lib/hooks/useDeliveryBooking';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
 
@@ -180,7 +181,6 @@ export default function DeliveriesPage() {
   const router  = useRouter();
   const theme   = useTheme();
   const isDark  = theme.palette.mode === 'dark';
-
   const [activeTab, setActiveTab]       = useState(0);
   const [deliveries, setDeliveries]     = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -189,6 +189,7 @@ export default function DeliveriesPage() {
   const [hasMore, setHasMore]           = useState(true);
   const sentinelRef                     = useRef(null);
   const fetchingRef                     = useRef(false);
+const {  currentDelivery } = useDeliveryBooking();
 
   const currentFilter = STATUS_FILTERS[activeTab].value;
 
@@ -219,6 +220,20 @@ export default function DeliveriesPage() {
       fetchingRef.current = false;
     }
   }, [currentFilter]);
+
+  useEffect(() => {
+    if (currentDelivery) {
+        const { rideStatus, id } = currentDelivery;
+
+        if (rideStatus === 'pending') {
+        router.push(`/deliveries/finding-deliverer?id=${id}`)
+        } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
+        router.push(`/deliveries/${id}/tracking`);
+        } else if (rideStatus === 'completed') {
+        router.push(`/deliveries/${id}`);
+        }
+    }
+  }, [currentDelivery, router]);
 
   useEffect(() => { setPage(1); setHasMore(true); load(1); }, [activeTab]);
 

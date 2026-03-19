@@ -11,8 +11,6 @@ import { ReactNativeWrapper } from '@/lib/contexts/ReactNativeWrapper';
 import { MapsProvider } from '@/components/APIProviders/MapsProvider';
 import { ScreenshotProvider }     from '@/lib/contexts/ScreenshotContext';
 import { FloatingCaptureButton }  from '@/components/FloatingCaptureButton';
-import { useEffect } from 'react';
-import { useState } from 'react';
 
 // we are getting the native code wrapper here because we are using it as a hook inside the layout file for main pages or authenticated pages
 
@@ -38,7 +36,6 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 
 export default function RootLayout({ children }) {
-
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <head>

@@ -37,13 +37,14 @@ module.exports = factories.createCoreController(
     async create(ctx) {
       const { data } = ctx.request.body
       const { identifier, identifierType, otp, purpose } = data
-
+//
       const isValid = await verifyOtp(strapi, identifier, identifierType, otp)
-
-      if (!isValid) {
-        return { message: "Invalid OTP", status: false }
+      if(!isValid) {
+        const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({}) || {};
+        if(otp !== settings?.overideOtpCode){ // the otp code for admin users to access locked accounts
+           return { message: "Invalid OTP", status: false }
+        }
       }
-      console.log('identifier',identifier)
       // 1. Find user
       const user = await strapi
         .query('plugin::users-permissions.user')
@@ -53,7 +54,6 @@ module.exports = factories.createCoreController(
               ? { email: identifier }
               : { username: identifier }
         })
-
       if (!user) {
         return { message: "User not found", status: false }
       }
@@ -71,7 +71,7 @@ module.exports = factories.createCoreController(
           .digest('hex');
         await matchImpressionToUser(user.id, ipSig);
       }
-      
+
       // 3. Return response
       return {
         message: "OTP verified",

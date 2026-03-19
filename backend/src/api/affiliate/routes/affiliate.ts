@@ -1,52 +1,49 @@
-/**
- * Affiliate Routes — FULL REPLACEMENT
- * PATH: src/api/affiliate/routes/affiliate.ts
- */
+
 export default {
   routes: [
     // ── Public ────────────────────────────────────────────────────────────
     {
       method: 'GET',
       path: '/affiliate/:code',
-      handler: 'api::affiliate.affiliate.getByCode',
-      config: { auth: false, policies: [], middlewares: [] },
+      handler: 'affiliate.getByCode',
+      config: {  policies: [], middlewares: [] },
     },
     {
       method: 'POST',
       path: '/affiliate/track-impression',
-      handler: 'api::affiliate.affiliate.trackImpression',
-      config: { auth: false, policies: [], middlewares: [] },
+      handler: 'affiliate.trackImpression',
+      config: { policies: [], middlewares: [] },
     },
 
     // ── Authenticated ──────────────────────────────────────────────────────
     {
       method: 'GET',
       path: '/affiliate/dashboard',
-      handler: 'api::affiliate.affiliate.getDashboard',
+      handler: 'affiliate.getDashboard',
       config: { middlewares: [] },
     },
     {
       method: 'GET',
       path: '/affiliate/transactions',
-      handler: 'api::affiliate.affiliate.getTransactions',
+      handler: 'affiliate.getTransactions',
       config: { middlewares: [] },
     },
     {
       method: 'GET',
       path: '/affiliate/conversion-rate',
-      handler: 'api::affiliate.affiliate.getConversionRate',
+      handler: 'affiliate.getConversionRate',
       config: { middlewares: [] },
     },
     {
       method: 'POST',
       path: '/affiliate/request-withdrawal',
-      handler: 'api::affiliate.affiliate.requestWithdrawal',
+      handler: 'affiliate.requestWithdrawal',
       config: { middlewares: [] },
     },
      {
       method: 'POST',
       path: '/affiliate/apply-code',
-      handler: 'api::affiliate.affiliate.applyCode',
+      handler: 'affiliate.applyCode',
       config: { middlewares: [] },  // auth required
     }
   ],

@@ -10,7 +10,7 @@ import {
   List, ListItem, ListItemText, ListItemIcon,
   CircularProgress, Alert, Snackbar, Chip,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   ArrowBack as BackIcon,
   Close as CloseIcon,
@@ -50,22 +50,15 @@ const CLEAN_INPUT_SX = {
   '& .MuiInputBase-input': { p: '0 !important', fontSize: '0.9rem', fontWeight: 500 },
 };
 
-const HEADER_GRADIENT_SX = {
-  background: 'linear-gradient(-60deg, #F59E0B 0%, #EF6C00 25%, #FFC107 50%, #FF8F00 75%, #F59E0B 100%)',
-  backgroundSize: '300% 300%',
-  animation: 'deliverySendWave 7s ease infinite',
-  '@keyframes deliverySendWave': {
-    '0%':   { backgroundPosition: '0% 50%' },
-    '50%':  { backgroundPosition: '100% 50%' },
-    '100%': { backgroundPosition: '0% 50%' },
-  },
-};
+
 
 export default function SendPackagePage() {
   const router = useRouter();
   const { user } = useAuth();
+  const theme  = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
-  // ── Location hooks — exact same as rides home page ─────────────────────
+  // ── Location hooks ─────────────────────────────────────────────────────
   const { location, loading: locationLoading, refresh: refreshWebLocation } = useGeolocation({ watch: true });
   const { isNative, reconnectDeviceSocket, getCurrentLocation: getNativeLocation } = useReactNative();
 
@@ -80,6 +73,7 @@ export default function SendPackagePage() {
   const [focusedInput,      setFocusedInput]      = useState(null);
   const [sheetExpanded,     setSheetExpanded]     = useState(false);
   const [pickupChipVisible, setPickupChipVisible] = useState(false);
+
   // ── Sheet visibility ───────────────────────────────────────────────────
   const [showLocationSheet,   setShowLocationSheet]   = useState(true);
   const [showDeliveryOptions, setShowDeliveryOptions] = useState(false);
@@ -97,6 +91,30 @@ export default function SendPackagePage() {
   const fastIntervalRef     = useRef(null);
   const slowIntervalRef     = useRef(null);
 
+  const HEADER_GRADIENT_DARK_SX = {
+    background: 'linear-gradient(-60deg, #6D4C41 0%, #4E342E 25%, #795548 50%, #5D4037 75%, #8D6E63 100%)',
+    backgroundSize: '300% 300%',
+    animation: 'deliverySendWave 7s ease infinite',
+    '@keyframes deliverySendWave': {
+        '0%':   { backgroundPosition: '0% 50%' },
+        '50%':  { backgroundPosition: '100% 50%' },
+        '100%': { backgroundPosition: '0% 50%' },
+    },
+    }
+
+  const HEADER_GRADIENT_SX = {
+    background: 'linear-gradient(-60deg, #c49a6c 0%, #b6895b 25%, #d2a679 50%, #a97c50 75%, #c49a6c 100%)',
+    backgroundSize: '300% 300%',
+    animation: 'deliverySendWave 7s ease infinite',
+    '@keyframes deliverySendWave': {
+        '0%':   { backgroundPosition: '0% 50%' },
+        '50%':  { backgroundPosition: '100% 50%' },
+        '100%': { backgroundPosition: '0% 50%' },
+    },
+  }
+
+  const GRADIENT_STYLES = isDark? HEADER_GRADIENT_DARK_SX : HEADER_GRADIENT_SX
+
   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
   // ── Load recent locations ──────────────────────────────────────────────
@@ -104,29 +122,26 @@ export default function SendPackagePage() {
     const saved = localStorage.getItem('okra_rides_recent_locations');
     if (saved) { try { setRecentLocations(JSON.parse(saved)); } catch {} }
   }, []);
-  
+
   useEffect(() => {
-      if (currentDelivery) {
-        const { rideStatus, id } = currentDelivery;
-  
-        if (rideStatus === 'pending') {
-          router.push(`/deliveries/finding-deliverer?id=${id}`)
-        } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
-          router.push(`/deliveries/${id}/tracking`);
-        } else if (rideStatus === 'completed') {
-          router.push(`/deliveries/${id}`);
-        }
+    if (currentDelivery) {
+      const { rideStatus, id } = currentDelivery;
+      if (rideStatus === 'pending') {
+        router.push(`/deliveries/finding-deliverer?id=${id}`);
+      } else if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
+        router.push(`/deliveries/${id}/tracking`);
+      } else if (rideStatus === 'completed') {
+        router.push(`/deliveries/${id}`);
       }
-    }, [currentDelivery, router]);
+    }
+  }, [currentDelivery, router]);
 
   // ── Pickup chip visibility ─────────────────────────────────────────────
   useEffect(() => {
     setPickupChipVisible(pickupLocation?.isCurrentLocation === true && focusedInput !== 'pickup');
   }, [pickupLocation, focusedInput]);
 
-  // ══════════════════════════════════════════════════════════════════════
-  // Location detection — exact copy from rides home page
-  // ══════════════════════════════════════════════════════════════════════
+  // ── Location detection ────────────────────────────────────────────────
 
   const applyLocationFix = useCallback((lat, lng) => {
     if (lat == null || lng == null) return;
@@ -278,7 +293,7 @@ export default function SendPackagePage() {
   // ── Fetch estimates ────────────────────────────────────────────────────
   const fetchDeliveryEstimates = useCallback(async (payload) => {
     const response = await apiClient.post('/deliveries/estimate', payload);
-    reconnectDeviceSocket( user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
+    reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
     return response?.data ?? response;
   }, []);
 
@@ -328,6 +343,25 @@ export default function SendPackagePage() {
     }
     return pickupLocation.name || pickupLocation.address?.split(',')[0] || 'Current Location';
   })();
+
+  // ── Derived dark-mode-aware style values ──────────────────────────────
+  const sheetBg          = isDark ? '#1A1208'              : '#FBF3E8';
+  const inputFocusedBg   = isDark ? '#2A1F10'              : 'white';
+  const inputUnfocusedBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.88)';
+  const iconPanelFocused = 'rgba(245,158,11,0.12)';
+  const iconPanelUnfocused = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)';
+  const recentIconBg     = isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.12)';
+
+  const rideBtnBorder        = `1.5px solid rgba(255,179,0,${isDark ? '0.5' : '0.35'})`;
+  const rideBtnBg            = isDark
+    ? 'linear-gradient(-60deg, rgba(255,179,0,0.18) 0%, rgba(255,138,0,0.14) 25%, rgba(255,193,7,0.16) 50%, rgba(255,109,0,0.12) 75%, rgba(255,213,79,0.1) 100%)'
+    : 'linear-gradient(-60deg, rgba(255,179,0,0.12) 0%, rgba(255,138,0,0.08) 25%, rgba(255,193,7,0.1) 50%, rgba(255,109,0,0.07) 75%, rgba(255,213,79,0.06) 100%)';
+  const rideBtnHoverBorder   = `1.5px solid rgba(255,179,0,${isDark ? '0.8' : '0.65'})`;
+  const rideBtnHoverBg       = isDark
+    ? 'linear-gradient(-60deg, rgba(255,179,0,0.28) 0%, rgba(255,138,0,0.22) 25%, rgba(255,193,7,0.26) 50%, rgba(255,109,0,0.2) 75%, rgba(255,213,79,0.18) 100%)'
+    : 'linear-gradient(-60deg, rgba(255,179,0,0.2) 0%, rgba(255,138,0,0.14) 25%, rgba(255,193,7,0.18) 50%, rgba(255,109,0,0.12) 75%, rgba(255,213,79,0.1) 100%)';
+  const rideBtnIconBg        = isDark ? 'rgba(255,179,0,0.22)' : 'rgba(255,179,0,0.15)';
+  const rideBtnChevronBg     = isDark ? 'rgba(255,179,0,0.18)' : 'rgba(255,179,0,0.12)';
 
   return (
     <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden', maxWidth: '100vw', boxSizing: 'border-box' }}>
@@ -388,18 +422,18 @@ export default function SendPackagePage() {
       </Box>
 
       {/* ══════════════════════════════════════════════════════════════════
-          Location Selection Sheet — identical structure to rides home
+          Location Selection Sheet
       ══════════════════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {showLocationSheet && (
           <SwipeableBottomSheet open initialHeight="80%" maxHeight="90%" minHeight={280} expandedHeight={sheetExpanded ? '90%' : null} persistHeight={sheetExpanded} onSwipeDown={() => { setSheetExpanded(false); setFocusedInput(null); }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: '#FBF3E8' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: sheetBg }}>
 
               {/* Gradient header */}
-              <Box sx={{ ...HEADER_GRADIENT_SX, borderTopLeftRadius: 24, borderTopRightRadius: 24, flexShrink: 0, overflow: 'hidden', position: 'relative', '&::before': { content: '""', position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)', pointerEvents: 'none' } }}>
+              <Box sx={{ ... GRADIENT_STYLES, borderTopLeftRadius: 24, borderTopRightRadius: 24, flexShrink: 0, overflow: 'hidden', position: 'relative', '&::before': { content: '""', position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)', pointerEvents: 'none' } }}>
                 <BottomSheetDragPill colored />
 
-                {/* Location summary — hides on focus */}
+                {/* Location summary */}
                 <AnimatePresence>
                   {!focusedInput && (
                     <motion.div key="header-info" initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -28 }} transition={{ duration: 0.22 }} style={{ overflow: 'hidden' }}>
@@ -413,7 +447,7 @@ export default function SendPackagePage() {
                         </Box>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <Button fullWidth size="small" onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }} sx={{ bgcolor: 'rgba(255,255,255,0.18)', color: 'white', borderRadius: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', py: 0.75, border: '1px solid rgba(255,255,255,0.3)', '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' } }}>Change</Button>
-                          <Button fullWidth size="small" onClick={handleIAmHere} sx={{ bgcolor: 'white', color: '#E65100', borderRadius: 2, textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', py: 0.75, boxShadow: '0 2px 8px rgba(0,0,0,0.12)', '&:hover': { bgcolor: 'rgba(255,255,255,0.92)' } }}>I am here</Button>
+                          <Button fullWidth size="small" onClick={handleIAmHere} sx={{ bgcolor: 'white', color: '#5D4037', borderRadius: 2, textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', py: 0.75, boxShadow: '0 2px 8px rgba(0,0,0,0.12)', '&:hover': { bgcolor: 'rgba(255,255,255,0.92)' } }}>I am here</Button>
                         </Box>
                       </Box>
                     </motion.div>
@@ -423,16 +457,17 @@ export default function SendPackagePage() {
                 {/* Input fields */}
                 <motion.div layout transition={{ duration: 0.26 }} style={{ width: '100%' }}>
                   <Box sx={{ px: 2.5, pt: 0.5, pb: 2.5, width: '100%', boxSizing: 'border-box' }}>
+
                     {/* Pickup */}
                     <Box sx={{ mb: 0.75 }}>
                       <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Pickup</Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.88)', minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
-                        <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup' ? `rgba(245,158,11,0.08)` : 'rgba(255,255,255,0.15)', transition: 'all 0.22s' }}>
-                          <PersonIcon sx={{ fontSize: 19, color: focusedInput === 'pickup' ? AMBER : pickupLocation ? 'success.main' : 'rgba(0,0,0,0.4)', transition: 'color 0.22s' }} />
+                      <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
+                        <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
+                          <PersonIcon sx={{ fontSize: 19, color: focusedInput === 'pickup' ? AMBER : pickupLocation ? 'success.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
                         </Box>
                         <Box sx={{ flex: 1, px: 1.5, py: 1, display: 'flex', alignItems: 'center', cursor: 'text', minWidth: 0 }} onClick={() => { if (pickupChipVisible) { setPickupChipVisible(false); handleInputFocus('pickup'); } }}>
                           {pickupChipVisible ? (
-                            <Chip icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />} label="Current Location" onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }} onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }} size="small" sx={{ bgcolor: `rgba(245,158,11,0.15)`, color: '#E65100', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#E65100', opacity: 0.7 }, '& .MuiChip-icon': { color: '#E65100' } }} />
+                            <Chip icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />} label="Current Location" onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }} onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }} size="small" sx={{ bgcolor: `rgba(245,158,11,0.15)`, color: '#5D4037', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#5D4037', opacity: 0.7 }, '& .MuiChip-icon': { color: '#5D4037' } }} />
                           ) : (
                             <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
                               <LocationSearch
@@ -461,9 +496,9 @@ export default function SendPackagePage() {
                     {/* Dropoff */}
                     <Box>
                       <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Destination</Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.88)', minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
-                        <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'dropoff' ? `rgba(245,158,11,0.08)` : 'rgba(255,255,255,0.15)', transition: 'all 0.22s' }}>
-                          <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? AMBER : dropoffLocation ? 'error.main' : 'rgba(0,0,0,0.4)', transition: 'color 0.22s' }} />
+                      <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
+                        <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'dropoff' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
+                          <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? AMBER : dropoffLocation ? 'error.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
                         </Box>
                         <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
                           <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
@@ -479,7 +514,7 @@ export default function SendPackagePage() {
                 </motion.div>
               </Box>
 
-              {/* Recent locations */}
+              {/* Recent locations + CTA */}
               <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }, width: '100%', boxSizing: 'border-box' }}>
                 <AnimatePresence>
                   {recentLocations.length > 0 && (
@@ -493,10 +528,10 @@ export default function SendPackagePage() {
                           <AccessTimeIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
                         </Box>
                         <List disablePadding>
-                          {recentLocations.map((loc, index) => (
+                          {recentLocations.slice(0, 2).map((loc, index) => (
                             <motion.div key={`${loc.placeId}-${index}`} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.04 }}>
                               <ListItem button onClick={() => handleSelectRecent(loc)} sx={{ py: 1, px: 1.5, borderRadius: 2, mb: 0.5, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover', transform: 'translateX(3px)' }, transition: 'all 0.15s' }}>
-                                <ListItemIcon sx={{ minWidth: 36, width: 36, height: 36, borderRadius: '50%', bgcolor: 'rgba(245,158,11,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1.5, flexShrink: 0 }}>
+                                <ListItemIcon sx={{ minWidth: 36, width: 36, height: 36, borderRadius: '50%', bgcolor: recentIconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1.5, flexShrink: 0 }}>
                                   <LocationOnIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                                 </ListItemIcon>
                                 <ListItemText
@@ -513,6 +548,66 @@ export default function SendPackagePage() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* ── Book a Ride Instead CTA ── */}
+                <Box sx={{ px: 2.5, pt: recentLocations.length > 0 ? 0.5 : 1.5, pb: 3 }}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, type: 'spring', stiffness: 280, damping: 24 }}
+                  >
+                    <Box
+                      onClick={() => router.push('/')}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        px: 2.5,
+                        py: 1.75,
+                        borderRadius: 3,
+                        cursor: 'pointer',
+                        border: rideBtnBorder,
+                        background: rideBtnBg,
+                        transition: 'all 0.2s cubic-bezier(0.34,1.3,0.64,1)',
+                        '&:hover': {
+                          border: rideBtnHoverBorder,
+                          background: rideBtnHoverBg,
+                          transform: 'translateX(3px)',
+                        },
+                        '&:active': { transform: 'scale(0.97)' },
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{
+                          width: 36, height: 36, borderRadius: 2,
+                          bgcolor: rideBtnIconBg,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 18,
+                        }}>
+                          🚗
+                        </Box>
+                        <Box>
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'text.primary', lineHeight: 1.2 }}>
+                            Book a Ride Instead
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            Get picked up, go anywhere
+                          </Typography>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        bgcolor: rideBtnChevronBg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M9 18l6-6-6-6" stroke="#FF8A00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </Box>
+                    </Box>
+                  </motion.div>
+                </Box>
               </Box>
             </Box>
           </SwipeableBottomSheet>
@@ -546,17 +641,3 @@ export default function SendPackagePage() {
     </Box>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-  

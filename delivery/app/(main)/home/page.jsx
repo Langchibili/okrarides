@@ -192,6 +192,7 @@ export default function DriverHomePage() {
     incomingDelivery: incomingRide,
     acceptDelivery:   acceptRide,
     declineDelivery:  declineRide,
+    currentDelivery
   } = useDelivery();
 
   const {
@@ -205,6 +206,16 @@ export default function DriverHomePage() {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [landingPageUrl,  setLandingPageUrl]  = useState(null);
 
+  // Redirect logic for active deliveries
+  useEffect(() => {
+    if (currentDelivery) {
+      const { rideStatus, id } = currentDelivery;
+      if (['accepted', 'arrived', 'passenger_onboard'].includes(rideStatus)) {
+        router.push(`/active-delivery/${id}`);
+      }
+    }
+  }, [currentDelivery, router]);
+    
   useEffect(() => {
     fetchStats('today');
     requestLocationOnMount();
@@ -271,7 +282,7 @@ export default function DriverHomePage() {
   const showFloatLowAlert             = !showVerificationAlert && isOnFloatSystem && isFloatLow;
   const showFloatNegativeWarning      = !showVerificationAlert && isOnFloatSystem && isFloatNegative && !isFloatAtLimit && isNegativeFloatAllowed;
   const showFloatWithdrawableNotice   = !showVerificationAlert && isOnSubscriptionSystem && floatBalance > 0;
- 
+
   const alertVariants = {
     hidden: { opacity: 0, y: -12, height: 0 },
     show:   { opacity: 1, y: 0,   height: 'auto', transition: { type: 'spring', stiffness: 300, damping: 28 } },
