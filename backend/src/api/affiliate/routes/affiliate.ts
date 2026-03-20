@@ -1,21 +1,11 @@
-
 export default {
   routes: [
-    // ── Public ────────────────────────────────────────────────────────────
-    {
-      method: 'GET',
-      path: '/affiliate/:code',
-      handler: 'affiliate.getByCode',
-      config: {  policies: [], middlewares: [] },
-    },
     {
       method: 'POST',
       path: '/affiliate/track-impression',
       handler: 'affiliate.trackImpression',
       config: { policies: [], middlewares: [] },
     },
-
-    // ── Authenticated ──────────────────────────────────────────────────────
     {
       method: 'GET',
       path: '/affiliate/dashboard',
@@ -45,6 +35,12 @@ export default {
       path: '/affiliate/apply-code',
       handler: 'affiliate.applyCode',
       config: { middlewares: [] },  // auth required
+    },
+    {
+      method: 'GET',
+      path: '/affiliate/:code',
+      handler: 'affiliate.getByCode',
+      config: {  policies: [], middlewares: [] },
     }
-  ],
-};
+  ]
+}

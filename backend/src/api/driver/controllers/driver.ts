@@ -147,13 +147,7 @@ async goOffline(ctx) {
     await strapi.db.query('plugin::users-permissions.user').update({
       where: { id: userId },
       data: {
-        isOnline:              true,   // user is still active, just as a rider now
-        activeProfile:         'rider',
-        profileActivityStatus: {
-          rider:     true,
-          driver:    false,
-          conductor: false,
-        }
+        isOnline:  true,   // user is still active, just as a rider now
       }
     });
 
@@ -163,13 +157,7 @@ async goOffline(ctx) {
       data: { isOnline: false, isAvailable: false, isActive: false }
     });
 
-    // ── Rider profile → active ────────────────────────────────────────────
-    if (user.riderProfile) {
-      await strapi.db.query('rider-profiles.rider-profile').update({
-        where: { id: user.riderProfile.id },
-        data: { isActive: true }
-      });
-    }
+  
 
     // ── Conductor profile → offline ───────────────────────────────────────
     if (user.conductorProfile) {
@@ -188,7 +176,7 @@ async goOffline(ctx) {
     return ctx.send({
       success:       true,
       isOnline:      false,
-      activeProfile: 'rider',
+      activeProfile: 'none',
       message:       'Driver is now offline. Switched to rider mode.',
     });
 

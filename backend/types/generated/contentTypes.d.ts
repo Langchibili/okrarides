@@ -928,7 +928,7 @@ export interface ApiAffiliateAffiliate extends Struct.CollectionTypeSchema {
     singularName: 'affiliate';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     aboutRoute: Schema.Attribute.String;

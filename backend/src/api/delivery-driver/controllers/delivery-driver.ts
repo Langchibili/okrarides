@@ -130,13 +130,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
     await strapi.db.query('plugin::users-permissions.user').update({
       where: { id: userId },
       data: {
-        isOnline:              true,   // user is still active, just as a rider now
-        activeProfile:         'rider',
-        profileActivityStatus: {
-          rider:     true,
-          delivery:  false,
-          conductor: false,
-        }
+        isOnline: true
       }
     });
 
@@ -149,13 +143,6 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       });
     }
 
-    // ── Rider profile → active ────────────────────────────────────────────
-    if (user.riderProfile) {
-      await strapi.db.query('rider-profiles.rider-profile').update({
-        where: { id: user.riderProfile.id },
-        data: { isActive: true }
-      });
-    }
 
     // ── Conductor profile → offline ───────────────────────────────────────
     if (user.conductorProfile) {

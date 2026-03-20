@@ -343,7 +343,7 @@ const OkraLandingPage = () => {
   const [activeService, setActiveService] = useState(null);
   const [mousePos,      setMousePos]      = useState({ x: 0, y: 0 });
   const [showMore,      setShowMore]      = useState(false);   // ← "More About Us"
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1343';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1343/api';
   const [affiliateEnabled, setAffiliateEnabled] = useState(true);
 
   useEffect(() => {

@@ -35,12 +35,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
 import useAdminSettings from '@/lib/hooks/useAdminSettings';
+import { getImageUrl } from '@/Functions';
 
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const POLL_INTERVAL_MS = 3_000;
 const POLL_TIMEOUT_MS  = 5 * 60 * 1_000;
-const LANDING_BASE     = process.env.NEXT_PUBLIC_LANDING_URL || '';
+const LANDING_BASE     = process.env.NEXT_PUBLIC_FRONTEND_URL || '';
 const API_URL          = process.env.NEXT_PUBLIC_API_URL     || 'http://localhost:1343';
 
 const ZM_OPERATORS = [
@@ -506,8 +507,8 @@ export default function AffiliateDashboard() {
   // affiliateProfile.qrCode is a Strapi media entity populated by the dashboard
   // endpoint. It has a `url` field which may be relative (/uploads/...) or
   // absolute (https://cdn...). resolveMediaUrl() handles both cases.
-  const qrUrl = resolveMediaUrl(data?.profile?.qrCode?.url ?? null);
-
+  
+  const qrUrl = process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_API_URL + getImageUrl(data?.profile?.qrCode)
   // ── Copy affiliate code ──────────────────────────────────────────────────
   const handleCopy = () => {
     const code = data?.profile?.affiliateCode;

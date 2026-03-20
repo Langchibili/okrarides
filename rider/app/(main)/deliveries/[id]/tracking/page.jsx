@@ -127,6 +127,7 @@ export default function DeliveryTrackingPage() {
     };
   }, []);
 
+
   // ─── Load delivery ────────────────────────────────────────────────────
   const load = useCallback(async () => {
     try {
@@ -142,6 +143,7 @@ export default function DeliveryTrackingPage() {
   // ─── Status polling (fallback) ────────────────────────────────────────
   const rideStatus = delivery?.rideStatus;
 
+  
   useEffect(() => {
     if (!id) return;
     pollRef.current = setInterval(async () => {
@@ -213,51 +215,114 @@ export default function DeliveryTrackingPage() {
     return () => { unsub1?.(); unsub2?.(); };
   }, [rnOn, handleDelivererLocFromRN]);
 
-  // ─── Live location polling from API ──────────────────────────────────
-  useEffect(() => {
-    if (!delivery || !id || ['completed','cancelled'].includes(rideStatus)) return;
+// ─── Reset route ref when status changes so route redraws correctly ───
+useEffect(() => {
+  routeStatusRef.current = null;
+  setRouteReady(false);
+  setRoutePickup(null);
+  setRouteDropoff(null);
+}, [rideStatus]);
 
-    const updateLoc = async () => {
-      if (!mountedRef.current) return;
-      try {
-        const res = await getDelivererLocation(id);
-        const raw = res?.data ?? res;
-        const loc = normalizeCoords(raw);
-        if (!loc || !mountedRef.current) return;
+// ─── Live location polling from API ───────────────────────────────────
+useEffect(() => {
+  if (!delivery || !id || ['completed', 'cancelled'].includes(rideStatus)) return;
 
-        setDelivererLoc(loc);
-        mapControlsRef.current?.updateDriverLocation(loc);
+  const updateLoc = async () => {
+    if (!mountedRef.current) return;
+    try {
+      const res = await getDelivererLocation(id);
+      // ── Unwrap the nested location field from the backend response ────
+      const raw = res?.location ?? res?.data?.location ?? res?.data ?? res;
+      const loc = normalizeCoords(raw);
+      if (!loc || !mountedRef.current) return;
 
-        const etaDest = rideStatus === 'accepted'
-          ? normalizeCoords(delivery.pickupLocation)
-          : normalizeCoords(delivery.dropoffLocation);
-        if (etaDest) {
-          const km = haversine(loc, etaDest);
-          if (mountedRef.current) { setDistance(km); setEta(estimateMins(km)); }
-        }
+      setDelivererLoc(loc);
+      mapControlsRef.current?.updateDriverLocation(loc);
 
-        if (rideStatus === 'accepted' && routeStatusRef.current !== 'accepted') {
-          routeStatusRef.current = 'accepted';
-          setRoutePickup(loc);
-          setRouteDropoff(normalizeCoords(delivery.pickupLocation));
+      // ── ETA calculation ───────────────────────────────────────────────
+      const etaDest = rideStatus === 'accepted'
+        ? normalizeCoords(delivery.pickupLocation)
+        : normalizeCoords(delivery.dropoffLocation);
+      if (etaDest) {
+        const km = haversine(loc, etaDest);
+        if (mountedRef.current) { setDistance(km); setEta(estimateMins(km)); }
+      }
+
+      // ── ACCEPTED: route is driver→pickup, updates every poll ──────────
+      // routePickup is the driver's live position (changes each poll)
+      // routeDropoff is the fixed pickup location
+      if (rideStatus === 'accepted') {
+        const pickup = normalizeCoords(delivery.pickupLocation);
+        if (pickup) {
+          setRoutePickup(loc);          // driver's current position — updates live
+          setRouteDropoff(pickup);      // fixed destination: pickup location
           setRouteReady(true);
         }
-        if (rideStatus === 'passenger_onboard' && routeStatusRef.current !== 'passenger_onboard') {
-          routeStatusRef.current = 'passenger_onboard';
-          setRoutePickup(loc);
-          setRouteDropoff(normalizeCoords(delivery.dropoffLocation));
+      }
+
+      // ── PASSENGER_ONBOARD: route is pickup→dropoff, drawn once ────────
+      // Both ends are fixed — no need to update on every poll
+      if (rideStatus === 'passenger_onboard' && routeStatusRef.current !== 'passenger_onboard') {
+        routeStatusRef.current = 'passenger_onboard';
+        const pickup  = normalizeCoords(delivery.pickupLocation);
+        const dropoff = normalizeCoords(delivery.dropoffLocation);
+        if (pickup && dropoff) {
+          setRoutePickup(pickup);
+          setRouteDropoff(dropoff);
           setRouteReady(true);
         }
-      } catch {}
-    };
+      }
 
-    updateLoc();
-    locPollRef.current = setInterval(updateLoc, 3000);
-    return () => clearInterval(locPollRef.current);
+    } catch {}
+  };
+
+  // Fire immediately then every 3 seconds
+  updateLoc();
+  locPollRef.current = setInterval(updateLoc, 3000);
+  return () => clearInterval(locPollRef.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, rideStatus, delivery?.deliverer?.id]);
+}, [id, rideStatus, delivery?.deliverer?.id]);
 
-  const markers = useMemo(() => [], []);
+
+  // Replace the static useMemo(() => [], []) with this:
+const markers = useMemo(() => {
+  if (!delivery) return [];
+
+  const actualPickup  = normalizeCoords(delivery.pickupLocation);
+  const actualDropoff = normalizeCoords(delivery.dropoffLocation);
+
+  const PACKAGE_MARKER = { bg: '#92400E', label: '📦', size: 36 };
+
+  if (rideStatus === 'accepted') {
+    // Driver handled by updateDriverLocation — only show pickup destination pin
+    const result = [];
+    if (actualPickup) {
+      result.push({ id: 'pickup', position: actualPickup, type: 'pickup', custom: PACKAGE_MARKER });
+    }
+    return result;
+  }
+
+  if (rideStatus === 'passenger_onboard') {
+    // Driver handled by updateDriverLocation — show route endpoints only
+    const result = [];
+    if (actualPickup) {
+      result.push({ id: 'pickup',  position: actualPickup,  type: 'pickup',  custom: PACKAGE_MARKER });
+    }
+    if (actualDropoff) {
+      result.push({ id: 'dropoff', position: actualDropoff, type: 'dropoff', custom: null });
+    }
+    return result;
+  }
+
+  // Other statuses
+  const result = [];
+  if (actualPickup)  result.push({ id: 'pickup',  position: actualPickup,  type: 'pickup',  custom: PACKAGE_MARKER });
+  if (actualDropoff) result.push({ id: 'dropoff', position: actualDropoff, type: 'dropoff', custom: null });
+  return result;
+
+}, [rideStatus, delivery])
+
+
   const curStep    = STATUS_STEPS.find(s => s.status === rideStatus) ?? STATUS_STEPS[0];
   const bannerColor = rideStatus === 'accepted' ? '#10B981' : AMBER;
   const bannerBg    = rideStatus === 'accepted'
@@ -276,11 +341,15 @@ export default function DeliveryTrackingPage() {
       {/* Map */}
       <Box sx={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <MapIframe
-          center={delivererLoc ?? normalizeCoords(delivery.pickupLocation) ?? { lat: -15.4167, lng: 28.2833 }}
-          zoom={15} height="100%" markers={markers}
-          pickupLocation={routePickup} dropoffLocation={routeDropoff} showRoute={routeReady}
-          onMapLoad={(c) => { mapControlsRef.current = c; }}
-        />
+  center={delivererLoc ?? normalizeCoords(delivery.pickupLocation) ?? { lat: -15.4167, lng: 28.2833 }}
+  zoom={15} height="100%" markers={markers}
+  pickupLocation={routePickup} dropoffLocation={routeDropoff} showRoute={routeReady}
+  onMapLoad={(c) => {
+    mapControlsRef.current = c;
+    // Configure driver marker to use truck icon — done once, persists
+    c.configureDriverMarker({ bg: '#0F172A', label: '🚚', size: 44 });
+  }} 
+/>
       </Box>
 
       {/* Bottom sheet */}
