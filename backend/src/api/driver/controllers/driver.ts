@@ -22,6 +22,9 @@ async toggleOnline(ctx) {
         riderProfile: {
           select: ['id']
         },
+        deliveryProfile: {
+          select: ['id']
+        },
         conductorProfile: {
           select: ['id']
         }
@@ -49,42 +52,51 @@ async toggleOnline(ctx) {
         lastSeen: new Date()
       }
     })
-
-    await strapi.db.query('driver-profiles.driver-profile').update({
-      where: { id: user.driverProfile.id },
-      data: {
-        isOnline: newOnlineStatus,
-        isAvailable: newOnlineStatus === true ? true : newOnlineStatus,
-        isActive: true
-      }
-    })
-
-    await strapi.db.query('rider-profiles.rider-profile').update({
-      where: { id: user.riderProfile.id },
-      data: {
-        isOnline: false,
-        isAvailable: false,
-        isActive: false
-      }
-    })
-
-    await strapi.db.query('delivery-profiles.delivery-profile').update({
-      where: { id: user.deliveryProfile.id },
-      data: {
-        isOnline: false,
-        isAvailable: false,
-        isActive: false
-      }
-    })
-
-    await strapi.db.query('conductor-profiles.conductor-profile').update({
-      where: { id: user.conductorProfile.id },
-      data: {
-        isOnline: false,
-        isAvailable: false,
-        isActive: false
-      }
-    })
+    if(user.driverProfile?.id){
+      await strapi.db.query('driver-profiles.driver-profile').update({
+        where: { id: user.driverProfile.id },
+        data: {
+          isOnline: newOnlineStatus,
+          isAvailable: newOnlineStatus === true ? true : newOnlineStatus,
+          isActive: true
+        }
+      })
+    }
+    
+    
+    if(user.riderProfile?.id ){
+      await strapi.db.query('rider-profiles.rider-profile').update({
+        where: { id: user.riderProfile.id },
+        data: {
+          isOnline: false,
+          isAvailable: false,
+          isActive: false
+        }
+      })
+    }
+    
+    if(user.deliveryProfile?.id){
+       await strapi.db.query('delivery-profiles.delivery-profile').update({
+        where: { id: user.deliveryProfile.id },
+        data: {
+          isOnline: false,
+          isAvailable: false,
+          isActive: false
+        }
+      })
+    }
+    
+    if(user.conductorProfile?.id){
+      await strapi.db.query('conductor-profiles.conductor-profile').update({
+        where: { id: user.conductorProfile.id },
+        data: {
+          isOnline: false,
+          isAvailable: false,
+          isActive: false
+        }
+      })
+    }
+    
 
     // 🆕 If going offline, stop native tracking
     if (!newOnlineStatus) {

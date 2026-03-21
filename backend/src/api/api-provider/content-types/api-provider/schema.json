@@ -20,6 +20,10 @@
     "maxMonthlyRequests": {
       "type": "integer",
       "default": 20000
+    },
+    "maxDailyGeocoderApiRequests": {
+      "type": "integer",
+      "default": 1000
     }
   }
 }

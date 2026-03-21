@@ -1,4 +1,4 @@
-'use client'
+'use client' 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -203,9 +203,9 @@ const HeroSubtitle = () => {
         <motion.div
           key={index}
           // slides in from right, exits to left
-          initial={{ x: 80,  opacity: 0 }}
+          initial={{ x: -80,  opacity: 0 }}
           animate={{ x: 0,   opacity: 1 }}
-          exit={{   x: -80, opacity: 0 }}
+          exit={{   x: 80, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           style={{ display: 'flex', alignItems: 'center', gap: 10 }}
         >
@@ -259,7 +259,7 @@ const RippleBtn = ({ action, onClick }) => {
     setPressed(true);
     setTimeout(() => setRipples(r => r.filter(rp => rp.id !== id)), 600);
     setTimeout(() => setPressed(false), 180);
-  };
+  }
 
   return (
     <button

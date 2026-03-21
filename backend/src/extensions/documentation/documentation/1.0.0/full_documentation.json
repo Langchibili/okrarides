@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-20T23:38:53.141Z"
+    "x-generation-date": "2026-03-21T11:19:40.064Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -50329,6 +50329,9 @@
               "maxMonthlyRequests": {
                 "type": "integer"
               },
+              "maxDailyGeocoderApiRequests": {
+                "type": "integer"
+              },
               "locale": {
                 "type": "string"
               },
@@ -50399,6 +50402,9 @@
           },
           "providerData": {},
           "maxMonthlyRequests": {
+            "type": "integer"
+          },
+          "maxDailyGeocoderApiRequests": {
             "type": "integer"
           },
           "createdAt": {
@@ -50706,6 +50712,9 @@
                 },
                 "providerData": {},
                 "maxMonthlyRequests": {
+                  "type": "integer"
+                },
+                "maxDailyGeocoderApiRequests": {
                   "type": "integer"
                 },
                 "createdAt": {

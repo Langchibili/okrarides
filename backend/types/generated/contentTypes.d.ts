@@ -1060,6 +1060,8 @@ export interface ApiApiProviderApiProvider extends Struct.CollectionTypeSchema {
       'api::api-provider.api-provider'
     > &
       Schema.Attribute.Private;
+    maxDailyGeocoderApiRequests: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<1000>;
     maxMonthlyRequests: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<20000>;
     providerData: Schema.Attribute.JSON;
