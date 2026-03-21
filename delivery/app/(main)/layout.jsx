@@ -2,17 +2,42 @@
 
 import { Box }  from '@mui/material';
 import { BottomNav }        from '@/components/Layout/BottomNav';
-import { useAuth }          from '@/lib/hooks/useAuth';
+import { AuthProvider, useAuth }          from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { useRouter }        from 'next/navigation';
-import { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
+import ReactNativeWrapper, { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
 import { useRide }          from '@/lib/hooks/useRide';
 import { apiClient }        from '@/lib/api/client';
 import HomePageSkeleton from '@/components/Skeletons/HomePageSkeleton';
-
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
+import { ScreenshotProvider } from '@/lib/contexts/ScreenshotContext';
+import SocketProvider from '@/lib/socket/SocketProvider';
+import { FloatingCaptureButton } from '@/components/FloatingCaptureButton';
 
 export default function MainLayout({ children }) {
-  const { user, loading, isAuthenticated } = useAuth();
+   return (
+       <ReactNativeWrapper>
+        <ThemeProvider>
+            <AdminSettingsProvider>
+              <AuthProvider>
+                 <ScreenshotProvider>
+                  <SocketProvider>
+                    <MapsProvider>
+                      <RenderMainLayout children={children}/>            {/* ← loads immediately in the background */}
+                    </MapsProvider>
+                  </SocketProvider>
+                    <FloatingCaptureButton />
+                  </ScreenshotProvider>
+              </AuthProvider>
+            </AdminSettingsProvider>
+        </ThemeProvider>
+        </ReactNativeWrapper>
+   )
+}
+
+const RenderMainLayout = ({children})=>{
+ const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
   const { currentRide } = useRide();
@@ -82,5 +107,5 @@ export default function MainLayout({ children }) {
       {children}
       <BottomNav />
     </Box>
-  );
+  )
 }

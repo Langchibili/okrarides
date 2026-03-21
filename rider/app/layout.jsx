@@ -36,7 +36,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 
 export default function RootLayout({ children }) {
-
+alert('part of me')
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <head>
