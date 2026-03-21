@@ -91,12 +91,29 @@ export default function Home() {
   const { setAccentColor } = useThemeMode()
   const [checkingAuth, setCheckingAuth] = useState(() => loading);
 // only load splash screen here because it's the root page
-  const [splashVisible, setSplashVisible] = useState(true);
+  const [splashVisible, setSplashVisible] = useState(() => {
+    // Only show splash if this is a fresh page load — not an in-app navigation
+    if (typeof window === 'undefined') return false;
+    const already = sessionStorage.getItem('okra_splash_shown');
+    return !already;
+  })
 
   useEffect(() => {
     const t = setTimeout(() => setSplashVisible(false), 2500);
     return () => clearTimeout(t);
   }, []);
+  
+  useEffect(()=>{
+      if(typeof window !== "undefined"){
+        const params = new URLSearchParams(window.location.search);
+        const fromUrl = params.get('ref') || params.get('afcode');
+        if (fromUrl) {
+         localStorage.setItem('affiliateRef', fromUrl)
+        }
+      }
+  },[])
+  
+  
 
   useEffect(() => {
     const initializeNativeCode = async () => {

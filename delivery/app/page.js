@@ -102,6 +102,17 @@ export default function Home() {
     const t = setTimeout(() => setSplashVisible(false), 2500);
     return () => clearTimeout(t);
   }, []);
+ 
+  useEffect(()=>{
+    if(typeof window !== "undefined"){
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get('ref') || params.get('afcode');
+      if (fromUrl) {
+       localStorage.setItem('affiliateRef', fromUrl)
+      }
+    }
+  },[])
+
 
    useEffect(() => {
       if (!splashVisible) return;

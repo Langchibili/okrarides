@@ -37,6 +37,7 @@ export const authAPI = {
         firstName,
         lastName,
         referredBy: affiliateUserId, // Use the numeric ID found above
+        country: data?.country?.id || null
       });
     }
     

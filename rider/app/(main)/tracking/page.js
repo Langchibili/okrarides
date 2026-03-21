@@ -1458,6 +1458,7 @@ import MapIframe from '@/components/Map/MapIframe';
 import { getImageUrl } from '@/Functions';
 import { VanIconSmall, getColorByKey } from '@/components/ui/VehicleColorPicker';
 import { ridesAPI } from '@/lib/api/rides';
+import BottomMarginDiv from '@/components/BottomMarginDiv';
 
 const RIDE_STATUS_CONFIG = {
   accepted:          { title: 'Driver is on the way',  color: 'info',    icon: '🚗', description: 'Your driver is heading to your pickup location' },
@@ -2024,7 +2025,7 @@ export default function TrackingPage() {
             <Alert severity="warning" sx={{ mb: 2, borderRadius: 2 }}>A cancellation fee may apply.</Alert>
             <Typography variant="body2" color="text.secondary">Are you sure you want to cancel this ride?</Typography>
           </DialogContent>
-          <DialogActions sx={{ p: 2.5, pt: 1 }}>
+          <DialogActions sx={{ p: 2.5, pt: 1}}>
             <Button onClick={() => setShowCancelDialog(false)} variant="outlined" sx={{ borderRadius: 2.5, px: 3, fontWeight: 600 }}>Keep Ride</Button>
             <Button onClick={handleCancelRide} variant="contained" color="error" disabled={canceling} sx={{ borderRadius: 2.5, px: 3, fontWeight: 700 }}>
               {canceling ? <CircularProgress size={20} /> : 'Yes, Cancel'}

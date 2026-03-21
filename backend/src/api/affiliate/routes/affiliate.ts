@@ -7,6 +7,15 @@ export default {
       config: { policies: [], middlewares: [] },
     },
     {
+     method: 'GET',
+     path: '/affiliate/check-impression',
+     handler: 'affiliate.checkImpression',
+     config: {
+      policies: [],
+      middlewares: []
+     },
+    },
+    {
       method: 'GET',
       path: '/affiliate/dashboard',
       handler: 'affiliate.getDashboard',

@@ -1094,17 +1094,21 @@ export interface ApiApiProvidersPriorityMapApiProvidersPriorityMap
       Schema.Attribute.Private;
     mapsProviders: Schema.Attribute.JSON;
     prioritizedMap: Schema.Attribute.Enumeration<
-      [
-        'geoapify',
-        'wazemap',
-        'openstreetmap',
-        'localmap',
-        'yandexmap',
-        'googlemap',
-        'applemap',
-      ]
+      ['geoapify', 'waze', 'openstreet', 'local', 'yandex', 'google', 'apple']
     > &
       Schema.Attribute.DefaultTo<'applemap'>;
+    priotizedDistanceCalculator: Schema.Attribute.Enumeration<
+      ['geoapify', 'openstreet', 'local', 'yandex', 'google', 'apple']
+    > &
+      Schema.Attribute.DefaultTo<'google'>;
+    priotizedEtaCalculator: Schema.Attribute.Enumeration<
+      ['geoapify', 'openstreet', 'local', 'yandex', 'google', 'apple']
+    > &
+      Schema.Attribute.DefaultTo<'google'>;
+    priotizedRouteDrawer: Schema.Attribute.Enumeration<
+      ['geoapify', 'openstreet', 'local', 'yandex', 'google', 'apple']
+    > &
+      Schema.Attribute.DefaultTo<'google'>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

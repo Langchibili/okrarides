@@ -18,7 +18,7 @@ import { formatCurrency, formatDateTime } from '@/Functions';
 import { apiClient } from '@/lib/api/client';
 import { useDelivery } from '@/lib/hooks/useDelivery';
 import MapIframe from '@/components/Map/MapIframe';
-import { DeliveryDetailSkeleton } from '@/components/Skeletons/RideDetailSkeleton';
+import DeliveryDetailSkeleton from '@/components/Skeletons/RideDetailSkeleton';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
 

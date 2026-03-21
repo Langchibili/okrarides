@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-19T23:54:19.599Z"
+    "x-generation-date": "2026-03-20T23:38:53.141Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -1027,6 +1027,77 @@
             }
           }
         }
+      }
+    },
+    "/affiliate/check-impression": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AffiliateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Affiliate"
+        ],
+        "parameters": [],
+        "operationId": "get/affiliate/check-impression"
       }
     },
     "/affiliate/dashboard": {
@@ -50718,12 +50789,45 @@
                 "type": "string",
                 "enum": [
                   "geoapify",
-                  "wazemap",
-                  "openstreetmap",
-                  "localmap",
-                  "yandexmap",
-                  "googlemap",
-                  "applemap"
+                  "waze",
+                  "openstreet",
+                  "local",
+                  "yandex",
+                  "google",
+                  "apple"
+                ]
+              },
+              "priotizedRouteDrawer": {
+                "type": "string",
+                "enum": [
+                  "geoapify",
+                  "openstreet",
+                  "local",
+                  "yandex",
+                  "google",
+                  "apple"
+                ]
+              },
+              "priotizedDistanceCalculator": {
+                "type": "string",
+                "enum": [
+                  "geoapify",
+                  "openstreet",
+                  "local",
+                  "yandex",
+                  "google",
+                  "apple"
+                ]
+              },
+              "priotizedEtaCalculator": {
+                "type": "string",
+                "enum": [
+                  "geoapify",
+                  "openstreet",
+                  "local",
+                  "yandex",
+                  "google",
+                  "apple"
                 ]
               },
               "locale": {
@@ -50796,12 +50900,45 @@
             "type": "string",
             "enum": [
               "geoapify",
-              "wazemap",
-              "openstreetmap",
-              "localmap",
-              "yandexmap",
-              "googlemap",
-              "applemap"
+              "waze",
+              "openstreet",
+              "local",
+              "yandex",
+              "google",
+              "apple"
+            ]
+          },
+          "priotizedRouteDrawer": {
+            "type": "string",
+            "enum": [
+              "geoapify",
+              "openstreet",
+              "local",
+              "yandex",
+              "google",
+              "apple"
+            ]
+          },
+          "priotizedDistanceCalculator": {
+            "type": "string",
+            "enum": [
+              "geoapify",
+              "openstreet",
+              "local",
+              "yandex",
+              "google",
+              "apple"
+            ]
+          },
+          "priotizedEtaCalculator": {
+            "type": "string",
+            "enum": [
+              "geoapify",
+              "openstreet",
+              "local",
+              "yandex",
+              "google",
+              "apple"
             ]
           },
           "createdAt": {
@@ -51109,12 +51246,45 @@
                   "type": "string",
                   "enum": [
                     "geoapify",
-                    "wazemap",
-                    "openstreetmap",
-                    "localmap",
-                    "yandexmap",
-                    "googlemap",
-                    "applemap"
+                    "waze",
+                    "openstreet",
+                    "local",
+                    "yandex",
+                    "google",
+                    "apple"
+                  ]
+                },
+                "priotizedRouteDrawer": {
+                  "type": "string",
+                  "enum": [
+                    "geoapify",
+                    "openstreet",
+                    "local",
+                    "yandex",
+                    "google",
+                    "apple"
+                  ]
+                },
+                "priotizedDistanceCalculator": {
+                  "type": "string",
+                  "enum": [
+                    "geoapify",
+                    "openstreet",
+                    "local",
+                    "yandex",
+                    "google",
+                    "apple"
+                  ]
+                },
+                "priotizedEtaCalculator": {
+                  "type": "string",
+                  "enum": [
+                    "geoapify",
+                    "openstreet",
+                    "local",
+                    "yandex",
+                    "google",
+                    "apple"
                   ]
                 },
                 "createdAt": {

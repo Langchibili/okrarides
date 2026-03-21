@@ -233,7 +233,7 @@ export default function VerifyPhonePage() {
       </Box>
       
       {/* Spacer */}
-      <Box sx={{ flex: 1 }} />
+      <Box sx={{ flex: 0.5 }} />
       
       {/* Submit Button */}
       <Button

@@ -124,7 +124,7 @@ export default {
       if (!affiliateCode) return ctx.badRequest('affiliateCode is required');
 
       const ip = ctx.request.ip ?? '';
-      const hash = buildIpSignature({ ip, userAgent });
+      const hash = buildIpSignature({ ip });
 
       const affiliateUser = await strapi.db
         .query('plugin::users-permissions.user')
@@ -162,6 +162,65 @@ export default {
     }
   },
 
+  async checkImpression(ctx) {
+   try {
+    const settings = await strapi.db
+      .query('api::admn-setting.admn-setting')
+      .findOne({});
+
+    if (!settings?.affiliateSystemEnabled) {
+      return ctx.send({ found: false });
+    }
+
+    const ip = ctx.request.ip ?? '';
+    const userAgent = ctx.request.headers['user-agent'] ?? '';
+
+    if (!ip && !userAgent) {
+      return ctx.send({ found: false });
+    }
+
+    const crypto = require('crypto');
+
+    // const hash2 = crypto
+    //   .createHash('sha256')
+    //   .update(`${ip}|${userAgent}`)
+    //   .digest('hex');
+    const hash = buildIpSignature({ ip });
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const impression = await strapi.db
+      .query('api::affiliate-impression.affiliate-impression')
+      .findOne({
+        where: {
+          ipSignatureHash: hash,
+          converted: false,
+          createdAt: { $gte: since },
+        },
+        populate: {
+          affiliateOwner: {
+            populate: {
+              affiliateProfile: {
+                select: ['affiliateCode'],
+              },
+            },
+          },
+        },
+      });
+
+    if (!impression?.affiliateOwner?.affiliateProfile?.affiliateCode) {
+      return ctx.send({ found: false });
+    }
+
+    return ctx.send({
+      found: true,
+      affiliateCode:
+        impression.affiliateOwner.affiliateProfile.affiliateCode,
+    });
+   } catch (err) {
+    strapi.log.error('[Affiliate:checkImpression]', err);
+    return ctx.send({ found: false });
+   }
+  },
   async getDashboard(ctx) {
     const userId = ctx.state.user?.id;
     if (!userId) return ctx.unauthorized('Authentication required');

@@ -19,12 +19,48 @@
       "default": "applemap",
       "enum": [
         "geoapify",
-        "wazemap",
-        "openstreetmap",
-        "localmap",
-        "yandexmap",
-        "googlemap",
-        "applemap"
+        "waze",
+        "openstreet",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    },
+    "priotizedRouteDrawer": {
+      "type": "enumeration",
+      "default": "google",
+      "enum": [
+        "geoapify",
+        "openstreet",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    },
+    "priotizedDistanceCalculator": {
+      "type": "enumeration",
+      "default": "google",
+      "enum": [
+        "geoapify",
+        "openstreet",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    },
+    "priotizedEtaCalculator": {
+      "type": "enumeration",
+      "default": "google",
+      "enum": [
+        "geoapify",
+        "openstreet",
+        "local",
+        "yandex",
+        "google",
+        "apple"
       ]
     }
   }

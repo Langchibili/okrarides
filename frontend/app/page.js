@@ -509,7 +509,7 @@ const OkraLandingPage = () => {
     <div className="flex items-center gap-2.5" style={{ position: 'relative', zIndex: 10 }}>
       <div className="relative w-10 h-10 flex items-center justify-center">
         <img
-          src="/icon.png"
+          src="/okra-tech-logo.png"
           alt="Okra"
           style={{ width: 40, height: 40, objectFit: 'contain' }}
           onError={e => {
@@ -574,7 +574,8 @@ const OkraLandingPage = () => {
       zIndex: 1,          // ← behind the logo (z:10) so it never overlaps text
     }}>
       <img
-        src="/okra-car-slide-animation.gif"
+        // src="/okra-car-slide-animation.gif"
+        src='/okras-slide-animation-480p.gif'
         alt=""
         style={{
           height: '100%',

@@ -13,10 +13,12 @@ import {
   MenuItem,
   Select,
   FormControl,
+  Snackbar,
 } from '@mui/material';
 import { Phone as PhoneIcon, Public as PublicIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { apiClient } from '@/lib/api/client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [countries, setCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
-
+  const [existsSnackbar, setExistsSnackbar] = useState(false);
   // Fetch countries on mount
   useEffect(() => {
     fetchCountries();
@@ -85,14 +87,41 @@ export default function LoginPage() {
     const fullPhone = `${selectedCountry.phoneCode.replace('+', '')}${cleanPhone}`;
     
     try {
-      setLoading(true);
-      await loginWithOTP(fullPhone.replace(/\D/g, ''));
+      try {
+              setLoading(true);
+              const res = await apiClient.post('/account-exist-check/check-user', {
+                username: fullPhone,
+              })
       
-      // Navigate to OTP verification
-      router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
+              if (res?.userExists) {
+                try{
+                 await loginWithOTP(fullPhone.replace(/\D/g, ''));
+                }
+                catch(err){
+                   console.error(err)
+                }
+                finally{
+                  // Navigate to OTP verification
+                    router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
+                }
+                return // this is to ensure no other code runs in the entire block
+              }
+              else{
+                 setExistsSnackbar(true)
+                 setTimeout(() => {
+                    router.push('/signup');
+                  }, 800)
+                  return // this is to ensure no other code runs in the entire block
+              }
+            } catch (err) {
+              // Non-blocking — if the check fails, just continue to registration
+               console.warn('Account existence check failed:', err);
+               router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
+            }
     } catch (err) {
+      console.warn(err)
       if(err.message && err.message === "This attribute must be unique"){
-         router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone)}&purpose=login`);
+         router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
          setError('OTP already sent');
          return;
       }
@@ -100,7 +129,7 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
   
   return (
     <Box
@@ -329,6 +358,19 @@ export default function LoginPage() {
       >
         By continuing, you agree to our Terms & Conditions
       </Typography>
+      <Snackbar
+        open={existsSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        onClose={() => setExistsSnackbar(false)}
+        message="Account does not exist yet, please sign up"
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            bgcolor: 'primary.main',
+            fontWeight: 600,
+            borderRadius: 3,
+          },
+        }}
+      />
     </Box>
   );
 }

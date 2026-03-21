@@ -306,14 +306,21 @@ export async function getConversionRateForUser(userId: number): Promise<{
  * On the backend we just store what the frontend sends.
  * This is the Node equivalent shown here for reference only.
  */
-export function buildIpSignature(parts: {
-  ip: string;
-  userAgent: string;
-}): string {
+// export function buildIpSignature(parts: {
+//   ip: string;
+//   userAgent: string;
+// }): string {
+//   const crypto = require('crypto');
+//   return crypto
+//     .createHash('sha256')
+//     .update(`${parts.ip}|${parts.userAgent}`)
+//     .digest('hex');
+// }
+export function buildIpSignature(parts: { ip: string }): string {
   const crypto = require('crypto');
   return crypto
     .createHash('sha256')
-    .update(`${parts.ip}|${parts.userAgent}`)
+    .update(parts.ip)
     .digest('hex');
 }
 

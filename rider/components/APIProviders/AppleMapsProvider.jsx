@@ -1,281 +1,3 @@
-// // // PATH: Okra/Okrarides/rider/components/Map/APIProviders/AppleMapsProvider.jsx
-
-// // export class AppleMapsProvider {
-// //   constructor(token) {
-// //     this.token    = token;
-// //     this.name     = 'applemap';
-// //     this._mkReady = false;
-// //     this._mkInit  = null;
-// //     console.log('[AppleMapsProvider] constructor — token present:', !!token, '| token prefix:', token?.slice(0, 20) || 'NONE');
-// //   }
-
-// //   // ── Load MapKit JS ────────────────────────────────────────────────────────
-// //   _loadMapKit() {
-// //     console.log('[AppleMapsProvider._loadMapKit] called — _mkInit cached:', !!this._mkInit, '| window.mapkit:', !!window?.mapkit, '| window.mapkit._initialized:', !!window?.mapkit?._initialized);
-// //     if (this._mkInit) {
-// //       console.log('[AppleMapsProvider._loadMapKit] returning cached promise');
-// //       return this._mkInit;
-// //     }
-
-// //     this._mkInit = new Promise((resolve, reject) => {
-// //       if (typeof window === 'undefined') {
-// //         console.error('[AppleMapsProvider._loadMapKit] SSR — cannot load mapkit');
-// //         return reject(new Error('SSR'));
-// //       }
-
-// //       const tryResolve = () => {
-// //         const mk = window.mapkit;
-// //         if (!mk) {
-// //           console.log('[AppleMapsProvider._loadMapKit] tryResolve: window.mapkit not yet available');
-// //           return false;
-// //         }
-// //         console.log('[AppleMapsProvider._loadMapKit] tryResolve: window.mapkit found, _initialized:', !!mk._initialized);
-
-// //         if (mk._initialized) {
-// //           console.log('[AppleMapsProvider._loadMapKit] ✅ reusing already-initialized mapkit');
-// //           this._mkReady = true;
-// //           resolve(mk);
-// //           return true;
-// //         }
-
-// //         console.log('[AppleMapsProvider._loadMapKit] calling mapkit.init() ourselves');
-// //         try {
-// //           mk.init({ authorizationCallback: (done) => done(this.token), language: 'en' });
-// //           mk._initialized = true;
-// //           this._mkReady = true;
-// //           console.log('[AppleMapsProvider._loadMapKit] ✅ mapkit.init() succeeded');
-// //           resolve(mk);
-// //           return true;
-// //         } catch (err) {
-// //           console.error('[AppleMapsProvider._loadMapKit] ❌ mapkit.init() threw:', err?.message);
-// //           reject(err);
-// //           return true;
-// //         }
-// //       };
-
-// //       if (tryResolve()) return;
-
-// //       const existing = document.getElementById('mapkit-script');
-// //       console.log('[AppleMapsProvider._loadMapKit] mapkit-script tag in DOM:', !!existing);
-// //       if (existing) {
-// //         console.log('[AppleMapsProvider._loadMapKit] polling for window.mapkit (max 8s)...');
-// //         const deadline = Date.now() + 8000;
-// //         let polls = 0;
-// //         const poll = () => {
-// //           polls++;
-// //           if (tryResolve()) {
-// //             console.log('[AppleMapsProvider._loadMapKit] resolved after', polls, 'polls');
-// //             return;
-// //           }
-// //           if (Date.now() > deadline) {
-// //             console.error('[AppleMapsProvider._loadMapKit] ❌ timeout after', polls, 'polls — window.mapkit never appeared');
-// //             reject(new Error('mapkit load timeout'));
-// //             return;
-// //           }
-// //           setTimeout(poll, 50);
-// //         };
-// //         poll();
-// //         return;
-// //       }
-
-// //       console.log('[AppleMapsProvider._loadMapKit] injecting mapkit.js script ourselves');
-// //       const script = document.createElement('script');
-// //       script.id  = 'mapkit-script';
-// //       script.src = 'https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js';
-// //       script.crossOrigin = 'anonymous';
-// //       script.async = true;
-// //       script.onload = () => {
-// //         console.log('[AppleMapsProvider._loadMapKit] script onload fired — window.mapkit:', !!window.mapkit);
-// //         if (!tryResolve()) reject(new Error('mapkit not on window after load'));
-// //       };
-// //       script.onerror = (e) => {
-// //         console.error('[AppleMapsProvider._loadMapKit] ❌ script failed to load:', e);
-// //         reject(e);
-// //       };
-// //       document.head.appendChild(script);
-// //     });
-
-// //     return this._mkInit;
-// //   }
-
-// //   // ── Search places ─────────────────────────────────────────────────────────
-// //   async searchPlaces(query, countryCode = null) {
-// //     console.log('[AppleMapsProvider.searchPlaces] ▶ query:', JSON.stringify(query), '| countryCode:', countryCode);
-// //     console.log('[AppleMapsProvider.searchPlaces] token present:', !!this.token, '| _mkReady:', this._mkReady);
-
-// //     if (!this.token) {
-// //       console.warn('[AppleMapsProvider.searchPlaces] ❌ no token — cannot search');
-// //       return null;
-// //     }
-
-// //     try {
-// //       console.log('[AppleMapsProvider.searchPlaces] awaiting _loadMapKit...');
-// //       const mapkit = await this._loadMapKit();
-// //       console.log('[AppleMapsProvider.searchPlaces] mapkit resolved:', !!mapkit, '| mapkit.Search available:', typeof mapkit?.Search);
-
-// //       if (!mapkit?.Search) {
-// //         console.error('[AppleMapsProvider.searchPlaces] ❌ mapkit.Search is not available — mapkit may not be fully loaded');
-// //         console.log('[AppleMapsProvider.searchPlaces] mapkit keys:', Object.keys(mapkit || {}));
-// //         return null;
-// //       }
-
-// //       const searchOptions = { language: 'en-US', getsUserLocation: false };
-// //       if (countryCode) searchOptions.limitToCountries = countryCode.toUpperCase();
-// //       console.log('[AppleMapsProvider.searchPlaces] creating mapkit.Search with options:', searchOptions);
-
-// //       const results = await new Promise((resolve) => {
-// //         const search = new mapkit.Search(searchOptions);
-// //         console.log('[AppleMapsProvider.searchPlaces] calling search.search()...');
-// //         search.search(query, (err, data) => {
-// //           console.log('[AppleMapsProvider.searchPlaces] search callback — err:', err, '| data keys:', Object.keys(data || {}));
-// //           if (err) {
-// //             console.warn('[AppleMapsProvider.searchPlaces] mapkit.Search error:', JSON.stringify(err));
-// //             resolve(null);
-// //             return;
-// //           }
-// //           const places = data?.places || [];
-// //           const items  = data?.displayItems || [];
-// //           console.log('[AppleMapsProvider.searchPlaces] places:', places.length, '| displayItems:', items.length);
-// //           const all = places.length ? places : items;
-// //           if (!all.length) { resolve(null); return; }
-// //           const mapped = all.map((r, i) => ({
-// //             place_id:       `apple_${i}_${Date.now()}`,
-// //             main_text:      r.name || r.displayLines?.[0] || r.formattedAddress?.split(',')[0] || '',
-// //             secondary_text: r.formattedAddress || r.displayLines?.slice(1).join(', ') || '',
-// //             address:        r.formattedAddress || r.name || '',
-// //             name:           r.name || r.displayLines?.[0] || '',
-// //             lat:            r.coordinate?.latitude  ?? null,
-// //             lng:            r.coordinate?.longitude ?? null,
-// //           }));
-// //           console.log('[AppleMapsProvider.searchPlaces] mapped', mapped.length, 'results:', mapped.map(r => r.main_text).join(', '));
-// //           resolve(mapped);
-// //         });
-// //       });
-
-// //       if (results?.length) {
-// //         console.log('[AppleMapsProvider.searchPlaces] ✅ returning', results.length, 'results from Search');
-// //         return results;
-// //       }
-
-// //       // Geocoder fallback for exact addresses
-// //       console.log('[AppleMapsProvider.searchPlaces] Search empty — trying Geocoder fallback');
-// //       return await new Promise((resolve) => {
-// //         const geocoder = new mapkit.Geocoder({ language: 'en-US' });
-// //         geocoder.lookup(query, (err, data) => {
-// //           console.log('[AppleMapsProvider.searchPlaces] Geocoder callback — err:', err, '| results:', data?.results?.length ?? 0);
-// //           if (err || !data?.results?.length) { resolve(null); return; }
-// //           const mapped = data.results.map((r, i) => ({
-// //             place_id:       `apple_geo_${i}_${Date.now()}`,
-// //             main_text:      r.name || r.formattedAddress?.split(',')[0] || '',
-// //             secondary_text: r.formattedAddress || '',
-// //             address:        r.formattedAddress || r.name || '',
-// //             name:           r.name || '',
-// //             lat:            r.coordinate?.latitude  ?? null,
-// //             lng:            r.coordinate?.longitude ?? null,
-// //           }));
-// //           console.log('[AppleMapsProvider.searchPlaces] Geocoder returned', mapped.length, 'results');
-// //           resolve(mapped);
-// //         });
-// //       });
-
-// //     } catch (err) {
-// //       console.error('[AppleMapsProvider.searchPlaces] ❌ exception:', err?.message, err);
-// //       return null;
-// //     }
-// //   }
-
-// //   // ── Place details ─────────────────────────────────────────────────────────
-// //   async getPlaceDetails(placeId, extraData = null) {
-// //     console.log('[AppleMapsProvider.getPlaceDetails] placeId:', placeId, '| extraData lat/lng:', extraData?.lat, extraData?.lng);
-// //     if (extraData?.lat != null && extraData?.lng != null) {
-// //       console.log('[AppleMapsProvider.getPlaceDetails] ✅ fast path — coords already in extraData');
-// //       return {
-// //         lat:      extraData.lat,
-// //         lng:      extraData.lng,
-// //         address:  extraData.address || extraData.main_text || '',
-// //         name:     extraData.name    || extraData.main_text || '',
-// //         place_id: placeId,
-// //       };
-// //     }
-// //     const text = extraData?._rawText || extraData?.name || extraData?.address;
-// //     console.log('[AppleMapsProvider.getPlaceDetails] no coords — geocoding text:', text);
-// //     if (!text) return null;
-// //     const result = await this.geocodeAddress(text);
-// //     if (!result) return null;
-// //     return { ...result, name: text.split(',')[0], place_id: placeId };
-// //   }
-
-// //   // ── Forward geocode ───────────────────────────────────────────────────────
-// //   async geocodeAddress(address) {
-// //     console.log('[AppleMapsProvider.geocodeAddress]', address);
-// //     if (!this.token) return null;
-// //     try {
-// //       const mapkit = await this._loadMapKit();
-// //       return await new Promise((resolve) => {
-// //         const geocoder = new mapkit.Geocoder({ language: 'en-US' });
-// //         geocoder.lookup(address, (err, data) => {
-// //           if (err || !data?.results?.length) { console.warn('[AppleMapsProvider.geocodeAddress] no results'); resolve(null); return; }
-// //           const r = data.results[0];
-// //           resolve({ lat: r.coordinate.latitude, lng: r.coordinate.longitude, address: r.formattedAddress || address, place_id: `apple_geo_${r.coordinate.latitude}_${r.coordinate.longitude}` });
-// //         });
-// //       });
-// //     } catch (err) {
-// //       console.error('[AppleMapsProvider.geocodeAddress] error:', err?.message);
-// //       return null;
-// //     }
-// //   }
-
-// //   // ── Reverse geocode ───────────────────────────────────────────────────────
-// //   async reverseGeocode(lat, lng) {
-// //     if (!this.token) return null;
-// //     try {
-// //       const mapkit = await this._loadMapKit();
-// //       return await new Promise((resolve) => {
-// //         const geocoder = new mapkit.Geocoder({ language: 'en-US' });
-// //         geocoder.reverseLookup(new mapkit.Coordinate(lat, lng), (err, data) => {
-// //           if (err || !data?.results?.length) { resolve(null); return; }
-// //           const r = data.results[0];
-// //           resolve({ lat, lng, address: r.formattedAddress || '', name: r.name || r.locality || '', place_id: `apple_rev_${lat}_${lng}`, city: r.locality || null, country: r.country || null });
-// //         });
-// //       });
-// //     } catch (err) {
-// //       console.error('[AppleMapsProvider.reverseGeocode] error:', err?.message);
-// //       return null;
-// //     }
-// //   }
-
-// //   // ── Navigation ────────────────────────────────────────────────────────────
-// //   getNavigationDeepLink(destination, origin = null) {
-// //     const params = new URLSearchParams({ daddr: `${destination.lat},${destination.lng}`, dirflg: 'd' });
-// //     if (origin) params.set('saddr', `${origin.lat},${origin.lng}`);
-// //     const webUrl = `https://maps.apple.com/?${params}`;
-// //     const appUrl = `maps://?daddr=${destination.lat},${destination.lng}&dirflg=d`;
-// //     const isMobile = typeof navigator !== 'undefined' && /iphone|ipad|ipod|mac/i.test(navigator.userAgent);
-// //     return { webUrl, appUrl: isMobile ? appUrl : null, isMobile };
-// //   }
-
-// //   openNavigation(destination, origin = null) {
-// //     const { webUrl, appUrl, isMobile } = this.getNavigationDeepLink(destination, origin);
-// //     if (isMobile && appUrl) { window.location.href = appUrl; setTimeout(() => window.open(webUrl, '_blank'), 1500); }
-// //     else window.open(webUrl, '_blank');
-// //   }
-
-// //   calculateDistance(lat1, lon1, lat2, lon2) {
-// //     const R = 6371, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
-// //     const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-// //     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-// //   }
-// // }
-
-// // export default AppleMapsProvider;
-// // PATH: Okra/Okrarides/rider/components/Map/APIProviders/AppleMapsProvider.jsx
-// //
-// // Apple Maps via MapKit JS.
-// // Env: NEXT_PUBLIC_APPLE_MAPS_TOKEN  (JWT signed with your MapKit key)
-// //
-// // Fixes in this version:
-// //  1. searchPlaces now passes a coordinate-region bias so results are geographically relevant
-// //  2. _currentCenter is updated by the map display so search bias stays current
 
 // export class AppleMapsProvider {
 //   constructor(token) {
@@ -372,7 +94,7 @@
 
 //   // ── Search places ─────────────────────────────────────────────────────────
 //   async searchPlaces(query, countryCode = null) {
-//     console.log('[AppleMapsProvider.searchPlaces] ▶ query:', JSON.stringify(query), '| countryCode:', countryCode);
+//     console.log('[AppleMapsProvider.searchPlaces] ▶ query:', JSON.stringify(query), '| countryCode:', countryCode, '| _center:', this._center);
 
 //     if (!this.token) {
 //       console.warn('[AppleMapsProvider.searchPlaces] ❌ no token');
@@ -380,42 +102,63 @@
 //     }
 
 //     try {
+//       console.log('[AppleMapsProvider.searchPlaces] awaiting _loadMapKit...');
 //       const mapkit = await this._loadMapKit();
+//       console.log('[AppleMapsProvider.searchPlaces] mapkit resolved:', !!mapkit, '| mapkit.Search available:', typeof mapkit?.Search);
 
 //       if (!mapkit?.Search) {
 //         console.error('[AppleMapsProvider.searchPlaces] ❌ mapkit.Search not available');
 //         return null;
 //       }
 
-//       // FIX: build a coordinate-region bias so results are geographically relevant
-//       // Use the current map center (defaults to Lusaka) with a ~100 km span
+//       // Build search options with geographic bias.
+//       // We use THREE approaches in order of reliability:
+//       //  1. coordinate — simple Coordinate object, most compatible
+//       //  2. region     — CoordinateRegion, better bias but can throw
+//       //  3. limitToCountries — when countryCode provided
 //       const searchOptions = {
-//         language:        'en-US',
+//         language:         'en-US',
 //         getsUserLocation: false,
 //       };
 
-//       // Add country restriction when provided
-//       if (countryCode) {
-//         searchOptions.limitToCountries = countryCode.toUpperCase();
+//       const { lat, lng } = this._center;
+
+//       // Approach 1: coordinate bias (most compatible across MapKit JS versions)
+//       try {
+//         searchOptions.coordinate = new mapkit.Coordinate(lat, lng);
+//         console.log('[AppleMapsProvider.searchPlaces] ✅ coordinate bias set:', lat, lng);
+//       } catch (coordErr) {
+//         console.warn('[AppleMapsProvider.searchPlaces] ⚠ coordinate bias failed:', coordErr?.message);
 //       }
 
-//       // FIX: add region bias so Apple Maps returns nearby results
-//       // CoordinateRegion(center, span) — span of ~1.8° ≈ 200 km radius
+//       // Approach 2: region bias (stronger — prefers results within ~200 km)
 //       try {
-//         const { lat, lng } = this._center;
 //         searchOptions.region = new mapkit.CoordinateRegion(
 //           new mapkit.Coordinate(lat, lng),
 //           new mapkit.CoordinateSpan(1.8, 1.8),
 //         );
-//         console.log('[AppleMapsProvider.searchPlaces] region bias set to', lat, lng);
+//         console.log('[AppleMapsProvider.searchPlaces] ✅ region bias set');
 //       } catch (regionErr) {
-//         console.warn('[AppleMapsProvider.searchPlaces] could not set region bias:', regionErr?.message);
+//         console.warn('[AppleMapsProvider.searchPlaces] ⚠ region bias failed:', regionErr?.message, '— coordinate-only bias will apply');
+//         // Remove partial region if it was partially set
+//         delete searchOptions.region;
 //       }
 
-//       console.log('[AppleMapsProvider.searchPlaces] creating mapkit.Search with options:', searchOptions);
+//       // Approach 3: country filter
+//       if (countryCode) {
+//         searchOptions.limitToCountries = countryCode.toUpperCase();
+//         console.log('[AppleMapsProvider.searchPlaces] limitToCountries:', countryCode.toUpperCase());
+//       }
+
+//       console.log('[AppleMapsProvider.searchPlaces] creating mapkit.Search with options:', {
+//         ...searchOptions,
+//         coordinate: searchOptions.coordinate ? `Coordinate(${lat},${lng})` : undefined,
+//         region:     searchOptions.region     ? `CoordinateRegion(${lat},${lng}, span=1.8)` : undefined,
+//       });
 
 //       const results = await new Promise((resolve) => {
 //         const search = new mapkit.Search(searchOptions);
+//         console.log('[AppleMapsProvider.searchPlaces] calling search.search()...');
 //         search.search(query, (err, data) => {
 //           console.log(
 //             '[AppleMapsProvider.searchPlaces] search callback — err:', err,
@@ -446,6 +189,7 @@
 //       });
 
 //       if (results?.length) {
+//         console.log('apple maps place returned',results)
 //         console.log('[AppleMapsProvider.searchPlaces] ✅ returning', results.length, 'results from Search');
 //         return results;
 //       }
@@ -571,254 +315,75 @@
 // export default AppleMapsProvider;
 // PATH: Okra/Okrarides/rider/components/Map/APIProviders/AppleMapsProvider.jsx
 //
-// Apple Maps via MapKit JS.
-// Env: NEXT_PUBLIC_APPLE_MAPS_TOKEN  (JWT signed with your MapKit key)
+// Apple MapKit JS provider.
 //
-// Fixes in this version:
-//  1. searchPlaces now passes a coordinate-region bias so results are geographically relevant
-//  2. _currentCenter is updated by the map display so search bias stays current
+// Default service config (from MapsProvider DEFAULT_SERVICE_APIS):
+//   autoComplete: 'search'    → _searchViaMapKitSearch()
+//   location:     'geocoder'  → _geocodeViaMapKit() / _reverseGeocodeViaMapKit()
+//   routing:      'deeplink'  → openNavigation()
+//
+// All public methods accept an optional apiMethod forwarded from MapsProvider.
 
 export class AppleMapsProvider {
   constructor(token) {
-    this.token        = token;
-    this.name         = 'applemap';
-    this._mkReady     = false;
-    this._mkInit      = null;
-    // FIX: default center bias — Lusaka, Zambia. Updated by the map display via setCenter().
-    this._center      = { lat: -15.4167, lng: 28.2833 };
-    console.log(
-      '[AppleMapsProvider] constructor — token present:', !!token,
-      '| token prefix:', token?.slice(0, 20) || 'NONE',
-    );
+    this.token    = token;
+    this.name     = 'apple';
+    this._mkReady = false;
+    this._mkInit  = null;
+    this._center  = { lat: -15.4167, lng: 28.2833 };
+    console.log('[AppleMapsProvider] token present:', !!token);
   }
 
-  // Allow the map display to push the current viewport center so search stays relevant
-  setCenter(lat, lng) {
-    this._center = { lat, lng };
-  }
+  setCenter(lat, lng) { this._center = { lat, lng }; }
 
-  // ── Load MapKit JS ────────────────────────────────────────────────────────
-  _loadMapKit() {
-    console.log(
-      '[AppleMapsProvider._loadMapKit] called — _mkInit cached:', !!this._mkInit,
-      '| window.mapkit:', !!window?.mapkit,
-      '| window.mapkit._initialized:', !!window?.mapkit?._initialized,
-    );
-    if (this._mkInit) {
-      console.log('[AppleMapsProvider._loadMapKit] returning cached promise');
-      return this._mkInit;
-    }
+  // ─────────────────────────────────────────────────────────────────────────
+  // DISPATCH LAYER
+  // ─────────────────────────────────────────────────────────────────────────
 
-    this._mkInit = new Promise((resolve, reject) => {
-      if (typeof window === 'undefined') {
-        console.error('[AppleMapsProvider._loadMapKit] SSR — cannot load mapkit');
-        return reject(new Error('SSR'));
-      }
-
-      const tryResolve = () => {
-        const mk = window.mapkit;
-        if (!mk) return false;
-
-        if (mk._initialized) {
-          this._mkReady = true;
-          resolve(mk);
-          return true;
-        }
-
-        try {
-          mk.init({ authorizationCallback: (done) => done(this.token), language: 'en' });
-          mk._initialized = true;
-          this._mkReady   = true;
-          resolve(mk);
-          return true;
-        } catch (err) {
-          console.error('[AppleMapsProvider._loadMapKit] ❌ mapkit.init() threw:', err?.message);
-          reject(err);
-          return true;
-        }
-      };
-
-      if (tryResolve()) return;
-
-      const existing = document.getElementById('mapkit-script');
-      if (existing) {
-        const deadline = Date.now() + 8000;
-        let polls = 0;
-        const poll = () => {
-          polls++;
-          if (tryResolve()) return;
-          if (Date.now() > deadline) {
-            console.error('[AppleMapsProvider._loadMapKit] ❌ timeout after', polls, 'polls');
-            reject(new Error('mapkit load timeout'));
-            return;
-          }
-          setTimeout(poll, 50);
-        };
-        poll();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.id          = 'mapkit-script';
-      script.src         = 'https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js';
-      script.crossOrigin = 'anonymous';
-      script.async       = true;
-      script.onload = () => { if (!tryResolve()) reject(new Error('mapkit not on window after load')); };
-      script.onerror = (e) => { console.error('[AppleMapsProvider._loadMapKit] ❌ script failed'); reject(e); };
-      document.head.appendChild(script);
-    });
-
-    return this._mkInit;
-  }
-
-  // ── Search places ─────────────────────────────────────────────────────────
-  async searchPlaces(query, countryCode = null) {
-    console.log('[AppleMapsProvider.searchPlaces] ▶ query:', JSON.stringify(query), '| countryCode:', countryCode, '| _center:', this._center);
-
-    if (!this.token) {
-      console.warn('[AppleMapsProvider.searchPlaces] ❌ no token');
-      return null;
-    }
-
-    try {
-      console.log('[AppleMapsProvider.searchPlaces] awaiting _loadMapKit...');
-      const mapkit = await this._loadMapKit();
-      console.log('[AppleMapsProvider.searchPlaces] mapkit resolved:', !!mapkit, '| mapkit.Search available:', typeof mapkit?.Search);
-
-      if (!mapkit?.Search) {
-        console.error('[AppleMapsProvider.searchPlaces] ❌ mapkit.Search not available');
-        return null;
-      }
-
-      // Build search options with geographic bias.
-      // We use THREE approaches in order of reliability:
-      //  1. coordinate — simple Coordinate object, most compatible
-      //  2. region     — CoordinateRegion, better bias but can throw
-      //  3. limitToCountries — when countryCode provided
-      const searchOptions = {
-        language:         'en-US',
-        getsUserLocation: false,
-      };
-
-      const { lat, lng } = this._center;
-
-      // Approach 1: coordinate bias (most compatible across MapKit JS versions)
-      try {
-        searchOptions.coordinate = new mapkit.Coordinate(lat, lng);
-        console.log('[AppleMapsProvider.searchPlaces] ✅ coordinate bias set:', lat, lng);
-      } catch (coordErr) {
-        console.warn('[AppleMapsProvider.searchPlaces] ⚠ coordinate bias failed:', coordErr?.message);
-      }
-
-      // Approach 2: region bias (stronger — prefers results within ~200 km)
-      try {
-        searchOptions.region = new mapkit.CoordinateRegion(
-          new mapkit.Coordinate(lat, lng),
-          new mapkit.CoordinateSpan(1.8, 1.8),
-        );
-        console.log('[AppleMapsProvider.searchPlaces] ✅ region bias set');
-      } catch (regionErr) {
-        console.warn('[AppleMapsProvider.searchPlaces] ⚠ region bias failed:', regionErr?.message, '— coordinate-only bias will apply');
-        // Remove partial region if it was partially set
-        delete searchOptions.region;
-      }
-
-      // Approach 3: country filter
-      if (countryCode) {
-        searchOptions.limitToCountries = countryCode.toUpperCase();
-        console.log('[AppleMapsProvider.searchPlaces] limitToCountries:', countryCode.toUpperCase());
-      }
-
-      console.log('[AppleMapsProvider.searchPlaces] creating mapkit.Search with options:', {
-        ...searchOptions,
-        coordinate: searchOptions.coordinate ? `Coordinate(${lat},${lng})` : undefined,
-        region:     searchOptions.region     ? `CoordinateRegion(${lat},${lng}, span=1.8)` : undefined,
-      });
-
-      const results = await new Promise((resolve) => {
-        const search = new mapkit.Search(searchOptions);
-        console.log('[AppleMapsProvider.searchPlaces] calling search.search()...');
-        search.search(query, (err, data) => {
-          console.log(
-            '[AppleMapsProvider.searchPlaces] search callback — err:', err,
-            '| data keys:', Object.keys(data || {}),
-          );
-          if (err) {
-            console.warn('[AppleMapsProvider.searchPlaces] mapkit.Search error:', JSON.stringify(err));
-            resolve(null);
-            return;
-          }
-          const places = data?.places || [];
-          const items  = data?.displayItems || [];
-          console.log('[AppleMapsProvider.searchPlaces] places:', places.length, '| displayItems:', items.length);
-          const all = places.length ? places : items;
-          if (!all.length) { resolve(null); return; }
-          const mapped = all.map((r, i) => ({
-            place_id:       `apple_${i}_${Date.now()}`,
-            main_text:      r.name || r.displayLines?.[0] || r.formattedAddress?.split(',')[0] || '',
-            secondary_text: r.formattedAddress || r.displayLines?.slice(1).join(', ') || '',
-            address:        r.formattedAddress || r.name || '',
-            name:           r.name || r.displayLines?.[0] || '',
-            lat:            r.coordinate?.latitude  ?? null,
-            lng:            r.coordinate?.longitude ?? null,
-          }));
-          console.log('[AppleMapsProvider.searchPlaces] mapped', mapped.length, 'results:', mapped.map(r => r.main_text).join(', '));
-          resolve(mapped);
-        });
-      });
-
-      if (results?.length) {
-        console.log('apple maps place returned',results)
-        console.log('[AppleMapsProvider.searchPlaces] ✅ returning', results.length, 'results from Search');
-        return results;
-      }
-
-      // Geocoder fallback for exact addresses
-      console.log('[AppleMapsProvider.searchPlaces] Search empty — trying Geocoder fallback');
-      return await new Promise((resolve) => {
-        const geocoder = new mapkit.Geocoder({ language: 'en-US' });
-        geocoder.lookup(query, (err, data) => {
-          if (err || !data?.results?.length) { resolve(null); return; }
-          const mapped = data.results.map((r, i) => ({
-            place_id:       `apple_geo_${i}_${Date.now()}`,
-            main_text:      r.name || r.formattedAddress?.split(',')[0] || '',
-            secondary_text: r.formattedAddress || '',
-            address:        r.formattedAddress || r.name || '',
-            name:           r.name || '',
-            lat:            r.coordinate?.latitude  ?? null,
-            lng:            r.coordinate?.longitude ?? null,
-          }));
-          console.log('[AppleMapsProvider.searchPlaces] Geocoder returned', mapped.length, 'results');
-          resolve(mapped);
-        });
-      });
-
-    } catch (err) {
-      console.error('[AppleMapsProvider.searchPlaces] ❌ exception:', err?.message, err);
-      return null;
+  _dispatchSearch(apiMethod, query, countryCode) {
+    switch (apiMethod) {
+      case 'search':
+      default:
+        return this._searchViaMapKitSearch(query, countryCode);
     }
   }
 
-  // ── Place details ─────────────────────────────────────────────────────────
-  async getPlaceDetails(placeId, extraData = null) {
-    console.log('[AppleMapsProvider.getPlaceDetails] placeId:', placeId, '| extraData lat/lng:', extraData?.lat, extraData?.lng);
+  _dispatchLocation(apiMethod, ...args) {
+    switch (apiMethod) {
+      case 'geocoder':
+      default:
+        return typeof args[0] === 'string'
+          ? this._placeDetailsViaGeocoder(args[0], args[1])
+          : this._reverseGeocodeViaGeocoder(args[0], args[1]);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PUBLIC SERVICE METHODS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async searchPlaces(query, countryCode = null, apiMethod = 'search') {
+    if (!this.token || !query) return null;
+    return this._dispatchSearch(apiMethod, query, countryCode);
+  }
+
+  async getPlaceDetails(placeId, extraData = null, apiMethod = 'geocoder') {
     if (extraData?.lat != null && extraData?.lng != null) {
       return {
-        lat:      extraData.lat,
-        lng:      extraData.lng,
+        lat: extraData.lat, lng: extraData.lng,
         address:  extraData.address || extraData.main_text || '',
         name:     extraData.name    || extraData.main_text || '',
         place_id: placeId,
       };
     }
-    const text = extraData?._rawText || extraData?.name || extraData?.address;
-    if (!text) return null;
-    const result = await this.geocodeAddress(text);
-    if (!result) return null;
-    return { ...result, name: text.split(',')[0], place_id: placeId };
+    return this._dispatchLocation(apiMethod, placeId, extraData);
   }
 
-  // ── Forward geocode ───────────────────────────────────────────────────────
+  async reverseGeocode(lat, lng, apiMethod = 'geocoder') {
+    if (!this.token) return null;
+    return this._dispatchLocation(apiMethod, lat, lng);
+  }
+
   async geocodeAddress(address) {
     if (!this.token) return null;
     try {
@@ -829,9 +394,8 @@ export class AppleMapsProvider {
           if (err || !data?.results?.length) { resolve(null); return; }
           const r = data.results[0];
           resolve({
-            lat:      r.coordinate.latitude,
-            lng:      r.coordinate.longitude,
-            address:  r.formattedAddress || address,
+            lat: r.coordinate.latitude, lng: r.coordinate.longitude,
+            address: r.formattedAddress || address,
             place_id: `apple_geo_${r.coordinate.latitude}_${r.coordinate.longitude}`,
           });
         });
@@ -842,9 +406,147 @@ export class AppleMapsProvider {
     }
   }
 
-  // ── Reverse geocode ───────────────────────────────────────────────────────
-  async reverseGeocode(lat, lng) {
-    if (!this.token) return null;
+  // ─────────────────────────────────────────────────────────────────────────
+  // NAVIGATION (deep-link)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  openNavigation(destination, origin = null) {
+    const params = new URLSearchParams({ daddr: `${destination.lat},${destination.lng}`, dirflg: 'd' });
+    if (origin) params.set('saddr', `${origin.lat},${origin.lng}`);
+    const webUrl = `https://maps.apple.com/?${params}`;
+    const appUrl = `maps://?daddr=${destination.lat},${destination.lng}&dirflg=d`;
+    const isMobile = typeof navigator !== 'undefined' && /iphone|ipad|ipod|mac/i.test(navigator.userAgent);
+    if (isMobile) { window.location.href = appUrl; setTimeout(() => window.open(webUrl, '_blank'), 1500); }
+    else window.open(webUrl, '_blank');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // MAPKIT JS LOADER
+  // ─────────────────────────────────────────────────────────────────────────
+
+  _loadMapKit() {
+    if (this._mkInit) return this._mkInit;
+
+    this._mkInit = new Promise((resolve, reject) => {
+      if (typeof window === 'undefined') return reject(new Error('SSR'));
+
+      const tryResolve = () => {
+        const mk = window.mapkit;
+        if (!mk) return false;
+        if (mk._initialized) { this._mkReady = true; resolve(mk); return true; }
+        try {
+          mk.init({ authorizationCallback: (done) => done(this.token), language: 'en' });
+          mk._initialized = true; this._mkReady = true; resolve(mk); return true;
+        } catch (err) { reject(err); return true; }
+      };
+
+      if (tryResolve()) return;
+
+      const existing = document.getElementById('mapkit-script');
+      if (existing) {
+        const deadline = Date.now() + 8000;
+        const poll = () => {
+          if (tryResolve()) return;
+          if (Date.now() > deadline) { reject(new Error('mapkit load timeout')); return; }
+          setTimeout(poll, 50);
+        };
+        poll(); return;
+      }
+
+      const script       = document.createElement('script');
+      script.id          = 'mapkit-script';
+      script.src         = 'https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js';
+      script.crossOrigin = 'anonymous';
+      script.async       = true;
+      script.onload  = () => { if (!tryResolve()) reject(new Error('mapkit not on window')); };
+      script.onerror = (e) => reject(e);
+      document.head.appendChild(script);
+    });
+
+    return this._mkInit;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // IMPLEMENTATION: MapKit Search (autoComplete)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async _searchViaMapKitSearch(query, countryCode) {
+    try {
+      const mapkit = await this._loadMapKit();
+      if (!mapkit?.Search) return null;
+
+      const { lat, lng } = this._center;
+      const searchOptions = { language: 'en-US', getsUserLocation: false };
+
+      try { searchOptions.coordinate = new mapkit.Coordinate(lat, lng); } catch {}
+      try {
+        searchOptions.region = new mapkit.CoordinateRegion(
+          new mapkit.Coordinate(lat, lng),
+          new mapkit.CoordinateSpan(1.8, 1.8),
+        );
+      } catch {}
+
+      if (countryCode) searchOptions.limitToCountries = countryCode.toUpperCase();
+
+      const results = await new Promise((resolve) => {
+        const search = new mapkit.Search(searchOptions);
+        search.search(query, (err, data) => {
+          if (err) { resolve(null); return; }
+          const all = data?.places?.length ? data.places : (data?.displayItems || []);
+          if (!all.length) { resolve(null); return; }
+          resolve(all.map((r, i) => ({
+            place_id:       `apple_${i}_${Date.now()}`,
+            main_text:      r.name || r.displayLines?.[0] || r.formattedAddress?.split(',')[0] || '',
+            secondary_text: r.formattedAddress || r.displayLines?.slice(1).join(', ') || '',
+            address:        r.formattedAddress || r.name || '',
+            name:           r.name || r.displayLines?.[0] || '',
+            lat:            r.coordinate?.latitude  ?? null,
+            lng:            r.coordinate?.longitude ?? null,
+          })));
+        });
+      });
+
+      if (results?.length) return results;
+
+      // Geocoder fallback
+      return await new Promise((resolve) => {
+        const geocoder = new mapkit.Geocoder({ language: 'en-US' });
+        geocoder.lookup(query, (err, data) => {
+          if (err || !data?.results?.length) { resolve(null); return; }
+          resolve(data.results.map((r, i) => ({
+            place_id:       `apple_geo_${i}_${Date.now()}`,
+            main_text:      r.name || r.formattedAddress?.split(',')[0] || '',
+            secondary_text: r.formattedAddress || '',
+            address:        r.formattedAddress || r.name || '',
+            name:           r.name || '',
+            lat:            r.coordinate?.latitude  ?? null,
+            lng:            r.coordinate?.longitude ?? null,
+          })));
+        });
+      });
+    } catch (err) {
+      console.error('[AppleMapsProvider._searchViaMapKitSearch] error:', err?.message);
+      return null;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // IMPLEMENTATION: MapKit Geocoder — place details
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async _placeDetailsViaGeocoder(placeId, extraData) {
+    const text = extraData?._rawText || extraData?.name || extraData?.address;
+    if (!text) return null;
+    const result = await this.geocodeAddress(text);
+    if (!result) return null;
+    return { ...result, name: text.split(',')[0], place_id: placeId };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // IMPLEMENTATION: MapKit Geocoder — reverse geocode
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async _reverseGeocodeViaGeocoder(lat, lng) {
     try {
       const mapkit = await this._loadMapKit();
       return await new Promise((resolve) => {
@@ -854,40 +556,18 @@ export class AppleMapsProvider {
           const r = data.results[0];
           resolve({
             lat, lng,
-            address:  r.formattedAddress || '',
-            name:     r.name || r.locality || '',
-            place_id: `apple_rev_${lat}_${lng}`,
-            city:     r.locality  || null,
-            country:  r.country   || null,
+            address:   r.formattedAddress || '',
+            name:      r.name || r.locality || '',
+            place_id:  `apple_rev_${lat}_${lng}`,
+            city:      r.locality  || null,
+            country:   r.country   || null,
           });
         });
       });
     } catch (err) {
-      console.error('[AppleMapsProvider.reverseGeocode] error:', err?.message);
+      console.error('[AppleMapsProvider._reverseGeocodeViaGeocoder] error:', err?.message);
       return null;
     }
-  }
-
-  // ── Navigation ────────────────────────────────────────────────────────────
-  getNavigationDeepLink(destination, origin = null) {
-    const params = new URLSearchParams({ daddr: `${destination.lat},${destination.lng}`, dirflg: 'd' });
-    if (origin) params.set('saddr', `${origin.lat},${origin.lng}`);
-    const webUrl   = `https://maps.apple.com/?${params}`;
-    const appUrl   = `maps://?daddr=${destination.lat},${destination.lng}&dirflg=d`;
-    const isMobile = typeof navigator !== 'undefined' && /iphone|ipad|ipod|mac/i.test(navigator.userAgent);
-    return { webUrl, appUrl: isMobile ? appUrl : null, isMobile };
-  }
-
-  openNavigation(destination, origin = null) {
-    const { webUrl, appUrl, isMobile } = this.getNavigationDeepLink(destination, origin);
-    if (isMobile && appUrl) { window.location.href = appUrl; setTimeout(() => window.open(webUrl, '_blank'), 1500); }
-    else window.open(webUrl, '_blank');
-  }
-
-  calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
-    const a  = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 }
 

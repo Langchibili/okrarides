@@ -82,23 +82,37 @@ function LoadingSplash({ visible }) {
   );
 }
 
+
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { setAccentColor } = useThemeMode()
+  const { setAccentColor, setMode } = useThemeMode()
   const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
   const [checkingAuth, setCheckingAuth] = useState(() => loading)
   const [splashVisible, setSplashVisible] = useState(() => {
     // Only show splash if this is a fresh page load — not an in-app navigation
     if (typeof window === 'undefined') return false;
     const already = sessionStorage.getItem('okra_splash_shown');
+    if(!already){
+      setMode('light')
+    }
     return !already;
   })
   useEffect(() => {
     const t = setTimeout(() => setSplashVisible(false), 2500);
     return () => clearTimeout(t);
   }, []);
+
+  useEffect(()=>{
+    if(typeof window !== "undefined"){
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get('ref') || params.get('afcode');
+      if (fromUrl) {
+       localStorage.setItem('affiliateRef', fromUrl)
+      }
+    }
+  },[])
 
 
 
@@ -176,7 +190,7 @@ export default function Home() {
 
     if (!loading) {
       if (!isAuthenticated()) {
-        router.push('/login');
+        router.push('/login')
       } else {
         ridesAPI.cleanTempBlocks() // clears list of temporarily blocked off drivers due to ride declines, if driver was blocked off a long time ago
         initializeNativeCode() // initialize native code
