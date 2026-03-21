@@ -244,10 +244,11 @@ const RenderHomePage = ()=>{
 
 
 export default function Home() {
-       return (<ReactNativeWrapper>
+       return (
+              <AuthProvider>
+               <ReactNativeWrapper>
                 <ThemeProvider>
                     <AdminSettingsProvider>
-                      <AuthProvider>
                         <ScreenshotProvider>
                           <SocketProvider>
                             <MapsProvider>
@@ -256,9 +257,9 @@ export default function Home() {
                           </SocketProvider>
                             <FloatingCaptureButton />
                           </ScreenshotProvider>
-                      </AuthProvider>
                     </AdminSettingsProvider>
                 </ThemeProvider>
-              </ReactNativeWrapper>)
+              </ReactNativeWrapper>
+              </AuthProvider>)
      
 }

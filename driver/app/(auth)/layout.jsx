@@ -11,7 +11,8 @@ import {
   LightMode as LightIcon,
   DarkMode  as DarkIcon,
 } from '@mui/icons-material';
-import { useThemeMode } from '@/components/ThemeProvider';
+import { ThemeProvider, useThemeMode } from '@/components/ThemeProvider';
+import { AuthProvider } from '@/lib/hooks/useAuth';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const GREEN     = '#10B981';
@@ -220,7 +221,7 @@ function LoadingSplash({ visible }) {
             >
               <Box
                 component="img"
-                src="/okra-rides-logo-for-drivers-transparent.png"
+                src="/okra-rides-logo-transparent.png"
                 alt="OkraRides"
                 sx={{
                   width: 110,
@@ -258,7 +259,6 @@ export default function AuthLayout({ children }) {
   const isDark   = theme.palette.mode === 'dark';
   const pathname = usePathname();
   const router   = useRouter();
-  const { toggleTheme }   = useThemeMode();
   const [landingPageUrl, setLandingPageUrl] = useState(null);
   const [splashVisible, setSplashVisible] = useState(true)
 
@@ -279,47 +279,56 @@ export default function AuthLayout({ children }) {
 
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
+    <AuthProvider>
+        <ThemeProvider>
+            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
 
-      {/* ── Toolbar ─────────────────────────────────────────────────────── */}
-      <AppBar position="static" elevation={0} sx={{
-        background: isDark
-          ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)'
-          : 'linear-gradient(135deg, #ffffff 0%, #F8FAFC 100%)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: isDark
-          ? `1px solid ${alpha(GREEN, 0.12)}`
-          : `1px solid ${alpha('#CBD5E1', 0.7)}`,
-        boxShadow: isDark
-          ? `0 1px 0 ${alpha(GREEN, 0.08)}`
-          : `0 1px 8px ${alpha('#94A3B8', 0.15)}`,
-        transition: 'background 0.35s',
-      }}>
-        <Toolbar sx={{ justifyContent: 'space-between', gap: 1 }}>
-          <AnimatedHeaderButton
-            label="APPS"
-            direction="left"
-            icon={<AppsIcon size={22} color={GREEN} />}
-            onClick={() => { if (landingPageUrl) router.push(landingPageUrl) }}
-          />
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-          </Box>
-          <AnimatedHeaderButton
-            label="HELP"
-            direction="right"
-            icon={<HelpSvgIcon size={22} color={GREEN} />}
-            onClick={() => router.push('/help')}
-          />
-        </Toolbar>
-      </AppBar>
+            {/* ── Toolbar ─────────────────────────────────────────────────────── */}
+            <AppBar position="static" elevation={0} sx={{
+                background: isDark
+                ? 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)'
+                : 'linear-gradient(135deg, #ffffff 0%, #F8FAFC 100%)',
+                backdropFilter: 'blur(12px)',
+                borderBottom: isDark
+                ? `1px solid ${alpha(GREEN, 0.12)}`
+                : `1px solid ${alpha('#CBD5E1', 0.7)}`,
+                boxShadow: isDark
+                ? `0 1px 0 ${alpha(GREEN, 0.08)}`
+                : `0 1px 8px ${alpha('#94A3B8', 0.15)}`,
+                transition: 'background 0.35s',
+            }}>
+                <Toolbar sx={{ justifyContent: 'space-between', gap: 1 }}>
+                <AnimatedHeaderButton
+                    label="APPS"
+                    direction="left"
+                    icon={<AppsIcon size={22} color={GREEN} />}
+                    onClick={() => { if (landingPageUrl) router.push(landingPageUrl) }}
+                />
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <RenderThemeToggle isDark={isDark}/>
+                </Box>
+                <AnimatedHeaderButton
+                    label="HELP"
+                    direction="right"
+                    icon={<HelpSvgIcon size={22} color={GREEN} />}
+                    onClick={() => router.push('/help')}
+                />
+                </Toolbar>
+            </AppBar>
 
-      {/* ── Page content ────────────────────────────────────────────────── */}
-      <Container maxWidth="sm">
-        {children}
-        <LoadingSplash visible={splashVisible} />   {/* ← overlays for 800ms then fades */}
-      </Container>
+            {/* ── Page content ────────────────────────────────────────────────── */}
+            <Container maxWidth="sm">
+                {children}
+                <LoadingSplash visible={splashVisible} />   {/* ← overlays for 800ms then fades */}
+            </Container>
 
-    </Box>
+            </Box>
+        </ThemeProvider>
+    </AuthProvider>
+   
   );
+}
+const RenderThemeToggle = ({isDark})=>{
+    const { toggleTheme }   = useThemeMode()
+    return  <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
 }
