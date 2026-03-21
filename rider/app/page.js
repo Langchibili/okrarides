@@ -2,15 +2,19 @@
 
 import { Box, useTheme } from '@mui/material';
 import { BottomNav } from '@/components/Layout/BottomNav';
-import { useAuth } from '@/lib/hooks/useAuth';
+import { AuthProvider, useAuth } from '@/lib/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useThemeMode } from '@/components/ThemeProvider';
-import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import { useThemeMode, ThemeProvider } from '@/components/ThemeProvider';
+import { useReactNative, ReactNativeWrapper } from '@/lib/contexts/ReactNativeWrapper';
 import { ridesAPI } from '@/lib/api/rides';
 import HomePage from './(main)/home/page';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import { MapsProvider } from '@/components/APIProviders/MapsProvider';
+import { ScreenshotProvider }     from '@/lib/contexts/ScreenshotContext';
+import { FloatingCaptureButton }  from '@/components/FloatingCaptureButton';
+import { SocketProvider } from '@/lib/socket/SocketProvider';
+import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
 
 // ── Splash overlay — renders ABOVE the app, app loads behind it ──────────────
 function LoadingSplash({ visible }) {
@@ -83,7 +87,7 @@ function LoadingSplash({ visible }) {
 }
 
 
-export default function Home() {
+const RenderHomePage = ()=>{
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -235,5 +239,26 @@ export default function Home() {
       <BottomNav userType="rider" />
       <LoadingSplash visible={splashVisible} />   {/* ← overlays for 800ms then fades */}
     </Box>
-  );
+  )
+}
+
+
+export default function Home() {
+       return (<ReactNativeWrapper>
+                <ThemeProvider>
+                    <AdminSettingsProvider>
+                      <AuthProvider>
+                        <ScreenshotProvider>
+                          <SocketProvider>
+                            <MapsProvider>
+                              <RenderHomePage/>           {/* ← loads immediately in the background */}
+                            </MapsProvider>
+                          </SocketProvider>
+                            <FloatingCaptureButton />
+                          </ScreenshotProvider>
+                      </AuthProvider>
+                    </AdminSettingsProvider>
+                </ThemeProvider>
+              </ReactNativeWrapper>)
+     
 }
