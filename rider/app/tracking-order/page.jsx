@@ -680,6 +680,7 @@
 // }
 'use client';
 // PATH: app/tracking-order/page.jsx
+export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';

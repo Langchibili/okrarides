@@ -5,7 +5,7 @@
 // free trial starts). It polls GET /subscriptions/me every 3 seconds until
 // the subscription status is 'active' or 'trial', shows a success animation,
 // then redirects to /home after a short celebration delay.
-
+export const dynamic = 'force-dynamic';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {

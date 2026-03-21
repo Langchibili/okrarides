@@ -1427,6 +1427,7 @@
 //   );
 // }
 'use client';
+export const dynamic = 'force-dynamic';
 // PATH: rider/app/(main)/tracking/page.jsx
 // KEY FIXES vs previous version:
 //   1. REPLACED startTracking with direct ridesAPI.trackRide polling (matches delivery pages)

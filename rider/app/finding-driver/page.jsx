@@ -448,6 +448,8 @@
 //   );
 // }
 'use client';
+export const dynamic = 'force-dynamic';
+
 // PATH: rider/app/(main)/finding-driver/page.jsx
 // LOGIC UNCHANGED — only styling, animations, scroll fixes, and skeleton states enhanced.
 

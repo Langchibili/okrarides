@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 // PATH: rider/app/trip-summary/page.jsx
 // CHANGE: scroll fix ONLY — outer container is now scrollable with hidden scrollbar.
 // All styles, structure, logic and markup are identical to the original.
