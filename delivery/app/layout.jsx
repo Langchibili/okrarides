@@ -1,12 +1,12 @@
-'use client'
+// PATH: delivery/app/layout.jsx
+// Server Component — no 'use client'.
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import '@/styles/google-maps-fix.css';
 import ContextProviders from '@/lib/contexts/ContextProviders';
-
-
-// we are getting the native code wrapper here because we are using it as a hook inside the layout file for main pages or authenticated pages
 
 const inter = Inter({
   subsets: ['latin'],
@@ -15,7 +15,7 @@ const inter = Inter({
   fallback: ['system-ui', 'arial'],
   preload: true,
   adjustFontFallback: true,
-})
+});
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -25,9 +25,7 @@ const plusJakarta = Plus_Jakarta_Sans({
   fallback: ['system-ui', 'arial'],
   preload: true,
   adjustFontFallback: true,
-})
-
-
+});
 
 export default function RootLayout({ children }) {
   return (
@@ -39,7 +37,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <ContextProviders>
-            {children}            {/* ← loads immediately in the background */}
+          {children}
         </ContextProviders>
       </body>
     </html>

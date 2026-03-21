@@ -49,7 +49,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Safe MapsProvider import
 let useMapsProviderHook = null;
 try {
-  const mod = require('../APIProviders/MapsProvider');
+  const mod = require('../MapsProvider');
   useMapsProviderHook = mod.useMapProvider;
 } catch {}
 
