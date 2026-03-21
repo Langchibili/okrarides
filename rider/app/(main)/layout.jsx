@@ -3,41 +3,24 @@
 
 import { Box } from '@mui/material';
 import { BottomNav } from '@/components/Layout/BottomNav';
-import { AuthProvider, useAuth } from '@/lib/hooks/useAuth';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
-import { ThemeProvider, useThemeMode } from '@/components/ThemeProvider';
+import { useThemeMode } from '@/components/ThemeProvider';
 import { useRide } from '@/lib/hooks/useRide';
-import ReactNativeWrapper, { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import  { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { ridesAPI } from '@/lib/api/rides';
-import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
-import { ScreenshotProvider } from '@/lib/contexts/ScreenshotContext';
-import SocketProvider from '@/lib/socket/SocketProvider';
-import { MapsProvider } from '@/components/APIProviders';
-import { FloatingCaptureButton } from '@/components/FloatingCaptureButton';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 export default function MainLayout({ children }) {
    return (
-    <ReactNativeWrapper>
-          <ThemeProvider>
-              <AdminSettingsProvider>
-                <AuthProvider>
-                  <ScreenshotProvider>
-                    <SocketProvider>
-                      <MapsProvider>
-                        <RenderHomePage children={children}/>           {/* ← loads immediately in the background */}
-                      </MapsProvider>
-                    </SocketProvider>
-                      <FloatingCaptureButton/>
-                    </ScreenshotProvider>
-                </AuthProvider>
-              </AdminSettingsProvider>
-          </ThemeProvider>
-        </ReactNativeWrapper>
+    <ContextProviders>
+         <RenderMainLayout children={children}/>  
+        </ContextProviders>
    )
 }
 
-const RenderHomePage = ({children})=>{
+const RenderMainLayout = ({children})=>{
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

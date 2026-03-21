@@ -3,14 +3,7 @@
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import '@/styles/google-maps-fix.css';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { AuthProvider } from '@/lib/hooks/useAuth';
-import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
-import { SocketProvider } from '@/lib/socket/SocketProvider';
-import { ReactNativeWrapper } from '@/lib/contexts/ReactNativeWrapper';
-import { MapsProvider } from '@/components/APIProviders/MapsProvider';
-import { ScreenshotProvider }     from '@/lib/contexts/ScreenshotContext';
-import { FloatingCaptureButton }  from '@/components/FloatingCaptureButton';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 // we are getting the native code wrapper here because we are using it as a hook inside the layout file for main pages or authenticated pages
 
@@ -44,22 +37,9 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body>
-        <ReactNativeWrapper>
-        <ThemeProvider>
-            <AdminSettingsProvider>
-              <AuthProvider>
-                 <ScreenshotProvider>
-                  <SocketProvider>
-                    <MapsProvider>
+        <ContextProviders> 
                       {children}            {/* ← loads immediately in the background */}
-                    </MapsProvider>
-                  </SocketProvider>
-                    <FloatingCaptureButton />
-                  </ScreenshotProvider>
-              </AuthProvider>
-            </AdminSettingsProvider>
-        </ThemeProvider>
-        </ReactNativeWrapper>
+          </ContextProviders> 
       </body>
     </html>
   );

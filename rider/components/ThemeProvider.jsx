@@ -4,6 +4,7 @@ import { useState, useMemo, createContext, useContext, useEffect, useCallback } 
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
 import { createAppTheme } from '@/lib/theme';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 const ThemeContext = createContext();
 
@@ -19,6 +20,10 @@ export const useThemeMode = () => {
 };
 
 export function ThemeProvider({ children }) {
+  return <ContextProviders><RenderThemeProvider children={children}/></ContextProviders>
+}
+
+const RenderThemeProvider = ({children})=>{
   const [mode,  setMode]  = useState('light');
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [isMounted, setIsMounted] = useState(false);
@@ -144,4 +149,4 @@ export function ThemeProvider({ children }) {
       </MuiThemeProvider>
     </ThemeContext.Provider>
   );
-}
+} 

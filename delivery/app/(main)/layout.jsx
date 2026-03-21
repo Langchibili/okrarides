@@ -2,37 +2,19 @@
 
 import { Box }  from '@mui/material';
 import { BottomNav }        from '@/components/Layout/BottomNav';
-import { AuthProvider, useAuth }          from '@/lib/hooks/useAuth';
+import { useAuth }          from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { useRouter }        from 'next/navigation';
-import ReactNativeWrapper, { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
+import  { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
 import { useRide }          from '@/lib/hooks/useRide';
 import { apiClient }        from '@/lib/api/client';
 import HomePageSkeleton from '@/components/Skeletons/HomePageSkeleton';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
-import { ScreenshotProvider } from '@/lib/contexts/ScreenshotContext';
-import SocketProvider from '@/lib/socket/SocketProvider';
-import { FloatingCaptureButton } from '@/components/FloatingCaptureButton';
 
 export default function MainLayout({ children }) {
    return (
-       <ReactNativeWrapper>
-        <ThemeProvider>
-            <AdminSettingsProvider>
-              <AuthProvider>
-                 <ScreenshotProvider>
-                  <SocketProvider>
-                    <MapsProvider>
-                      <RenderMainLayout children={children}/>            {/* ← loads immediately in the background */}
-                    </MapsProvider>
-                  </SocketProvider>
-                    <FloatingCaptureButton />
-                  </ScreenshotProvider>
-              </AuthProvider>
-            </AdminSettingsProvider>
-        </ThemeProvider>
-        </ReactNativeWrapper>
+       <ContextProviders>
+            <RenderMainLayout children={children}/>            {/* ← loads immediately in the background */}
+        </ContextProviders>
    )
 }
 
@@ -99,9 +81,9 @@ const RenderMainLayout = ({children})=>{
       }
     }
   }, [currentRide, router, isAuthenticated])
-  if(loading || checkingAuth) {
-    return <HomePageSkeleton/>
-  }
+  // if(loading || checkingAuth) {
+  //   return <HomePageSkeleton/>
+  // }
   return (
     <Box sx={{ minHeight: '100vh', pb: '68px', bgcolor: 'background.default', overflowX: 'hidden' }}>
       {children}

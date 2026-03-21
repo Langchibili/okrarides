@@ -11,9 +11,8 @@ import {
   LightMode as LightIcon,
   DarkMode  as DarkIcon,
 } from '@mui/icons-material';
-import { ThemeProvider, useThemeMode } from '@/components/ThemeProvider';
-import { AuthProvider } from '@/lib/hooks/useAuth';
-
+import {  useThemeMode } from '@/components/ThemeProvider';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 // ── Constants ─────────────────────────────────────────────────────────────────
 const GREEN     = '#10B981';
 const GREEN_DIM = '#059669';
@@ -279,8 +278,7 @@ export default function AuthLayout({ children }) {
 
 
   return (
-    <AuthProvider>
-        <ThemeProvider>
+    <ContextProviders>
             <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
 
             {/* ── Toolbar ─────────────────────────────────────────────────────── */}
@@ -323,10 +321,9 @@ export default function AuthLayout({ children }) {
             </Container>
 
             </Box>
-        </ThemeProvider>
-    </AuthProvider>
+        </ContextProviders>
    
-  );
+  )
 }
 const RenderThemeToggle = ({isDark})=>{
     const { toggleTheme }   = useThemeMode()

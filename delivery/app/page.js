@@ -4,18 +4,14 @@ import { Box } from '@mui/material';
 import { useTheme }        from '@mui/material/styles';
 import { AnimatePresence, motion }          from 'framer-motion';
 import { BottomNav }       from '@/components/Layout/BottomNav';
-import { AuthProvider, useAuth }         from '@/lib/hooks/useAuth';
+import { useAuth }         from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { useRouter }       from 'next/navigation';
-import ReactNativeWrapper, { useReactNative }  from '@/lib/contexts/ReactNativeWrapper';
+import { useReactNative }  from '@/lib/contexts/ReactNativeWrapper';
 import { apiClient }       from '@/lib/api/client';
 import DriverHomePage      from './(main)/home/page';
-import { ThemeProvider, useThemeMode } from '@/components/ThemeProvider';
-import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
-import { ScreenshotProvider } from '@/lib/contexts/ScreenshotContext';
-import SocketProvider from '@/lib/socket/SocketProvider';
-import { MapsProvider } from '@/components/APIProviders';
-import { FloatingCaptureButton } from '@/components/FloatingCaptureButton';
+import { useThemeMode } from '@/components/ThemeProvider';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 // ── Splash overlay — renders ABOVE the app, app loads behind it ──────────────
 function LoadingSplash({ visible }) {
@@ -216,22 +212,9 @@ const RenderHomePage = ()=>{
 
 export default function Home() {
   return (
-     <ReactNativeWrapper>
-        <ThemeProvider>
-            <AdminSettingsProvider>
-              <AuthProvider>
-                 <ScreenshotProvider>
-                  <SocketProvider>
-                    <MapsProvider>
-                      <RenderHomePage/>           {/* ← loads immediately in the background */}
-                    </MapsProvider>
-                  </SocketProvider>
-                    <FloatingCaptureButton />
-                  </ScreenshotProvider>
-              </AuthProvider>
-            </AdminSettingsProvider>
-        </ThemeProvider>
-        </ReactNativeWrapper>
+     <ContextProviders>
+          <RenderHomePage/>           {/* ← loads immediately in the background */}
+      </ContextProviders>
   )
   
 }

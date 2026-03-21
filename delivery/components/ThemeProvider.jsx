@@ -1,15 +1,15 @@
-// //Okrarides\driver\components\ThemeProvider.jsx
 'use client';
 
 import { useState, useMemo, createContext, useContext, useEffect, useCallback } from 'react';
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
 import { createAppTheme } from '@/lib/theme';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 const ThemeContext = createContext();
 
 // Default accent colour — matches the app's amber brand
-const DEFAULT_COLOR = '#FFC107';
+const DEFAULT_COLOR = '#10B981';
 
 export const useThemeMode = () => {
   const context = useContext(ThemeContext);
@@ -20,7 +20,11 @@ export const useThemeMode = () => {
 };
 
 export function ThemeProvider({ children }) {
-  const [mode,  setMode]  = useState('light');
+  return <ContextProviders><RenderThemeProvider children={children}/></ContextProviders>
+}
+
+const RenderThemeProvider = ({children})=>{
+  const [mode,  setMode]  = useState('dark');
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -145,4 +149,4 @@ export function ThemeProvider({ children }) {
       </MuiThemeProvider>
     </ThemeContext.Provider>
   );
-}
+} 

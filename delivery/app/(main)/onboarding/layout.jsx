@@ -12,6 +12,7 @@ import {
   DarkMode  as DarkIcon,
 } from '@mui/icons-material';
 import { useThemeMode } from '@/components/ThemeProvider';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const GREEN     = '#10B981';
@@ -203,6 +204,7 @@ export default function OnboardingLayout({ children }) {
   const isWelcomeScreen = pathname.includes('/welcome');
 
   return (
+    <ContextProviders>
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
 
       {/* ── Toolbar ─────────────────────────────────────────────────────── */}
@@ -227,7 +229,7 @@ export default function OnboardingLayout({ children }) {
             onClick={() => { if (landingPageUrl) router.push(landingPageUrl) }}
           />
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+            <RenderThemeToggle isDark={isDark}/>
           </Box>
           <AnimatedHeaderButton
             label="HELP"
@@ -244,5 +246,11 @@ export default function OnboardingLayout({ children }) {
       </Container>
 
     </Box>
+    </ContextProviders>
   );
+}
+
+const RenderThemeToggle = ({isDark})=>{
+    const { toggleTheme }   = useThemeMode()
+    return  <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
 }

@@ -2,19 +2,15 @@
 
 import { Box, useTheme } from '@mui/material';
 import { BottomNav } from '@/components/Layout/BottomNav';
-import { AuthProvider, useAuth } from '@/lib/hooks/useAuth';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useThemeMode, ThemeProvider } from '@/components/ThemeProvider';
-import { useReactNative, ReactNativeWrapper } from '@/lib/contexts/ReactNativeWrapper';
+import { useThemeMode } from '@/components/ThemeProvider';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { ridesAPI } from '@/lib/api/rides';
 import HomePage from './(main)/home/page';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapsProvider } from '@/components/APIProviders/MapsProvider';
-import { ScreenshotProvider }     from '@/lib/contexts/ScreenshotContext';
-import { FloatingCaptureButton }  from '@/components/FloatingCaptureButton';
-import { SocketProvider } from '@/lib/socket/SocketProvider';
-import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 // ── Splash overlay — renders ABOVE the app, app loads behind it ──────────────
 function LoadingSplash({ visible }) {
@@ -244,22 +240,5 @@ const RenderHomePage = ()=>{
 
 
 export default function Home() {
-       return (
-              <AuthProvider>
-               <ReactNativeWrapper>
-                <ThemeProvider>
-                    <AdminSettingsProvider>
-                        <ScreenshotProvider>
-                          <SocketProvider>
-                            <MapsProvider>
-                              <RenderHomePage/>           {/* ← loads immediately in the background */}
-                            </MapsProvider>
-                          </SocketProvider>
-                            <FloatingCaptureButton />
-                          </ScreenshotProvider>
-                    </AdminSettingsProvider>
-                </ThemeProvider>
-              </ReactNativeWrapper>
-              </AuthProvider>)
-     
+       return <ContextProviders> <RenderHomePage/> </ContextProviders>               
 }

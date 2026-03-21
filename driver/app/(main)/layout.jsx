@@ -2,38 +2,20 @@
 
 import { Box }  from '@mui/material';
 import { BottomNav }        from '@/components/Layout/BottomNav';
-import { AuthProvider, useAuth }          from '@/lib/hooks/useAuth';
+import { useAuth }          from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
 import { useRouter }        from 'next/navigation';
-import ReactNativeWrapper, { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
+import  { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
 import { useRide }          from '@/lib/hooks/useRide';
 import { apiClient }        from '@/lib/api/client';
-import HomePageSkeleton from '@/components/Skeletons/HomePageSkeleton';
-import { ThemeProvider, useThemeMode } from '@/components/ThemeProvider';
-import { AdminSettingsProvider } from '@/lib/hooks/useAdminSettings';
-import { ScreenshotProvider } from '@/lib/contexts/ScreenshotContext';
-import SocketProvider from '@/lib/socket/SocketProvider';
-import { MapsProvider } from '@/components/APIProviders';
-import { FloatingCaptureButton } from '@/components/FloatingCaptureButton';
+import {  useThemeMode } from '@/components/ThemeProvider';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 export default function MainLayout({ children }) {
    return (
-        <ReactNativeWrapper>
-        <ThemeProvider>
-            <AdminSettingsProvider>
-              <AuthProvider>
-                 <ScreenshotProvider>
-                  <SocketProvider>
-                    <MapsProvider>
+        <ContextProviders>
                      <RenderMainLayout children={children}/>           {/* ← loads immediately in the background */}
-                    </MapsProvider>
-                  </SocketProvider>
-                    <FloatingCaptureButton />
-                  </ScreenshotProvider>
-              </AuthProvider>
-            </AdminSettingsProvider>
-        </ThemeProvider>
-        </ReactNativeWrapper>
+          </ContextProviders>
    )
 }
 
