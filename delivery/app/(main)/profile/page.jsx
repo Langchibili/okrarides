@@ -14,6 +14,7 @@ import {
   Description as DocumentIcon, Logout as LogoutIcon,
   ChevronRight as ChevronIcon, Star as StarIcon,
   AccountBalance as AccountBalanceIcon,
+  Info as InfoIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
@@ -24,6 +25,7 @@ import { useAdminSettings }  from '@/lib/hooks/useAdminSettings';
 import { getImageUrl } from '@/Functions';
 import { getDriverVehicle } from '@/lib/api/vehicle';
 import { useEffect, useState } from 'react';
+import { apiClient } from '@/lib/api/client';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
@@ -125,6 +127,7 @@ export default function ProfilePage() {
   const { isSubscriptionSystemEnabled } = useAdminSettings();
   const [vehicle,        setVehicle]        = useState(null);
   const [showLogout,     setShowLogout]     = useState(false);   // ← new
+  const [frontenUrl, setLandingPageUrl] = useState(process.env.NEXT_PUBLIC_FRONTEND_URL)
 
   const verStatus = driverProfile?.verificationStatus;
   const verBadge = {
@@ -160,7 +163,7 @@ export default function ProfilePage() {
     { icon: DocumentIcon, primary: 'Withdrawals',      secondary: 'Request withdrawal',
       path: '/earnings/withdraw',   color: '#F59E0B' },
     { icon: ReferralIcon, primary: 'Referral Program', secondary: 'Earn by referring friends',
-      path: '/profile/referrals',   color: '#EC4899' },
+      path: '/affiliate',   color: '#EC4899' },
   ];
 
   if (isSubscriptionSystemEnabled) {
@@ -174,7 +177,8 @@ export default function ProfilePage() {
   const supportItems = [
     { icon: SettingsIcon, primary: 'Settings',    secondary: 'Preferences, notifications', path: '/profile/settings', color: '#6B7280' },
     { icon: HelpIcon,     primary: 'Help Center', secondary: 'FAQs, contact support',      path: '/help',             color: '#3B82F6' },
-    { icon: DocumentIcon, primary: 'Legal',       secondary: 'Terms, privacy policy',       path: '/profile/legal',    color: '#6B7280' },
+    { icon: InfoIcon,     primary: 'About', secondary: 'FAQs, contact support',      path: '/about',             color: '#48a254' },
+    { icon: DocumentIcon, primary: 'Legal',       secondary: 'Terms, privacy policy',       path: frontenUrl+'/terms.html',    color: '#6B7280' },
   ];
 
   const sections = [
@@ -188,8 +192,14 @@ export default function ProfilePage() {
       const v = await getDriverVehicle();
       setVehicle(v?.vehicle);
     };
-    runGetDriverVehicle();
-  }, []);
+     const getFrontendUrl = async () => {
+        const res = await apiClient.get('/frontend-url').catch(() => null);
+        const url = res?.data?.paths?.['okra-frontend-app'];
+        if (url) setLandingPageUrl(url);
+      }
+      runGetDriverVehicle()
+      getFrontendUrl()
+  }, [])
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'column' }}>

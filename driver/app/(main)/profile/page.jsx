@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';  // ← add useState
+import { useEffect, useState } from 'react';  // ← add useState
 import { useRouter }   from 'next/navigation';
 import {
   Box, AppBar, Toolbar, Typography, Avatar, Paper,
@@ -15,6 +15,7 @@ import {
   Description as DocumentIcon, Logout as LogoutIcon,
   ChevronRight as ChevronIcon, Star as StarIcon,
   AccountBalance as AccountBalanceIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth }   from '@/lib/hooks/useAuth';
@@ -22,10 +23,12 @@ import { useDriver } from '@/lib/hooks/useDriver';
 import { VERIFICATION_STATUS } from '@/Constants';
 import { useAdminSettings }  from '@/lib/hooks/useAdminSettings';
 import { getImageUrl } from '@/Functions';
+import { apiClient } from '@/lib/api/client';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const fadeUp  = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } } };
+
 
 // ── Logout confirmation modal ─────────────────────────────────────────────────
 function LogoutModal({ open, onConfirm, onCancel }) {
@@ -120,6 +123,16 @@ export default function ProfilePage() {
   const { driverProfile } = useDriver();
   const { isSubscriptionSystemEnabled } = useAdminSettings();
   const [showLogout, setShowLogout] = useState(false);  // ← add this
+  const [frontenUrl, setLandingPageUrl] = useState(process.env.NEXT_PUBLIC_FRONTEND_URL)
+
+   useEffect(() => {
+    const getFrontendUrl = async () => {
+      const res = await apiClient.get('/frontend-url').catch(() => null);
+      const url = res?.data?.paths?.['okra-frontend-app'];
+      if (url) setLandingPageUrl(url);
+    }
+    getFrontendUrl();
+  }, []);
 
   // ... all existing logic unchanged below this line ...
 
@@ -156,7 +169,7 @@ export default function ProfilePage() {
     { icon: DocumentIcon, primary: 'Withdrawals',      secondary: 'Request withdrawal',
       path: '/earnings/withdraw',   color: '#F59E0B' },
     { icon: ReferralIcon, primary: 'Referral Program', secondary: 'Earn by referring friends',
-      path: '/profile/referrals',   color: '#EC4899' },
+      path: '/affiliate',   color: '#EC4899' },
   ];
 
   if (isSubscriptionSystemEnabled) {
@@ -170,7 +183,8 @@ export default function ProfilePage() {
   const supportItems = [
     { icon: SettingsIcon, primary: 'Settings',    secondary: 'Preferences, notifications', path: '/profile/settings', color: '#6B7280' },
     { icon: HelpIcon,     primary: 'Help Center', secondary: 'FAQs, contact support',      path: '/help',             color: '#3B82F6' },
-    { icon: DocumentIcon, primary: 'Legal',       secondary: 'Terms, privacy policy',       path: '/profile/legal',    color: '#6B7280' },
+    { icon: InfoIcon,     primary: 'About', secondary: 'FAQs, contact support',      path: '/about',             color: '#48a254' },
+    { icon: DocumentIcon, primary: 'Legal',       secondary: 'Terms, privacy policy',       path: frontenUrl+'/terms.html',    color: '#6B7280' },
   ];
 
   const sections = [

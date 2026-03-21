@@ -21,7 +21,7 @@ import {
   TwoWheeler,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { APP_NAME, APP_VERSION, APP_TAGLINE } from '@/Constants';
+import { APP_VERSION } from '@/Constants';
 import apiClient from '@/lib/api/client';
 
 const fadeUp = {
@@ -56,7 +56,7 @@ export default function AboutPage() {
     { label: 'Privacy Policy',       url: `${frontenUrl}/privacy-policy.html`,           emoji: '🔒' },
     { label: 'Data Deletion Policy', url: `${frontenUrl}/data-deletion-policy.html`,     emoji: '🗑️' },
     { label: 'Account Deletion',     url: `${frontenUrl}/account-deletion-policy.html`,  emoji: '👤' },
-  ];
+   ]
 
   const features = [
     { icon: <DirectionsCar sx={{ fontSize: 18 }} />, label: 'Taxi' },
@@ -148,10 +148,10 @@ export default function AboutPage() {
                 fontWeight: 800, fontSize: 28, color: '#fff',
                 letterSpacing: '-0.8px', lineHeight: 1.1, mb: 0.75,
               }}>
-                {APP_NAME}
+                 Okra Delivery
               </Typography>
               <Typography sx={{ fontSize: 13.5, color: 'rgba(255,255,255,0.8)', mb: 2.5, lineHeight: 1.5 }}>
-                {APP_TAGLINE}
+                For your maximum earning as a driver
               </Typography>
 
               <Chip
