@@ -100,7 +100,7 @@ function LoadingSplash({ visible }) {
           style={{ position:'fixed', inset:0, zIndex:9999, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:24, background:isDark?'linear-gradient(135deg,#0F172A 0%,#1E293B 100%)':'linear-gradient(135deg,#EFF6FF 0%,#F8FAFC 100%)' }}>
           <motion.div initial={{ opacity:0, scale:0.82 }} animate={{ opacity:1, scale:1 }} transition={{ type:'spring', stiffness:260, damping:22, delay:0.05 }}>
             <motion.div animate={{ scale:[1,1.06,1] }} transition={{ duration:2, repeat:Infinity, ease:'easeInOut' }}>
-              <Box component="img" src="/okra-rides-logo-transparent.png" alt="OkraRides" sx={{ width:110, height:110, objectFit:'contain' }} />
+              <Box component="img" src="/okra-delivery-logo-transparent.png" alt="OkraRides" sx={{ width:110, height:110, objectFit:'contain' }} />
             </motion.div>
           </motion.div>
           <Box sx={{ display:'flex', gap:0.75 }}>

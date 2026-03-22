@@ -151,7 +151,7 @@ function LoadingSplash({ visible }) {
         >
           <motion.div initial={{ opacity: 0, scale: 0.82 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 22, delay: 0.05 }}>
             <motion.div animate={{ scale: [1, 1.06, 1] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
-              <Box component="img" src="/okra-rides-logo-transparent.png" alt="OkraRides" sx={{ width: 110, height: 110, objectFit: 'contain' }} />
+              <Box component="img" src="/okra-rides-logo-for-drivers-transparent.png" alt="OkraRides" sx={{ width: 110, height: 110, objectFit: 'contain' }} />
             </motion.div>
           </motion.div>
           <Box sx={{ display: 'flex', gap: 0.75 }}>

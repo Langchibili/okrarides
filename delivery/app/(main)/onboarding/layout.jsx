@@ -113,7 +113,7 @@ export default function OnboardingLayout({ children }) {
 
   return (
     <ContextProviders>
-      <Box sx={{ minHeight:'100vh', bgcolor:'background.default', pb:4 }}>
+      <Box sx={{ minHeight:'100vh', bgcolor:'background.default', paddingLefy:'2px',paddingRight:'2px', pb:4 }}>
         <AppBar position="static" elevation={0} sx={{ background:isDark?'linear-gradient(135deg,#1E293B 0%,#0F172A 100%)':'linear-gradient(135deg,#ffffff 0%,#F8FAFC 100%)', backdropFilter:'blur(12px)', borderBottom:isDark?`1px solid ${alpha(GREEN,0.12)}`:`1px solid ${alpha('#CBD5E1',0.7)}`, boxShadow:isDark?`0 1px 0 ${alpha(GREEN,0.08)}`:`0 1px 8px ${alpha('#94A3B8',0.15)}`, transition:'background 0.35s' }}>
           <Toolbar sx={{ justifyContent:'space-between', gap:1 }}>
             <AnimatedHeaderButton label="APPS" direction="left" icon={<AppsIcon size={22} color={GREEN}/>} onClick={() => { if (landingPageUrl) router.push(landingPageUrl); }} />
