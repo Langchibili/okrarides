@@ -3,7 +3,7 @@
 import { useState, useMemo, createContext, useContext, useEffect, useCallback } from 'react';
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
 import { createAppTheme } from '@/lib/theme';
-import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import ReactNativeWrapper, { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import ContextProviders from '@/lib/contexts/ContextProviders';
 
 const ThemeContext = createContext();
@@ -20,7 +20,7 @@ export const useThemeMode = () => {
 };
 
 export function ThemeProvider({ children }) {
-  return <ContextProviders><RenderThemeProvider children={children}/></ContextProviders>
+  return <ReactNativeWrapper><RenderThemeProvider children={children}/></ReactNativeWrapper>
 }
 
 const RenderThemeProvider = ({children})=>{

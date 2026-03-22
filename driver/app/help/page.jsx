@@ -172,7 +172,7 @@ export default function HelpPage() {
   const router  = useRouter();
   const theme   = useTheme();
   const isDark  = theme.palette.mode === 'dark';
-  const { user }                                    = useAuth();
+  const { user } = useAuth();
   const { adminSupportNumbers, adminSupportEmails } = useAdminSettings();
  const {
   draftTicketId, screenshotCount,

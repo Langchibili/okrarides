@@ -148,6 +148,7 @@ const RenderHomePage = ()=>{
                 const handleLocationUpdate = (event) => {
                     try {
                     const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                   // even though we are calling /driver/update-location, it simply is because this updates the user's current location, not to driver profile, but to the entire user account
                     if (data.type === 'LOCATION_UPDATE' && data.payload) {
                         const { lat, lng } = data.payload;
                         // Update backend with location

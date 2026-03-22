@@ -1,6 +1,6 @@
 // PATH: delivery/app/layout.jsx
 // Server Component — no 'use client'.
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
