@@ -116,6 +116,16 @@ const RenderHomePage = ()=>{
       }
   },[])
   
+
+   useEffect(() => {
+      if (!splashVisible) return;
+      const t = setTimeout(() => {
+        setSplashVisible(false);
+        sessionStorage.setItem('okra_splash_shown', '1');
+      }, 2500);
+      return () => clearTimeout(t);
+    }, [splashVisible])
+  
   
 
   useEffect(() => {

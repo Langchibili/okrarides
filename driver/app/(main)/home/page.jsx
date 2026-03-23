@@ -518,7 +518,7 @@ export default function DriverHomePage() {
 
         {/* ── Ride Request Modal ──────────────────────────────────────── */}
         <AnimatePresence>
-          {incomingRide && (
+          {incomingRide && !isNative(
             <RideRequestModal open={!!incomingRide} rideRequest={incomingRide}
               onAccept={handleAcceptRide} onDecline={handleDeclineRide} />
           )}
