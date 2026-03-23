@@ -735,12 +735,13 @@ export default function HomePage() {
   })();
 
   if (locationLoading && !location && !pickupLocation) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
-        <CircularProgress size={48} />
-        <Typography sx={{ mt: 2, color: 'text.secondary', fontWeight: 500 }}>Getting your location…</Typography>
-      </Box>
-    )
+    return <HomePageSkeleton/>
+    // return (
+    //   <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
+    //     <CircularProgress size={48} />
+    //     <Typography sx={{ mt: 2, color: 'text.secondary', fontWeight: 500 }}>Getting your location…</Typography>
+    //   </Box>
+    // )
   }
 
   if(!isAuthenticated()){
@@ -922,34 +923,7 @@ export default function HomePage() {
                     </Box>
 
                     <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', msOverflowStyle: 'none', '&::-webkit-scrollbar': { display: 'none' }, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
-                      <AnimatePresence>
-                        {recentLocations.length > 0 && (
-                          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
-                            <Box sx={{ px: 2.5, pt: 1.5, pb: 2 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                                  {focusedInput === 'pickup' ? 'Set as pickup' : 'Recent destinations'}
-                                </Typography>
-                                <Box sx={{ height: 1, flex: 1, mx: 1.5, bgcolor: 'divider' }} />
-                                <AccessTimeIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
-                              </Box>
-                              <List disablePadding>
-                                {recentLocations.slice(0, 2).map((loc, index) => (
-                                  <motion.div key={`${loc.placeId}-${index}`} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.04, duration: 0.2 }}>
-                                    <ListItem onClick={() => handleSelectRecentLocation(loc)} sx={{ py: 1, px: 1.5, borderRadius: 2, mb: 0.5, cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { bgcolor: 'action.hover', transform: 'translateX(3px)' }, '&:active': { transform: 'translateX(1px)' }, '&:focus': { outline: 'none' } }}>
-                                      <ListItemIcon sx={{ minWidth: 36, width: 36, height: 36, borderRadius: '50%', bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1.5, flexShrink: 0 }}>
-                                        <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                                      </ListItemIcon>
-                                      <ListItemText primary={loc.name || loc.address?.split(',')[0]} secondary={loc.name && loc.name !== loc.address ? loc.address : null} primaryTypographyProps={{ fontWeight: 600, fontSize: '0.875rem', noWrap: true }} secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary', noWrap: true }} />
-                                    </ListItem>
-                                  </motion.div>
-                                ))}
-                              </List>
-                            </Box>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                      {/* ── Send a Package CTA ── */}
+                       {/* ── Send a Package CTA ── */}
                     <Box sx={{ px: 2.5, pt: 1, pb: 3 }}>
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -1015,7 +989,7 @@ export default function HomePage() {
                       </motion.div>
 
                       {/* ── Person + package graphic ── */}
-                      <motion.div
+                     { recentLocations.length < 1 &&<motion.div
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.25, type: 'spring', stiffness: 240, damping: 22 }}
@@ -1056,8 +1030,36 @@ export default function HomePage() {
                             Door-to-door delivery, anytime
                           </Typography>
                         </Box>
-                      </motion.div>
+                      </motion.div>}
                     </Box>
+                      <AnimatePresence>
+                        {recentLocations.length > 0 && (
+                          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.2 }}>
+                            <Box sx={{ px: 2.5, pt: 1.5, pb: 2 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', fontSize: '0.7rem', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                                  {focusedInput === 'pickup' ? 'Set as pickup' : 'Recent destinations'}
+                                </Typography>
+                                <Box sx={{ height: 1, flex: 1, mx: 1.5, bgcolor: 'divider' }} />
+                                <AccessTimeIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
+                              </Box>
+                              <List disablePadding>
+                                {recentLocations.slice(0, 2).map((loc, index) => (
+                                  <motion.div key={`${loc.placeId}-${index}`} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.04, duration: 0.2 }}>
+                                    <ListItem onClick={() => handleSelectRecentLocation(loc)} sx={{ py: 1, px: 1.5, borderRadius: 2, mb: 0.5, cursor: 'pointer', transition: 'all 0.15s ease', '&:hover': { bgcolor: 'action.hover', transform: 'translateX(3px)' }, '&:active': { transform: 'translateX(1px)' }, '&:focus': { outline: 'none' } }}>
+                                      <ListItemIcon sx={{ minWidth: 36, width: 36, height: 36, borderRadius: '50%', bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'grey.100', display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1.5, flexShrink: 0 }}>
+                                        <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                      </ListItemIcon>
+                                      <ListItemText primary={loc.name || loc.address?.split(',')[0]} secondary={loc.name && loc.name !== loc.address ? loc.address : null} primaryTypographyProps={{ fontWeight: 600, fontSize: '0.875rem', noWrap: true }} secondaryTypographyProps={{ variant: 'caption', color: 'text.secondary', noWrap: true }} />
+                                    </ListItem>
+                                  </motion.div>
+                                ))}
+                              </List>
+                            </Box>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                     
                      </Box>
                   </motion.div>
                 )}
