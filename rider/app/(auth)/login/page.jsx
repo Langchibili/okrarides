@@ -277,7 +277,7 @@ export default function LoginPage() {
                 textTransform: 'none',
               }}
             >
-              Don't have an account? <strong>&nbsp;Sign Up</strong>
+              <strong>&nbsp;Sign Up Instead</strong>
             </Button>
           </form>
         )}
@@ -326,7 +326,7 @@ export default function LoginPage() {
               textTransform: 'none',
             }}
           >
-            Don't have an account? <strong>&nbsp;Sign Up</strong>
+            <strong>&nbsp;Sign Up Instead</strong>
           </Button>
         </>
       )}

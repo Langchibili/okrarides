@@ -47,9 +47,10 @@ import { RideOptionsSheet } from '@/components/Rider/RideOptionsSheet';
 import SwipeableBottomSheet, { BottomSheetDragPill } from '@/components/ui/SwipeableBottomSheet';
 import ClientOnly from '@/components/ClientOnly';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
-import MapIframe from '@/components/Map/MapIframe';
+import MapIframe from '@/components/Map/MapIframeNoSSR';
 import { apiClient } from '@/lib/api/client';
 import { useThemeMode } from '@/components/ThemeProvider';
+import { HomePageSkeleton } from '@/components/Skeletons/HomePageSkeleton';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Toolbar shared constants
@@ -350,7 +351,7 @@ const FareEstimatesSkeleton = ({ onClose, routeInfo }) => (
 
 export default function HomePage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { location, loading: locationLoading, refresh: refreshWebLocation } = useGeolocation({ watch: true });
   const { getCurrentLocation: getNativeLocation } = useReactNative();
   const {
@@ -739,7 +740,11 @@ export default function HomePage() {
         <CircularProgress size={48} />
         <Typography sx={{ mt: 2, color: 'text.secondary', fontWeight: 500 }}>Getting your location…</Typography>
       </Box>
-    );
+    )
+  }
+
+  if(!isAuthenticated()){
+    return <HomePageSkeleton/>
   }
 
   return (

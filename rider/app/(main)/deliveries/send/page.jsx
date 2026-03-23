@@ -22,7 +22,7 @@ import {
   MyLocation as MyLocationIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import MapIframe from '@/components/Map/MapIframe';
+import MapIframe from '@/components/Map/MapIframeNoSSR';
 import { MapControls } from '@/components/Map/MapControls';
 import { LocationSearch } from '@/components/Map/LocationSearch';
 import SwipeableBottomSheet, { BottomSheetDragPill } from '@/components/ui/SwipeableBottomSheet';

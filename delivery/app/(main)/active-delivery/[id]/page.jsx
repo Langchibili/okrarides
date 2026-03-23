@@ -728,7 +728,7 @@ import { formatCurrency, formatDateTime } from '@/Functions';
 import { apiClient } from '@/lib/api/client';
 import { useSocket } from '@/lib/socket/SocketProvider';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
-import MapIframe from '@/components/Map/MapIframe';
+import MapIframe from '@/components/Map/MapIframeNoSSR';
 
 const COMPLETE_LOCK_MS = 60_000;
 

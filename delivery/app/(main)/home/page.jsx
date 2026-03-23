@@ -186,7 +186,7 @@ export default function DriverHomePage() {
   } = useDeliveryDriver();
 
   const { isNegativeFloatAllowed, negativeFloatLimit, minimumFloatTopup, defaultCommissionPercentage, isFloatSystemEnabled, isSubscriptionSystemEnabled } = useAdminSettings();
-  const { user } = useAuthGuard({ requireAuth: true, requireVerification: true, redirectTo: '/home' });
+  const { user, isAuthenticated } = useAuthGuard({ requireAuth: true, requireVerification: true, redirectTo: '/home' });
 
   const {
     incomingDelivery: incomingRide,
@@ -298,7 +298,9 @@ export default function DriverHomePage() {
     : `linear-gradient(135deg, #065F46 0%, #059669 100%)`;
   
     
-
+  if(!isAuthenticated()){
+    return <HomePageSkeleton/>
+  }
   return (
     <ClientOnly>
       <Box sx={{

@@ -15,7 +15,7 @@ import {
   Navigation as NavIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import MapIframe from '@/components/Map/MapIframe';
+import MapIframe from '@/components/Map/MapIframeNoSSR';
 import { getDelivery, getDelivererLocation } from '@/lib/api/deliveries';
 import { useSocket } from '@/lib/socket/SocketProvider';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';

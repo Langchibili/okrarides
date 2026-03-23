@@ -5,8 +5,7 @@
 
 import { Box, Container, AppBar, Toolbar, Typography, useTheme } from '@mui/material';
 import { alpha }       from '@mui/material/styles';
-import { usePathname } from 'next/navigation';
-import { useRouter }   from 'next/navigation';
+import { useRouter, usePathname }   from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LightMode as LightIcon, DarkMode as DarkIcon } from '@mui/icons-material';
@@ -172,12 +171,22 @@ function RenderThemeToggle({ isDark }) {
   return <ThemeToggle isDark={isDark} onToggle={toggleTheme} />;
 }
 
-export default function AuthLayout({ children }) {
+// ── Outer shell — just provides context ───────────────────────────────────
+export default function AuthLayoutClient({ children }) {
+  return (
+    <ContextProviders>
+      <AuthLayoutInner>{children}</AuthLayoutInner>
+    </ContextProviders>
+  );
+}
+
+// ── Inner — all theme hooks run INSIDE ContextProviders/ThemeProvider ──────
+function AuthLayoutInner({ children }) {
   const theme    = useTheme();
   const isDark   = theme.palette.mode === 'dark';
   const router   = useRouter();
-  const [landingPageUrl,  setLandingPageUrl]  = useState(null);
-  const [splashVisible,   setSplashVisible]   = useState(true);
+  const [landingPageUrl, setLandingPageUrl] = useState(null);
+  const [splashVisible,  setSplashVisible]  = useState(true);
 
   useEffect(() => {
     const t = setTimeout(() => setSplashVisible(false), 2500);
@@ -194,26 +203,24 @@ export default function AuthLayout({ children }) {
   }, []);
 
   return (
-    <ContextProviders>
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
-        <AppBar position="static" elevation={0} sx={{
-          background: isDark ? 'linear-gradient(135deg,#1E293B 0%,#0F172A 100%)' : 'linear-gradient(135deg,#ffffff 0%,#F8FAFC 100%)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: isDark ? `1px solid ${alpha(GREEN, 0.12)}` : `1px solid ${alpha('#CBD5E1', 0.7)}`,
-          boxShadow: isDark ? `0 1px 0 ${alpha(GREEN, 0.08)}` : `0 1px 8px ${alpha('#94A3B8', 0.15)}`,
-          transition: 'background 0.35s',
-        }}>
-          <Toolbar sx={{ justifyContent: 'space-between', gap: 1 }}>
-            <AnimatedHeaderButton label="APPS" direction="left" icon={<AppsIcon size={22} color={GREEN} />} onClick={() => { if (landingPageUrl) router.push(landingPageUrl); }} />
-            <RenderThemeToggle isDark={isDark} />
-            <AnimatedHeaderButton label="HELP" direction="right" icon={<HelpSvgIcon size={22} color={GREEN} />} onClick={() => router.push('/help')} />
-          </Toolbar>
-        </AppBar>
-        <Container maxWidth="sm">
-          {children}
-          <LoadingSplash visible={splashVisible} />
-        </Container>
-      </Box>
-    </ContextProviders>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
+      <AppBar position="static" elevation={0} sx={{
+        background: isDark ? 'linear-gradient(135deg,#1E293B 0%,#0F172A 100%)' : 'linear-gradient(135deg,#ffffff 0%,#F8FAFC 100%)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: isDark ? `1px solid ${alpha(GREEN, 0.12)}` : `1px solid ${alpha('#CBD5E1', 0.7)}`,
+        boxShadow: isDark ? `0 1px 0 ${alpha(GREEN, 0.08)}` : `0 1px 8px ${alpha('#94A3B8', 0.15)}`,
+        transition: 'background 0.35s',
+      }}>
+        <Toolbar sx={{ justifyContent: 'space-between', gap: 1 }}>
+          <AnimatedHeaderButton label="APPS" direction="left" icon={<AppsIcon size={22} color={GREEN} />} onClick={() => { if (landingPageUrl) router.push(landingPageUrl); }} />
+          <RenderThemeToggle isDark={isDark} />
+          <AnimatedHeaderButton label="HELP" direction="right" icon={<HelpSvgIcon size={22} color={GREEN} />} onClick={() => router.push('/help')} />
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="sm">
+        {children}
+        <LoadingSplash visible={splashVisible} />
+      </Container>
+    </Box>
   );
 }

@@ -280,7 +280,7 @@ const {  currentDelivery } = useDeliveryBooking();
           </Box>
 
           {/* Send Package CTA — top right */}
-          <motion.div whileTap={{ scale: 0.94 }}>
+          {/* <motion.div whileTap={{ scale: 0.94 }}>
             <Button
               variant="contained"
               startIcon={<AddIcon sx={{ fontSize: 18 }} />}
@@ -299,7 +299,7 @@ const {  currentDelivery } = useDeliveryBooking();
             >
               Send Package
             </Button>
-          </motion.div>
+          </motion.div> */}
         </Box>
 
         {/* Tabs */}

@@ -522,7 +522,7 @@ export default function SignupPage() {
         onClick={() => router.push('/login')}
         sx={{ height: 48, mt: 2, textTransform: 'none' }}
       >
-        Already have an account? <strong>&nbsp;Sign In</strong>
+        <strong>&nbsp;Log In Instead</strong>
       </Button>
 
       <Snackbar

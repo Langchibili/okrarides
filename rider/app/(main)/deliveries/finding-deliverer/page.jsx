@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getDelivery, cancelDelivery } from '@/lib/api/deliveries';
 import { useSocket } from '@/lib/socket/SocketProvider';
 import { formatCurrency } from '@/Functions';
-import MapIframe from '@/components/Map/MapIframe';
+import MapIframe from '@/components/Map/MapIframeNoSSR';
 
 const AMBER = '#F59E0B';
 

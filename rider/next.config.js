@@ -113,7 +113,7 @@ module.exports = withPWA({
   optimizeFonts: false,
   
   images: {
-    domains: ['localhost', 'driver.okrarides.com'],
+    domains: ['localhost', 'driver.okrarides.com','backend.okratest.online'],
     formats: ['image/avif', 'image/webp'],
   },
   

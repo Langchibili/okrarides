@@ -818,8 +818,10 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 
 let useMapProviderHook = null;
 try {
-  const mod = require('../APIProviders/MapsProvider');
-  useMapProviderHook = mod.useMapProvider;
+  if (typeof window !== 'undefined') {
+    const mod = require('../APIProviders/MapsProvider');
+    useMapProviderHook = mod.useMapProvider;
+  }
 } catch (e) {
   console.warn('[MapIframe] Could not load MapsProvider:', e?.message);
 }

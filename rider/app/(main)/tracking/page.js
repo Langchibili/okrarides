@@ -1455,7 +1455,7 @@ import { useRide } from '@/lib/hooks/useRide';
 import SwipeableBottomSheet from '@/components/ui/SwipeableBottomSheet';
 import ClientOnly from '@/components/ClientOnly';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
-import MapIframe from '@/components/Map/MapIframe';
+import MapIframe from '@/components/Map/MapIframeNoSSR';
 import { getImageUrl } from '@/Functions';
 import { VanIconSmall, getColorByKey } from '@/components/ui/VehicleColorPicker';
 import { ridesAPI } from '@/lib/api/rides';

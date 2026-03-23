@@ -17,7 +17,7 @@ import {
   ContentCopy as CopyIcon, Phone as PhoneIcon, Message as MessageIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import MapIframe from '@/components/Map/MapIframe';
+import MapIframe from '@/components/Map/MapIframeNoSSR';
 import { getDelivery, cancelDelivery, rateDelivery } from '@/lib/api/deliveries';
 import { formatCurrency, formatDate} from '@/Functions';
 
