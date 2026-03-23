@@ -4,7 +4,7 @@
 
 // export const dynamic = 'force-dynamic';
 // export const revalidate = 0;
-
+'use client'
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import '@/styles/google-maps-fix.css';
@@ -38,9 +38,10 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body>
-        <ContextProviders>
+        {children}
+        {/* <ContextProviders>
           {children}
-        </ContextProviders>
+        </ContextProviders> */}
       </body>
     </html>
   );

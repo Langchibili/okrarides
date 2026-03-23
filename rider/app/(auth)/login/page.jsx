@@ -22,7 +22,7 @@ import { apiClient } from '@/lib/api/client';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginWithOTP } = useAuth();
+  const { loginWithOTP, isAuthenticated } = useAuth();
   
   const [step, setStep] = useState(0); // 0: country selection, 1: phone input
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -131,6 +131,10 @@ export default function LoginPage() {
     }
   }
   
+  if(isAuthenticated()){
+    router.push('/')
+  }
+
   return (
     <Box
       sx={{

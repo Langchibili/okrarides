@@ -4458,7 +4458,7 @@ function getDayKey() {
 
 const QUOTA_DEFAULTS = {
   maxMonthlyRequests:          20_000,
-  maxDailyGeocoderApiRequests:    800,
+  maxDailyGeocoderApiRequests:    1000,
   maxDailyJSApiRequests:       20_000,
 };
 

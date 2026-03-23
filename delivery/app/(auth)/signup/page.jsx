@@ -86,7 +86,7 @@ async function resolveAffiliateCode() {
 
 export default function SignupPage() {
   const router = useRouter();
-  const { register, sendOTP } = useAuth();
+  const { register, sendOTP, isAuthenticated } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -257,6 +257,9 @@ export default function SignupPage() {
     }
   };
 
+  if(isAuthenticated()){
+    router.push('/')
+  }
   return (
     <Box
       sx={{

@@ -1,4 +1,5 @@
 'use client';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 // PATH: app/help/HelpPageLoader.jsx
 // Client Component — allowed to use next/dynamic with ssr:false.
 // This prevents HelpPage (and its context hooks) from ever running on the server.
@@ -11,5 +12,5 @@ const HelpPage = dynamic(
 );
 
 export default function HelpPageLoader() {
-  return <HelpPage />;
+  return <ContextProviders><HelpPage /></ContextProviders>
 }
