@@ -172,7 +172,8 @@ export default function DriverHomePage() {
   const theme   = useTheme();
   const isDark  = theme.palette.mode === 'dark';
   const { toggleTheme: toggleColorMode } = useThemeMode();
-  const { user, isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
+  const { user } = useAuthGuard({requireSubscription : true, requireVerification : true}) // on page running, this handles checks for if driver his verified, etc
   const { driverProfile, isOnline, toggleOnline, needsVerification, needsVehicle, needsSubscription, paymentSystemType, loadingDriverProfile } = useDriver();
   const { isNegativeFloatAllowed, negativeFloatLimit, minimumFloatTopup, defaultCommissionPercentage, isFloatSystemEnabled, isSubscriptionSystemEnabled } = useAdminSettings();
   const { incomingRide, acceptRide, declineRide, currentRide } = useRide();
@@ -325,7 +326,7 @@ export default function DriverHomePage() {
                 {showVerificationAlert && (
                   <motion.div key="verify" variants={alertVariants} initial="hidden" animate="show" exit="exit">
                     <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 1.5, borderRadius: 2.5, boxShadow: `0 4px 16px ${alpha('#F59E0B', 0.2)}` }}
-                      action={<Button color="inherit" size="small" onClick={() => router.push('/verification')}>Complete</Button>}>
+                      action={<Button color="inherit" size="small" onClick={() => router.push('/onboarding/setup-driver')}>Complete</Button>}>
                       <Typography variant="subtitle2" fontWeight={600}>Verification Required</Typography>
                       <Typography variant="body2">
                         {needsVerification && 'Complete your verification before accepting rides. '}
