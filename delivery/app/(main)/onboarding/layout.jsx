@@ -3,7 +3,6 @@
 
 import { Box, Container, AppBar, Toolbar, Typography, useTheme } from '@mui/material';
 import { alpha }       from '@mui/material/styles';
-import { usePathname } from 'next/navigation';
 import { useRouter }   from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -54,8 +53,8 @@ function AnimatedHeaderButton({ label, icon, direction, onClick }) {
     exit:   { x: 0, opacity: 0, transition: { duration: 0.15 } },
   };
   return (
-    <Box onClick={onClick} sx={{ cursor:'pointer', minWidth:48, height:36, display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden', borderRadius:2, px:0.5, '&:hover':{ '& .btn-glow':{ opacity:1 } } }}>
-      <Box className="btn-glow" sx={{ position:'absolute', inset:0, borderRadius:2, background:`radial-gradient(circle, ${alpha(GREEN,0.18)} 0%, transparent 70%)`, opacity:0, transition:'opacity 0.2s', pointerEvents:'none' }} />
+    <Box onClick={onClick} sx={{ cursor:'pointer', minWidth:48, height:36, display:'flex', alignItems:'center', justifyContent:'center', position:'relative', overflow:'hidden', borderRadius:2, px:0.5, '&:hover':{'& .btn-glow':{opacity:1}} }}>
+      <Box className="btn-glow" sx={{ position:'absolute', inset:0, borderRadius:2, background:`radial-gradient(circle,${alpha(GREEN,0.18)} 0%,transparent 70%)`, opacity:0, transition:'opacity 0.2s', pointerEvents:'none' }} />
       <AnimatePresence mode="wait" initial>
         {phase === 0 ? (
           <motion.div key="label" variants={textVariants} initial="enter" animate="center" exit="exit" style={{ display:'flex', alignItems:'center', gap:3, whiteSpace:'nowrap' }}>
@@ -91,15 +90,21 @@ function ThemeToggle({ isDark, onToggle }) {
   );
 }
 
-function RenderThemeToggle({ isDark }) {
-  const { toggleTheme } = useThemeMode();
-  return <ThemeToggle isDark={isDark} onToggle={toggleTheme} />;
+// ── Outer shell: only provides context, zero theme hooks ─────────────────────
+export default function OnboardingLayout({ children }) {
+  return (
+    <ContextProviders>
+      <OnboardingLayoutInner>{children}</OnboardingLayoutInner>
+    </ContextProviders>
+  );
 }
 
-export default function OnboardingLayout({ children }) {
-  const theme  = useTheme();
-  const isDark = theme.palette.mode === 'dark';
-  const router = useRouter();
+// ── Inner: all hooks run INSIDE ContextProviders → ThemeProvider ─────────────
+function OnboardingLayoutInner({ children }) {
+  const theme           = useTheme();   // ✓ inside ThemeProvider
+  const isDark          = theme.palette.mode === 'dark';
+  const { toggleTheme } = useThemeMode(); // ✓ inside ThemeProvider
+  const router          = useRouter();
   const [landingPageUrl, setLandingPageUrl] = useState(null);
 
   useEffect(() => {
@@ -112,19 +117,29 @@ export default function OnboardingLayout({ children }) {
   }, []);
 
   return (
-    <ContextProviders>
-      <Box sx={{ minHeight:'100vh', bgcolor:'background.default', paddingLefy:'2px',paddingRight:'2px', pb:4 }}>
-        <AppBar position="static" elevation={0} sx={{ background:isDark?'linear-gradient(135deg,#1E293B 0%,#0F172A 100%)':'linear-gradient(135deg,#ffffff 0%,#F8FAFC 100%)', backdropFilter:'blur(12px)', borderBottom:isDark?`1px solid ${alpha(GREEN,0.12)}`:`1px solid ${alpha('#CBD5E1',0.7)}`, boxShadow:isDark?`0 1px 0 ${alpha(GREEN,0.08)}`:`0 1px 8px ${alpha('#94A3B8',0.15)}`, transition:'background 0.35s' }}>
-          <Toolbar sx={{ justifyContent:'space-between', gap:1 }}>
-            <AnimatedHeaderButton label="APPS" direction="left" icon={<AppsIcon size={22} color={GREEN}/>} onClick={() => { if (landingPageUrl) router.push(landingPageUrl); }} />
-            <RenderThemeToggle isDark={isDark} />
-            <AnimatedHeaderButton label="HELP" direction="right" icon={<HelpSvgIcon size={22} color={GREEN}/>} onClick={() => router.push('/help')} />
-          </Toolbar>
-        </AppBar>
-        <Container maxWidth="sm">
-          {children}
-        </Container>
-      </Box>
-    </ContextProviders>
+    <Box sx={{ minHeight:'100vh', bgcolor:'background.default', px:'2px', pb:4 }}>
+      <AppBar position="static" elevation={0} sx={{
+        background: isDark
+          ? 'linear-gradient(135deg,#1E293B 0%,#0F172A 100%)'
+          : 'linear-gradient(135deg,#ffffff 0%,#F8FAFC 100%)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: isDark
+          ? `1px solid ${alpha(GREEN,0.12)}`
+          : `1px solid ${alpha('#CBD5E1',0.7)}`,
+        boxShadow: isDark
+          ? `0 1px 0 ${alpha(GREEN,0.08)}`
+          : `0 1px 8px ${alpha('#94A3B8',0.15)}`,
+        transition: 'background 0.35s',
+      }}>
+        <Toolbar sx={{ justifyContent:'space-between', gap:1 }}>
+          <AnimatedHeaderButton label="APPS" direction="left" icon={<AppsIcon size={22} color={GREEN}/>} onClick={() => { if (landingPageUrl) router.push(landingPageUrl); }} />
+          <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+          <AnimatedHeaderButton label="HELP" direction="right" icon={<HelpSvgIcon size={22} color={GREEN}/>} onClick={() => router.push('/help')} />
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="sm">
+        {children}
+      </Container>
+    </Box>
   );
 }

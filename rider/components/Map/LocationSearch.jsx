@@ -482,26 +482,47 @@ export const LocationSearch = ({
           address: cached.address || cached.secondary_text || cached.main_text,
           name:    cached.name    || cached.main_text,
           placeId: cached.place_id || prediction.place_id,
-        };
+        }
+        console.log('[LocationSearch] raw cached:', JSON.stringify(cached, null, 2));
+  console.log('[LocationSearch] built location:', JSON.stringify(location, null, 2));
       } else if (mapsProvider?.getPlaceDetails) {
-        const r = await mapsProvider.getPlaceDetails(prediction.place_id, cached);
-        if (r) location = {
-          lat: r.lat, lng: r.lng,
-          address: r.address,
-          name:    r.name || r.address?.split(',')[0],
-          placeId: r.place_id || prediction.place_id,
-        };
+        // const r = await mapsProvider.getPlaceDetails(prediction.place_id, cached);
+        // if (r) location = {
+        //   lat: r.lat, lng: r.lng,
+        //   address: r.address,
+        //   name:    r.name || r.address?.split(',')[0],
+        //   placeId: r.place_id || prediction.place_id,
+        // };
+
+  const r = await mapsProvider.getPlaceDetails(prediction.place_id, cached);
+  if (r) location = {
+    lat: r.lat,
+    lng: r.lng,
+    // ── Use the prediction's name/address, not getPlaceDetails' response ──
+    address: cached.address || cached.secondary_text || cached.main_text || r.address,
+    name:    cached.name    || cached.main_text       || r.name,
+    placeId: r.place_id || prediction.place_id,
+  };
       } else if (mapControls?.getPlaceDetails) {
-        await new Promise((resolve) => {
-          mapControls.getPlaceDetails(prediction.place_id, (r) => { if (r) location = r; resolve(); });
-        });
-      }
+  await new Promise((resolve) => {
+    mapControls.getPlaceDetails(prediction.place_id, (r) => {
+      if (r) location = {
+        ...r,
+        address: cached.address || cached.secondary_text || cached.main_text || r.address,
+        name:    cached.name    || cached.main_text       || r.name,
+      };
+      resolve();
+    });
+  });
+}
 
       if (location) {
         onSelectLocation(location);
         setQuery(location.address || location.name);
         setPredictions([]);
         setFocused(false);
+          console.log('[LocationSearch] raw cached:', JSON.stringify(cached, null, 2));
+  console.log('[LocationSearch] built location:', JSON.stringify(location, null, 2));
       }
     } catch (err) {
       console.warn('[LocationSearch] getPlaceDetails error:', err);

@@ -15,8 +15,8 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: 'OkraRidesDriver - Slide Into Your Ride',
-  description: 'Driver App',
+  title: 'OkraRidesDelivery - Slide Into Your Ride',
+  description: 'Delivery App',
   manifest: '/manifest.json',
   themeColor: '#FFC107',
   viewport: {
@@ -41,7 +41,7 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className={inter.className}>
-        <ThemeProvider>{children}</ThemeProvider>
+       {children}
       </body>
     </html>
   );

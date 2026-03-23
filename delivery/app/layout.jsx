@@ -1,12 +1,12 @@
+'use client'
 // PATH: delivery/app/layout.jsx
 // Server Component — no 'use client'.
 // export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// export const revalidate = 0;
 
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import '@/styles/google-maps-fix.css';
-import ContextProviders from '@/lib/contexts/ContextProviders';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -36,9 +36,10 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body>
-        <ContextProviders>
+        {children}
+        {/* <ContextProviders>
           {children}
-        </ContextProviders>
+        </ContextProviders> */}
       </body>
     </html>
   );

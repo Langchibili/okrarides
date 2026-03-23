@@ -28,6 +28,7 @@ import { VERIFICATION_STATUS } from '@/Constants';
 import useAuthGuard         from '@/lib/hooks/useAuthGuard';
 import ClientOnly           from '@/components/ClientOnly';
 import { apiClient }        from '@/lib/api/client';
+import useAuth from '@/lib/hooks/useAuth';
 
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
@@ -186,8 +187,7 @@ export default function DriverHomePage() {
   } = useDeliveryDriver();
 
   const { isNegativeFloatAllowed, negativeFloatLimit, minimumFloatTopup, defaultCommissionPercentage, isFloatSystemEnabled, isSubscriptionSystemEnabled } = useAdminSettings();
-  const { user, isAuthenticated } = useAuthGuard({ requireAuth: true, requireVerification: true, redirectTo: '/home' });
-
+  const { user, isAuthenticated } = useAuth()
   const {
     incomingDelivery: incomingRide,
     acceptDelivery:   acceptRide,

@@ -11,7 +11,7 @@ import { useRide }         from '@/lib/hooks/useRide';
 import { apiClient }       from '@/lib/api/client';
 import ContextProviders    from '@/lib/contexts/ContextProviders';
 
-export default function DeliveryMainLayoutClient({ children }) {
+export default function DeliveryMainLayout({ children }) {
   return (
     <ContextProviders>
       <RenderMainLayout>{children}</RenderMainLayout>

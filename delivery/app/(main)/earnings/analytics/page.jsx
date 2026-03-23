@@ -1,6 +1,6 @@
+'use client';
 // PATH: app/(main)/earnings/analytics/page.jsx
 // No external chart library — all charts are pure SVG.
-'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import {

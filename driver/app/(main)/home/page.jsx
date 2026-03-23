@@ -28,6 +28,7 @@ import { VERIFICATION_STATUS } from '@/Constants';
 import useAuthGuard         from '@/lib/hooks/useAuthGuard';
 import ClientOnly           from '@/components/ClientOnly';
 import { apiClient }        from '@/lib/api/client';
+import useAuth from '@/lib/hooks/useAuth';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
 const GREEN = '#10B981';
@@ -171,10 +172,9 @@ export default function DriverHomePage() {
   const theme   = useTheme();
   const isDark  = theme.palette.mode === 'dark';
   const { toggleTheme: toggleColorMode } = useThemeMode();
-
+  const { user, isAuthenticated } = useAuth()
   const { driverProfile, isOnline, toggleOnline, needsVerification, needsVehicle, needsSubscription, paymentSystemType, loadingDriverProfile } = useDriver();
   const { isNegativeFloatAllowed, negativeFloatLimit, minimumFloatTopup, defaultCommissionPercentage, isFloatSystemEnabled, isSubscriptionSystemEnabled } = useAdminSettings();
-  const { user } = useAuthGuard({ requireAuth: true, requireVerification: true, redirectTo: '/home' });
   const { incomingRide, acceptRide, declineRide, currentRide } = useRide();
   const { isNative, getCurrentLocation, reconnectDeviceSocket } = useReactNative();
   const { summary, lifetime, loading: statsLoading, fetchStats } = useDriverStats();
@@ -270,6 +270,10 @@ export default function DriverHomePage() {
   const appBarBg = isDark
     ? `linear-gradient(135deg, #1E293B 0%, #0F172A 100%)`
     : `linear-gradient(135deg, #065F46 0%, #059669 100%)`;
+  
+  if(!isAuthenticated()){
+    return <HomePageSkeleton/>
+  }
 
   return (
     <ClientOnly>

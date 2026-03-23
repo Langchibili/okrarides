@@ -1,18 +1,18 @@
-// PATH: delivery-driver/app/(main)/DeliveryMainLayoutClient.jsx
 'use client';
+// PATH: delivery-driver/app/(main)/DeliveryMainLayoutClient.jsx
 
 import { Box } from '@mui/material';
 import { BottomNav } from '@/components/Layout/BottomNav';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDelivery } from '@/lib/hooks/useDelivery';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { apiClient } from '@/lib/api/client';
-import {  useThemeMode } from '@/components/ThemeProvider';
+import { useThemeMode } from '@/components/ThemeProvider';
 import ContextProviders from '@/lib/contexts/ContextProviders';
 
-export default function DeliveryMainLayout({ children }) {
+export default function DeliveryMainLayoutClient ({ children }) {
    return (
         <ContextProviders>
                      <RenderMainLayout children={children}/>           {/* ← loads immediately in the background */}
@@ -138,7 +138,7 @@ const RenderMainLayout = ({children})=>{
   //   return <HomePageSkeleton/>
   // }
   
-  if (loading || checkingAuth) return <LoadingSplash visible />;
+  // if (loading || checkingAuth) return <LoadingSplash visible />;
   return (
     <Box sx={{ minHeight: '100vh', pb: '80px' }}>
       {children}
