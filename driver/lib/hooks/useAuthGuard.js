@@ -33,9 +33,9 @@ export const useAuthGuard = (options = {}) => {
     if(loadingDriverProfile){
       return
     }
-    
+   
     if(requireVerification) {
-      if(user?.driverProfile?.verificationStatus !== VERIFICATION_STATUS.NOT_STARTED){
+      if(user?.driverProfile?.verificationStatus === VERIFICATION_STATUS.NOT_STARTED){
         router.push('/onboarding/welcome')
         return;
       }

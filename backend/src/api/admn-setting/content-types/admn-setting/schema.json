@@ -283,6 +283,14 @@
     "overideOtpCode": {
       "type": "string",
       "default": "121212"
+    },
+    "initialDriverFloat": {
+      "type": "decimal",
+      "default": 0
+    },
+    "initialDelivererFloat": {
+      "type": "decimal",
+      "default": 0
     }
   }
 }

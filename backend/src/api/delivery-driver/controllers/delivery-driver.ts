@@ -733,7 +733,10 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       
       await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: user.driverProfile.id },
-        data:  { verificationStatus: settings?.autoApproveDeliverers? 'approved':'pending' },
+        data:  { 
+          verificationStatus: settings?.autoApproveDeliverers? 'approved':'pending', 
+          floatBalance:  settings?.initialDelivererFloat || 0, // add initial float to driver account based on how much float we are creating for free on account creation
+        },
       })
 
       await strapi.db.query('delivery-profiles.delivery-profile').update({

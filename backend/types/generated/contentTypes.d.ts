@@ -527,6 +527,10 @@ export interface ApiAdmnSettingAdmnSetting extends Struct.SingleTypeSchema {
       Schema.Attribute.DefaultTo<false>;
     getOnlineDriverCurrentLocationCronIntervalInSecs: Schema.Attribute.Integer &
       Schema.Attribute.DefaultTo<30>;
+    initialDelivererFloat: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
+    initialDriverFloat: Schema.Attribute.Decimal &
+      Schema.Attribute.DefaultTo<0>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

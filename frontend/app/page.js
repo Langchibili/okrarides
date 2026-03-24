@@ -388,6 +388,12 @@ const OkraLandingPage = () => {
     { num: '24/7', label: 'Live Support',   icon: '💬' },
     { num: '4.9★', label: 'Avg. Rating',   icon: '⭐' },
   ];
+  const FOOTER_LINKS = {
+  Terms:    '/terms.html',
+  Privacy:  '/privacy-policy.html',
+  Support:  frontendUrls.riderApp+'/help',
+  Data:  '/data-deletion-policy.html',
+}
 
   if (loading) {
     return (
@@ -666,16 +672,16 @@ const OkraLandingPage = () => {
                       <p className="text-gray-400 mb-5" style={{ fontSize: 12, fontWeight: 500 }}>
                         2025 Okra Technologies. All rights reserved. Zambia's premier ride &amp; delivery platform.
                       </p>
-                      <div className="flex gap-6 justify-center flex-wrap">
-                        {['Terms', 'Privacy', 'Support', 'Careers'].map(l => (
-                          <a key={l} href="#"
-                            style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', textDecoration: 'none', transition: 'color 0.18s' }}
-                            onMouseEnter={e => { e.currentTarget.style.color = '#16a34a'; }}
-                            onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; }}>
-                            {l}
-                          </a>
-                        ))}
-                      </div>
+<div className="flex gap-6 justify-center flex-wrap">
+  {['Terms', 'Privacy', 'Support', 'Data Policy'].map(l => (
+    <a key={l} href={FOOTER_LINKS[l]}
+      style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', textDecoration: 'none', transition: 'color 0.18s' }}
+      onMouseEnter={e => { e.currentTarget.style.color = '#16a34a'; }}
+      onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; }}>
+      {l}
+    </a>
+  ))}
+</div>
                     </div>
                   </motion.div>
                 </footer>
