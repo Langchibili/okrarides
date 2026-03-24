@@ -501,7 +501,75 @@ export default factories.createCoreController('api::device.device', ({ strapi })
       ctx.internalServerError('Failed to fetch pending ride');
     }
   },
+async getPendingDeliveryByDevice(ctx) {
+  const { deviceId } = ctx.params;
+  if (!deviceId) return ctx.badRequest('Device ID is required');
 
+  try {
+    const device = await strapi.db.query('api::device.device').findOne({
+      where: { deviceId },
+      populate: ['user'],
+    });
+    if (!device)       return ctx.notFound('Device not found');
+    if (!device.user)  return ctx.badRequest('Device not associated with a user');
+
+    const userId = device.user.id;
+
+    const deliveries = await strapi.db.query('api::delivery.delivery').findMany({
+      where: {
+        rideStatus: 'pending',
+        requestedDriverAccounts: { id: userId },
+      },
+      populate: {
+        sender: { select: ['id', 'username', 'firstName', 'lastName', 'phoneNumber'] },
+        package: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!deliveries.length) {
+      return ctx.send({ success: true, data: [], message: 'No pending delivery requests' });
+    }
+
+    const enriched = deliveries.map((delivery) => ({
+      deliveryId:    delivery.id,
+      rideCode:      delivery.rideCode,
+      rideStatus:    delivery.rideStatus,
+      requestedAt:   delivery.requestedAt,
+      distance:      delivery.estimatedDistance,
+      estimatedFare: delivery.totalFare,
+      sender: delivery.sender
+        ? {
+            id:   delivery.sender.id,
+            name: delivery.sender.firstName && delivery.sender.lastName
+              ? `${delivery.sender.firstName} ${delivery.sender.lastName}`
+              : delivery.sender.username || 'Sender',
+            phoneNumber: delivery.sender.phoneNumber,
+          }
+        : null,
+      pickupLocation:  delivery.pickupLocation,
+      dropoffLocation: delivery.dropoffLocation,
+      package: delivery.package
+        ? {
+            packageType:  delivery.package.packageType,
+            description:  delivery.package.description,
+            weight:       delivery.package.weight,
+            fragile:      delivery.package.fragile,
+            recipientName: delivery.package.recipient?.name,
+          }
+        : null,
+    }));
+
+    return ctx.send({
+      success: true,
+      data: enriched,
+      message: `Found ${enriched.length} pending delivery request(s)`,
+    });
+  } catch (error) {
+    strapi.log.error('Error fetching pending delivery by device:', error);
+    return ctx.internalServerError('Failed to fetch pending delivery');
+  }
+},
   async acceptRideByDevice(ctx) {
     try {
       const { deviceId } = ctx.params;
@@ -593,4 +661,184 @@ export default factories.createCoreController('api::device.device', ({ strapi })
       return ctx.internalServerError('Failed to accept ride');
     }
   },
+  async acceptDeliveryByDevice(ctx) {
+  try {
+    const { deviceId } = ctx.params;
+    if (!deviceId) return ctx.badRequest('Device ID is required');
+
+    // ── 1. Resolve device → user with both profiles ───────────────────────
+    const device = await strapi.db.query('api::device.device').findOne({
+      where: { deviceId },
+      populate: {
+        user: {
+          populate: {
+            // deliveryProfile holds availability, sub-profile vehicles, etc.
+            deliveryProfile: {
+              populate: {
+                taxi:       { populate: { vehicle: true } },
+                motorbike:  { populate: { vehicle: true } },
+                motorcycle: { populate: { vehicle: true } },
+                truck:      { populate: { vehicle: true } },
+              },
+            },
+            // driverProfile still needed for float/subscription eligibility check
+            driverProfile: {
+              populate: { currentSubscription: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!device)      return ctx.notFound('Device not found');
+    if (!device.user) return ctx.badRequest('Device is not associated with a user');
+
+    const user       = device.user;
+    const delivererId = user.id;
+
+    if (!user.deliveryProfile) {
+      return ctx.badRequest('User does not have a delivery profile');
+    }
+    if (!user.driverProfile) {
+      return ctx.badRequest('User does not have a driver profile — delivery drivers require a driver profile for eligibility');
+    }
+
+    const dp = user.deliveryProfile; // shorthand
+
+    // ── 2. Eligibility check (float / subscription) — same service as rides ─
+    const eligibilityCheck = await RideBookingService.canDriverAcceptRides(delivererId);
+    if (!eligibilityCheck.canAccept) {
+      return ctx.forbidden(eligibilityCheck.reason);
+    }
+
+    // ── 3. Resolve the vehicle from the active delivery sub-profile ──────────
+    //  activeVehicleType: 'taxi' | 'motorbike' | 'motorcycle' | 'truck' | 'none'
+    const activeVehicleType = dp.activeVehicleType || 'none';
+    const activeSubProfile  = activeVehicleType !== 'none' ? dp[activeVehicleType] : null;
+    const vehicleId         = activeSubProfile?.vehicle?.id ?? activeSubProfile?.vehicle ?? null;
+
+    if (!activeSubProfile || !activeSubProfile.isActive) {
+      return ctx.badRequest(
+        `No active delivery sub-profile found. Please set an active vehicle type (taxi / motorbike / motorcycle / truck).`,
+      );
+    }
+
+    // ── 4. Find the pending delivery this driver was requested for ───────────
+    //  We scan recent pending deliveries and find one where requestedDrivers
+    //  contains this delivererId — same pattern as ride acceptance.
+    const pendingDeliveries = await strapi.db.query('api::delivery.delivery').findMany({
+      where: { rideStatus: 'pending' },
+      populate: ['sender', 'deliverer', 'package'],
+      orderBy: { createdAt: 'desc' },
+      limit: 50,
+    });
+
+    const delivery = pendingDeliveries.find((d) => {
+      const requestedDrivers = d.requestedDrivers || [];
+      return requestedDrivers.some((rd: any) => rd.driverId === delivererId);
+    });
+
+    if (!delivery) {
+      return ctx.notFound('No pending delivery request found for this driver');
+    }
+
+    // ── 5. Re-fetch with a fresh status check ────────────────────────────────
+    const fresh = await strapi.db.query('api::delivery.delivery').findOne({
+      where: { id: delivery.id },
+      populate: ['sender', 'deliverer', 'package'],
+    });
+
+    if (!fresh || fresh.rideStatus !== 'pending') {
+      return ctx.badRequest('Delivery is no longer available');
+    }
+
+    // ── 6. Accept the delivery ────────────────────────────────────────────────
+    const updatedDelivery = await strapi.db.query('api::delivery.delivery').update({
+      where: { id: fresh.id },
+      data: {
+        rideStatus: 'accepted',
+        deliverer:  delivererId,
+        vehicle:    vehicleId,
+        acceptedAt: new Date(),
+      },
+      populate: {
+        sender: {
+          select: ['id', 'firstName', 'lastName', 'phoneNumber', 'profilePicture'],
+        },
+        deliverer: {
+          populate: {
+            deliveryProfile: true,
+            driverProfile:   { populate: { assignedVehicle: true } },
+          },
+        },
+        vehicle:  true,
+        package:  true,
+      },
+    });
+
+    // ── 7. Emit socket event to sender's device ───────────────────────────────
+    socketService.emit('delivery:accepted', {
+      deliveryId:  updatedDelivery.id,
+      delivererId,
+      senderId:    fresh.sender?.id,
+      deliverer: {
+        id:           user.id,
+        firstName:    user.firstName,
+        lastName:     user.lastName,
+        phoneNumber:  user.phoneNumber,
+        profilePicture: user.profilePicture,
+        deliveryProfile: {
+          averageRating:       dp.averageRating       || 0,
+          completedDeliveries: dp.completedDeliveries || 0,
+          activeVehicleType,
+        },
+      },
+      vehicle: vehicleId
+        ? {
+            id:          activeSubProfile.vehicle?.id,
+            numberPlate: activeSubProfile.vehicle?.numberPlate,
+            make:        activeSubProfile.vehicle?.make,
+            model:       activeSubProfile.vehicle?.model,
+            color:       activeSubProfile.vehicle?.color,
+          }
+        : null,
+      eta:      180,
+      distance: 1.5,
+    });
+
+    // ── 8. Mark deliverer as unavailable / on a delivery ─────────────────────
+    await strapi.db.query('delivery-profiles.delivery-profile').update({
+      where: { id: dp.id },
+      data: {
+        isAvailable:     false,
+        isEnroute:       false,
+        currentDelivery: fresh.id,
+      },
+    });
+
+    // ── 9. Notify other requested drivers that the delivery was taken ─────────
+    const requestedDrivers = fresh.requestedDrivers || [];
+    const otherDriverIds   = requestedDrivers
+      .filter((rd: any) => rd.driverId !== delivererId)
+      .map((rd: any) => rd.driverId);
+
+    if (otherDriverIds.length > 0) {
+      socketService.emit('delivery:taken', {
+        deliveryId: fresh.id,
+        driverIds:  otherDriverIds,
+      });
+    }
+
+    strapi.log.info(`Delivery ${fresh.id} accepted by deliverer ${delivererId}`);
+
+    return ctx.send({
+      success: true,
+      data:    updatedDelivery,
+      message: 'Delivery accepted successfully',
+    });
+  } catch (error) {
+    strapi.log.error('Accept delivery by device error:', error);
+    return ctx.internalServerError('Failed to accept delivery');
+  }
+},
 }));

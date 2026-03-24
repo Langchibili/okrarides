@@ -65,6 +65,15 @@ export default {
         middlewares: [],
       },
     },
+     {
+      method: 'GET',
+      path: '/device/:deviceId/permissions',
+      handler: 'device.checkDevicePermissions',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
     {
       method: 'PUT',
       path: '/devices/:userId/:deviceId',
@@ -103,6 +112,12 @@ export default {
       },
     },
     {
+  method: 'GET',
+  path: '/devices/pending-delivery/:deviceId',
+  handler: 'device.getPendingDeliveryByDevice',
+  config: { policies: [] },
+},
+    {
       method: 'POST',
       path: '/devices/acceptride/:deviceId',
       handler: 'device.acceptRideByDevice',
@@ -120,14 +135,12 @@ export default {
         middlewares: [],
       },
     },
+   
     {
-      method: 'GET',
-      path: '/device/:deviceId/permissions',
-      handler: 'device.checkDevicePermissions',
-      config: {
-        policies: [],
-        middlewares: [],
-      },
-    },
+     method: 'POST',
+     path:    '/devices/acceptdelivery/:deviceId',
+     handler: 'device.acceptDeliveryByDevice',
+     config:  { policies: [] },
+     },
   ],
 };
