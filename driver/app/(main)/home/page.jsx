@@ -181,7 +181,13 @@ export default function DriverHomePage() {
   const { summary, lifetime, loading: statsLoading, fetchStats } = useDriverStats();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [landingPageUrl,  setLandingPageUrl]  = useState(null);
-  
+  const [isFloatAtLimit, setIsFloatAtLimit] = useState(false);
+  const [daysUntilExpiry, setDaysUntilExpiry] = useState(null);
+  const floatBalance    = driverProfile?.floatBalance || 0;
+  const isFloatNegative = floatBalance <= 0;
+  const isFloatLow      = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
+   const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
+   
   useEffect(() => {
     if (currentRide) {
       const { rideStatus, id } = currentRide;
@@ -208,6 +214,22 @@ export default function DriverHomePage() {
     }
     getFrontendUrl();
   }, []);
+
+  useEffect(() => {
+  if (!subscriptionExpiresAt) return;
+
+  const diff = new Date(subscriptionExpiresAt).getTime() - Date.now();
+  setDaysUntilExpiry(Math.max(0, Math.floor(diff / 86400000)));
+}, [subscriptionExpiresAt])
+
+useEffect(() => {
+  setIsFloatAtLimit(
+    isFloatNegative &&
+    negativeFloatLimit > 0 &&
+    typeof floatBalance === 'number' &&
+    Math.abs(floatBalance) >= negativeFloatLimit
+  );
+}, [isFloatNegative, negativeFloatLimit, floatBalance]);
 
   const requestLocationOnMount = async () => {
     try {
@@ -239,17 +261,12 @@ export default function DriverHomePage() {
   const handleDeclineRide = async (id) => { try { await declineRide(id, 'Driver declined'); } catch (e) { console.error(e); } };
 
   const subscriptionStatus    = driverProfile?.subscriptionStatus;
-  const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
   const isOnSubscriptionSystem = paymentSystemType === 'subscription_based' || (paymentSystemType === 'hybrid' && ['active', 'trial'].includes(subscriptionStatus));
   const isOnFloatSystem = paymentSystemType === 'float_based' || (paymentSystemType === 'hybrid' && !['active', 'trial'].includes(subscriptionStatus));
-  const daysUntilExpiry = subscriptionExpiresAt ? Math.floor((new Date(subscriptionExpiresAt).getTime() - Date.now()) / 86400000) : null;
+  
   const isSubscriptionExpired      = ['expired', 'cancelled'].includes(subscriptionStatus);
   const isSubscriptionExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 7;
   const isOnTrial = subscriptionStatus === 'trial';
-  const floatBalance    = driverProfile?.floatBalance || 0;
-  const isFloatNegative = floatBalance <= 0;
-  const isFloatAtLimit  = isFloatNegative && negativeFloatLimit > 0 && Math.abs(floatBalance) >= negativeFloatLimit;
-  const isFloatLow      = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
   const showVerificationAlert         = needsVerification || needsVehicle;
   const showSubscriptionRequiredAlert = !showVerificationAlert && paymentSystemType === 'subscription_based' && needsSubscription;
   const showSubscriptionExpiryAlert   = !showVerificationAlert && isOnSubscriptionSystem && (isSubscriptionExpired || isSubscriptionExpiringSoon);
@@ -518,7 +535,7 @@ export default function DriverHomePage() {
 
         {/* ── Ride Request Modal ──────────────────────────────────────── */}
         <AnimatePresence>
-          {incomingRide && !isNative(
+          {incomingRide && !isNative &&(
             <RideRequestModal open={!!incomingRide} rideRequest={incomingRide}
               onAccept={handleAcceptRide} onDecline={handleDeclineRide} />
           )}

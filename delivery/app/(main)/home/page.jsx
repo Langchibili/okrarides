@@ -268,13 +268,25 @@ export default function DriverHomePage() {
   const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
   const isOnSubscriptionSystem = paymentSystemType === 'subscription_based' || (paymentSystemType === 'hybrid' && ['active', 'trial'].includes(subscriptionStatus));
   const isOnFloatSystem = paymentSystemType === 'float_based' || (paymentSystemType === 'hybrid' && !['active', 'trial'].includes(subscriptionStatus));
-  const daysUntilExpiry = subscriptionExpiresAt ? Math.floor((new Date(subscriptionExpiresAt).getTime() - Date.now()) / 86400000) : null;
+  const daysUntilExpiry = (() => {
+   if (typeof window === 'undefined') return null;
+   if (!subscriptionExpiresAt) return null;
+   const diff = new Date(subscriptionExpiresAt).getTime() - Date.now();
+   return Math.max(0, Math.floor(diff / 86400000));
+  })();
   const isSubscriptionExpired      = ['expired', 'cancelled'].includes(subscriptionStatus);
   const isSubscriptionExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 7;
   const isOnTrial = subscriptionStatus === 'trial';
   const floatBalance    = driverProfile?.floatBalance || 0;
   const isFloatNegative = floatBalance <= 0;
-  const isFloatAtLimit  = isFloatNegative && negativeFloatLimit > 0 && Math.abs(floatBalance) >= negativeFloatLimit;
+  const isFloatAtLimit = (() => {
+  if (typeof window === 'undefined') return false;
+   return (
+     isFloatNegative &&
+     negativeFloatLimit > 0 &&
+     Math.abs(floatBalance) >= negativeFloatLimit
+   )
+  })()
   const isFloatLow      = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
   const showVerificationAlert         = needsVerification || needsVehicle;
   const showSubscriptionRequiredAlert = !showVerificationAlert && paymentSystemType === 'subscription_based' && needsSubscription;
@@ -545,7 +557,7 @@ export default function DriverHomePage() {
 
         {/* ── Ride Request Modal ──────────────────────────────────────── */}
         <AnimatePresence>
-          {incomingRide && !isNative(
+          {incomingRide && !isNative &&(
             <DeliveryRequestModal open={!!incomingRide} deliveryRequest={incomingRide}
               onAccept={handleAcceptRide} onDecline={handleDeclineRide} />
           )}

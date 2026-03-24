@@ -177,7 +177,7 @@ function LogoutModal({ open, onConfirm, onCancel }) {
                   '&:hover': { borderColor: 'text.secondary', bgcolor: 'rgba(0,0,0,0.03)' },
                 }}
               >
-                No, Stay
+                No
               </Button>
               <Button
                 fullWidth variant="contained" size="large"
@@ -189,7 +189,7 @@ function LogoutModal({ open, onConfirm, onCancel }) {
                   '&:hover': { boxShadow: '0 6px 20px rgba(239,68,68,0.48)' },
                 }}
               >
-                Yes, Log Out
+                Yes
               </Button>
             </Box>
           </Paper>

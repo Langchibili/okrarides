@@ -98,6 +98,9 @@ export const BottomNav = () => {
 
   const [c1, c2] = TAB_COLORS[active] ?? ['#6B7280', '#4B5563'];
 
+  if(pathname.startsWith('/active-delivery')){ // on ride and delivery tracking page
+    return null
+  }
   return (
     <Paper
       elevation={0}

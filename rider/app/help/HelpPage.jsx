@@ -24,6 +24,7 @@ import { useAuth }          from '@/lib/hooks/useAuth';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
 import { useScreenshot }    from '@/lib/contexts/ScreenshotContext';
 import { supportTicketsAPI } from '@/lib/api/supportTickets';
+import HelpPageVideoSection from '@/components/HelpPageVideoSection';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
 const ACCENT        = '#10B981';
@@ -77,7 +78,7 @@ export default function HelpPage() {
   const router  = useRouter();
   const theme   = useTheme();
   const isDark  = theme.palette.mode === 'dark';
-  const { user }                                    = useAuth();
+  const { user }  = useAuth();
   const { adminSupportNumbers, adminSupportEmails } = useAdminSettings();
   const { draftTicketId, screenshotCount, draftSubject, draftCategory, startScreenshotMode, clearDraft, MAX_SCREENSHOTS } = useScreenshot();
 
@@ -355,6 +356,7 @@ export default function HelpPage() {
       </Modal>
 
       <Snackbar open={!!snackMsg} autoHideDuration={3000} onClose={() => setSnackMsg('')} message={snackMsg} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }} />
+     <HelpPageVideoSection />
     </Box>
   );
 }

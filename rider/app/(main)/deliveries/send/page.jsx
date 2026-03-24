@@ -103,7 +103,7 @@ export default function SendPackagePage() {
     }
 
   const HEADER_GRADIENT_SX = {
-    background: 'linear-gradient(-60deg, #c49a6c 0%, #b6895b 25%, #d2a679 50%, #a97c50 75%, #c49a6c 100%)',
+    background: 'linear-gradient(160deg, #92400E 0%, #B45309 100%)',
     backgroundSize: '300% 300%',
     animation: 'deliverySendWave 7s ease infinite',
     '@keyframes deliverySendWave': {
