@@ -27,7 +27,16 @@ export const BottomNav = () => {
     pathname === item.path || pathname.startsWith(item.path + '/')
   );
   const activeIdx = activeIndex === -1 ? 0 : activeIndex;
+  if(pathname.startsWith('/tracking')){ // on rides page, since it has a search param at the end
+    return null
+  }
   if(pathname.endsWith('/tracking')){ // on ride and delivery tracking page
+    return null
+  }
+  if(pathname.endsWith('/edit')){ // on profile edit page
+    return null
+  }
+  if(pathname.endsWith('/pay')){ // on ride pay page
     return null
   }
   return (

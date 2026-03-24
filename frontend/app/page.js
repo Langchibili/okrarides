@@ -361,7 +361,7 @@ const OkraLandingPage = () => {
 
   const quickActions = [
     { id: 'book-ride',    label: 'Book A Ride',           icon: '🚗', bg: '#ffc107',               iconBg: 'rgba(255,255,255,0.28)', textColor: '#3d1f00', shadow: 'rgba(255,193,7,0.32)',  url: frontendUrls.riderApp },
-    { id: 'deliver',      label: 'Deliver A Package',     icon: '📦', bg: 'rgba(246,248,246,0.98)', iconBg: 'rgba(22,163,74,0.10)',   textColor: NEUTRAL_TEXT, shadow: 'rgba(0,0,0,0.08)',  accent: '#16a34a', url: frontendUrls.deliveryApp },
+    { id: 'deliver',      label: 'Deliver A Package',     icon: '📦', bg: 'rgba(246,248,246,0.98)', iconBg: 'rgba(22,163,74,0.10)',   textColor: NEUTRAL_TEXT, shadow: 'rgba(0,0,0,0.08)',  accent: '#16a34a', url: frontendUrls.riderApp + '/deliveries/send'},
     { id: 'drive',        label: 'Earn Money Driving',    icon: '🚕', bg: 'var(--g-hero)',          iconBg: 'rgba(255,255,255,0.22)', textColor: 'white',   shadow: 'rgba(13,148,136,0.36)', url: frontendUrls.driverApp },
     { id: 'deliver-earn', label: 'Earn Delivering',       icon: '🛵', bg: 'rgba(246,248,246,0.98)', iconBg: 'rgba(22,163,74,0.10)',   textColor: NEUTRAL_TEXT, shadow: 'rgba(0,0,0,0.08)',  accent: '#16a34a', url: frontendUrls.deliveryApp },
     { id: 'affiliates',   label: 'Earn With Affiliates',  icon: '💸', bg: 'rgba(246,248,246,0.98)', iconBg: 'rgba(22,163,74,0.10)',   textColor: NEUTRAL_TEXT, shadow: 'rgba(0,0,0,0.08)', accent: '#16a34a', url: affiliateEnabled ? (frontendUrls.riderApp + '/affiliate') : '#' },
@@ -371,7 +371,7 @@ const OkraLandingPage = () => {
   const services = [
     { id: 'rider',      name: 'Book a Ride',      desc: 'Quick, reliable rides across Zambia',  icon: '🚗', gradient: 'linear-gradient(145deg,#14532d 0%,#15803d 45%,#22c55e 100%)', glowColor: 'rgba(22,163,74,0.20)',  accentDot: '#86efac', url: frontendUrls.riderApp,    features: ['Instant Booking', 'Live GPS Tracking', 'Multiple Payment Methods'] },
     { id: 'driver',     name: 'Drive with Us',    desc: 'Your schedule, your earnings',         icon: '🚕', gradient: 'linear-gradient(145deg,#78350f 0%,#b45309 45%,#fbbf24 100%)', glowColor: 'rgba(217,119,6,0.20)',  accentDot: '#fde68a', url: frontendUrls.driverApp,   features: ['Flexible Hours', 'Top Market Earnings', 'Weekly Payouts'] },
-    { id: 'delivery',   name: 'Package Delivery', desc: 'Fast, city-wide delivery service',     icon: '📦', gradient: 'linear-gradient(145deg,#0c4a6e 0%,#0891b2 50%,#22d3ee 100%)', glowColor: 'rgba(8,145,178,0.20)',  accentDot: '#a5f3fc', url: frontendUrls.deliveryApp, features: ['Same-Day Delivery', 'Real-Time Tracking', 'Safe Handling Guarantee'] },
+    { id: 'delivery',   name: 'Package Delivery', desc: 'Fast, city-wide delivery service',     icon: '📦', gradient: 'linear-gradient(145deg,#0c4a6e 0%,#0891b2 50%,#22d3ee 100%)', glowColor: 'rgba(8,145,178,0.20)',  accentDot: '#a5f3fc', url: frontendUrls.riderApp + '/deliveries/send', features: ['Same-Day Delivery', 'Real-Time Tracking', 'Safe Handling Guarantee'] },
     { id: 'affiliates', name: 'Okra Affiliates',  desc: 'Build your network, grow your income', icon: '💸', gradient: 'linear-gradient(145deg,#14532d 0%,#15803d 55%,#22c55e 100%)', glowColor: 'rgba(22,163,74,0.20)', accentDot: '#bbf7d0', url: affiliateEnabled ? (frontendUrls.riderApp + '/affiliate') : "#",  features: ['Refer a driver, earn', 'Earn per customer trip', 'Withdraw via mobile money'] },
   ];
 

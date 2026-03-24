@@ -19,7 +19,6 @@ export const useAuthGuard = (options = {}) => {
   const pathname = usePathname();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { driverProfile, adminSettings,loadingDriverProfile } = useDriver();
-  const {sendToNative} = useReactNative()
   
   useEffect(() => {
     // Wait for auth to load
@@ -34,15 +33,20 @@ export const useAuthGuard = (options = {}) => {
     if(loadingDriverProfile){
       return
     }
-     sendToNative('LOG_DATA', {info: 'driverProfileHere',driverProfile})
-    if (requireVerification) {
+    
+    if(requireVerification) {
       const driverVerified   = user?.driverProfile?.verificationStatus   === VERIFICATION_STATUS.APPROVED;
       const deliveryVerified = user?.deliveryProfile?.verificationStatus  === VERIFICATION_STATUS.APPROVED;
+      const verificationPending   = user?.driverProfile?.verificationStatus  === VERIFICATION_STATUS.PENDING || user?.deliveryProfile?.verificationStatus  === VERIFICATION_STATUS.PENDING
       const hasDeliveryVehicle = user?.deliveryProfile?.activeVehicleType &&
                                 user?.deliveryProfile?.activeVehicleType !== 'none';
 
+      if(verificationPending){
+        router.push('/onboarding/pending');
+        return;
+      }                            
       if (!driverVerified || !deliveryVerified || !hasDeliveryVehicle) {
-        router.push('/onboarding/setup-driver');
+        router.push('/onboarding/welcome');
         return;
       }
     }

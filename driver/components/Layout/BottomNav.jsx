@@ -45,6 +45,9 @@ export const BottomNav = () => {
   if(pathname.startsWith('/active-ride')){ // on ride and delivery tracking page
     return null
   }
+  if(pathname.endsWith('/edit')){ // on profile edit page
+    return null
+  }
   return (
     <Paper
       elevation={0}

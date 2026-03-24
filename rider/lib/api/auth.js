@@ -29,7 +29,7 @@ export const authAPI = {
     });
 
     if (response?.user) {
-      apiClient.setToken(response.jwt);
+      apiClient.setToken(response.jwt)
 
       // 3. Update the user profile with the numeric affiliate ID
       await apiClient.put(`/users/${response.user.id}`, {
@@ -38,7 +38,9 @@ export const authAPI = {
         lastName,
         referredBy: affiliateUserId, // Use the numeric ID found above
         country: data?.country?.id || null
-      });
+      })
+
+      apiClient.clearToken() // clear it, so the it's only set again when the user verifies with an otp
     }
     
     return response;

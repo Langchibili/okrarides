@@ -1,6 +1,13 @@
-// PATH: rider/app/trip-summary/page.jsx
-import { Suspense } from 'react';
-import TripSummaryPage from './TripSummaryPage';
+// PATH: app/help/page.jsx
+// Server Component — no 'use client'.
+// TripSummaryPage uses useAuth/useAdminSettings/useScreenshot which require
+// client-side context providers. ssr:false keeps it out of the server
+// bundle entirely so those hooks are never called during prerender.
+
+export const dynamic = 'force-dynamic';
+
+import TripSummaryPageLoader from './TripSummaryPageLoader';
+
 export default function Page() {
-  return <Suspense fallback={null}><TripSummaryPage /></Suspense>;
+  return <TripSummaryPageLoader />;
 }

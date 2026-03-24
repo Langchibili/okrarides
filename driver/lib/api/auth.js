@@ -40,6 +40,7 @@ export const authAPI = {
         referredBy: affiliateUserId, // Use the numeric ID found above
         country: data?.country?.id || null
       })
+      apiClient.clearToken() // clear it, so the it's only set again when the user verifies with an otp
     }
     
     return response;

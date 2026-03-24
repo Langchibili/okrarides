@@ -254,7 +254,7 @@ export default function HelpPageVideoSection() {
             size="small"
             startIcon={
               expanded
-                ? <CloseIcon   sx={{ fontSize: '14px !important' }} />
+                ? <CloseIcon   sx={{ color:'red', fontSize: '14px !important', fontWeight:900 }} />
                 : <ExpandIcon  sx={{ fontSize: '14px !important' }} />
             }
             onClick={() => setExpanded((v) => !v)}
