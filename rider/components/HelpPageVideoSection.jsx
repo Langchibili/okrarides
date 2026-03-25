@@ -30,6 +30,14 @@ const VIDEOS = [
     emoji:    '📱',
     color:    '#1428A0',
   },
+  {
+    id:       'apple',
+    src:      '/assets/how-to-set-background-running-ios.mp4',
+    label:    "Watch this on how to set the app to work in the background, helps you not miss any rides",
+    sublabel: 'On ios devices only',
+    emoji:    '📱',
+    color:    '#de3385',
+  },
 ];
 
 // ── Portrait video player modal ───────────────────────────────────────────────
@@ -88,7 +96,6 @@ function VideoModal({ open, src, title, onClose }) {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close */}
         <Box sx={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}>
           <IconButton
             onClick={onClose}
@@ -103,7 +110,6 @@ function VideoModal({ open, src, title, onClose }) {
           </IconButton>
         </Box>
 
-        {/* Title */}
         <Box
           sx={{
             position: 'absolute',
@@ -122,7 +128,6 @@ function VideoModal({ open, src, title, onClose }) {
           </Typography>
         </Box>
 
-        {/* Video */}
         <Box sx={{ position: 'relative', flex: 1, display: 'flex' }}>
           <video
             ref={videoRef}
@@ -141,7 +146,6 @@ function VideoModal({ open, src, title, onClose }) {
             onWaiting={() => setIsLoading(true)}
           />
 
-          {/* Loader */}
           {isLoading && (
             <Box
               sx={{
@@ -163,7 +167,6 @@ function VideoModal({ open, src, title, onClose }) {
             </Box>
           )}
 
-          {/* Play/Pause tap zone */}
           <Box
             onClick={togglePlay}
             sx={{
@@ -190,7 +193,6 @@ function VideoModal({ open, src, title, onClose }) {
           </Box>
         </Box>
 
-        {/* Controls */}
         <Box
           sx={{
             px: 2, pb: 2, pt: 1,
@@ -225,7 +227,8 @@ export default function HelpPageVideoSection() {
   const theme  = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const [expanded,    setExpanded]    = useState(true);
+  // CHANGE 1: collapsed by default (was true)
+  const [expanded,    setExpanded]    = useState(false);
   const [activeVideo, setActiveVideo] = useState(null);
 
   return (
@@ -241,35 +244,45 @@ export default function HelpPageVideoSection() {
             mb:             expanded ? 1.5 : 0,
           }}
         >
+          {/* CHANGE 2: brick red, bold, noticeable heading */}
           <Typography
             variant="overline"
-            color="text.secondary"
-            sx={{ fontWeight: 700, letterSpacing: 1 }}
+            sx={{
+              fontWeight:    900,
+              letterSpacing: 1.4,
+              fontSize:      '0.72rem',
+              color:         '#B91C1C',
+              textShadow:    isDark ? '0 0 10px rgba(185,28,28,0.55)' : 'none',
+            }}
           >
-            📹 Permission Setup Videos
+            🎥 Permission Setup Videos
           </Typography>
 
-          {/* Hide / Show button */}
+          {/* CHANGE 3: prominent Hide / Show button */}
           <Button
             size="small"
             startIcon={
               expanded
-                ? <CloseIcon   sx={{ color:'red', fontSize: '14px !important', fontWeight:900 }} />
-                : <ExpandIcon  sx={{ fontSize: '14px !important' }} />
+                ? <CloseIcon  sx={{ fontSize: '15px !important', fontWeight: 900 }} />
+                : <ExpandIcon sx={{ fontSize: '15px !important' }} />
             }
             onClick={() => setExpanded((v) => !v)}
             sx={{
               textTransform: 'none',
-              fontWeight:    600,
+              fontWeight:    800,
               fontSize:      12,
-              color:         'text.secondary',
+              color:         expanded ? '#fff' : '#B91C1C',
               minWidth:      0,
-              px:            1.25,
-              py:            0.4,
-              borderRadius:  2,
-              border:        `1px solid ${alpha(isDark ? '#fff' : '#000', 0.1)}`,
+              px:            1.75,
+              py:            0.6,
+              borderRadius:  2.5,
+              border:        `1.5px solid ${expanded ? '#B91C1C' : alpha('#B91C1C', 0.45)}`,
+              bgcolor:       expanded ? '#B91C1C' : alpha('#B91C1C', 0.07),
+              boxShadow:     expanded ? '0 3px 10px rgba(185,28,28,0.38)' : 'none',
+              transition:    'all 0.2s ease',
               '&:hover': {
-                bgcolor: alpha(isDark ? '#fff' : '#000', 0.05),
+                bgcolor:   expanded ? '#991B1B' : alpha('#B91C1C', 0.14),
+                boxShadow: '0 4px 14px rgba(185,28,28,0.35)',
               },
             }}
           >
@@ -277,7 +290,7 @@ export default function HelpPageVideoSection() {
           </Button>
         </Box>
 
-        {/* ── Collapsible video cards ──────────────────────────────────────── */}
+        {/* ── Collapsible video cards — all shown at once, exactly as original ── */}
         <Collapse in={expanded} timeout={280}>
           <Box>
             {VIDEOS.map((v) => (
@@ -365,7 +378,7 @@ export default function HelpPageVideoSection() {
             }}
           >
             <Typography variant="caption" color="text.disabled" sx={{ fontSize: 11 }}>
-              📹 2 setup videos available
+              🎥 2 setup videos available
             </Typography>
             <ExpandIcon sx={{ fontSize: 14, color: 'text.disabled' }} />
           </Box>

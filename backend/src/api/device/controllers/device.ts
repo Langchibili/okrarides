@@ -8,6 +8,7 @@ import { factories } from '@strapi/strapi';
 import { reverseGeocode } from '../../../services/mapProviderService';
 import RideBookingService from '../../../services/rideBookingService';
 import socketService from '../../../services/socketService';
+import DeliveryBookingService from '../../../services/deliveryBookingService';
 
 export default factories.createCoreController('api::device.device', ({ strapi }) => ({
   // ========================
@@ -685,6 +686,9 @@ async getPendingDeliveryByDevice(ctx) {
             driverProfile: {
               populate: { currentSubscription: true },
             },
+            profilePicture:{
+              populate: true
+            }
           },
         },
       },
@@ -706,7 +710,7 @@ async getPendingDeliveryByDevice(ctx) {
     const dp = user.deliveryProfile; // shorthand
 
     // ── 2. Eligibility check (float / subscription) — same service as rides ─
-    const eligibilityCheck = await RideBookingService.canDriverAcceptRides(delivererId);
+    const eligibilityCheck = await DeliveryBookingService.canDriverAcceptDeliveries(delivererId);
     if (!eligibilityCheck.canAccept) {
       return ctx.forbidden(eligibilityCheck.reason);
     }
@@ -763,7 +767,10 @@ async getPendingDeliveryByDevice(ctx) {
       },
       populate: {
         sender: {
-          select: ['id', 'firstName', 'lastName', 'phoneNumber', 'profilePicture'],
+          select: ['id', 'firstName', 'lastName', 'phoneNumber'],
+          populate: {
+            profilePicture: true
+          }
         },
         deliverer: {
           populate: {

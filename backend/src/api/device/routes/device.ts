@@ -115,7 +115,7 @@ export default {
   method: 'GET',
   path: '/devices/pending-delivery/:deviceId',
   handler: 'device.getPendingDeliveryByDevice',
-  config: { policies: [] },
+  config: { policies: [], middlewares: [] },
 },
     {
       method: 'POST',
@@ -140,7 +140,7 @@ export default {
      method: 'POST',
      path:    '/devices/acceptdelivery/:deviceId',
      handler: 'device.acceptDeliveryByDevice',
-     config:  { policies: [] },
+     config:  { policies: [], middlewares: [] },
      },
   ],
 };

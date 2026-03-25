@@ -90,7 +90,7 @@ export function ReactNativeWrapper({ children }) {
 
     const frontendMap = [
       { test: () => hostname.includes('driver.') || pathname.includes('/driver'), name: 'driver' },
-      { test: () => hostname.includes('book.') || hostname.includes('rider.') || pathname.includes('/rider'), name: 'rider' },
+      { test: () => hostname.includes('rider.') || hostname.includes('rider.') || pathname.includes('/rider'), name: 'rider' },
       { test: () => hostname.includes('conductor.') || pathname.includes('/conductor'), name: 'conductor' },
       { test: () => hostname.includes('delivery.') || pathname.includes('/delivery'), name: 'delivery' },
       { test: () => hostname.includes('admin.') || pathname.includes('/admin'), name: 'admin' },
@@ -326,6 +326,12 @@ export function ReactNativeWrapper({ children }) {
         return 'denied';
       }
     } else {
+      if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
+        return // you are in a native environment
+      }
+      if(isNative){ // just to make sure you don't re-request permissions on the web
+        return
+      }
       // Web permission request
       if (permissionType === 'location') {
         try {
@@ -350,8 +356,14 @@ export function ReactNativeWrapper({ children }) {
           return 'denied';
         }
       } else if (permissionType === 'notification') {
+        if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
+          return // you are in a native environment
+        }
+        if(isNative){ // just to make sure you don't re-request permissions on the web
+          return
+        }
         try {
-          const permission = await Notification.requestPermission();
+          const permission = await Notification.requestPermission()
           setPermissions(prev => ({ ...prev, notification: permission }));
           return permission;
         } catch (error) {
@@ -379,6 +391,12 @@ export function ReactNativeWrapper({ children }) {
       // Web permission check
       if (permissionType === 'location') {
         try {
+          if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
+            return // you are in a native environment
+          }
+          if(isNative){ // just to make sure you don't re-request permissions on the web
+            return
+          }
           const result = await navigator.permissions.query({ name: 'geolocation' });
           return result.state;
         } catch {

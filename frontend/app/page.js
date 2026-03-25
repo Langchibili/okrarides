@@ -296,9 +296,9 @@ const itemVariants = {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 const OkraLandingPage = () => {
   const [frontendUrls, setFrontendUrls] = useState({
-    riderApp:    'http://10.196.215.23:3001',
-    driverApp:   'http://10.196.215.23:3002',
-    deliveryApp: 'http://10.196.215.23:3003',
+    riderApp:    'http://172.31.156.23:3001',
+    driverApp:   'http://172.31.156.23:3002',
+    deliveryApp: 'http://172.31.156.23:3003',
   });
   const [loading,       setLoading]       = useState(true);
   const [headerPhase,   setHeaderPhase]   = useState('brand');
@@ -315,9 +315,9 @@ const OkraLandingPage = () => {
         const j = await r.json();
         const p = j?.data?.paths || {};
         setFrontendUrls({
-          riderApp:    p['okra-rider-app']    || 'http://10.196.215.23:3001/',
-          driverApp:   p['okra-driver-app']   || 'http://10.196.215.23:3002/',
-          deliveryApp: p['okra-delivery-app'] || 'http://10.196.215.23:3003/',
+          riderApp:    p['okra-rider-app']    || 'http://172.31.156.23:3001/',
+          driverApp:   p['okra-driver-app']   || 'http://172.31.156.23:3002/',
+          deliveryApp: p['okra-delivery-app'] || 'http://172.31.156.23:3003/',
         });
       } catch (_) {}
       setLoading(false);
@@ -672,17 +672,17 @@ const OkraLandingPage = () => {
                       <p className="text-gray-400 mb-5" style={{ fontSize: 12, fontWeight: 500 }}>
                         2025 Okra Technologies. All rights reserved. Zambia's premier ride &amp; delivery platform.
                       </p>
-<div className="flex gap-6 justify-center flex-wrap">
-  {['Terms', 'Privacy', 'Support', 'Data Policy'].map(l => (
-    <a key={l} href={FOOTER_LINKS[l]}
-      style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', textDecoration: 'none', transition: 'color 0.18s' }}
-      onMouseEnter={e => { e.currentTarget.style.color = '#16a34a'; }}
-      onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; }}>
-      {l}
-    </a>
-  ))}
-</div>
-                    </div>
+                      <div className="flex gap-6 justify-center flex-wrap">
+                        {['Terms', 'Privacy', 'Support', 'Data Policy'].map(l => (
+                          <a key={l} href={FOOTER_LINKS[l]}
+                            style={{ fontSize: 12, fontWeight: 600, color: '#9ca3af', textDecoration: 'none', transition: 'color 0.18s' }}
+                            onMouseEnter={e => { e.currentTarget.style.color = '#16a34a'; }}
+                            onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; }}>
+                            {l}
+                          </a>
+                        ))}
+                      </div>
+                     </div>
                   </motion.div>
                 </footer>
 

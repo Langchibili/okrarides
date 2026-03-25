@@ -68,12 +68,12 @@ function AnimatedHeaderButton({ label, icon, direction, onClick }) {
     enter:  { x: direction === 'left' ? 18 : -18, opacity: 0 },
     center: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 340, damping: 28 } },
     exit:   { x: direction === 'left' ? -22 : 22, opacity: 0, transition: { duration: 0.22 } },
-  };
+  }
   const iconV = {
     enter:  { x: direction === 'left' ? 18 : -18, opacity: 0 },
     center: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 340, damping: 26 } },
     exit:   { x: 0, opacity: 0, transition: { duration: 0.15 } },
-  };
+  }
   return (
     <Box onClick={onClick} sx={{
       cursor: 'pointer', minWidth: 48, height: 36,
@@ -245,8 +245,8 @@ useEffect(() => {
         );
       }
     } catch (e) { console.error('Error requesting location:', e); }
-  };
-
+  }
+  
   const handleToggleOnline = async () => {
     try {
       const result = await toggleOnline(!isOnline);

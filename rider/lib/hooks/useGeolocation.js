@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 
 export const useGeolocation = (options = {}) => {
   const {
@@ -13,6 +14,7 @@ export const useGeolocation = (options = {}) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [permissionStatus, setPermissionStatus] = useState('prompt');
+  const { isNative } = useReactNative();
 
   const onSuccess = useCallback((position) => {
     setLocation({
@@ -50,7 +52,7 @@ export const useGeolocation = (options = {}) => {
       }
 
       // Check permission status
-      if (navigator.permissions) {
+      if (navigator.permissions && !isNative) {
         const result = await navigator.permissions.query({ name: 'geolocation' });
         setPermissionStatus(result.state);
         
@@ -66,7 +68,7 @@ export const useGeolocation = (options = {}) => {
 
       return true;
     } catch (err) {
-      console.error('Permission check error:', err);
+      console.warn('Permission check error:', err);
       return true; // Continue anyway
     }
   }, []);
