@@ -28,7 +28,7 @@ function RenderMainLayout({ children }) {
   const pathname = usePathname();
   const { activeRide } = useRide();
   const theme = useThemeMode();
-  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
 
   useEffect(() => {
     const initializeNativeCode = async () => {
@@ -84,7 +84,11 @@ function RenderMainLayout({ children }) {
           console.error('❌ Failed to initialize native services:', result.error);
         }
       }
-    };
+      if(isNative){
+         getNativeLocation() // make the device send the current location to the server at least once
+      }
+      startLocationTracking()
+    }
 
     if (!loading) {
       if (!isAuthenticated()) {

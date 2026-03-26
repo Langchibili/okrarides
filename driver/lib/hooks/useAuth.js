@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
-  const { disconnectDeviceSocket } = useReactNative();
+  const { disconnectDeviceSocket, stopLocationTracking } = useReactNative();
 
    // Add initialization state
   const [initialized, setInitialized] = useState(false);
@@ -166,6 +166,7 @@ export function AuthProvider({ children }) {
        userId = response?.id
     }
     disconnectDeviceSocket(userId,'driver')
+    stopLocationTracking() // no need to continue having you send your location, you are logged out
     if(typeof window !== 'undefined'){
       localStorage.clear();
       window.location.href = '/login';

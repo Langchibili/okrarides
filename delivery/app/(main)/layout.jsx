@@ -25,7 +25,7 @@ const RenderMainLayout = ({children})=>{
    const router   = useRouter();
   const pathname = usePathname();
   const { incomingDelivery: activeDelivery } = useDelivery();
-  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking } = useReactNative();
 
   const { setAccentColor } = useThemeMode()
   // ── KEY FIX: same pattern — lazy init from `loading`
@@ -99,7 +99,8 @@ const RenderMainLayout = ({children})=>{
           console.error('❌ Failed to initialize native services:', result.error);
         }
       }
-    };
+      startLocationTracking()
+    }
 
     if (!loading) {
       if (!isAuthenticated()) {

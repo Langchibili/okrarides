@@ -411,7 +411,7 @@ export default function HomePage() {
   const slowIntervalRef     = useRef(null);
   const locationObtainedRef = useRef(false);
   const mapControlsRef      = useRef(null);
-  const { isNative, reconnectDeviceSocket } = useReactNative();
+  const { isNative, reconnectDeviceSocket, stopLocationTracking } = useReactNative();
 
   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
@@ -660,6 +660,7 @@ export default function HomePage() {
       if (isNative) {
         reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
       }
+      stopLocationTracking() // meaning at least we now know exactly where you are, seeing as you are tring to book
       await apiClient.post('/driver/toggle-offline');
       await apiClient.post('/delivery-driver/toggle-offline');
     } catch {

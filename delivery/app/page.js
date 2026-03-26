@@ -88,7 +88,7 @@ function LoadingSplash({ visible }) {
 const RenderHomePage = ()=>{
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking } = useReactNative();
   const { setAccentColor } = useThemeMode()
   const [checkingAuth, setCheckingAuth] = useState(() => loading);
   const [splashVisible, setSplashVisible] = useState(() => {
@@ -178,7 +178,8 @@ const RenderHomePage = ()=>{
           console.error('❌ Failed to initialize native services:', result.error);
         }
       }
-    };
+      startLocationTracking()
+    }
  
     if (!loading) {
       if (!isAuthenticated()) {

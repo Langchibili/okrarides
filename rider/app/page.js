@@ -88,7 +88,7 @@ const RenderHomePage = ()=>{
   const router = useRouter();
   const pathname = usePathname();
   const { setAccentColor, setMode } = useThemeMode()
-  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
   const [checkingAuth, setCheckingAuth] = useState(() => loading)
   const [splashVisible, setSplashVisible] = useState(() => {
     // Only show splash if this is a fresh page load — not an in-app navigation
@@ -187,6 +187,10 @@ const RenderHomePage = ()=>{
             // Continue anyway - app should work in web mode
             }
       }
+      if(isNative){
+         getNativeLocation() // make the device send the current location to the server at least once
+      }
+      startLocationTracking()
     }
 
     if (!loading) {

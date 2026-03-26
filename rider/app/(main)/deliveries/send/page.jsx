@@ -53,13 +53,13 @@ const CLEAN_INPUT_SX = {
 
 export default function SendPackagePage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const theme  = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
   // ── Location hooks ─────────────────────────────────────────────────────
   const { location, loading: locationLoading, refresh: refreshWebLocation } = useGeolocation({ watch: true });
-  const { isNative, reconnectDeviceSocket, getCurrentLocation: getNativeLocation } = useReactNative();
+  const { isNative, reconnectDeviceSocket, stopLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
 
   // ── Delivery booking ───────────────────────────────────────────────────
   const { bookDelivery, booking, currentDelivery } = useDeliveryBooking();
@@ -414,6 +414,7 @@ export default function SendPackagePage() {
   const fetchDeliveryEstimates = useCallback(async (payload) => {
     const response = await apiClient.post('/deliveries/estimate', payload);
     reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
+    stopLocationTracking() // no need to continue tracking your location, you are about to send a delivery
     return response?.data ?? response;
   }, []);
 
@@ -486,7 +487,7 @@ export default function SendPackagePage() {
   const rideBtnIconBg        = isDark ? 'rgba(255,179,0,0.22)' : 'rgba(255,179,0,0.15)';
   const rideBtnChevronBg     = isDark ? 'rgba(255,179,0,0.18)' : 'rgba(255,179,0,0.12)';
 
-   if (!isAuthenticated()) {
+  if(!isAuthenticated()) {
     return <HomePageSkeleton />;
   }
 

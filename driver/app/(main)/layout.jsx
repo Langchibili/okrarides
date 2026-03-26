@@ -22,7 +22,7 @@ export default function DeliveryMainLayout({ children }) {
 function RenderMainLayout({ children }) {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
-  const { isNative, servicesInitialized, initializeNativeServices } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking } = useReactNative();
   const { currentRide } = useRide();
   const [checkingAuth, setCheckingAuth] = useState(() => loading);
 
@@ -60,6 +60,7 @@ function RenderMainLayout({ children }) {
           }
         }
       }
+      startLocationTracking()
     };
 
     if (!loading) {
