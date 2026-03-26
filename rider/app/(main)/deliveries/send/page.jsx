@@ -50,8 +50,6 @@ const CLEAN_INPUT_SX = {
   '& .MuiInputBase-input': { p: '0 !important', fontSize: '0.9rem', fontWeight: 500 },
 };
 
-
-
 export default function SendPackagePage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -73,6 +71,11 @@ export default function SendPackagePage() {
   const [focusedInput,      setFocusedInput]      = useState(null);
   const [sheetExpanded,     setSheetExpanded]     = useState(false);
   const [pickupChipVisible, setPickupChipVisible] = useState(false);
+
+  // ── Tracks every time location is successfully obtained/refreshed ──────
+  // Bumping this guarantees locationDisplayText and any derived UI re-renders
+  // even when the lat/lng coordinates themselves haven't changed.
+  const [locationObtainedAt, setLocationObtainedAt] = useState(null);
 
   // ── Sheet visibility ───────────────────────────────────────────────────
   const [showLocationSheet,   setShowLocationSheet]   = useState(true);
@@ -96,24 +99,24 @@ export default function SendPackagePage() {
     backgroundSize: '300% 300%',
     animation: 'deliverySendWave 7s ease infinite',
     '@keyframes deliverySendWave': {
-        '0%':   { backgroundPosition: '0% 50%' },
-        '50%':  { backgroundPosition: '100% 50%' },
-        '100%': { backgroundPosition: '0% 50%' },
+      '0%':   { backgroundPosition: '0% 50%' },
+      '50%':  { backgroundPosition: '100% 50%' },
+      '100%': { backgroundPosition: '0% 50%' },
     },
-    }
+  };
 
   const HEADER_GRADIENT_SX = {
     background: 'linear-gradient(160deg, #92400E 0%, #B45309 100%)',
     backgroundSize: '300% 300%',
     animation: 'deliverySendWave 7s ease infinite',
     '@keyframes deliverySendWave': {
-        '0%':   { backgroundPosition: '0% 50%' },
-        '50%':  { backgroundPosition: '100% 50%' },
-        '100%': { backgroundPosition: '0% 50%' },
+      '0%':   { backgroundPosition: '0% 50%' },
+      '50%':  { backgroundPosition: '100% 50%' },
+      '100%': { backgroundPosition: '0% 50%' },
     },
-  }
+  };
 
-  const GRADIENT_STYLES = isDark? HEADER_GRADIENT_DARK_SX : HEADER_GRADIENT_SX
+  const GRADIENT_STYLES = isDark ? HEADER_GRADIENT_DARK_SX : HEADER_GRADIENT_SX;
 
   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
@@ -143,15 +146,62 @@ export default function SendPackagePage() {
 
   // ── Location detection ────────────────────────────────────────────────
 
-  const applyLocationFix = useCallback((lat, lng) => {
+  // ── Reverse-geocode helper ─────────────────────────────────────────────
+  const reverseGeocodeCoords = useCallback(async (lat, lng) => {
+    try {
+      const res = await apiClient.post('/reverse-geocode', {
+        location: { lat, lng },
+      });
+      const loc = res?.data?.location ?? res?.location;
+      if (loc?.latitude && loc?.longitude) return loc;
+    } catch (err) {
+      console.warn('[send] reverse geocode failed (non-fatal):', err);
+    }
+    return null;
+  }, []);
+
+  const applyLocationFix = useCallback(async (lat, lng) => {
     if (lat == null || lng == null) return;
     locationObtainedRef.current = true;
     setMapCenter({ lat, lng });
+
+    // Set raw coords immediately so the map moves without waiting for geocoding
     setPickupLocation((prev) => {
       if (prev && !prev.isCurrentLocation) return prev;
-      return { lat, lng, address: `${lat.toFixed(5)}, ${lng.toFixed(5)}`, name: `${lat.toFixed(5)}, ${lng.toFixed(5)}`, placeId: `geo_${lat}_${lng}`, isCurrentLocation: true };
+      return {
+        lat, lng,
+        address:           `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+        name:              `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+        placeId:           `geo_${lat}_${lng}`,
+        isCurrentLocation: true,
+      };
     });
-  }, []);
+
+    // Bump timestamp so display always re-renders when location is (re-)obtained
+    setLocationObtainedAt(Date.now());
+
+    // Enrich with real address in the background
+    const geocoded = await reverseGeocodeCoords(lat, lng);
+    if (geocoded) {
+      setPickupLocation((prev) => {
+        if (prev && !prev.isCurrentLocation) return prev;
+        return {
+          lat:               geocoded.latitude,
+          lng:               geocoded.longitude,
+          address:           geocoded.address   || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+          name:              geocoded.name       || geocoded.streetAddress || geocoded.address?.split(',')[0] || 'Current Location',
+          placeId:           geocoded.placeId    || `geo_${lat}_${lng}`,
+          city:              geocoded.city,
+          country:           geocoded.country,
+          state:             geocoded.state,
+          postalCode:        geocoded.postalCode,
+          isCurrentLocation: true,
+        };
+      });
+      // Bump again once enriched address arrives so display shows the real name
+      setLocationObtainedAt(Date.now());
+    }
+  }, [reverseGeocodeCoords]);
 
   const fetchAndApplyNativeLocation = useCallback(async () => {
     try {
@@ -160,21 +210,42 @@ export default function SendPackagePage() {
       const coords = { lat: nativeLoc.lat, lng: nativeLoc.lng };
       setMapCenter(coords);
       if (mapControlsRef.current) mapControlsRef.current.animateToLocation(coords, 16);
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 1000));
       if (user?.id) {
         const res = await apiClient.get(`/users/${user.id}`);
         const cl  = res?.currentLocation;
         if (cl?.latitude && cl?.longitude) {
           locationObtainedRef.current = true;
-          const loc = { lat: cl.latitude, lng: cl.longitude, address: cl.address || `${cl.latitude}, ${cl.longitude}`, name: cl.name || cl.address?.split(',')[0] || 'Current Location', placeId: cl.placeId || `geo_${cl.latitude}_${cl.longitude}`, isCurrentLocation: true };
+
+          // If the server's stored location has no address yet, geocode it now
+          const needsGeocode = !cl.address && !cl.name;
+          const geocoded = needsGeocode ? await reverseGeocodeCoords(cl.latitude, cl.longitude) : null;
+          const source = geocoded ?? cl;
+
+          const loc = {
+            lat:               source.latitude  ?? cl.latitude,
+            lng:               source.longitude ?? cl.longitude,
+            address:           source.address   || `${cl.latitude}, ${cl.longitude}`,
+            name:              source.name      || source.streetAddress || source.address?.split(',')[0] || 'Current Location',
+            placeId:           source.placeId   || `geo_${cl.latitude}_${cl.longitude}`,
+            city:              source.city,
+            country:           source.country,
+            state:             source.state,
+            postalCode:        source.postalCode,
+            isCurrentLocation: true,
+          };
           setPickupLocation((prev) => (prev && !prev.isCurrentLocation ? prev : loc));
+          // Bump timestamp so display re-renders with fresh location
+          setLocationObtainedAt(Date.now());
           return loc;
         }
       }
+      // Server had no currentLocation — geocode the raw native coords directly
       locationObtainedRef.current = true;
+      await applyLocationFix(nativeLoc.lat, nativeLoc.lng);
       return coords;
     } catch { return null; }
-  }, [user, getNativeLocation]);
+  }, [user, getNativeLocation, reverseGeocodeCoords, applyLocationFix]);
 
   useEffect(() => {
     if (location && !locationObtainedRef.current) applyLocationFix(location.lat, location.lng);
@@ -182,21 +253,35 @@ export default function SendPackagePage() {
   }, [location]);
 
   useEffect(() => {
-    const FAST_MS = 1_000;
-    const SLOW_MS = 4 * 60_000;
+    const FAST_MS = 1_500;
+    const SLOW_MS = 30 * 60_000; // when booking package deliveries, your location rarely changes
+
     if (isNative && !locationObtainedRef.current) {
-      fastIntervalRef.current = setInterval(async () => {
-        if (locationObtainedRef.current) { clearInterval(fastIntervalRef.current); fastIntervalRef.current = null; return; }
-        const result = await fetchAndApplyNativeLocation();
-        if (result) { clearInterval(fastIntervalRef.current); fastIntervalRef.current = null; }
+      fastIntervalRef.current = setInterval(() => {
+        if (locationObtainedRef.current) {
+          clearInterval(fastIntervalRef.current);
+          fastIntervalRef.current = null;
+          return;
+        }
+        // Fire-and-forget — never block the interval tick
+        fetchAndApplyNativeLocation().then((result) => {
+          if (result) {
+            clearInterval(fastIntervalRef.current);
+            fastIntervalRef.current = null;
+          }
+        }).catch(() => {});
       }, FAST_MS);
     }
-    slowIntervalRef.current = setInterval(async () => {
-      try {
-        if (isNative && getNativeLocation) await fetchAndApplyNativeLocation();
-        else await refreshWebLocation();
-      } catch {}
+
+    slowIntervalRef.current = setInterval(() => {
+      // Fire-and-forget — never block the UI
+      if (isNative && getNativeLocation) {
+        fetchAndApplyNativeLocation().catch(() => {});
+      } else {
+        refreshWebLocation().catch(() => {});
+      }
     }, SLOW_MS);
+
     return () => {
       if (fastIntervalRef.current) clearInterval(fastIntervalRef.current);
       if (slowIntervalRef.current) clearInterval(slowIntervalRef.current);
@@ -252,7 +337,22 @@ export default function SendPackagePage() {
     else handleDropoffSelect(loc);
   }, [focusedInput, handlePickupSelect, handleDropoffSelect]);
 
-  const handleInputFocus = (input) => { setFocusedInput(input); if (!sheetExpanded) setSheetExpanded(true); };
+  const handleInputFocus = useCallback((input) => {
+    setFocusedInput(input);
+    if (!sheetExpanded) setSheetExpanded(true);
+
+    // When the user taps the destination field, silently re-obtain current location
+    // in the background so the pickup reflects exactly where they are right now.
+    if (input === 'dropoff') {
+      if (isNative) {
+        fetchAndApplyNativeLocation().catch(() => {});
+      } else {
+        refreshWebLocation().catch(() => {});
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetExpanded, isNative]);
+
   const handleInputBlur  = () => { setTimeout(() => setFocusedInput(null), 180); };
 
   const handleIAmHere = () => {
@@ -280,7 +380,7 @@ export default function SendPackagePage() {
       }
       setSnackbar({ open: true, message: 'Location updated', severity: 'success' });
     } catch { setSnackbar({ open: true, message: 'Could not get your location.', severity: 'error' }); }
-    finally { setTimeout(() => setIsRelocating(false), 1500); }
+    finally { setTimeout(() => setIsRelocating(false), 1000); }
   };
 
   const handleSwap = () => { const [p, d] = [pickupLocation, dropoffLocation]; setPickupLocation(d); setDropoffLocation(p); };
@@ -333,7 +433,9 @@ export default function SendPackagePage() {
   }, [pickupLocation?.lat, pickupLocation?.lng, dropoffLocation?.lat, dropoffLocation?.lng]);
 
   // ── Location display text ──────────────────────────────────────────────
-  const locationDisplayText = (() => {
+  // locationObtainedAt is included as a dependency so this re-computes every
+  // time location is refreshed, even if the coords haven't changed.
+  const locationDisplayText = useMemo(() => {
     if (!pickupLocation) return 'Detecting location…';
     if (pickupLocation.isCurrentLocation) {
       const label = pickupLocation.name || pickupLocation.address;
@@ -342,7 +444,8 @@ export default function SendPackagePage() {
       return 'Detecting location…';
     }
     return pickupLocation.name || pickupLocation.address?.split(',')[0] || 'Current Location';
-  })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickupLocation, location, locationObtainedAt]);
 
   // ── Derived dark-mode-aware style values ──────────────────────────────
   const sheetBg          = isDark ? '#1A1208'              : '#FBF3E8';
@@ -430,7 +533,7 @@ export default function SendPackagePage() {
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', maxWidth: '100%', overflow: 'hidden', bgcolor: sheetBg }}>
 
               {/* Gradient header */}
-              <Box sx={{ ... GRADIENT_STYLES, borderTopLeftRadius: 24, borderTopRightRadius: 24, flexShrink: 0, overflow: 'hidden', position: 'relative', '&::before': { content: '""', position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)', pointerEvents: 'none' } }}>
+              <Box sx={{ ...GRADIENT_STYLES, borderTopLeftRadius: 24, borderTopRightRadius: 24, flexShrink: 0, overflow: 'hidden', position: 'relative', '&::before': { content: '""', position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.08)', pointerEvents: 'none' } }}>
                 <BottomSheetDragPill colored />
 
                 {/* Location summary */}
@@ -513,66 +616,68 @@ export default function SendPackagePage() {
                   </Box>
                 </motion.div>
               </Box>
-                 {/* ── Book a Ride Instead CTA ── */}
-                <Box sx={{ px: 2.5, pt: recentLocations.length > 0 ? 0.5 : 1.5, pb: 3 }}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15, type: 'spring', stiffness: 280, damping: 24 }}
-                  >
-                    <Box
-                      onClick={() => router.push('/')}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        px: 2.5,
-                        py: 1.75,
-                        borderRadius: 3,
-                        cursor: 'pointer',
-                        border: rideBtnBorder,
-                        background: rideBtnBg,
-                        transition: 'all 0.2s cubic-bezier(0.34,1.3,0.64,1)',
-                        '&:hover': {
-                          border: rideBtnHoverBorder,
-                          background: rideBtnHoverBg,
-                          transform: 'translateX(3px)',
-                        },
-                        '&:active': { transform: 'scale(0.97)' },
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Box sx={{
-                          width: 36, height: 36, borderRadius: 2,
-                          bgcolor: rideBtnIconBg,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 18,
-                        }}>
-                          🚗
-                        </Box>
-                        <Box>
-                          <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'text.primary', lineHeight: 1.2 }}>
-                            Book a Ride Instead
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                            Get picked up, go anywhere
-                          </Typography>
-                        </Box>
-                      </Box>
 
+              {/* ── Book a Ride Instead CTA ── */}
+              <Box sx={{ px: 2.5, pt: recentLocations.length > 0 ? 0.5 : 1.5, pb: 3 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15, type: 'spring', stiffness: 280, damping: 24 }}
+                >
+                  <Box
+                    onClick={() => router.push('/')}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      px: 2.5,
+                      py: 1.75,
+                      borderRadius: 3,
+                      cursor: 'pointer',
+                      border: rideBtnBorder,
+                      background: rideBtnBg,
+                      transition: 'all 0.2s cubic-bezier(0.34,1.3,0.64,1)',
+                      '&:hover': {
+                        border: rideBtnHoverBorder,
+                        background: rideBtnHoverBg,
+                        transform: 'translateX(3px)',
+                      },
+                      '&:active': { transform: 'scale(0.97)' },
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Box sx={{
-                        width: 28, height: 28, borderRadius: '50%',
-                        bgcolor: rideBtnChevronBg,
+                        width: 36, height: 36, borderRadius: 2,
+                        bgcolor: rideBtnIconBg,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 18,
                       }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <path d="M9 18l6-6-6-6" stroke="#FF8A00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        🚗
+                      </Box>
+                      <Box>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'text.primary', lineHeight: 1.2 }}>
+                          Book a Ride Instead
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                          Get picked up, go anywhere
+                        </Typography>
                       </Box>
                     </Box>
-                  </motion.div>
-                </Box>
-              {/* Recent locations + CTA */}
+
+                    <Box sx={{
+                      width: 28, height: 28, borderRadius: '50%',
+                      bgcolor: rideBtnChevronBg,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18l6-6-6-6" stroke="#FF8A00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </Box>
+                  </Box>
+                </motion.div>
+              </Box>
+
+              {/* Recent locations */}
               <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' }, width: '100%', boxSizing: 'border-box' }}>
                 <AnimatePresence>
                   {recentLocations.length > 0 && (

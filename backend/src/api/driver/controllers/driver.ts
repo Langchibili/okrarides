@@ -201,7 +201,7 @@ async goOffline(ctx) {
     try {
       const userId = ctx.state.user.id;
       const { lat, lng, heading, speed } = ctx.request.body;
-
+      console.log('location ctx.request.body',ctx.request.body)
       if (!lat || !lng) {
         return ctx.badRequest('Location coordinates required');
       }

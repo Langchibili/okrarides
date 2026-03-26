@@ -360,7 +360,7 @@ const OkraLandingPage = () => {
   const NEUTRAL_TEXT = '#1a2e1a';
 
   const quickActions = [
-    { id: 'book-ride',    label: 'Book A Ride',           icon: '🚗', bg: '#ffc107',               iconBg: 'rgba(255,255,255,0.28)', textColor: '#3d1f00', shadow: 'rgba(255,193,7,0.32)',  url: frontendUrls.riderApp },
+    { id: 'book-ride',    label: 'Book A Ride',           icon: '🚗', bg: '#ffc107',               iconBg: 'rgba(255,255,255,0.28)', textColor: 'white', shadow: 'rgba(255,193,7,0.32)',  url: frontendUrls.riderApp },
     { id: 'deliver',      label: 'Deliver A Package',     icon: '📦', bg: 'rgba(246,248,246,0.98)', iconBg: 'rgba(22,163,74,0.10)',   textColor: NEUTRAL_TEXT, shadow: 'rgba(0,0,0,0.08)',  accent: '#16a34a', url: frontendUrls.riderApp + '/deliveries/send'},
     { id: 'drive',        label: 'Earn Money Driving',    icon: '🚕', bg: 'var(--g-hero)',          iconBg: 'rgba(255,255,255,0.22)', textColor: 'white',   shadow: 'rgba(13,148,136,0.36)', url: frontendUrls.driverApp },
     { id: 'deliver-earn', label: 'Earn Delivering',       icon: '🛵', bg: 'rgba(246,248,246,0.98)', iconBg: 'rgba(22,163,74,0.10)',   textColor: NEUTRAL_TEXT, shadow: 'rgba(0,0,0,0.08)',  accent: '#16a34a', url: frontendUrls.deliveryApp },

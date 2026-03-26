@@ -147,7 +147,6 @@ export default factories.createCoreController('api::device.device', ({ strapi })
   async updateUserCurrentLocation(ctx) {
     try {
       const { deviceId, location } = ctx.request.body;
-
       if (!deviceId) return ctx.badRequest('Device ID is required');
       if (!location || typeof location !== 'object') return ctx.badRequest('Location object is required');
       if (!location.latitude || !location.longitude)
@@ -175,28 +174,28 @@ export default factories.createCoreController('api::device.device', ({ strapi })
       };
 
       // ── Priority-based geocoding (Yandex → Google → local) ───────────────
-      try {
-        const geocodingData = await reverseGeocode(location.latitude, location.longitude);
+      // try { // for now, we are not going to reverse geo code on each location update, we will do so on demand
+      //   const geocodingData = await reverseGeocode(location.latitude, location.longitude);
 
-        if (geocodingData) {
-          locationDetails = {
-            ...locationDetails,
-            name: geocodingData.name,
-            address: geocodingData.address,
-            placeId: geocodingData.placeId,
-            city: geocodingData.city,
-            country: geocodingData.country,
-            postalCode: geocodingData.postalCode,
-            state: geocodingData.state,
-            streetAddress: geocodingData.streetAddress,
-            streetNumber: geocodingData.streetNumber,
-          };
-        } else {
-          console.warn('[device controller] No geocoding result from any provider');
-        }
-      } catch (geocodingError) {
-        console.error('[device controller] Geocoding error (non-fatal):', geocodingError);
-      }
+      //   if (geocodingData) {
+      //     locationDetails = {
+      //       ...locationDetails,
+      //       name: geocodingData.name,
+      //       address: geocodingData.address,
+      //       placeId: geocodingData.placeId,
+      //       city: geocodingData.city,
+      //       country: geocodingData.country,
+      //       postalCode: geocodingData.postalCode,
+      //       state: geocodingData.state,
+      //       streetAddress: geocodingData.streetAddress,
+      //       streetNumber: geocodingData.streetNumber,
+      //     };
+      //   } else {
+      //     console.warn('[device controller] No geocoding result from any provider');
+      //   }
+      // } catch (geocodingError) {
+      //   console.error('[device controller] Geocoding error (non-fatal):', geocodingError);
+      // }
 
       // Update user's current location
       const updatedUser = await strapi.db.query('plugin::users-permissions.user').update({

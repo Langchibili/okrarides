@@ -229,9 +229,8 @@ export function ReactNativeWrapper({ children }) {
     });
   }, [isNative]);
   
-const DisconnectDeviceSocket = useCallback(async (userId, frontendName,) => {
+const disconnectDeviceSocket = useCallback(async (userId, frontendName) => {
     if (!isNative) return { success: false, reason: 'not_native' };
-    if(currentFrontend === "rider" ) return // means no need to disconnect socket, you have not gone into any other frontend like driver or delivery
     try {
       const result = await sendToNative('DISCONNECT_SOCKET', {
         userId, frontendName
@@ -243,7 +242,6 @@ const DisconnectDeviceSocket = useCallback(async (userId, frontendName,) => {
       console.error('[RECONNECT SOCKET] reconnectDeviceSocket:', err);
       return { success: false, error: err.message };
     }
-    
   }, [isNative, sendToNative])
 
   const on = useCallback((type, handler) => {
@@ -614,6 +612,7 @@ const DisconnectDeviceSocket = useCallback(async (userId, frontendName,) => {
     deviceInfo,
     servicesInitialized,
     reconnectDeviceSocket,
+    disconnectDeviceSocket,
     currentFrontend,
     sendToNative,
     on,

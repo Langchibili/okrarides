@@ -53,6 +53,9 @@ export const useGeolocation = (options = {}) => {
 
       // Check permission status
       if (navigator.permissions && !isNative) {
+        if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
+          return // you are in a native environment
+        }
         const result = await navigator.permissions.query({ name: 'geolocation' });
         setPermissionStatus(result.state);
         
@@ -77,6 +80,9 @@ export const useGeolocation = (options = {}) => {
     let watchId;
     
     const startTracking = async () => {
+      if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
+        return // you are in a native environment
+      }
       const hasPermission = await requestPermission();
       if (!hasPermission) return;
 
@@ -109,7 +115,9 @@ export const useGeolocation = (options = {}) => {
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+    if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
+        return // you are in a native environment
+    }
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 

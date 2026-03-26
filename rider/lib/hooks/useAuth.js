@@ -4,6 +4,7 @@ import { useState, useEffect, useContext, createContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { authAPI } from '@/lib/api/auth';
 import { apiClient } from '@/lib/api/client';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 
 const AuthContext = createContext();
 
@@ -20,7 +21,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
-  
+   const { disconnectDeviceSocket } = useReactNative();
   // Load user on mount
   useEffect(() => {
     loadUser();
@@ -138,9 +139,18 @@ export function AuthProvider({ children }) {
   };
   
   // Logout
-  const logout = () => {
+  const logout = async () => {
     authAPI.logout();
     setUser(null);
+    let userId
+    if(user){
+        userId = user.id
+    }
+    else{
+       const response = await authAPI.me()
+       userId = response?.id
+    }
+    disconnectDeviceSocket(userId,'rider')
     if(typeof window !== 'undefined'){
       localStorage.clear();
       window.location.href = '/login';

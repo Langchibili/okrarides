@@ -228,6 +228,21 @@ export function ReactNativeWrapper({ children }) {
       }
     });
   }, [isNative]);
+  
+const disconnectDeviceSocket = useCallback(async (userId, frontendName) => {
+    if (!isNative) return { success: false, reason: 'not_native' };
+    try {
+      const result = await sendToNative('DISCONNECT_SOCKET', {
+        userId, frontendName
+      })
+      userIdRef.current   = null;
+      setCurrentFrontend(null);
+      return { success: true, ...result };
+    } catch (err) {
+      console.error('[RECONNECT SOCKET] reconnectDeviceSocket:', err);
+      return { success: false, error: err.message };
+    }
+  }, [isNative, sendToNative])
 
   const on = useCallback((type, handler) => {
     if (!messageHandlersRef.current.has(type)) {
@@ -597,6 +612,7 @@ export function ReactNativeWrapper({ children }) {
     deviceInfo,
     servicesInitialized,
     reconnectDeviceSocket,
+    disconnectDeviceSocket,
     currentFrontend,
     sendToNative,
     on,

@@ -3122,6 +3122,35 @@ export interface ApiResendotpResendotp extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiReverseGeocodeReverseGeocode
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'reverse_geocodes';
+  info: {
+    displayName: 'reverseGeocode';
+    pluralName: 'reverse-geocodes';
+    singularName: 'reverse-geocode';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    aboutRoute: Schema.Attribute.Blocks;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::reverse-geocode.reverse-geocode'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiRideClassRideClass extends Struct.CollectionTypeSchema {
   collectionName: 'ride_classes';
   info: {
@@ -4812,6 +4841,7 @@ declare module '@strapi/strapi' {
       'api::push-notification-log.push-notification-log': ApiPushNotificationLogPushNotificationLog;
       'api::rating.rating': ApiRatingRating;
       'api::resendotp.resendotp': ApiResendotpResendotp;
+      'api::reverse-geocode.reverse-geocode': ApiReverseGeocodeReverseGeocode;
       'api::ride-class.ride-class': ApiRideClassRideClass;
       'api::ride.ride': ApiRideRide;
       'api::route-pricing.route-pricing': ApiRoutePricingRoutePricing;

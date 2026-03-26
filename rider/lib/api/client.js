@@ -270,12 +270,14 @@ class APIClient {
       this.setToken(newToken, newRefreshToken);
       return newToken;
     } catch (error) {
+      console.error('error refleshing access token')
       // If refresh fails, clear tokens and redirect to login
-      this.clearToken();
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
-      throw error;
+      // this.clearToken();
+      // if (typeof window !== 'undefined') {
+      //   window.location.href = '/login';
+      // }
+      // throw error;
+      
     }
   }
 
@@ -346,10 +348,11 @@ class APIClient {
 
         // If still 401 after refresh attempt, redirect to login
         if (response.status === 401) {
-          this.clearToken();
-          if (typeof window !== 'undefined') {
-            window.location.href = '/login';
-          }
+          console.error('error refleshing access token')
+          // this.clearToken();
+          // if (typeof window !== 'undefined') {
+          //   window.location.href = '/login';
+          // }
         }
 
         const apiError = new Error(error.message || error.error?.message || 'Request failed');
