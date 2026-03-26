@@ -88,7 +88,7 @@ class APIClient {
   // Token refresh logic
   async refreshAccessToken() {
     if (!this.refreshToken) {
-      throw new Error('No refresh token available');
+      console.error('No refresh token available');
     }
 
     try {
@@ -103,7 +103,7 @@ class APIClient {
       });
 
       if (!response.ok) {
-        throw new Error('Token refresh failed');
+        console.error('Token refresh failed');
       }
 
       const data = await response.json();
