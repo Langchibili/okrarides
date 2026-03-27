@@ -14,8 +14,10 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShimmerDiv } from 'shimmer-effects-react';
 import { profileAPI } from '@/lib/api/profile';
-import { formatPhoneNumber, validatePhoneNumber } from '@/Functions';
+import { formatPhoneNumber, getSavedPhoneCode, validatePhoneNumber } from '@/Functions';
 import { EmptyState } from '@/components/ui';
+import { useAuth }  from '@/lib/hooks/useAuth';
+
 
 const relationships = ['Family', 'Friend', 'Spouse', 'Parent', 'Sibling', 'Colleague', 'Other'];
 
@@ -45,18 +47,18 @@ export default function EmergencyContactsPage() {
   const [showAddDialog,  setShowAddDialog]  = useState(false);
   const [editingContact, setEditingContact] = useState(null);
   const [formData, setFormData] = useState({ name: '', phoneNumber: '', relationship: 'Family', isPrimary: false });
-
+  const { user } = useAuth();
   // ── Snackbar ──────────────────────────────────────────────────────────────
   const [snack, setSnack] = useState({ open: false, message: '', severity: 'success' });
   const showSnack = (message, severity = 'success') => setSnack({ open: true, message, severity });
   const closeSnack = () => setSnack(s => ({ ...s, open: false }));
 
-  useEffect(() => { loadContacts(); }, []);
+  useEffect(() => { loadContacts(); }, [user?.id]);
 
   const loadContacts = async () => {
     try {
       setLoading(true);
-      const data = await profileAPI.getEmergencyContacts();
+      const data = await profileAPI.getEmergencyContacts(user?.id);
       setContacts(data);
     } catch { showSnack('Could not load contacts', 'error'); }
     finally { setLoading(false); }
@@ -68,11 +70,15 @@ export default function EmergencyContactsPage() {
     }
     const cleanPhone = formData.phoneNumber.replace(/\D/g, '');
     if (!validatePhoneNumber(cleanPhone)) {
-      showSnack('Please enter a valid 9-digit phone number', 'warning'); return;
+      showSnack('Please enter a valid phone number', 'warning'); return;
     }
     try {
-      const contactData = { ...formData, phoneNumber: `+260${cleanPhone}` };
+      if(!user.id){
+        showSnack('Failed to save contact', 'error')
+      }
+      const contactData = { user:user,...formData, phoneNumber: `+${getSavedPhoneCode()}${cleanPhone}` };
       if (editingContact) {
+        delete contactData.user
         await profileAPI.updateEmergencyContact(editingContact.id, contactData);
         showSnack('Contact updated');
       } else {
@@ -90,7 +96,7 @@ export default function EmergencyContactsPage() {
     setEditingContact(contact);
     setFormData({
       name:         contact.name,
-      phoneNumber:  contact.phoneNumber.replace('+260', ''),
+      phoneNumber:  contact.phoneNumber.replace('+'+getSavedPhoneCode(), ''),
       relationship: contact.relationship,
       isPrimary:    contact.isPrimary,
     });
@@ -232,7 +238,7 @@ export default function EmergencyContactsPage() {
             {editingContact ? 'Edit Contact' : 'Add Emergency Contact'}
           </Typography>
           <TextField fullWidth label="Full Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} sx={{ mb: 2 }} />
-          <TextField fullWidth label="Phone Number" value={formData.phoneNumber} onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="972612345" InputProps={{ startAdornment: <Box sx={{ mr: 1, color: 'text.secondary', fontWeight: 600 }}>+260</Box> }} sx={{ mb: 2 }} />
+          <TextField fullWidth label="Phone Number" value={formData.phoneNumber} onChange={e => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="972612345" InputProps={{ startAdornment: <Box sx={{ mr: 1, color: 'text.secondary', fontWeight: 600 }}>+{getSavedPhoneCode()}</Box> }} sx={{ mb: 2 }} />
           <TextField select fullWidth label="Relationship" value={formData.relationship} onChange={e => setFormData({ ...formData, relationship: e.target.value })} sx={{ mb: 2 }}>
             {relationships.map(rel => <MenuItem key={rel} value={rel}>{rel}</MenuItem>)}
           </TextField>

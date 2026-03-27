@@ -19,6 +19,7 @@ import { Phone as PhoneIcon, Public as PublicIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
+import { getPhoneDigits } from '@/Functions';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -78,14 +79,18 @@ export default function LoginPage() {
     setError('');
     
     // Validate phone number
-    const cleanPhone = phoneNumber.replace(/\D/g, '');
-    if (cleanPhone.length < 9) {
-      setError('Please enter a valid phone number');
-      return;
+    const phoneNumberDigitLenth =  (selectedCountry.phoneNumberDigitLenth || 9) 
+    const cleanPhone = getPhoneDigits(cleanPhone,phoneNumberDigitLenth)
+    if (cleanPhone.length < phoneNumberDigitLenth) {
+      setError('Please enter a valid phone number')
+      return
     }
     
     const fullPhone = `${selectedCountry.phoneCode.replace('+', '')}${cleanPhone}`;
-    
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('phoneNumberDigitLenth',phoneNumberDigitLenth)
+        localStorage.setItem('savedPhoneCode',selectedCountry.phoneCode.replace('+', ''))  
+     }
     try {
       try {
               setLoading(true);
@@ -102,7 +107,7 @@ export default function LoginPage() {
                 }
                 finally{
                   // Navigate to OTP verification
-                    router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
+                  router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
                 }
                 return // this is to ensure no other code runs in the entire block
               }
@@ -257,7 +262,7 @@ export default function LoginPage() {
               type="submit"
               variant="contained"
               size="large"
-              disabled={loading || phoneNumber.replace(/\D/g, '').length < 9}
+              disabled={loading || phoneNumber.replace(/\D/g, '').length < (selectedCountry.phoneNumberDigitLenth || 9)}
               sx={{
                 height: 56,
                 fontSize: '1rem',

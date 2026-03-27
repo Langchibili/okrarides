@@ -63,22 +63,22 @@ export const profileAPI = {
   },
 
   // Get emergency contacts
-  async getEmergencyContacts() {
-    const response = await apiClient.get('/emergency-contacts?filters[user][id][$eq]=me&sort=isPrimary:desc,createdAt:desc');
+  async getEmergencyContacts(userId) {
+    if(!userId) return []
+    const response = await apiClient.get('/emergency-contacts?filters[user][id][$eq]='+userId+'&sort=isPrimary:desc,createdAt:desc');
     return response.data;
   },
 
   // Add emergency contact
   async addEmergencyContact(data) {
-    const { name, phoneNumber, relationship, isPrimary } = data;
-    
+    const { name, phoneNumber, relationship, isPrimary, user } = data;
     const response = await apiClient.post('/emergency-contacts', {
       data: {
         name,
         phoneNumber,
         relationship,
         isPrimary,
-        user: 'me',
+        user: user.id,
       },
     });
     
@@ -87,7 +87,7 @@ export const profileAPI = {
 
   // Update emergency contact
   async updateEmergencyContact(id, data) {
-    const response = await apiClient.put(`/emergency-contacts/${id}`, {
+    const response = await apiClient.put(`/emergency-contact/${id}`, {
       data,
     });
     return response.data;
@@ -95,7 +95,7 @@ export const profileAPI = {
 
   // Delete emergency contact
   async deleteEmergencyContact(id) {
-    const response = await apiClient.delete(`/emergency-contacts/${id}`);
+    const response = await apiClient.delete(`/emergency-contact/${id}`);
     return response;
   },
 
@@ -131,4 +131,4 @@ export const profileAPI = {
 };
 
 export default profileAPI;
-
+

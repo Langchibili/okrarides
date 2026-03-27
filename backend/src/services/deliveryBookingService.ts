@@ -128,6 +128,7 @@ export default {
             },
           },
           driverProfile: { populate: { currentSubscription: true } },
+          country: { populate: true } ,
           profileActivityStatus: true,
         },
         limit: 1000,
@@ -269,8 +270,7 @@ export default {
             strapi.log.error(`[DeliveryBooking] Push notification error for driver ${driver.id}:`, err);
           }
         }
-
-        // SMS
+       // SMS
         if (settings?.smsEnabled && settings?.driversCanReceiveRideRequestsViaSms && driver.phoneNumber) {
           try {
             const msg = `New OkraRides delivery request! ${driver.distance.toFixed(1)} km away. Fare: K${delivery.totalFare?.toFixed(2)}. Open app to accept.`;

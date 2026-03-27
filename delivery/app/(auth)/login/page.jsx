@@ -74,18 +74,22 @@ export default function LoginPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
     
     // Validate phone number
-    const cleanPhone = phoneNumber.replace(/\D/g, '');
-    if (cleanPhone.length < 9) {
-      setError('Please enter a valid phone number');
-      return;
+    const phoneNumberDigitLenth =  (selectedCountry.phoneNumberDigitLenth || 9) 
+    const cleanPhone = getPhoneDigits(cleanPhone,phoneNumberDigitLenth)
+    if (cleanPhone.length < phoneNumberDigitLenth) {
+      setError('Please enter a valid phone number')
+      return
     }
     
     const fullPhone = `${selectedCountry.phoneCode.replace('+', '')}${cleanPhone}`;
-    
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('phoneNumberDigitLenth',phoneNumberDigitLenth) 
+        localStorage.setItem('savedPhoneCode',selectedCountry.phoneCode.replace('+', '')) 
+    }
     try {
       try {
               setLoading(true);
@@ -257,7 +261,7 @@ export default function LoginPage() {
               type="submit"
               variant="contained"
               size="large"
-              disabled={loading || phoneNumber.replace(/\D/g, '').length < 9}
+              disabled={loading || phoneNumber.replace(/\D/g, '').length < (selectedCountry.phoneNumberDigitLenth || 9)}
               sx={{
                 height: 56,
                 fontSize: '1rem',

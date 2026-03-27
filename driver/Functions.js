@@ -284,11 +284,47 @@ export const getPerformanceMetrics = async (period = 'month') => {
 //==========================================
 // UTILITY FUNCTIONS
 //==========================================
-export const validatePhoneNumber = (phone) => {
-  const cleaned = phone.replace(/\D/g, '');
-  return cleaned.length === 9 && /^[123456789]/.test(cleaned);
-};
+export const formatPhoneNumber = (phone,phoneNumberDigitLength = 9) => {
+  const cleaned = phone?.replace(/\D/g, '');
+  let phoneCode = null
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
+  const savedPhoneCode = typeof window !== 'undefined'? localStorage.getItem('savedPhoneCode') : "260"
+  if(savedphoneNumberDigitLength){
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  }
+  if(savedPhoneCode){
+     phoneCode = savedPhoneCode === null || savedPhoneCode === "null"? "260" : (savedPhoneCode || "260")
+  }
+  if (cleaned?.length === numberLength) {
+     return `${savedPhoneCode}${getPhoneDigits(cleaned)}`;
+  }
+  return phone;
+}
+export const validatePhoneNumber = (phone,phoneNumberDigitLength=9) => {
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
+  if(savedphoneNumberDigitLength){
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  }
+  const cleaned = phone.replace(/\D/g, '')
+  return cleaned.length === numberLength && /^[123456789]/.test(cleaned)
+}
 
+export const getPhoneDigits = (phoneNumber, phoneNumberDigitLength = 9) => {
+  if (!phoneNumber) return '';
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
+  if(savedphoneNumberDigitLength){
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  }
+  const digits = String(phoneNumber).replace(/\D/g, '');
+  return digits.slice(-numberLength)
+}
+export const getSavedPhoneCode = ()=>{
+  const savedPhoneCode = typeof window !== 'undefined'? localStorage.getItem('savedPhoneCode') : "260"
+  return savedPhoneCode === null || savedPhoneCode === "null"? "260" : (savedPhoneCode || "260")
+}
 export const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Radius of Earth in kilometers
   const dLat = toRad(lat2 - lat1);

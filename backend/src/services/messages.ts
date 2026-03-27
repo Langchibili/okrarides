@@ -6,9 +6,30 @@ const returnNineDigitNumber = (phoneNumber: string): string => {
   return phoneNumber.replace(/\D/g, '').slice(-9)
 }
 
-export const SendSmsNotification = (phoneNumber: string, notificationBody: string): void => {
-  const validPhoneNumber = "+260" + returnNineDigitNumber(phoneNumber)
+export const getPhoneDigits = (phoneNumber, phoneNumberDigitLength = 9) => {
+  if (!phoneNumber) return '';
+  let numberLength = phoneNumberDigitLength? phoneNumberDigitLength : 9 
+  const digits = String(phoneNumber).replace(/\D/g, '');
+  return digits.slice(-numberLength)
+}
 
+export const SendSmsNotification = async (phoneNumber: string, notificationBody: string ): Promise<void> => {
+  let user: any = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { username: String(phoneNumber).replace(/\D/g, '') },
+        populate: {
+          country: true
+        }
+  })
+  if(!user){ // if not found, try using the number to check the account phoneNumber
+    user  = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { phoneNumber: String(phoneNumber).replace(/\D/g, '') },
+        populate: {
+          country: true
+        }
+  })
+  }
+  const phoneCode = (user?.country?.phoneCode  || "+260")
+  const validPhoneNumber = phoneCode + getPhoneDigits(phoneNumber,user?.country?.phoneNumberDigitLength)    
   axios.post(process.env.SMSGATEWAYURL + "/send-sms", {
     apiKey: process.env.SMSGATEWAYAPIKEY,
     username: process.env.SMSGATEWAYAPIUSERNAME,

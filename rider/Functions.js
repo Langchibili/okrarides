@@ -6,19 +6,50 @@ import { apiClient } from './lib/api/client';
 
 export const formatCurrency = (amount, currency = 'K') => {
   return `${currency}${Number(amount).toFixed(2)}`;
-};
+}
 
-export const formatPhoneNumber = (phone) => {
+export const formatPhoneNumber = (phone,phoneNumberDigitLength = 9) => {
   const cleaned = phone?.replace(/\D/g, '');
-  if (cleaned?.length === 9) {
-    return `+260 ${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+  let phoneCode = null
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
+  const savedPhoneCode = typeof window !== 'undefined'? localStorage.getItem('savedPhoneCode') : "260"
+  if(savedphoneNumberDigitLength){
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  }
+  if(savedPhoneCode){
+     phoneCode = savedPhoneCode === null || savedPhoneCode === "null"? "260" : (savedPhoneCode || "260")
+  }
+  if (cleaned?.length === numberLength) {
+     return `${savedPhoneCode}${getPhoneDigits(cleaned)}`;
   }
   return phone;
-};
+}
+export const validatePhoneNumber = (phone,phoneNumberDigitLength=9) => {
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
+  if(savedphoneNumberDigitLength){
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  }
+  const cleaned = phone.replace(/\D/g, '')
+  return cleaned.length === numberLength && /^[123456789]/.test(cleaned)
+}
 
-export const returnNineDigitNumber = (phoneNumber)  => phoneNumber.replace(/\D/g, '').slice(-9)
+export const getPhoneDigits = (phoneNumber, phoneNumberDigitLength = 9) => {
+  if (!phoneNumber) return '';
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
+  if(savedphoneNumberDigitLength){
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  }
+  const digits = String(phoneNumber).replace(/\D/g, '');
+  return digits.slice(-numberLength)
+}
 
-
+export const getSavedPhoneCode = ()=>{
+  const savedPhoneCode = typeof window !== 'undefined'? localStorage.getItem('savedPhoneCode') : "260"
+  return savedPhoneCode === null || savedPhoneCode === "null"? "260" : (savedPhoneCode || "260")
+}
 export const formatDate = (date, format = 'short') => {
   const d = new Date(date);
   
@@ -66,11 +97,6 @@ export const formatDuration = (minutes) => {
 };
 
 // ============= Validation =============
-
-export const validatePhoneNumber = (phone) => {
-  const cleaned = phone.replace(/\D/g, '');
-  return cleaned.length === 9 && /^[123456789]/.test(cleaned);
-};
 
 export const validateEmail = (email) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -306,6 +332,7 @@ export default {
   getImageUrl,
   formatCurrency,
   formatPhoneNumber,
+  getPhoneDigits,
   formatDate,
   formatDistance,
   formatDuration,

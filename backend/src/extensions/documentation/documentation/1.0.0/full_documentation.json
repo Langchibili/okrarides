@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-03-26T01:15:17.556Z"
+    "x-generation-date": "2026-03-27T18:48:29.052Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -41328,6 +41328,12 @@
                               "type": "boolean"
                             },
                             "acceptedMobileMoneyPayments": {},
+                            "phoneNumberRegex": {
+                              "type": "string"
+                            },
+                            "phoneNumberDigitLenth": {
+                              "type": "integer"
+                            },
                             "createdAt": {
                               "type": "string",
                               "format": "date-time"
@@ -54333,6 +54339,12 @@
                         "type": "boolean"
                       },
                       "acceptedMobileMoneyPayments": {},
+                      "phoneNumberRegex": {
+                        "type": "string"
+                      },
+                      "phoneNumberDigitLenth": {
+                        "type": "integer"
+                      },
                       "createdAt": {
                         "type": "string",
                         "format": "date-time"
@@ -55207,6 +55219,12 @@
                     "type": "boolean"
                   },
                   "acceptedMobileMoneyPayments": {},
+                  "phoneNumberRegex": {
+                    "type": "string"
+                  },
+                  "phoneNumberDigitLenth": {
+                    "type": "integer"
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"
@@ -58855,6 +58873,12 @@
                 "type": "boolean"
               },
               "acceptedMobileMoneyPayments": {},
+              "phoneNumberRegex": {
+                "type": "string"
+              },
+              "phoneNumberDigitLenth": {
+                "type": "integer"
+              },
               "locale": {
                 "type": "string"
               },
@@ -59268,6 +59292,12 @@
             "type": "boolean"
           },
           "acceptedMobileMoneyPayments": {},
+          "phoneNumberRegex": {
+            "type": "string"
+          },
+          "phoneNumberDigitLenth": {
+            "type": "integer"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -59340,6 +59370,12 @@
                   "type": "boolean"
                 },
                 "acceptedMobileMoneyPayments": {},
+                "phoneNumberRegex": {
+                  "type": "string"
+                },
+                "phoneNumberDigitLenth": {
+                  "type": "integer"
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -79391,6 +79427,12 @@
                 "type": "boolean"
               },
               "acceptedMobileMoneyPayments": {},
+              "phoneNumberRegex": {
+                "type": "string"
+              },
+              "phoneNumberDigitLenth": {
+                "type": "integer"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -101217,6 +101259,12 @@
                             "type": "boolean"
                           },
                           "acceptedMobileMoneyPayments": {},
+                          "phoneNumberRegex": {
+                            "type": "string"
+                          },
+                          "phoneNumberDigitLenth": {
+                            "type": "integer"
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time"
@@ -109310,6 +109358,12 @@
                     "type": "boolean"
                   },
                   "acceptedMobileMoneyPayments": {},
+                  "phoneNumberRegex": {
+                    "type": "string"
+                  },
+                  "phoneNumberDigitLenth": {
+                    "type": "integer"
+                  },
                   "createdAt": {
                     "type": "string",
                     "format": "date-time"

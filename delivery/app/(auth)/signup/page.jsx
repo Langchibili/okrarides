@@ -173,12 +173,15 @@ export default function SignupPage() {
     // ── Step 1: Phone number ──────────────────────────────────────────────
     else if (activeStep === 1) {
       const cleanPhone = formData.phoneNumber.replace(/\D/g, '');
-
-      if (!validatePhoneNumber(cleanPhone)) {
+      const phoneNumberDigitLenth = selectedCountry.phoneNumberDigitLenth
+      if (!validatePhoneNumber(cleanPhone,phoneNumberDigitLenth)) {
         setError('Please enter a valid phone number');
         return;
       }
-
+      if (typeof window !== 'undefined') {
+          localStorage.setItem('phoneNumberDigitLenth',phoneNumberDigitLenth)
+          localStorage.setItem('savedPhoneCode',selectedCountry.phoneCode.replace('+', ''))  
+       }
       const phoneCode    = selectedCountry.phoneCode.replace('+', '');
       const fullUsername = `${phoneCode}${cleanPhone}`;
 

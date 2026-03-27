@@ -1477,6 +1477,9 @@ export interface ApiCountryCountry extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     phoneCode: Schema.Attribute.String & Schema.Attribute.Required;
+    phoneNumberDigitLenth: Schema.Attribute.Integer &
+      Schema.Attribute.DefaultTo<9>;
+    phoneNumberRegex: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
