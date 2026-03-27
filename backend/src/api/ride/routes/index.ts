@@ -7,7 +7,7 @@ import customRoutes from './custom-routes';
 
 export default {
   routes: [
-    ...defaultRoutes.routes,
-    ...customRoutes.routes,
+     ...customRoutes.routes,
+    ...defaultRoutes.routes
   ],
 };

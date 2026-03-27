@@ -6,5 +6,5 @@ import defaultRoutes from './delivery';
 import customRoutes  from './custom-routes';
  
 export default {
-  routes: [...defaultRoutes.routes, ...customRoutes.routes]
+  routes: [...customRoutes.routes,...defaultRoutes.routes]
 }

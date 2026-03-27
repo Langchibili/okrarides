@@ -1,55 +1,62 @@
+// ============================================================
+// src/api/affiliate/routes/affiliate.ts
+// ============================================================
 export default {
   routes: [
+    // ─── Impression ───────────────────────────────────────────────────────
     {
-      method: 'POST',
-      path: '/affiliate/track-impression',
+      method:  'POST',
+      path:    '/affiliate/track-impression',
       handler: 'affiliate.trackImpression',
-      config: { policies: [], middlewares: [] },
+      config:  { policies: [], middlewares: [] },
     },
     {
-     method: 'GET',
-     path: '/affiliate/check-impression',
-     handler: 'affiliate.checkImpression',
-     config: {
-      policies: [],
-      middlewares: []
-     },
+      method:  'GET',
+      path:    '/affiliate/check-impression',
+      handler: 'affiliate.checkImpression',
+      config:  { policies: [], middlewares: [] },
     },
+
+    // ─── Dashboard & reporting ────────────────────────────────────────────
     {
-      method: 'GET',
-      path: '/affiliate/dashboard',
+      method:  'GET',
+      path:    '/affiliate/dashboard',
       handler: 'affiliate.getDashboard',
-      config: { middlewares: [] },
+      config:  { policies: [], middlewares: [] },
     },
     {
-      method: 'GET',
-      path: '/affiliate/transactions',
+      method:  'GET',
+      path:    '/affiliate/transactions',
       handler: 'affiliate.getTransactions',
-      config: { middlewares: [] },
+      config:  { policies: [], middlewares: [] },
     },
     {
-      method: 'GET',
-      path: '/affiliate/conversion-rate',
+      method:  'GET',
+      path:    '/affiliate/conversion-rate',
       handler: 'affiliate.getConversionRate',
-      config: { middlewares: [] },
+      config:  { policies: [], middlewares: [] },
     },
+
+    // ─── Actions ──────────────────────────────────────────────────────────
     {
-      method: 'POST',
-      path: '/affiliate/request-withdrawal',
+      method:  'POST',
+      path:    '/affiliate/request-withdrawal',
       handler: 'affiliate.requestWithdrawal',
-      config: { middlewares: [] },
-    },
-     {
-      method: 'POST',
-      path: '/affiliate/apply-code',
-      handler: 'affiliate.applyCode',
-      config: { middlewares: [] },  // auth required
+      config:  { policies: [], middlewares: [] },
     },
     {
-      method: 'GET',
-      path: '/affiliate/:code',
+      method:  'POST',
+      path:    '/affiliate/apply-code',
+      handler: 'affiliate.applyCode',
+      config:  { policies: [], middlewares: [] },
+    },
+
+    // ─── Generic param (must be last) ─────────────────────────────────────
+    {
+      method:  'GET',
+      path:    '/affiliate/:code',
       handler: 'affiliate.getByCode',
-      config: {  policies: [], middlewares: [] },
-    }
-  ]
-}
+      config:  { policies: [], middlewares: [] },
+    },
+  ],
+};

@@ -19,6 +19,7 @@ import { Phone as PhoneIcon, Public as PublicIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
+import { getPhoneDigits } from '@/Functions';
 
 export default function LoginPage() {
   const router = useRouter();
