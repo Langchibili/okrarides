@@ -669,15 +669,17 @@ export default function HomePage() {
         setSnackbar({ open: true, message: 'Failed to load fare estimates', severity: 'error' });
       }
       hideNav()
-      if (isNative) {
-        reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
-      }
-      stopLocationTracking() // meaning at least we now know exactly where you are, seeing as you are tring to book
       await apiClient.post('/driver/toggle-offline');
       await apiClient.post('/delivery-driver/toggle-offline');
     } catch {
       setSnackbar({ open: true, message: 'Error calculating fare. Please try again.', severity: 'error' });
     } finally {
+      setTimeout(() => {
+         if (isNative) {
+            reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
+         }
+        stopLocationTracking() // meaning at least we now know exactly where you are, seeing as you are tring to book
+      }, 0);
       setLoadingEstimates(false);
     }
   };
@@ -965,7 +967,7 @@ export default function HomePage() {
                                 {pickupChipVisible ? (
                                   <Chip icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />} label="Current Location" onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }} onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }} size="small" sx={{ bgcolor: 'rgba(255,193,7,0.15)', color: '#E65100', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#E65100', opacity: 0.7 }, '& .MuiChip-icon': { color: '#E65100' } }} />
                                 ) : (
-                                  <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
+                                  <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                                     <LocationSearch displayKey="r1" HandleOnfocus={hideNav} HandleOnBlur={showNav}  placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'} onSelectLocation={handlePickupSelect} mapControls={mapControls} value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')} autoFocus={focusedInput === 'pickup'} onFocus={() => handleInputFocus('pickup')} onBlur={handleInputBlur} />
                                   </Box>
                                 )}
@@ -993,7 +995,7 @@ export default function HomePage() {
                                 <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? 'primary.main' : dropoffLocation ? 'error.main' : 'rgba(0,0,0,0.4)', transition: 'color 0.22s ease' }} />
                               </Box>
                               <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
-                                <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
+                                <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                                   <LocationSearch displayKey="r2" HandleOnfocus={hideNav} HandleOnBlur={showNav}  placeholder="Where to?" onSelectLocation={handleDropoffSelect} mapControls={mapControls} value={dropoffLocation?.address || ''} autoFocus={focusedInput === 'dropoff'} onFocus={() => handleInputFocus('dropoff')} onBlur={handleInputBlur} />
                                 </Box>
                               </Box>

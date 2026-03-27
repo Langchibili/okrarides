@@ -434,15 +434,16 @@ export default function SendPackagePage() {
   try {
     const response = await apiClient.post('/deliveries/estimate', payload);
     hideNav()
-    if (isNative) {
-      reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
-    }
-    stopLocationTracking() // no need to continue tracking your location, you are about to send a delivery
     return response?.data ?? response;
     } catch {
       setSnackbar({ open: true, message: 'Error calculating delivery fare. Please try again.', severity: 'error' });
     } finally {
-      return 
+      setTimeout(() => {
+          if(isNative) {
+            reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
+          }
+          stopLocationTracking() // no need to continue tracking your location, you are about to send a delivery
+      }, 0);
     }
   }, []);
 
@@ -625,7 +626,7 @@ export default function SendPackagePage() {
                           {pickupChipVisible ? (
                             <Chip icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />} label="Current Location" onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }} onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }} size="small" sx={{ bgcolor: `rgba(245,158,11,0.15)`, color: '#5D4037', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#5D4037', opacity: 0.7 }, '& .MuiChip-icon': { color: '#5D4037' } }} />
                           ) : (
-                            <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
+                            <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                               <LocationSearch
                                 displayKey="d1"
                                 HandleOnBlur={showNav}  
@@ -660,7 +661,7 @@ export default function SendPackagePage() {
                           <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? AMBER : dropoffLocation ? 'error.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
                         </Box>
                         <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
-                          <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
+                          <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                             <LocationSearch displayKey="d2" HandleOnBlur={showNav} HandleOnfocus={hideNav} placeholder="Where to deliver?" onSelectLocation={handleDropoffSelect} mapControls={mapControls} value={dropoffLocation?.address || ''} autoFocus={focusedInput === 'dropoff'} onFocus={() => handleInputFocus('dropoff')} onBlur={handleInputBlur} />
                           </Box>
                         </Box>
