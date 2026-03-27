@@ -1152,7 +1152,7 @@ export default function AddVehiclePage() {
             </Box>
 
             {/* Submit section – edit mode */}
-            {isEditMode || hasBasicInfoSaved && (
+            {(isEditMode || hasBasicInfoSaved) && (
               <>
                 <Alert severity="info" icon={<WarningIcon />} sx={{ mb: 3, borderRadius: 2.5 }}>
                   <Typography variant="body2" fontWeight="medium" gutterBottom>

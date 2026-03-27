@@ -9,6 +9,7 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { alpha, useTheme } from '@mui/material/styles';
+import { useBottomNav } from '@/lib/contexts/BottomNavContext';
 
 const NAV_ITEMS = [
   { label: 'Book',       icon: HomeIcon,     path: '/home'            },
@@ -16,13 +17,16 @@ const NAV_ITEMS = [
   { label: 'Deliveries',    icon: DeliveryIcon, path: '/deliveries' },
   { label: 'Profile',    icon: ProfileIcon,  path: '/profile'         },
 ];
+// Height of the nav bar (excluding safe-area). Used for the slide animation.
+const NAV_HEIGHT = 58;
 
 export const BottomNav = () => {
   const router   = useRouter();
   const pathname = usePathname();
   const theme    = useTheme();
   const isDark   = theme.palette.mode === 'dark';
-
+ const { visible } = useBottomNav();
+ 
   const activeIndex = NAV_ITEMS.findIndex(item =>
     pathname === item.path || pathname.startsWith(item.path + '/')
   );
@@ -40,6 +44,28 @@ export const BottomNav = () => {
     return null
   }
   return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          key="bottom-nav"
+          initial={{ y: NAV_HEIGHT + 40 }}
+          animate={{ y: 0 }}
+          exit={{ y: NAV_HEIGHT + 40 }}
+          transition={{
+            type: 'spring',
+            stiffness: 340,
+            damping: 34,
+            mass: 0.9,
+          }}
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1200,
+            // Let the safe-area inset be applied on the Paper below
+          }}
+        >
     <Paper
       elevation={0}
       sx={{
@@ -189,7 +215,8 @@ export const BottomNav = () => {
       {/* Safe area spacer for phones with home indicator */}
       <Box sx={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
     </Paper>
+    </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
-
-export default BottomNav;

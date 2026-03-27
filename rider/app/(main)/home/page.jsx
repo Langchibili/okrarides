@@ -50,6 +50,7 @@ import MapIframe from '@/components/Map/MapIframeNoSSR';
 import { apiClient } from '@/lib/api/client';
 import { useThemeMode } from '@/components/ThemeProvider';
 import { HomePageSkeleton } from '@/components/Skeletons/HomePageSkeleton';
+import { useBottomNav } from '@/lib/contexts/BottomNavContext';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Toolbar shared constants
@@ -364,15 +365,8 @@ export default function HomePage() {
   const isDark = theme.palette.mode === 'dark';
   const { toggleTheme } = useThemeMode();
   const [landingPageUrl, setLandingPageUrl] = useState(null);
-
-  useEffect(() => {
-    const getFrontendUrl = async () => {
-      const res = await apiClient.get('/frontend-url').catch(() => null);
-      const url = res?.data?.paths?.['okra-frontend-app'];
-      if (url) setLandingPageUrl(url);
-    };
-    getFrontendUrl();
-  }, []);
+  const { hideNav, showNav, setNavVisible } = useBottomNav();
+  const [estimatesVisible, setEstimatesVisible] = useState(false);
 
   // ─────────────────────────────────────────────────────────────────────
 
@@ -412,6 +406,23 @@ export default function HomePage() {
   const locationObtainedRef = useRef(false);
   const mapControlsRef      = useRef(null);
   const { isNative, reconnectDeviceSocket, stopLocationTracking } = useReactNative();
+
+  useEffect(() => {
+    const getFrontendUrl = async () => {
+      const res = await apiClient.get('/frontend-url').catch(() => null);
+      const url = res?.data?.paths?.['okra-frontend-app'];
+      if (url) setLandingPageUrl(url);
+    };
+    getFrontendUrl();
+  }, []);
+
+  useEffect(() => {
+    if (estimatesVisible) hideNav();
+    else showNav();
+    // Clean up: restore nav when this page unmounts
+    return () => showNav();
+  }, [estimatesVisible]); // eslint-disable-line react-hooks/exhaustive-dep
+  
 
   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
@@ -657,6 +668,7 @@ export default function HomePage() {
       } else {
         setSnackbar({ open: true, message: 'Failed to load fare estimates', severity: 'error' });
       }
+      hideNav()
       if (isNative) {
         reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
       }
@@ -812,6 +824,7 @@ export default function HomePage() {
   const handleCloseRideOptions = () => {
     setShowRideOptions(false); setShowLocationSheet(true); setSheetExpanded(false);
     setFareEstimates(null); setDropoffLocation(null); setSelectedRideClass(null);
+    showNav();
   };
 
   // locationObtainedAt is included so this re-computes every time location is
@@ -953,7 +966,7 @@ export default function HomePage() {
                                   <Chip icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />} label="Current Location" onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }} onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }} size="small" sx={{ bgcolor: 'rgba(255,193,7,0.15)', color: '#E65100', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#E65100', opacity: 0.7 }, '& .MuiChip-icon': { color: '#E65100' } }} />
                                 ) : (
                                   <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
-                                    <LocationSearch placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'} onSelectLocation={handlePickupSelect} mapControls={mapControls} value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')} autoFocus={focusedInput === 'pickup'} onFocus={() => handleInputFocus('pickup')} onBlur={handleInputBlur} />
+                                    <LocationSearch displayKey="r1" HandleOnfocus={hideNav} HandleOnBlur={showNav}  placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'} onSelectLocation={handlePickupSelect} mapControls={mapControls} value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')} autoFocus={focusedInput === 'pickup'} onFocus={() => handleInputFocus('pickup')} onBlur={handleInputBlur} />
                                   </Box>
                                 )}
                               </Box>
@@ -981,7 +994,7 @@ export default function HomePage() {
                               </Box>
                               <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
                                 <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
-                                  <LocationSearch placeholder="Where to?" onSelectLocation={handleDropoffSelect} mapControls={mapControls} value={dropoffLocation?.address || ''} autoFocus={focusedInput === 'dropoff'} onFocus={() => handleInputFocus('dropoff')} onBlur={handleInputBlur} />
+                                  <LocationSearch displayKey="r2" HandleOnfocus={hideNav} HandleOnBlur={showNav}  placeholder="Where to?" onSelectLocation={handleDropoffSelect} mapControls={mapControls} value={dropoffLocation?.address || ''} autoFocus={focusedInput === 'dropoff'} onFocus={() => handleInputFocus('dropoff')} onBlur={handleInputBlur} />
                                 </Box>
                               </Box>
                               {dropoffLocation && (

@@ -33,6 +33,7 @@ import { useGeolocation } from '@/lib/hooks/useGeolocation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
 import { HomePageSkeleton } from '@/components/Skeletons/HomePageSkeleton';
+import { useBottomNav } from '@/lib/contexts/BottomNavContext';
 
 const AMBER = '#F59E0B';
 
@@ -56,6 +57,8 @@ export default function SendPackagePage() {
   const { user, isAuthenticated } = useAuth();
   const theme  = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const { hideNav, showNav, setNavVisible } = useBottomNav();
+  const [estimatesVisible, setEstimatesVisible] = useState(false);
 
   // ── Location hooks ─────────────────────────────────────────────────────
   const { location, loading: locationLoading, refresh: refreshWebLocation } = useGeolocation({ watch: true });
@@ -119,6 +122,14 @@ export default function SendPackagePage() {
 
   const GRADIENT_STYLES = isDark ? HEADER_GRADIENT_DARK_SX : HEADER_GRADIENT_SX;
 
+   useEffect(() => {
+    if (estimatesVisible) hideNav();
+    else showNav();
+    // Clean up: restore nav when this page unmounts
+    return () => showNav();
+  }, [estimatesVisible]); // eslint-disable-line react-hooks/exhaustive-dep
+  
+
   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
   // ── Load recent locations ──────────────────────────────────────────────
@@ -126,6 +137,7 @@ export default function SendPackagePage() {
     const saved = localStorage.getItem('okra_rides_recent_locations');
     if (saved) { try { setRecentLocations(JSON.parse(saved)); } catch {} }
   }, []);
+  
 
   useEffect(() => {
     if (currentDelivery) {
@@ -150,7 +162,7 @@ export default function SendPackagePage() {
   // ── Reverse-geocode helper ─────────────────────────────────────────────
   const reverseGeocodeCoords = useCallback(async (lat, lng) => {
     try {
-      const res = await apiClient.post('/reverse-geocode/reverse-geocode', {
+      const res = await apiClient.post('/reverse-geocode', {
         location: { lat, lng },
       });
       const loc = res?.data?.location ?? res?.location;
@@ -342,12 +354,18 @@ export default function SendPackagePage() {
 
   const handlePickupSelect = useCallback((loc) => {
     setPickupLocation(loc); saveToRecent(loc);
+    if(dropoffLocation){
+      hideNav()
+    }
     if (mapControls) mapControls.animateToLocation(loc, 15);
     setTimeout(() => setFocusedInput(null), 150);
   }, [mapControls, saveToRecent]);
 
   const handleDropoffSelect = useCallback((loc) => {
     setDropoffLocation(loc); saveToRecent(loc);
+    if(pickupLocation){
+      hideNav()
+    }
     if (mapControls) mapControls.animateToLocation(loc, 15);
     setTimeout(() => setFocusedInput(null), 150);
   }, [mapControls, saveToRecent]);
@@ -408,14 +426,24 @@ export default function SendPackagePage() {
   const handleCloseDeliveryOptions = () => {
     setShowDeliveryOptions(false); setShowLocationSheet(true);
     setDropoffLocation(null); setSheetExpanded(false);
+    showNav();
   };
 
   // ── Fetch estimates ────────────────────────────────────────────────────
   const fetchDeliveryEstimates = useCallback(async (payload) => {
+  try {
     const response = await apiClient.post('/deliveries/estimate', payload);
-    reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
+    hideNav()
+    if (isNative) {
+      reconnectDeviceSocket(user.id, 'rider', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL);
+    }
     stopLocationTracking() // no need to continue tracking your location, you are about to send a delivery
     return response?.data ?? response;
+    } catch {
+      setSnackbar({ open: true, message: 'Error calculating delivery fare. Please try again.', severity: 'error' });
+    } finally {
+      return 
+    }
   }, []);
 
   // ── Confirm ────────────────────────────────────────────────────────────
@@ -599,6 +627,9 @@ export default function SendPackagePage() {
                           ) : (
                             <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
                               <LocationSearch
+                                displayKey="d1"
+                                HandleOnBlur={showNav}  
+                                HandleOnfocus={hideNav} 
                                 placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'}
                                 onSelectLocation={handlePickupSelect} mapControls={mapControls}
                                 value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')}
@@ -630,7 +661,7 @@ export default function SendPackagePage() {
                         </Box>
                         <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
                           <Box sx={{ ...CLEAN_INPUT_SX, width: '100%' }}>
-                            <LocationSearch placeholder="Where to deliver?" onSelectLocation={handleDropoffSelect} mapControls={mapControls} value={dropoffLocation?.address || ''} autoFocus={focusedInput === 'dropoff'} onFocus={() => handleInputFocus('dropoff')} onBlur={handleInputBlur} />
+                            <LocationSearch displayKey="d2" HandleOnBlur={showNav} HandleOnfocus={hideNav} placeholder="Where to deliver?" onSelectLocation={handleDropoffSelect} mapControls={mapControls} value={dropoffLocation?.address || ''} autoFocus={focusedInput === 'dropoff'} onFocus={() => handleInputFocus('dropoff')} onBlur={handleInputBlur} />
                           </Box>
                         </Box>
                         {dropoffLocation && (

@@ -237,7 +237,7 @@ const RenderHomePage = ()=>{
       }}
     >
       <HomePage />
-      <BottomNav userType="rider" />
+      
       <LoadingSplash visible={splashVisible} />   {/* ← overlays for 800ms then fades */}
     </Box>
   )
@@ -245,5 +245,5 @@ const RenderHomePage = ()=>{
 
 
 export default function Home() {
-       return <ContextProviders> <RenderHomePage/> </ContextProviders>               
+       return <ContextProviders> <RenderHomePage/><BottomNav userType="rider" /> </ContextProviders>               
 }
