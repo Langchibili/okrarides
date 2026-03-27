@@ -79,7 +79,7 @@ export default function LoginPage() {
     
      // Validate phone number
     const phoneNumberDigitLenth =  (selectedCountry.phoneNumberDigitLenth || 9) 
-    const cleanPhone = getPhoneDigits(cleanPhone,phoneNumberDigitLenth)
+    const cleanPhone = getPhoneDigits(phoneNumber,phoneNumberDigitLenth)
     if (cleanPhone.length < phoneNumberDigitLenth) {
       setError('Please enter a valid phone number')
       return
