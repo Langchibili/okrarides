@@ -16,7 +16,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 
 export const metadata = {
   title: 'OkraRidesRider- Slide Into Your Ride',
-  description: 'Driver App',
+  description: 'Rider App',
   manifest: '/manifest.json',
   themeColor: '#FFC107',
   viewport: {

@@ -325,7 +325,7 @@ export const LocationSearch = ({
                 key={pred.place_id || idx}
                 component="div"
                 onClick={() => handleSelectPrediction(pred)}
-                sx={{ ...rowSx, py: 1 }}
+                sx={{ ...rowSx, py: 1}}
               >
                 <ListItemIcon sx={{ minWidth: 36 }}>
                   <LocationIcon sx={{ fontSize: 18, color: 'text.secondary' }} />

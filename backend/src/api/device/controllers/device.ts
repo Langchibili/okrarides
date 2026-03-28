@@ -5,7 +5,6 @@
 //   • All other methods are unchanged from the original file
 
 import { factories } from '@strapi/strapi';
-import { reverseGeocode } from '../../../services/mapProviderService';
 import RideBookingService from '../../../services/rideBookingService';
 import socketService from '../../../services/socketService';
 import DeliveryBookingService from '../../../services/deliveryBookingService';
