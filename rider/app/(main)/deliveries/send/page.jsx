@@ -613,64 +613,136 @@ export default function SendPackagePage() {
 
                 {/* Input fields */}
                 <motion.div layout transition={{ duration: 0.26 }} style={{ width: '100%' }}>
-                  <Box sx={{ px: 2.5, pt: 0.5, pb: 2.5, width: '100%', boxSizing: 'border-box' }}>
+                  {/* ─── DROP-IN REPLACEMENT ──────────────────────────────────────────────────
+                  Replace the entire <Box sx={{ px: 2.5, pt: 0.5, pb: 2.5 ... }}> block
+                  inside the <motion.div layout> in SendPackagePage with this.
+                  Nothing else in the page changes.
+                ─────────────────────────────────────────────────────────────────────────── */}
 
-                    {/* Pickup */}
-                    <Box sx={{ mb: 0.75 }}>
-                      <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Pickup</Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
-                        <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
-                          <PersonIcon sx={{ fontSize: 19, color: focusedInput === 'pickup' ? AMBER : pickupLocation ? 'success.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
-                        </Box>
-                        <Box sx={{ flex: 1, px: 1.5, py: 1, display: 'flex', alignItems: 'center', cursor: 'text', minWidth: 0 }} onClick={() => { if (pickupChipVisible) { setPickupChipVisible(false); handleInputFocus('pickup'); } }}>
-                          {pickupChipVisible ? (
-                            <Chip icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />} label="Current Location" onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }} onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }} size="small" sx={{ bgcolor: `rgba(245,158,11,0.15)`, color: '#5D4037', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#5D4037', opacity: 0.7 }, '& .MuiChip-icon': { color: '#5D4037' } }} />
-                          ) : (
-                            <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
-                              <LocationSearch
-                                displayKey="d1"
-                                HandleOnBlur={showNav}  
-                                HandleOnfocus={hideNav} 
-                                placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'}
-                                onSelectLocation={handlePickupSelect} mapControls={mapControls}
-                                value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')}
-                                autoFocus={focusedInput === 'pickup'} onFocus={() => handleInputFocus('pickup')} onBlur={handleInputBlur}
+                <Box sx={{ px: 2.5, pt: 0.5, pb: 2.5, width: '100%', boxSizing: 'border-box' }}>
+
+                  {/* ── PICKUP — hidden when dropoff is focused ── */}
+                  <AnimatePresence initial={false}>
+                    {focusedInput !== 'dropoff' && (
+                      <motion.div
+                        key="pickup-input"
+                        initial={{ opacity: 0, y: -18, height: 0 }}
+                        animate={{ opacity: 1, y: 0,   height: 'auto' }}
+                        exit={{   opacity: 0, y: -18,  height: 0 }}
+                        transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                        style={{ overflow: 'hidden', marginBottom: 6 }}
+                      >
+                        <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Pickup</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
+                          <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
+                            <PersonIcon sx={{ fontSize: 19, color: focusedInput === 'pickup' ? AMBER : pickupLocation ? 'success.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
+                          </Box>
+                          <Box sx={{ flex: 1, px: 1.5, py: 1, display: 'flex', alignItems: 'center', cursor: 'text', minWidth: 0 }}
+                            onClick={() => { if (pickupChipVisible) { setPickupChipVisible(false); handleInputFocus('pickup'); } }}>
+                            {pickupChipVisible ? (
+                              <Chip
+                                icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />}
+                                label="Current Location"
+                                onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }}
+                                onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }}
+                                size="small"
+                                sx={{ bgcolor: 'rgba(245,158,11,0.15)', color: '#5D4037', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#5D4037', opacity: 0.7 }, '& .MuiChip-icon': { color: '#5D4037' } }}
                               />
-                            </Box>
+                            ) : (
+                              <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
+                                <LocationSearch
+                                  displayKey="d1"
+                                  HandleOnBlur={showNav}
+                                  HandleOnfocus={hideNav}
+                                  placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'}
+                                  onSelectLocation={handlePickupSelect}
+                                  mapControls={mapControls}
+                                  value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')}
+                                  autoFocus={focusedInput === 'pickup'}
+                                  onFocus={() => handleInputFocus('pickup')}
+                                  onBlur={handleInputBlur}
+                                />
+                              </Box>
+                            )}
+                          </Box>
+                          {pickupLocation && !pickupChipVisible && (
+                            <IconButton size="small" sx={{ mr: 0.5, p: 0.5, color: 'text.disabled' }}
+                              onClick={(e) => { e.stopPropagation(); setPickupLocation(null); }}>
+                              <CloseIcon sx={{ fontSize: 13 }} />
+                            </IconButton>
                           )}
                         </Box>
-                        {pickupLocation && !pickupChipVisible && (
-                          <IconButton size="small" sx={{ mr: 0.5, p: 0.5, color: 'text.disabled' }} onClick={(e) => { e.stopPropagation(); setPickupLocation(null); }}><CloseIcon sx={{ fontSize: 13 }} /></IconButton>
-                        )}
-                      </Box>
-                    </Box>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                    {/* Connector + swap */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: '21px', my: 0.2 }}>
-                      <Box sx={{ width: 2, height: 18, bgcolor: pickupLocation && dropoffLocation ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)', borderRadius: 1, transition: 'background-color 0.3s' }} />
-                      {pickupLocation && dropoffLocation && (
-                        <IconButton size="small" onClick={handleSwap} sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5, '&:hover': { color: 'white', bgcolor: 'rgba(255,255,255,0.15)' } }}><SwapIcon sx={{ fontSize: 18 }} /></IconButton>
-                      )}
-                    </Box>
-
-                    {/* Dropoff */}
-                    <Box>
-                      <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Destination</Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
-                        <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'dropoff' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
-                          <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? AMBER : dropoffLocation ? 'error.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
+                  {/* ── CONNECTOR + SWAP — only when neither is focused ── */}
+                  <AnimatePresence initial={false}>
+                    {!focusedInput && (
+                      <motion.div
+                        key="connector"
+                        initial={{ opacity: 0, scaleY: 0 }}
+                        animate={{ opacity: 1, scaleY: 1 }}
+                        exit={{   opacity: 0, scaleY: 0 }}
+                        transition={{ duration: 0.18 }}
+                        style={{ transformOrigin: 'top' }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: '21px', my: 0.2 }}>
+                          <Box sx={{ width: 2, height: 18, bgcolor: pickupLocation && dropoffLocation ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)', borderRadius: 1, transition: 'background-color 0.3s' }} />
+                          {pickupLocation && dropoffLocation && (
+                            <IconButton size="small" onClick={handleSwap} sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5, '&:hover': { color: 'white', bgcolor: 'rgba(255,255,255,0.15)' } }}>
+                              <SwapIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          )}
                         </Box>
-                        <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
-                          <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
-                            <LocationSearch displayKey="d2" HandleOnBlur={showNav} HandleOnfocus={hideNav} placeholder="Where to deliver?" onSelectLocation={handleDropoffSelect} mapControls={mapControls} value={dropoffLocation?.address || ''} autoFocus={focusedInput === 'dropoff'} onFocus={() => handleInputFocus('dropoff')} onBlur={handleInputBlur} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* ── DROPOFF — hidden when pickup is focused ── */}
+                  <AnimatePresence initial={false}>
+                    {focusedInput !== 'pickup' && (
+                      <motion.div
+                        key="dropoff-input"
+                        initial={{ opacity: 0, y: 18, height: 0 }}
+                        animate={{ opacity: 1, y: 0,  height: 'auto' }}
+                        exit={{   opacity: 0, y: 18,  height: 0 }}
+                        transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Destination</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
+                          <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'dropoff' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
+                            <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? AMBER : dropoffLocation ? 'error.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
                           </Box>
+                          <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
+                            <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
+                              <LocationSearch
+                                displayKey="d2"
+                                HandleOnBlur={showNav}
+                                HandleOnfocus={hideNav}
+                                placeholder="Where to deliver?"
+                                onSelectLocation={handleDropoffSelect}
+                                mapControls={mapControls}
+                                value={dropoffLocation?.address || ''}
+                                autoFocus={focusedInput === 'dropoff'}
+                                onFocus={() => handleInputFocus('dropoff')}
+                                onBlur={handleInputBlur}
+                              />
+                            </Box>
+                          </Box>
+                          {dropoffLocation && (
+                            <IconButton size="small" sx={{ mr: 0.5, p: 0.5, color: 'text.disabled' }}
+                              onClick={(e) => { e.stopPropagation(); setDropoffLocation(null); }}>
+                              <CloseIcon sx={{ fontSize: 13 }} />
+                            </IconButton>
+                          )}
                         </Box>
-                        {dropoffLocation && (
-                          <IconButton size="small" sx={{ mr: 0.5, p: 0.5, color: 'text.disabled' }} onClick={(e) => { e.stopPropagation(); setDropoffLocation(null); }}><CloseIcon sx={{ fontSize: 13 }} /></IconButton>
-                        )}
-                      </Box>
-                    </Box>
-                  </Box>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                </Box>
                 </motion.div>
               </Box>
 
