@@ -190,7 +190,7 @@ const RenderHomePage = ()=>{
       if(isNative){
          getNativeLocation() // make the device send the current location to the server at least once
       }
-      startLocationTracking()
+      // startLocationTracking() // no need, since this page displays /home, which starts the tracking via it's layout file too
     }
 
     if (!loading) {

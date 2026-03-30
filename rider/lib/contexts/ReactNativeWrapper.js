@@ -444,7 +444,7 @@ export function ReactNativeWrapper({ children }) {
     });
   }, [isNative, sendToNative]);
 
-  const startLocationTracking = useCallback(async (interval = 5000) => {
+  const startLocationTracking = useCallback(async (interval = 20000) => {
     if (isNative) return sendToNative('START_LOCATION_TRACKING', { interval });
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) { reject(new Error('Geolocation not supported')); return; }

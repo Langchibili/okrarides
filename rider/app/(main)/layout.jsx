@@ -28,7 +28,7 @@ function RenderMainLayout({ children }) {
   const pathname = usePathname();
   const { activeRide } = useRide();
   const theme = useThemeMode();
-  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking,stopLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
 
   useEffect(() => {
     const initializeNativeCode = async () => {
@@ -97,6 +97,9 @@ function RenderMainLayout({ children }) {
         ridesAPI.cleanTempBlocks();
         initializeNativeCode();
       }
+    }
+    return () => {
+      stopLocationTracking();
     }
   }, [user, loading, isAuthenticated, router]);
 

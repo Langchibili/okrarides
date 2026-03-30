@@ -626,7 +626,7 @@ export default function AffiliateDashboard() {
         {/* Hero card */}
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
           <Paper elevation={0} sx={{
-            mx: 2, mt: 3, p: 3, borderRadius: 4,
+            mx: 2, mt: 4, p: 3, borderRadius: 4,
             background: 'linear-gradient(140deg,#14532d 0%,#15803d 40%,#0d9488 100%)',
             color: 'white', position: 'relative', overflow: 'hidden',
             boxShadow: `0 12px 40px ${alpha('#10B981', 0.35)}`,
