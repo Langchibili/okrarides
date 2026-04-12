@@ -420,7 +420,13 @@ export default function AddDeliveryVehiclePage() {
     try {
       setLoading(true);
       const res = await submitForVerification(); // → /delivery-driver/onboarding/submit
-      if (res.success) { setSuccess('Vehicle submitted for verification!'); setTimeout(() => router.push('/onboarding/pending'), 2000); }
+      if(res.success) { 
+        setSuccess('Vehicle submitted for verification!'); 
+        if(typeof window !== "undefined"){
+          localStorage.setItem('onboarding_step_page','/onboarding/pending')
+        }
+        setTimeout(() => router.push('/onboarding/pending'), 2000); 
+      }
       else { setError(res.error ?? 'Failed to submit vehicle for verification'); }
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }

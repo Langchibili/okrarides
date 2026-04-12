@@ -1,6 +1,6 @@
 'use client';
 // PATH: app/(onboarding)/welcome/WelcomePage.jsx
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Box, Typography, Button, List, ListItem,
@@ -28,6 +28,13 @@ export default function WelcomePage() {
   const status = searchParams.get('status')
   const [starting, setStarting] = useState(false)
 
+  useEffect(()=>{
+    if(typeof window !== "undefined"){
+      const currentStepPage = localStorage.getItem('onboarding_step_page')
+      router.push(currentStepPage)
+    }
+  },[])
+  
   const requirements = [
     { icon: <CardIcon />,     title: "Driver's License",   description: "Valid Zambian driver's license",    color: '#3B82F6' },
     { icon: <DocumentIcon />, title: 'National ID',         description: 'Your national identification card', color: '#8B5CF6' },
@@ -45,6 +52,9 @@ export default function WelcomePage() {
   ]
 
   const handleStart = () => {
+    if(typeof window !== "undefined"){
+      localStorage.setItem('onboarding_step_page','/onboarding/license')
+    }
     setStarting(true)
     router.push('/onboarding/license')
   }

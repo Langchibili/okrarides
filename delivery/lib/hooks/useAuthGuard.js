@@ -6,7 +6,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from './useAuth';
 import { useDriver } from './useDriver';
 import { VERIFICATION_STATUS } from '@/Constants';
-import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 export const useAuthGuard = (options = {}) => {
   const {
     requireAuth = true,
@@ -37,10 +36,9 @@ export const useAuthGuard = (options = {}) => {
     if(requireVerification) {
       const driverVerified   = user?.driverProfile?.verificationStatus   === VERIFICATION_STATUS.APPROVED;
       const deliveryVerified = user?.deliveryProfile?.verificationStatus  === VERIFICATION_STATUS.APPROVED;
-      const verificationPending   = user?.driverProfile?.verificationStatus  === VERIFICATION_STATUS.PENDING || user?.deliveryProfile?.verificationStatus  === VERIFICATION_STATUS.PENDING
+      const verificationPending  = (user?.driverProfile?.verificationStatus  === VERIFICATION_STATUS.PENDING || user?.deliveryProfile?.verificationStatus === VERIFICATION_STATUS.PENDING)
       const hasDeliveryVehicle = user?.deliveryProfile?.activeVehicleType &&
                                 user?.deliveryProfile?.activeVehicleType !== 'none';
-
       if(verificationPending){
         router.push('/onboarding/pending');
         return;

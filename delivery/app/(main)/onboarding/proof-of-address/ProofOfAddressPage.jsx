@@ -63,6 +63,10 @@ export default function ProofOfAddressPage() {
         document: null,
       })
 
+      if(typeof window !== "undefined"){
+        localStorage.setItem('onboarding_step_page','/onboarding/delivery-vehicle-type')
+      }
+
       router.push('/onboarding/delivery-vehicle-type')
     } catch (err) {
       console.error(err)

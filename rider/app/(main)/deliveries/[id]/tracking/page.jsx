@@ -6,17 +6,21 @@
 // import {
 //   Box, Paper, Typography, Avatar, IconButton, Button, Chip,
 //   LinearProgress, CircularProgress, Alert,
+//   Dialog, DialogTitle, DialogContent, DialogActions, Divider,
+//   FormControl, InputLabel, Select, MenuItem, TextField,
 // } from '@mui/material';
 // import { alpha, useTheme } from '@mui/material/styles';
 // import {
 //   Phone as PhoneIcon, Message as MessageIcon,
 //   Star as StarIcon, LocalShipping as DeliveryIcon,
 //   Inventory as PackageIcon, Speed as SpeedIcon,
-//   Navigation as NavIcon,
+//   Navigation as NavIcon, Cancel as CancelIcon, Warning as WarningIcon,
+//   Close as CloseIcon,
 // } from '@mui/icons-material';
 // import { motion, AnimatePresence } from 'framer-motion';
 // import MapIframe from '@/components/Map/MapIframeNoSSR';
 // import { getDelivery, getDelivererLocation } from '@/lib/api/deliveries';
+// import { apiClient } from '@/lib/api/client';
 // import { useSocket } from '@/lib/socket/SocketProvider';
 // import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 // import { formatCurrency } from '@/Functions';
@@ -24,6 +28,16 @@
 
 // const AMBER = '#F59E0B';
 // const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
+// const DEFAULT_CANCEL_REASON = 'Change of plans';
+
+// // ── Coord key helper — stable string for deduplicating route state updates ────
+// // normalizeCoords always returns a new object even for identical coordinates,
+// // so comparing object references always says "changed". Comparing the string
+// // key is O(1) and correct — prevents setRoutePickup from firing every poll.
+// function coordKey(c) {
+//   if (!c) return null;
+//   return `${c.lat},${c.lng}`;
+// }
 
 // const deg2rad = (d) => d * (Math.PI / 180);
 // function haversine(a, b) {
@@ -105,10 +119,26 @@
 //   const [loading,       setLoading]       = useState(true);
 //   const [showFullSheet, setShowFullSheet] = useState(false);
 
+//   // ── MAP: route state ──────────────────────────────────────────────────────
 //   const [routePickup,  setRoutePickup]  = useState(null);
 //   const [routeDropoff, setRouteDropoff] = useState(null);
 //   const [routeReady,   setRouteReady]   = useState(false);
-//   const routeStatusRef = useRef(null);
+//   const routeStatusRef  = useRef(null);
+//   // ── FIX: track last-set route as a string key to skip redundant setState ──
+//   // Without this, setRoutePickup(loc) fires every 3s poll even when the
+//   // deliverer hasn't moved (normalizeCoords always returns a new object), which
+//   // changes pickupLat/pickupLng primitives → IframeMap route effect re-fires →
+//   // the route is re-fetched and re-sent constantly → route flickers / mismatches.
+//   const lastRouteKeyRef = useRef(null);
+
+//   // ── Cancel flow ───────────────────────────────────────────────────────────
+//   const [showCancelConfirm,    setShowCancelConfirm]    = useState(false);
+//   const [showCancelReasons,    setShowCancelReasons]    = useState(false);
+//   const [cancelReasons,        setCancelReasons]        = useState([]);
+//   const [cancelReasonsLoading, setCancelReasonsLoading] = useState(false);
+//   const [selectedCancelReason, setSelectedCancelReason] = useState('');
+//   const [cancelOtherText,      setCancelOtherText]      = useState('');
+//   const [cancelling,           setCancelling]           = useState(false);
 
 //   const mapControlsRef = useRef(null);
 //   const pollRef        = useRef(null);
@@ -127,6 +157,7 @@
 //     };
 //   }, []);
 
+//   const rideStatus = delivery?.rideStatus;
 
 //   // ─── Load delivery ────────────────────────────────────────────────────
 //   const load = useCallback(async () => {
@@ -140,10 +171,7 @@
 
 //   useEffect(() => { load(); }, [load]);
 
-//   // ─── Status polling (fallback) ────────────────────────────────────────
-//   const rideStatus = delivery?.rideStatus;
-
-  
+//   // ─── Status polling ────────────────────────────────────────────────────
 //   useEffect(() => {
 //     if (!id) return;
 //     pollRef.current = setInterval(async () => {
@@ -169,7 +197,6 @@
 //   // ─── Socket events ────────────────────────────────────────────────────
 //   useEffect(() => {
 //     if (!connected || !id) return;
-
 //     const match = (data) => !data?.deliveryId || String(data.deliveryId) === String(id);
 
 //     const onArrived   = (data) => { if (!match(data)) return; setDelivery(p => p ? { ...p, rideStatus: 'arrived' } : p); };
@@ -178,7 +205,6 @@
 //     const onComplete  = (data) => { if (!match(data)) return; clearInterval(pollRef.current); router.replace(`/deliveries/${id}`); };
 //     const onCancelled = (data) => { if (!match(data)) return; clearInterval(pollRef.current); router.replace('/deliveries'); };
 
-//     // Use constants to avoid magic strings
 //     socketOn(SOCKET_EVENTS.DELIVERY.DRIVER_ARRIVED,    onArrived);
 //     socketOn(SOCKET_EVENTS.DELIVERY.STARTED,           onStarted);
 //     socketOn(SOCKET_EVENTS.DELIVERY.PAYMENT_REQUESTED, onPayReq);
@@ -194,10 +220,7 @@
 //     };
 //   }, [connected, id, socketOn, socketOff, router]);
 
-//   // ─── Live location from ReactNative WebView bridge ────────────────────
-//   // The native app may forward the deliverer's location under either
-//   // DELIVERY_LOCATION_UPDATED (delivery-specific) or DRIVER_LOCATION_UPDATED
-//   // (legacy/generic). Listen to both.
+//   // ─── RN live location bridge ──────────────────────────────────────────
 //   const handleDelivererLocFromRN = useCallback((payload) => {
 //     const raw = payload?.location ?? payload;
 //     const loc = normalizeCoords(raw);
@@ -209,121 +232,178 @@
 //   }, []);
 
 //   useEffect(() => {
-//     // Subscribe to both keys — native app may use either
 //     const unsub1 = rnOn('DELIVERY_LOCATION_UPDATED', handleDelivererLocFromRN);
 //     const unsub2 = rnOn('DRIVER_LOCATION_UPDATED',   handleDelivererLocFromRN);
 //     return () => { unsub1?.(); unsub2?.(); };
 //   }, [rnOn, handleDelivererLocFromRN]);
 
-// // ─── Reset route ref when status changes so route redraws correctly ───
-// useEffect(() => {
-//   routeStatusRef.current = null;
-//   setRouteReady(false);
-//   setRoutePickup(null);
-//   setRouteDropoff(null);
-// }, [rideStatus]);
+//   // ─── Reset route ref + lastRouteKey when status changes ──────────────
+//   useEffect(() => {
+//     routeStatusRef.current  = null;
+//     lastRouteKeyRef.current = null; // allow fresh route after status change
+//     setRouteReady(false);
+//     setRoutePickup(null);
+//     setRouteDropoff(null);
+//   }, [rideStatus]);
 
-// // ─── Live location polling from API ───────────────────────────────────
-// useEffect(() => {
-//   if (!delivery || !id || ['completed', 'cancelled'].includes(rideStatus)) return;
+//   // ─── Live location polling ─────────────────────────────────────────────
+//   useEffect(() => {
+//     if (!delivery || !id || ['completed', 'cancelled'].includes(rideStatus)) return;
 
-//   const updateLoc = async () => {
-//     if (!mountedRef.current) return;
+//     const updateLoc = async () => {
+//       if (!mountedRef.current) return;
+//       try {
+//         const res = await getDelivererLocation(id);
+//         const raw = res?.location ?? res?.data?.location ?? res?.data ?? res;
+//         const loc = normalizeCoords(raw);
+//         if (!loc || !mountedRef.current) return;
+
+//         setDelivererLoc(loc);
+//         mapControlsRef.current?.updateDriverLocation(loc);
+
+//         const etaDest = rideStatus === 'accepted'
+//           ? normalizeCoords(delivery.pickupLocation)
+//           : normalizeCoords(delivery.dropoffLocation);
+//         if (etaDest) {
+//           const km = haversine(loc, etaDest);
+//           if (mountedRef.current) { setDistance(km); setEta(estimateMins(km)); }
+//         }
+
+//         if (rideStatus === 'accepted') {
+//           const pickup = normalizeCoords(delivery.pickupLocation);
+//           if (pickup) {
+//             // ── FIX: only update route state when coords actually changed ───
+//             // Without this, setRoutePickup(loc) fires every 3s even when the
+//             // deliverer is stationary, changing the primitive lat/lng deps in
+//             // IframeMap's route effect → constant route re-fetches → flickering
+//             // route and mismatch with the delivery details page.
+//             const newKey = `${coordKey(loc)}->${coordKey(pickup)}`;
+//             if (newKey !== lastRouteKeyRef.current) {
+//               lastRouteKeyRef.current = newKey;
+//               setRoutePickup(loc);
+//               setRouteDropoff(pickup);
+//               setRouteReady(true);
+//             }
+//           }
+//         }
+
+//         if (rideStatus === 'passenger_onboard' && routeStatusRef.current !== 'passenger_onboard') {
+//           routeStatusRef.current = 'passenger_onboard';
+//           const pickup  = normalizeCoords(delivery.pickupLocation);
+//           const dropoff = normalizeCoords(delivery.dropoffLocation);
+//           if (pickup && dropoff) {
+//             lastRouteKeyRef.current = `${coordKey(pickup)}->${coordKey(dropoff)}`;
+//             setRoutePickup(pickup);
+//             setRouteDropoff(dropoff);
+//             setRouteReady(true);
+//           }
+//         }
+
+//       } catch {}
+//     };
+
+//     updateLoc();
+//     locPollRef.current = setInterval(updateLoc, 3000);
+//     return () => clearInterval(locPollRef.current);
+//   // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, [id, rideStatus, delivery?.deliverer?.id]);
+
+//   // ─── Markers ──────────────────────────────────────────────────────────
+//   const PACKAGE_MARKER = useMemo(() => ({ bg: '#92400E', label: '📦', size: 36 }), []);
+
+//   const markers = useMemo(() => {
+//     if (!delivery) return [];
+//     const actualPickup  = normalizeCoords(delivery.pickupLocation);
+//     const actualDropoff = normalizeCoords(delivery.dropoffLocation);
+
+//     if (rideStatus === 'accepted') {
+//       const result = [];
+//       if (actualPickup) result.push({ id: 'pickup', position: actualPickup, type: 'pickup', custom: PACKAGE_MARKER });
+//       return result;
+//     }
+
+//     if (rideStatus === 'passenger_onboard') {
+//       const result = [];
+//       if (actualPickup)  result.push({ id: 'pickup',  position: actualPickup,  type: 'pickup',  custom: PACKAGE_MARKER });
+//       if (actualDropoff) result.push({ id: 'dropoff', position: actualDropoff, type: 'dropoff', custom: null });
+//       return result;
+//     }
+
+//     const result = [];
+//     if (actualPickup)  result.push({ id: 'pickup',  position: actualPickup,  type: 'pickup',  custom: PACKAGE_MARKER });
+//     if (actualDropoff) result.push({ id: 'dropoff', position: actualDropoff, type: 'dropoff', custom: null });
+//     return result;
+//   }, [rideStatus, delivery, PACKAGE_MARKER]);
+
+//   // ── FIX: stable onMapLoad — inline arrow in JSX is a new ref every render.
+//   //    When passed as the onMapLoad prop, IframeMap's [iframeLoaded, onMapLoad]
+//   //    effect re-fired on every re-render (every 3s poll), calling
+//   //    configureDriverMarker repeatedly. Extracting to useCallback with []
+//   //    deps makes the reference permanently stable. ─────────────────────────
+//   const handleMapLoad = useCallback((c) => {
+//     mapControlsRef.current = c;
+//     c.configureDriverMarker?.({ bg: '#0F172A', label: '🚚', size: 44 });
+//   }, []); // marker config is a literal — no deps needed
+
+//   // ── Cancel handlers ───────────────────────────────────────────────────────
+//   const handleCancelPress = () => setShowCancelConfirm(true);
+
+//   const handleCancelConfirmYes = async () => {
+//     setShowCancelConfirm(false);
+//     setCancelReasonsLoading(true);
+//     setShowCancelReasons(true);
+//     setSelectedCancelReason('');
+//     setCancelOtherText('');
 //     try {
-//       const res = await getDelivererLocation(id);
-//       // ── Unwrap the nested location field from the backend response ────
-//       const raw = res?.location ?? res?.data?.location ?? res?.data ?? res;
-//       const loc = normalizeCoords(raw);
-//       if (!loc || !mountedRef.current) return;
-
-//       setDelivererLoc(loc);
-//       mapControlsRef.current?.updateDriverLocation(loc);
-
-//       // ── ETA calculation ───────────────────────────────────────────────
-//       const etaDest = rideStatus === 'accepted'
-//         ? normalizeCoords(delivery.pickupLocation)
-//         : normalizeCoords(delivery.dropoffLocation);
-//       if (etaDest) {
-//         const km = haversine(loc, etaDest);
-//         if (mountedRef.current) { setDistance(km); setEta(estimateMins(km)); }
-//       }
-
-//       // ── ACCEPTED: route is driver→pickup, updates every poll ──────────
-//       // routePickup is the driver's live position (changes each poll)
-//       // routeDropoff is the fixed pickup location
-//       if (rideStatus === 'accepted') {
-//         const pickup = normalizeCoords(delivery.pickupLocation);
-//         if (pickup) {
-//           setRoutePickup(loc);          // driver's current position — updates live
-//           setRouteDropoff(pickup);      // fixed destination: pickup location
-//           setRouteReady(true);
-//         }
-//       }
-
-//       // ── PASSENGER_ONBOARD: route is pickup→dropoff, drawn once ────────
-//       // Both ends are fixed — no need to update on every poll
-//       if (rideStatus === 'passenger_onboard' && routeStatusRef.current !== 'passenger_onboard') {
-//         routeStatusRef.current = 'passenger_onboard';
-//         const pickup  = normalizeCoords(delivery.pickupLocation);
-//         const dropoff = normalizeCoords(delivery.dropoffLocation);
-//         if (pickup && dropoff) {
-//           setRoutePickup(pickup);
-//           setRouteDropoff(dropoff);
-//           setRouteReady(true);
-//         }
-//       }
-
-//     } catch {}
+//       const res = await apiClient.get('/cancellation-reasons?filters[isActive][$eq]=true&filters[applicableFor][$in][0]=rider&filters[applicableFor][$in][1]=both&sort=displayOrder:asc');
+//       const reasons = res?.data ?? res ?? [];
+//       if (mountedRef.current) setCancelReasons(reasons);
+//     } catch (err) {
+//       console.error('[DeliveryTracking] failed to load cancellation reasons:', err);
+//       if (mountedRef.current) setCancelReasons([]);
+//     } finally {
+//       if (mountedRef.current) setCancelReasonsLoading(false);
+//     }
 //   };
 
-//   // Fire immediately then every 3 seconds
-//   updateLoc();
-//   locPollRef.current = setInterval(updateLoc, 3000);
-//   return () => clearInterval(locPollRef.current);
-//   // eslint-disable-next-line react-hooks/exhaustive-deps
-// }, [id, rideStatus, delivery?.deliverer?.id]);
+//   const handleCancelConfirmNo = () => setShowCancelConfirm(false);
 
+//   const handleCancelWithReason = async () => {
+//     const isOther = selectedCancelReason === '__other__';
+//     const reason  = isOther
+//       ? (cancelOtherText.trim() || 'Other')
+//       : (cancelReasons.find(r => String(r.id) === String(selectedCancelReason))?.reason || selectedCancelReason);
+//     if (!reason) return;
+//     setCancelling(true);
+//     try {
+//       await apiClient.post(`/deliveries/${id}/cancel`, { reason });
+//       clearInterval(pollRef.current);
+//       router.replace('/deliveries');
+//     } catch (e) { console.error(e); setCancelling(false); }
+//   };
 
-//   // Replace the static useMemo(() => [], []) with this:
-// const markers = useMemo(() => {
-//   if (!delivery) return [];
+//   const handleCancelWithoutReason = async () => {
+//     setCancelling(true);
+//     try {
+//       await apiClient.post(`/deliveries/${id}/cancel`, { reason: DEFAULT_CANCEL_REASON });
+//       clearInterval(pollRef.current);
+//       router.replace('/deliveries');
+//     } catch (e) { console.error(e); setCancelling(false); }
+//   };
 
-//   const actualPickup  = normalizeCoords(delivery.pickupLocation);
-//   const actualDropoff = normalizeCoords(delivery.dropoffLocation);
+//   const handleCloseCancelReasons = () => {
+//     if (cancelling) return;
+//     setShowCancelReasons(false);
+//     setCancelReasons([]);
+//     setSelectedCancelReason('');
+//     setCancelOtherText('');
+//   };
 
-//   const PACKAGE_MARKER = { bg: '#92400E', label: '📦', size: 36 };
+//   const canSubmitCancel = selectedCancelReason && (
+//     selectedCancelReason !== '__other__' || cancelOtherText.trim().length > 0
+//   );
 
-//   if (rideStatus === 'accepted') {
-//     // Driver handled by updateDriverLocation — only show pickup destination pin
-//     const result = [];
-//     if (actualPickup) {
-//       result.push({ id: 'pickup', position: actualPickup, type: 'pickup', custom: PACKAGE_MARKER });
-//     }
-//     return result;
-//   }
-
-//   if (rideStatus === 'passenger_onboard') {
-//     // Driver handled by updateDriverLocation — show route endpoints only
-//     const result = [];
-//     if (actualPickup) {
-//       result.push({ id: 'pickup',  position: actualPickup,  type: 'pickup',  custom: PACKAGE_MARKER });
-//     }
-//     if (actualDropoff) {
-//       result.push({ id: 'dropoff', position: actualDropoff, type: 'dropoff', custom: null });
-//     }
-//     return result;
-//   }
-
-//   // Other statuses
-//   const result = [];
-//   if (actualPickup)  result.push({ id: 'pickup',  position: actualPickup,  type: 'pickup',  custom: PACKAGE_MARKER });
-//   if (actualDropoff) result.push({ id: 'dropoff', position: actualDropoff, type: 'dropoff', custom: null });
-//   return result;
-
-// }, [rideStatus, delivery])
-
-
-//   const curStep    = STATUS_STEPS.find(s => s.status === rideStatus) ?? STATUS_STEPS[0];
+//   const curStep     = STATUS_STEPS.find(s => s.status === rideStatus) ?? STATUS_STEPS[0];
 //   const bannerColor = rideStatus === 'accepted' ? '#10B981' : AMBER;
 //   const bannerBg    = rideStatus === 'accepted'
 //     ? 'linear-gradient(135deg,rgba(16,185,129,0.12) 0%,rgba(5,150,105,0.06) 100%)'
@@ -341,15 +421,11 @@
 //       {/* Map */}
 //       <Box sx={{ flex: 1, position: 'relative', minHeight: 0 }}>
 //         <MapIframe
-//   center={delivererLoc ?? normalizeCoords(delivery.pickupLocation) ?? { lat: -15.4167, lng: 28.2833 }}
-//   zoom={15} height="100%" markers={markers}
-//   pickupLocation={routePickup} dropoffLocation={routeDropoff} showRoute={routeReady}
-//   onMapLoad={(c) => {
-//     mapControlsRef.current = c;
-//     // Configure driver marker to use truck icon — done once, persists
-//     c.configureDriverMarker({ bg: '#0F172A', label: '🚚', size: 44 });
-//   }} 
-// />
+//           center={delivererLoc ?? normalizeCoords(delivery.pickupLocation) ?? { lat: -15.4167, lng: 28.2833 }}
+//           zoom={15} height="100%" markers={markers}
+//           pickupLocation={routePickup} dropoffLocation={routeDropoff} showRoute={routeReady}
+//           onMapLoad={handleMapLoad}
+//         />
 //       </Box>
 
 //       {/* Bottom sheet */}
@@ -453,7 +529,6 @@
 //                   </Box>
 //                 </Box>
 
-//                 {/* Package details */}
 //                 {delivery.package && (
 //                   <Box sx={{ mt: 1.5, pt: 1.5, borderTop: `1px solid ${alpha(isDark?'#fff':'#000',0.07)}`, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
 //                     <PackageIcon sx={{ fontSize: 15, color: AMBER }} />
@@ -488,11 +563,107 @@
 //               const dest = normalizeCoords(delivery.dropoffLocation);
 //               if (dest) window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}`, '_blank');
 //             }}
-//             sx={{ height: 44, borderRadius: 3, fontWeight: 600, borderColor: alpha(AMBER,0.5), color: AMBER }}>
+//             sx={{ height: 44, borderRadius: 3, fontWeight: 600, borderColor: alpha(AMBER,0.5), color: AMBER, mb: ['accepted','arrived'].includes(rideStatus) ? 1.5 : 0 }}>
 //             Open Dropoff in Google Maps
 //           </Button>
+
+//           {/* Cancel — only before package is picked up */}
+//           {['accepted', 'arrived'].includes(rideStatus) && (
+//             <Button
+//               fullWidth variant="outlined" color="error" size="small"
+//               disabled={cancelling}
+//               onClick={handleCancelPress}
+//               sx={{ height: 44, borderRadius: 3, fontWeight: 600, borderWidth: 1.5, '&:hover': { borderWidth: 1.5 } }}
+//             >
+//               Cancel Delivery
+//             </Button>
+//           )}
 //         </Box>
 //       </Paper>
+
+//       {/* ── STEP 1: Cancel confirmation ───────────────────────────────────── */}
+//       <Dialog
+//         open={showCancelConfirm}
+//         onClose={handleCancelConfirmNo}
+//         PaperProps={{ sx: { borderRadius: 4, maxWidth: 360, mx: 2, border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' } }}
+//       >
+//         <DialogTitle sx={{ fontWeight: 700, pb: 0.5 }}>
+//           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+//             <Box sx={{ width:40, height:40, borderRadius:2, flexShrink:0, background:'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 12px rgba(239,68,68,0.35)' }}>
+//               <WarningIcon sx={{ fontSize:22, color:'#fff' }} />
+//             </Box>
+//             Cancel Delivery?
+//           </Box>
+//         </DialogTitle>
+//         <DialogContent sx={{ pt: 1.5, pb: 1 }}>
+//           <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.65 }}>
+//             Are you sure you want to cancel this delivery? This action cannot be undone.
+//           </Typography>
+//         </DialogContent>
+//         <DialogActions sx={{ px: 2.5, pb: 2.5, gap: 1 }}>
+//           <Button onClick={handleCancelConfirmNo} variant="outlined" sx={{ flex:1, borderRadius:2.5, fontWeight:600, height:44 }}>No</Button>
+//           <Button onClick={handleCancelConfirmYes} variant="contained" color="error" sx={{ flex:1, borderRadius:2.5, fontWeight:700, height:44 }}>Yes</Button>
+//         </DialogActions>
+//       </Dialog>
+
+//       {/* ── STEP 2: Cancel reason selection ──────────────────────────────── */}
+//       <Dialog
+//         open={showCancelReasons}
+//         onClose={handleCloseCancelReasons}
+//         PaperProps={{ sx: { borderRadius: 4, maxWidth: 400, mx: 2, width: '100%', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' } }}
+//       >
+//         <DialogTitle sx={{ fontWeight: 700, pb: 0.5 }}>
+//           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+//             <Box sx={{ width:40, height:40, borderRadius:2, flexShrink:0, background:'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 12px rgba(239,68,68,0.35)' }}>
+//               <CancelIcon sx={{ fontSize:22, color:'#fff' }} />
+//             </Box>
+//             Reason for Cancellation
+//           </Box>
+//         </DialogTitle>
+//         <DialogContent sx={{ pt: 2, pb: 1 }}>
+//           <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, lineHeight: 1.6 }}>
+//             Please let us know why you're cancelling so we can improve your experience.
+//           </Typography>
+//           {cancelReasonsLoading ? (
+//             <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={28} sx={{ color: AMBER }} /></Box>
+//           ) : (
+//             <FormControl fullWidth size="medium">
+//               <InputLabel id="cancel-reason-label">Select a reason</InputLabel>
+//               <Select
+//                 labelId="cancel-reason-label"
+//                 value={selectedCancelReason}
+//                 label="Select a reason"
+//                 onChange={(e) => { setSelectedCancelReason(e.target.value); if (e.target.value !== '__other__') setCancelOtherText(''); }}
+//                 sx={{ borderRadius: 2 }}
+//               >
+//                 {cancelReasons.map((r) => (
+//                   <MenuItem key={r.id} value={String(r.id)}>{r.reason}</MenuItem>
+//                 ))}
+//                 <MenuItem value="__other__">Other</MenuItem>
+//               </Select>
+//             </FormControl>
+//           )}
+//           <AnimatePresence>
+//             {selectedCancelReason === '__other__' && (
+//               <motion.div key="other-input" initial={{ opacity:0, height:0, marginTop:0 }} animate={{ opacity:1, height:'auto', marginTop:16 }} exit={{ opacity:0, height:0, marginTop:0 }} transition={{ type:'spring', stiffness:300, damping:28 }} style={{ overflow:'hidden' }}>
+//                 <TextField fullWidth multiline minRows={2} maxRows={4} placeholder="Explain more…" value={cancelOtherText} onChange={(e) => setCancelOtherText(e.target.value)} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+//               </motion.div>
+//             )}
+//           </AnimatePresence>
+//         </DialogContent>
+//         <DialogActions sx={{ px: 2.5, pb: 1.5, gap: 1, flexDirection: 'column' }}>
+//           <Button fullWidth variant="contained" color="error" size="large" disabled={!canSubmitCancel || cancelling} startIcon={cancelling ? <CircularProgress size={16} color="inherit" /> : <CancelIcon />} onClick={handleCancelWithReason} sx={{ height:50, borderRadius:2.5, fontWeight:700 }}>
+//             {cancelling ? 'Cancelling…' : 'Cancel Delivery'}
+//           </Button>
+//           <Divider sx={{ width:'100%', my:0.5 }}>
+//             <Typography variant="caption" color="text.disabled" sx={{ px:1 }}>or</Typography>
+//           </Divider>
+//           <Button fullWidth variant="text" size="medium" disabled={cancelling} onClick={handleCancelWithoutReason} sx={{ height:44, borderRadius:2.5, fontWeight:600, color:'text.secondary', textTransform:'none', fontSize:'0.875rem', '&:hover':{ bgcolor:'action.hover' } }}>
+//             Cancel without reason
+//           </Button>
+//         </DialogActions>
+//       </Dialog>
+
 //     </Box>
 //   );
 // }
@@ -513,7 +684,7 @@ import {
   Star as StarIcon, LocalShipping as DeliveryIcon,
   Inventory as PackageIcon, Speed as SpeedIcon,
   Navigation as NavIcon, Cancel as CancelIcon, Warning as WarningIcon,
-  Close as CloseIcon,
+  Close as CloseIcon, DirectionsCar as CarIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapIframe from '@/components/Map/MapIframeNoSSR';
@@ -590,6 +761,89 @@ function ProgressStepper({ rideStatus }) {
           )}
         </Box>
       ))}
+    </Box>
+  );
+}
+
+// ── License Plate Component ────────────────────────────────────────────────────
+function LicensePlate({ plate, size = 'medium' }) {
+  const isSmall = size === 'small';
+  if (!plate) return null;
+  return (
+    <Box sx={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      px: isSmall ? 1.5 : 2.5,
+      py: isSmall ? 0.5 : 1,
+      borderRadius: isSmall ? 1.5 : 2,
+      // Classic white plate look
+      background: 'linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%)',
+      border: '2.5px solid #1a1a1a',
+      boxShadow: isSmall
+        ? '0 2px 6px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.8)'
+        : '0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.9)',
+      minWidth: isSmall ? 80 : 120,
+      // Subtle blue strip at top like ZM plates
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0, left: 0, right: 0,
+        height: isSmall ? 4 : 6,
+        borderRadius: '0px 0px 0 0',
+        background: 'linear-gradient(90deg, #1565C0, #0D47A1)',
+        borderTopLeftRadius: isSmall ? 4 : 5,
+        borderTopRightRadius: isSmall ? 4 : 5,
+      },
+    }}>
+      <Typography sx={{
+        fontFamily: '"Courier New", "Lucida Console", monospace',
+        fontWeight: 900,
+        fontSize: isSmall ? '0.85rem' : '1.35rem',
+        letterSpacing: isSmall ? 2 : 3,
+        color: '#0D0D0D',
+        lineHeight: 1,
+        mt: isSmall ? 0.5 : 0.75,
+        textTransform: 'uppercase',
+        textShadow: '0 1px 0 rgba(255,255,255,0.5)',
+        userSelect: 'all',
+      }}>
+        {plate}
+      </Typography>
+    </Box>
+  );
+}
+
+// ── Vehicle Color Dot ─────────────────────────────────────────────────────────
+const COLOR_MAP = {
+  white:  { bg: '#FFFFFF', border: '#ccc', label: 'White' },
+  black:  { bg: '#111111', border: '#555', label: 'Black' },
+  silver: { bg: '#C0C0C0', border: '#999', label: 'Silver' },
+  gray:   { bg: '#808080', border: '#666', label: 'Gray' },
+  red:    { bg: '#DC2626', border: '#b91c1c', label: 'Red' },
+  blue:   { bg: '#2563EB', border: '#1d4ed8', label: 'Blue' },
+  green:  { bg: '#16A34A', border: '#15803d', label: 'Green' },
+  yellow: { bg: '#EAB308', border: '#ca8a04', label: 'Yellow' },
+  orange: { bg: '#EA580C', border: '#c2410c', label: 'Orange' },
+  brown:  { bg: '#92400E', border: '#78350f', label: 'Brown' },
+  purple: { bg: '#7C3AED', border: '#6d28d9', label: 'Purple' },
+  gold:   { bg: '#D97706', border: '#b45309', label: 'Gold' },
+};
+
+function VehicleColorSwatch({ color }) {
+  const key = (color || '').toLowerCase();
+  const cfg = COLOR_MAP[key] ?? { bg: '#888', border: '#666', label: color || 'Unknown' };
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+      <Box sx={{
+        width: 16, height: 16, borderRadius: '50%', flexShrink: 0,
+        bgcolor: cfg.bg, border: `2px solid ${cfg.border}`,
+        boxShadow: `0 0 0 1px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.4)`,
+      }} />
+      <Typography variant="body2" fontWeight={600} sx={{ textTransform: 'capitalize' }}>
+        {cfg.label}
+      </Typography>
     </Box>
   );
 }
@@ -879,11 +1133,15 @@ export default function DeliveryTrackingPage() {
     ? 'linear-gradient(135deg,rgba(16,185,129,0.12) 0%,rgba(5,150,105,0.06) 100%)'
     : 'linear-gradient(135deg,rgba(245,158,11,0.12) 0%,rgba(217,119,6,0.06) 100%)';
 
+  // Show floating ETA card when deliverer is en route or package is in transit
+  const showFloatingEta = (rideStatus === 'accepted' || rideStatus === 'passenger_onboard') && eta != null;
+
   if (loading || !delivery) {
     return <Box sx={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress sx={{ color: AMBER }} /></Box>;
   }
 
   const deliverer = delivery.deliverer;
+  const vehicle   = delivery.vehicle;
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -899,6 +1157,72 @@ export default function DeliveryTrackingPage() {
             c.configureDriverMarker({ bg: '#0F172A', label: '🚚', size: 44 });
           }}
         />
+
+        {/* ── Floating ETA / Distance card (mirrors ride tracking page) ── */}
+        <AnimatePresence>
+          {showFloatingEta && (
+            <motion.div
+              key="eta-card"
+              initial={{ y: -80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -80, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+              style={{
+                position: 'absolute',
+                top: 16,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 10,
+                pointerEvents: 'none',
+              }}
+            >
+              <Paper
+                elevation={10}
+                sx={{
+                  px: 3, py: 1.5,
+                  borderRadius: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2.5,
+                  background: isDark
+                    ? 'rgba(15,23,42,0.97)'
+                    : 'rgba(255,255,255,0.97)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                  boxShadow: isDark
+                    ? '0 8px 32px rgba(0,0,0,0.6)'
+                    : '0 8px 32px rgba(0,0,0,0.15)',
+                  minWidth: 200,
+                }}
+              >
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{
+                    color: 'text.disabled', fontWeight: 700,
+                    fontSize: '0.6rem', letterSpacing: 0.6, textTransform: 'uppercase',
+                  }}>
+                    {rideStatus === 'accepted' ? 'ETA to Pickup' : 'ETA to Dropoff'}
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: AMBER, lineHeight: 1.1 }}>
+                    {fmtETA(eta)}
+                  </Typography>
+                </Box>
+                <Divider orientation="vertical" flexItem />
+                <Box sx={{ textAlign: 'center' }}>
+                  <Typography variant="caption" sx={{
+                    color: 'text.disabled', fontWeight: 700,
+                    fontSize: '0.6rem', letterSpacing: 0.6, textTransform: 'uppercase',
+                  }}>
+                    Distance
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
+                    {distance != null ? `${distance.toFixed(1)} km` : '—'}
+                  </Typography>
+                </Box>
+              </Paper>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Box>
 
       {/* Bottom sheet */}
@@ -958,9 +1282,10 @@ export default function DeliveryTrackingPage() {
                       <Typography variant="caption" color="text.disabled">· {deliverer.driverProfile.completedDeliveries ?? 0} deliveries</Typography>
                     </Box>
                   )}
-                  {delivery.vehicle && (
+                  {/* Vehicle make/model */}
+                  {vehicle && (
                     <Typography variant="caption" color="text.secondary">
-                      {delivery.vehicle.make} {delivery.vehicle.model} · {delivery.vehicle.numberPlate}
+                      {vehicle.make} {vehicle.model}
                     </Typography>
                   )}
                 </Box>
@@ -975,6 +1300,34 @@ export default function DeliveryTrackingPage() {
                   </IconButton>
                 </Box>
               </Box>
+
+              {/* ── Prominent vehicle identity row ── */}
+              {vehicle && (vehicle.numberPlate || vehicle.color) && (
+                <Box sx={{
+                  mt: 1.75,
+                  pt: 1.75,
+                  borderTop: `1px solid ${alpha(isDark?'#fff':'#000',0.07)}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 1.5,
+                }}>
+                  {/* License plate — always prominent */}
+                  {vehicle.numberPlate && (
+                    <LicensePlate plate={vehicle.numberPlate} size="medium" />
+                  )}
+                  {/* Color swatch */}
+                  {vehicle.color && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                      <Typography variant="caption" color="text.disabled" fontWeight={700} sx={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Colour
+                      </Typography>
+                      <VehicleColorSwatch color={vehicle.color} />
+                    </Box>
+                  )}
+                </Box>
+              )}
             </Paper>
           )}
 

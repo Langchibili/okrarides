@@ -6,6 +6,7 @@ import { useAuth } from './useAuth';
 import { apiClient } from '@/lib/api/client';
 import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
+import { VERIFICATION_STATUS } from '@/Constants';
 
 export const useDeliveryDriver = () => {
   const { user, isAuthenticated } = useAuth();
@@ -109,7 +110,7 @@ export const useDeliveryDriver = () => {
   // ─── Eligibility ─────────────────────────────────────────────────────────────
   const canGoOnline = useCallback(() => {
     if (!deliveryProfile) return false;
-    const isVerified    = driverProfile?.verificationStatus === 'approved';
+    const isVerified    = driverProfile?.verificationStatus === VERIFICATION_STATUS.APPROVED;
     const activeType    = deliveryProfile.activeVehicleType;
     const hasVehicle    = activeType && activeType !== 'none' && !!deliveryProfile[activeType]?.vehicle;
     const hasSub        = isSubscriptionSystemEnabled

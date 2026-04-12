@@ -91,7 +91,9 @@ export default function LicensePage() {
       //     backImage: backId,
       //   }),
       // })
-
+      if(typeof window !== "undefined"){
+        localStorage.setItem('onboarding_step_page','/onboarding/national-id')
+      }
       router.push('/onboarding/national-id')
     } catch (err) {
       setError(err.message || 'Failed to save license information')

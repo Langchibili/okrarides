@@ -372,6 +372,9 @@ export default function AddVehiclePage() {
       const response = await submitForVerification()
       if (response.success) {
         setSuccess('Vehicle submitted for verification successfully!')
+        if(typeof window !== "undefined"){
+          localStorage.setItem('onboarding_step_page','/onboarding/pending')
+        }
         setTimeout(() => router.push('/onboarding/pending'), 2000)
       } else {
         setError(response.error || 'Failed to submit vehicle for verification')

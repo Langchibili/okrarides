@@ -82,6 +82,9 @@ export default function NationalIdPage() {
           frontImage: frontId,
           backImage: backId,
       })
+      if(typeof window !== "undefined"){
+        localStorage.setItem('onboarding_step_page','/onboarding/proof-of-address')
+      }
       router.push('/onboarding/proof-of-address')
     } catch (err) {
       setError(err.message || 'Failed to save ID information')

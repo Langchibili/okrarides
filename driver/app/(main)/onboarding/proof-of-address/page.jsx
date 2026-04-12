@@ -62,7 +62,9 @@ export default function ProofOfAddressPage() {
         documentType: null,
         document: null,
       })
-
+      if(typeof window !== "undefined"){
+        localStorage.setItem('onboarding_step_page','/onboarding/vehicle-type')
+      }
       router.push('/onboarding/vehicle-type')
     } catch (err) {
       console.error(err)

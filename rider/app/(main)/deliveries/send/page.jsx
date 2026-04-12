@@ -1090,15 +1090,15 @@ export default function SendPackagePage() {
           lat:               geocoded.latitude,
           lng:               geocoded.longitude,
           address:           geocoded.address   || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-          name:              geocoded.name       || geocoded.streetAddress || geocoded.address?.split(',')[0] || 'Current Location',
-          placeId:           geocoded.placeId    || `geo_${lat}_${lng}`,
+          name:              geocoded.name      || geocoded.streetAddress || geocoded.address?.split(',')[0] || ("("+( geocoded?.latitude ?? cl.latitude).toFixed(2) +","+ (geocoded?.longitude ?? cl.longitude).toFixed(2)+")"),
+          placeId:           geocoded.placeId  || `geo_${lat}_${lng}`,
           city:              geocoded.city,
           country:           geocoded.country,
           state:             geocoded.state,
           postalCode:        geocoded.postalCode,
           isCurrentLocation: true,
-        };
-      });
+        }
+      })
       setLocationObtainedAt(Date.now());
     }
   }, [reverseGeocodeCoords]);
@@ -1121,7 +1121,7 @@ export default function SendPackagePage() {
           lat:               source.latitude  ?? cl.latitude,
           lng:               source.longitude ?? cl.longitude,
           address:           source.address   || `${cl.latitude}, ${cl.longitude}`,
-          name:              source.name      || source.streetAddress || source.address?.split(',')[0] || 'Current Location',
+          name:              source.name      || source.streetAddress || source.address?.split(',')[0] || ("("+( geocoded?.latitude ?? cl.latitude).toFixed(2) +","+ (geocoded?.longitude ?? cl.longitude).toFixed(2)+")"),
           placeId:           source.placeId   || `geo_${cl.latitude}_${cl.longitude}`,
           city:              source.city,
           country:           source.country,

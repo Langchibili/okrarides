@@ -288,6 +288,7 @@ export default function DriverHomePage() {
    )
   })()
   const isFloatLow      = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
+  console.log('needsVerification || needsVehicle',needsVerification , needsVehicle)
   const showVerificationAlert         = needsVerification || needsVehicle;
   const showSubscriptionRequiredAlert = !showVerificationAlert && paymentSystemType === 'subscription_based' && needsSubscription;
   const showSubscriptionExpiryAlert   = !showVerificationAlert && isOnSubscriptionSystem && (isSubscriptionExpired || isSubscriptionExpiringSoon);
@@ -365,7 +366,7 @@ export default function DriverHomePage() {
                 {showVerificationAlert && (
                   <motion.div key="verify" variants={alertVariants} initial="hidden" animate="show" exit="exit">
                     <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 1.5, borderRadius: 2.5, boxShadow: `0 4px 16px ${alpha('#F59E0B', 0.2)}` }}
-                      action={<Button color="inherit" size="small" onClick={() => router.push('/onboarding/setup-driver')}>Complete</Button>}>
+                      action={<Button color="inherit" size="small" onClick={() => router.push('/onboarding/welcome')}>Complete</Button>}>
                       <Typography variant="subtitle2" fontWeight={600}>Verification Required</Typography>
                       <Typography variant="body2">
                         {needsVerification && 'Complete your verification before accepting rides. '}

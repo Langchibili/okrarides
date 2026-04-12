@@ -67,6 +67,9 @@ export default function DeliveryVehicleTypePage() {
     setLoading(true);
     try {
       await apiClient.post('/delivery-driver/onboarding/vehicle-type', { vehicleType: selectedType });
+      if(typeof window !== "undefined"){
+        localStorage.setItem('onboarding_step_page','/vehicle/add')
+      }
       router.push('/vehicle/add');
     } catch (err) {
       console.error('Error saving delivery vehicle type:', err);

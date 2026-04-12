@@ -35,7 +35,13 @@ export default function VehicleTypePage() {
   const handleNext = async () => {
     if (!selectedType) return;
     setLoading(true);
-    try { saveVehicleType({ vehicleType: selectedType }); router.push('/vehicle/add'); }
+    try { 
+      saveVehicleType({ vehicleType: selectedType })
+      if(typeof window !== "undefined"){
+        localStorage.setItem('onboarding_step_page','/vehicle/add')
+      }
+      router.push('/vehicle/add')
+    }
     catch (error) { console.error('Error saving vehicle type:', error); }
     finally { setLoading(false); }
   };
