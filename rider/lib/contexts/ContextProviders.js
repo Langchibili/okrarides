@@ -54,13 +54,13 @@ export default function ContextProviders({ children }) {
           <AuthProvider>
             <ScreenshotProvider>
               <SocketProvider>
-                {/* <MapsProvider> */}
+                <MapsProvider>
                   {/* BottomNavProvider sits inside MapsProvider so booking
                       pages that need map + nav control have access to both */}
                   <BottomNavProvider>
                     {children}
                   </BottomNavProvider>
-                {/* </MapsProvider> */}
+                </MapsProvider>
                 <FloatingCaptureButton />
               </SocketProvider>
             </ScreenshotProvider>
@@ -68,5 +68,5 @@ export default function ContextProviders({ children }) {
         </AdminSettingsProvider>
       </ThemeProvider>
     </ReactNativeWrapper>
-  );
+  )
 }
