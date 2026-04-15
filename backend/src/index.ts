@@ -420,7 +420,22 @@ export default {
         name: 'smsZeroFloat',
         rule: '30 7 * * *', // 09:30 AM CAT
         task: async () => { await sendMessagesToUsersWithZeroFloat(strapi); }
-      }
+      },
+      {
+        name: 'restartFrontend',
+        rule: '0 * * * *', // every hour on the hour
+        task: async () => {
+          const { exec } = await import('child_process');
+          exec('pm2 restart frontendapp', (error, stdout, stderr) => {
+            if (error) {
+              strapi.log.error(`[restart-frontend] Failed: ${error.message}`);
+              return;
+            }
+            strapi.log.info(`[restart-frontend] ${stdout.trim()}`);
+            if (stderr) strapi.log.warn(`[restart-frontend] stderr: ${stderr.trim()}`);
+          });
+        }
+      },
     ];
 
     // Loop through and register safely
