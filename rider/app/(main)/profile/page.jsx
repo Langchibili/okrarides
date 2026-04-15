@@ -39,6 +39,7 @@ import { ShimmerDiv, ShimmerText } from 'shimmer-effects-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useThemeMode } from '@/components/ThemeProvider';
 import { formatPhoneNumber } from '@/Functions';
+import { BottomMarginDiv } from '@/components/Layout/BottomMarginDiv';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 const ProfileSkeleton = ({ mode }) => (
@@ -606,7 +607,9 @@ export default function ProfilePage() {
           >
             OkraRides v1.0.0
           </Typography>
+          <BottomMarginDiv mb="120px"/>
         </Box>
+        
       </Box>
     <LogoutModal
       open={showLogout}

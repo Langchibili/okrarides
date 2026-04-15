@@ -890,7 +890,6 @@ import MapIframe from '@/components/Map/MapIframeNoSSR';
 import { getImageUrl } from '@/Functions';
 import { VanIconSmall, getColorByKey } from '@/components/ui/VehicleColorPicker';
 import { ridesAPI } from '@/lib/api/rides';
-import BottomMarginDiv from '@/components/BottomMarginDiv';
 import { apiClient } from '@/lib/api/client';
 
 const RIDE_STATUS_CONFIG = {

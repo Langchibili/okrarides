@@ -370,7 +370,7 @@ const {  currentDelivery } = useDeliveryBooking();
 
       {/* Floating send button (visible when list has items) */}
       {deliveries.length > 0 && (
-        <Box sx={{ position: 'fixed', bottom: 90, right: 20, zIndex: 100 }}>
+        <Box sx={{ position: 'fixed', bottom: 120, right: 20, zIndex: 100 }}>
           <motion.div whileTap={{ scale: 0.94 }} whileHover={{ scale: 1.04 }}>
             <Button
               variant="contained"

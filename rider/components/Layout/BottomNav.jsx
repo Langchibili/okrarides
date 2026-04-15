@@ -34,6 +34,21 @@ export const BottomNav = () => {
   if(pathname.startsWith('/tracking')){ // on rides page, since it has a search param at the end
     return null
   }
+  if(pathname.startsWith('/affiliate')){ // on rides page, since it has a search param at the end
+    return null
+  }
+  if(pathname.startsWith('/profile/settings')){ // on rides page, since it has a search param at the end
+    return null
+  }
+  if(pathname.startsWith('/profile/about')){ // on rides page, since it has a search param at the end
+    return null
+  }
+  if(pathname.startsWith('/trips/')){ // on single ride pages
+    return null
+  }
+  if(pathname.startsWith('/deliveries/')){ // on single delivery pages
+    return null
+  }
   if(pathname.endsWith('/tracking')){ // on ride and delivery tracking page
     return null
   }
