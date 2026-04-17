@@ -4726,6 +4726,10 @@ export interface PluginUsersPermissionsUser
     gender: Schema.Attribute.Enumeration<
       ['male', 'female', 'other', 'prefer_not_to_say']
     >;
+    initialDelivererFloatToppedUp: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    initialFloatToppedUp: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
     isOnline: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     lastName: Schema.Attribute.String;
     lastSeen: Schema.Attribute.DateTime;

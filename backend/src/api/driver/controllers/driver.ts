@@ -686,7 +686,8 @@ async goOffline(ctx) {
           seatingCapacity,
           insuranceExpiryDate,
           isActive: true,
-          rideClasses: {connect: rideClasses.map(rc => rc.id)}
+          rideClasses: {connect: rideClasses.map(rc => rc.id)},
+          assignedDriver: userId
           // Optional: If vehicle has a 'driver' relation, link it back here
           // driver: userId 
         }
@@ -710,6 +711,47 @@ async goOffline(ctx) {
           acceptedRideClasses: {connect: rideClasses.map(rc => rc.id)} 
         },
       });
+
+      const checkIfVehicleExistsAndUserHasInitialFloatToppedUp = async ()=>{
+        const vehicleNumberPlate =  newVehicle?.numberPlate.toLowerCase()
+        const capitalize = (text: String) => text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : '';
+
+        if(!newVehicle){ 
+           return false
+        }
+        let existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
+          where: { numberPlate: vehicleNumberPlate },
+          populate: { assignedDriver: true }
+        })
+        if(!existingVehicle){ // try checking toLowerCase
+          existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
+            where: { numberPlate: capitalize(vehicleNumberPlate) },
+            populate: { assignedDriver: true }
+          })
+        }
+        if(!existingVehicle){ // try checking toUpperCase
+          existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
+            where: { numberPlate: vehicleNumberPlate.toUpperCase() },
+            populate: { assignedDriver: true }
+          })
+        }
+        
+        if(existingVehicle?.assignedDriver){
+          if(existingVehicle?.assignedDriver?.initialFloatToppedUp){ // means an account exists which already has float topped up
+             return true
+          }
+        }
+        return false
+      }
+
+      if(checkIfVehicleExistsAndUserHasInitialFloatToppedUp){ // to avoid a user getting free float topups twice
+        await strapi.db.query('plugin::users-permissions.user').update({
+          where: { id: userId },
+           data: {
+            initialFloatToppedUp: true
+           }
+        })
+      }
 
       return ctx.send({ success: true, message: 'Vehicle created and assigned', nextStep: 'review', newVehicle });
     } catch (error) {
@@ -740,14 +782,25 @@ async goOffline(ctx) {
      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
      const adminEmailMessage = settings?.autoApproveDrivers? 'A driver has been outo approved on OkraRides. User ID: '+ctx.state.user.id :  "A driver is looking for vehicle verification on okrarides, the driver's account id is: "+ctx.state.user.id
      
+     const initialDriverFloat = ()=>{
+      if(user.initialFloatToppedUp){ // you have already been given the floa top up
+        return user.driverProfile?.floatBalance
+      }
+      return settings?.initialDriverFloat || 0
+     } 
      await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: user.driverProfile.id },
         data: {
-          floatBalance:  settings?.initialDriverFloat || 0, // add initial float to driver account based on how much float we are creating for free on account creation
+          floatBalance:  initialDriverFloat(), // add initial float to driver account based on how much float we are creating for free on account creation
           verificationStatus: settings?.autoApproveDrivers? 'approved':'pending', // Mapped to schema enum 'pending'
           // submittedAt: new Date(), // Schema doesn't show 'submittedAt', only 'verifiedAt'. Add to schema if needed.
         },
       })
+     await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: userId },
+        populate: { initialFloatToppedUp: true }
+      })
+      
       try{
          adminEmailAddresses.forEach((email)=>{ 
           SendEmailNotification(email, adminEmailMessage)

@@ -57,6 +57,12 @@ export const BottomNav = () => {
   if(pathname.startsWith('/rides/')){ // on single ride pages
     return null
   }
+  if(pathname.startsWith('/onboarding')){ // on single ride pages
+    return null
+  }
+  if(pathname.startsWith('/vehicle')){ // on single ride pages
+    return null
+  }
   if(pathname.endsWith('/edit')){ // on profile edit page
     return null
   }

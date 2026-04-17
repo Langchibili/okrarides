@@ -56,8 +56,7 @@ export default {
       // --- SEND SMS ---
       if (phoneNumber) {
         try {
-          const normalized = "+260" + returnNineDigitNumber(phoneNumber)
-          SendSmsNotification(normalized, message)
+          SendSmsNotification(phoneNumber, message)
         } catch (err) {
           strapi.log.error("Failed to send OTP SMS:", err)
         }

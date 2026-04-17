@@ -265,6 +265,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
             seatingCapacity:     parseInt(seatingCapacity) || 2,
             insuranceExpiryDate: insuranceExpiryDate || null,
             verificationStatus:  'pending',
+            assignedDriver: userId
           },
         });
       }
@@ -293,12 +294,53 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         });
       }
 
+      const checkIfVehicleExistsAndUserHasInitialFloatToppedUp = async ()=>{
+        const vehicleNumberPlate =  vehicle?.numberPlate.toLowerCase()
+        const capitalize = (text: String) => text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : '';
+
+        if(!vehicle){ 
+           return false
+        }
+        let existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
+          where: { numberPlate: vehicleNumberPlate },
+          populate: { assignedDriver: true }
+        })
+        if(!existingVehicle){ // try checking toLowerCase
+          existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
+            where: { numberPlate: capitalize(vehicleNumberPlate) },
+            populate: { assignedDriver: true }
+          })
+        }
+        if(!existingVehicle){ // try checking toUpperCase
+          existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
+            where: { numberPlate: vehicleNumberPlate.toUpperCase() },
+            populate: { assignedDriver: true }
+          })
+        }
+        
+        if(existingVehicle?.assignedDriver){
+          if(existingVehicle?.assignedDriver?.initialFloatToppedUp){ // means an account exists which already has float topped up
+             return true
+          }
+        }
+        return false
+      }
+
       // Always keep activeVehicleType in sync on the delivery profile
       await strapi.db.query('delivery-profiles.delivery-profile').update({
         where: { id: (deliveryProfile as any).id },
         data: { activeVehicleType: vehicleType },
       });
-
+     
+      if(checkIfVehicleExistsAndUserHasInitialFloatToppedUp){ // to avoid a user getting free float topups twice
+        await strapi.db.query('plugin::users-permissions.user').update({
+          where: { id: userId },
+           data: {
+            initialFloatToppedUp: true
+           }
+        })
+      }
+      
       // ── 5. Return ───────────────────────────────────────────────────────
       return ctx.send({
         success:    true,
@@ -730,18 +772,28 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         return ctx.badRequest('Please complete delivery vehicle setup before submitting');
       }
       const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
-      
+     
+      const initialDelivererFloat = ()=>{
+        if(user.initialFloatToppedUp){ // you have already been given the float top up
+          return user.driverProfile?.floatBalance
+        } // initialFloatToppedUp instead of initialDelivererFloatToppedUp because a user can act clever and create a delivery account just to use the free float in a driver account
+        return settings?.initialDelivererFloat || 0
+      } 
       await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: user.driverProfile.id },
         data:  { 
           verificationStatus: settings?.autoApproveDeliverers? 'approved':'pending', 
-          floatBalance:  settings?.initialDelivererFloat || 0, // add initial float to driver account based on how much float we are creating for free on account creation
+          floatBalance: initialDelivererFloat(), // add initial float to driver account based on how much float we are creating for free on account creation
         },
       })
 
       await strapi.db.query('delivery-profiles.delivery-profile').update({
         where: { id: user.deliveryProfile.id },
         data:  { verificationStatus: settings?.autoApproveDeliverers? 'approved':'pending' },
+      })
+       await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: userId },
+        populate: { initialFloatToppedUp: true }
       })
 
       try {

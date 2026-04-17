@@ -28,8 +28,7 @@ module.exports = factories.createCoreController(
         }
         const message = `Your Okrarides ${purpose.replace('_', ' ')} OTP is: ${otpEntry.otp}`
         if (identifierType === "phoneNumber") {
-            const normalized = "+260" + returnNineDigitNumber(identifier)
-            SendSmsNotification(normalized, message)
+            SendSmsNotification(identifier, message)
         }
         else{
             SendEmailNotification(identifier, message)

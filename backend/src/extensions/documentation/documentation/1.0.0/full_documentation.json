@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-04-15T05:07:34.999Z"
+    "x-generation-date": "2026-04-17T01:39:18.627Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -37718,6 +37718,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -46241,6 +46247,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -47694,6 +47706,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -52014,6 +52032,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -56249,6 +56273,12 @@
                             }
                           }
                         },
+                        "initialFloatToppedUp": {
+                          "type": "boolean"
+                        },
+                        "initialDelivererFloatToppedUp": {
+                          "type": "boolean"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -60006,6 +60036,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -61983,6 +62019,12 @@
                           "type": "string"
                         }
                       }
+                    },
+                    "initialFloatToppedUp": {
+                      "type": "boolean"
+                    },
+                    "initialDelivererFloatToppedUp": {
+                      "type": "boolean"
                     },
                     "createdAt": {
                       "type": "string",
@@ -64622,6 +64664,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -67111,6 +67159,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -69093,6 +69147,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -70658,6 +70718,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -72083,6 +72149,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -73550,6 +73622,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -75277,6 +75355,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -78541,6 +78625,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -80188,6 +80278,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -81861,6 +81957,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -84166,6 +84268,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -85897,6 +86005,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -88652,6 +88766,12 @@
                     }
                   }
                 },
+                "initialFloatToppedUp": {
+                  "type": "boolean"
+                },
+                "initialDelivererFloatToppedUp": {
+                  "type": "boolean"
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -90112,6 +90232,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -91714,6 +91840,12 @@
                         "type": "string"
                       }
                     }
+                  },
+                  "initialFloatToppedUp": {
+                    "type": "boolean"
+                  },
+                  "initialDelivererFloatToppedUp": {
+                    "type": "boolean"
                   },
                   "createdAt": {
                     "type": "string",
@@ -94723,6 +94855,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -96895,6 +97033,12 @@
                           "type": "string"
                         }
                       }
+                    },
+                    "initialFloatToppedUp": {
+                      "type": "boolean"
+                    },
+                    "initialDelivererFloatToppedUp": {
+                      "type": "boolean"
                     },
                     "createdAt": {
                       "type": "string",
@@ -100152,6 +100296,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -101801,6 +101951,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -105148,6 +105304,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -110151,6 +110313,12 @@
                   }
                 }
               },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -112089,6 +112257,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",
@@ -115240,6 +115414,12 @@
                     "type": "string"
                   }
                 }
+              },
+              "initialFloatToppedUp": {
+                "type": "boolean"
+              },
+              "initialDelivererFloatToppedUp": {
+                "type": "boolean"
               },
               "createdAt": {
                 "type": "string",

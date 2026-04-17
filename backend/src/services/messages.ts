@@ -14,7 +14,8 @@ export const getPhoneDigits = (phoneNumber, phoneNumberDigitLength = 9) => {
 }
 
 export const SendSmsNotification = async (phoneNumber: string, notificationBody: string ): Promise<void> => {
-  let user: any = await strapi.db.query('plugin::users-permissions.user').findOne({
+  try{
+     let user: any = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { username: String(phoneNumber).replace(/\D/g, '') },
         populate: {
           country: true
@@ -26,28 +27,35 @@ export const SendSmsNotification = async (phoneNumber: string, notificationBody:
         populate: {
           country: true
         }
-  })
-  }
-  const phoneCode = (user?.country?.phoneCode  || "+260")
-  const validPhoneNumber = phoneCode + getPhoneDigits(phoneNumber,user?.country?.phoneNumberDigitLength)    
-  axios.post(process.env.SMSGATEWAYURL + "/send-sms", {
-    apiKey: process.env.SMSGATEWAYAPIKEY,
-    username: process.env.SMSGATEWAYAPIUSERNAME,
-    recipients: [validPhoneNumber],
-    message: notificationBody,
-    from: process.env.SMSGATEWAYAPICALLERID
-  }, {
-    headers: { 'Content-Type': 'application/json' }
-  })
-    .then(response => console.log('SMS sent:', response.data))
-    .catch(error => console.error('Error sending SMS:', error))
+    })
+    }
+    const phoneCode = (user?.country?.phoneCode  || "+260")
+    const validPhoneNumber = phoneCode + getPhoneDigits(phoneNumber,user?.country?.phoneNumberDigitLength)    
+    axios.post(process.env.SMSGATEWAYURL + "/send-sms", {
+      apiKey: process.env.SMSGATEWAYAPIKEY,
+      username: process.env.SMSGATEWAYAPIUSERNAME,
+      recipients: [validPhoneNumber],
+      message: notificationBody,
+      from: process.env.SMSGATEWAYAPICALLERID
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then(response => console.log('SMS sent:', response.data))
+      .catch(error => console.error('Error sending SMS:', error))
 
-  console.log('sending sms notification', validPhoneNumber, notificationBody)
+    console.log('sending sms notification', validPhoneNumber, notificationBody)
+
+    }
+    catch(e){
+      console.log(e)
+    }
 }
 
 export const SendEmailNotification = (email: string, notificationBody: string): void => {
   const transporter = nodemailer.createTransport({
-    service: process.env.EMAILSERVICENAME,
+    host: process.env.EMAILSERVICEHOST,
+    port: 465,
+    secure: true, // true for 465, false for 587 (STARTTLS)
     auth: {
       user: process.env.EMAILSERVICEUSERNAME,
       pass: process.env.EMAILSERVICEPASSWORD
@@ -55,9 +63,9 @@ export const SendEmailNotification = (email: string, notificationBody: string): 
   })
 
   transporter.sendMail({
-    from: process.env.EMAILSERVICEUSERNAME,
+    from: process.env.EMAILSERVICEFROMEMAIL,
     to: email,
-    subject: 'Message from Vector Finance Limited',
+    subject: 'Message from Okra Technologies',
     text: notificationBody
   }, (error, info) => {
     if (error) console.log('Error sending email:', error)
