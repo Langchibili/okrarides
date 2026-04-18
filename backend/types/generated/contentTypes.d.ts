@@ -1103,6 +1103,10 @@ export interface ApiApiProvidersPriorityMapApiProvidersPriorityMap
       ['geoapify', 'waze', 'openstreet', 'local', 'yandex', 'google', 'apple']
     > &
       Schema.Attribute.DefaultTo<'applemap'>;
+    priotizedAutocompleteApi: Schema.Attribute.Enumeration<
+      ['geoapify', 'local', 'yandex', 'google', 'apple']
+    > &
+      Schema.Attribute.DefaultTo<'geoapify'>;
     priotizedDistanceCalculator: Schema.Attribute.Enumeration<
       ['geoapify', 'openstreet', 'local', 'yandex', 'google', 'apple']
     > &

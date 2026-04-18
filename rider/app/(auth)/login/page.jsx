@@ -89,7 +89,8 @@ export default function LoginPage() {
     const fullPhone = `${selectedCountry.phoneCode.replace('+', '')}${cleanPhone}`;
     if (typeof window !== 'undefined') {
         localStorage.setItem('phoneNumberDigitLenth',phoneNumberDigitLenth)
-        localStorage.setItem('savedPhoneCode',selectedCountry.phoneCode.replace('+', ''))  
+        localStorage.setItem('savedPhoneCode',selectedCountry.phoneCode.replace('+', ''))
+        localStorage.setItem('savedCountryName',selectedCountry.name)    
      }
     try {
       try {

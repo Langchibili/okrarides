@@ -9,7 +9,7 @@
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import '@/styles/google-maps-fix.css';
-import ContextProviders from '@/lib/contexts/ContextProviders';
+import GoogleMapsIpLocation from '@/components/APIProviders/GoogleMapsIpLocation';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -31,6 +31,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export default function RootLayout({ children }) {
+ 
   return (
     <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <head>
@@ -40,6 +41,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
+        <GoogleMapsIpLocation/>
         {/* <ContextProviders>
           {children}
         </ContextProviders> */}

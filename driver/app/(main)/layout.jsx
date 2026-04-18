@@ -14,7 +14,7 @@ import ContextProviders    from '@/lib/contexts/ContextProviders';
 export default function DeliveryMainLayout({ children }) {
   return (
     <ContextProviders>
-      <RenderMainLayout>{children}</RenderMainLayout>
+      <RenderMainLayout children={children}/>
     </ContextProviders>
   );
 }

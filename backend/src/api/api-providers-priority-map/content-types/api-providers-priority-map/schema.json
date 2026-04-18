@@ -27,6 +27,17 @@
         "apple"
       ]
     },
+    "priotizedAutocompleteApi": {
+      "type": "enumeration",
+      "default": "geoapify",
+      "enum": [
+        "geoapify",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    },
     "priotizedRouteDrawer": {
       "type": "enumeration",
       "default": "google",

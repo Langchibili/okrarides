@@ -370,3 +370,5 @@
 {"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-26T01:06:22.917Z"}
 {"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-26T01:06:22.947Z"}
 {"level":"error","message":"Error saving current location to backend:","timestamp":"2026-03-26T01:06:23.701Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-04-15T04:37:23.756Z"}
+{"level":"error","message":"Error saving current location to backend:","timestamp":"2026-04-15T05:07:28.520Z"}

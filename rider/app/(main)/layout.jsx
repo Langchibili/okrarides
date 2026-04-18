@@ -17,7 +17,7 @@ import ContextProviders from '@/lib/contexts/ContextProviders';
 export default function MainLayoutClient({ children }) {
   return (
     <ContextProviders>
-      <RenderMainLayout>{children}</RenderMainLayout>
+      <RenderMainLayout children={children}/>
     </ContextProviders>
   );
 }
@@ -127,7 +127,7 @@ function RenderMainLayout({ children }) {
   return (
     <Box sx={{ minHeight: '100vh', pb: '80px' }}>
       {children}
-      <BottomNav userType="rider" />
+       <BottomNav userType="rider" />
     </Box>
   );
 }

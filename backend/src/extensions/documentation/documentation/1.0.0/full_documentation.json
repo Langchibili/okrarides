@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-04-17T01:39:18.627Z"
+    "x-generation-date": "2026-04-18T01:41:48.151Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -49573,6 +49573,16 @@
                   "apple"
                 ]
               },
+              "priotizedAutocompleteApi": {
+                "type": "string",
+                "enum": [
+                  "geoapify",
+                  "local",
+                  "yandex",
+                  "google",
+                  "apple"
+                ]
+              },
               "priotizedRouteDrawer": {
                 "type": "string",
                 "enum": [
@@ -49678,6 +49688,16 @@
               "geoapify",
               "waze",
               "openstreet",
+              "local",
+              "yandex",
+              "google",
+              "apple"
+            ]
+          },
+          "priotizedAutocompleteApi": {
+            "type": "string",
+            "enum": [
+              "geoapify",
               "local",
               "yandex",
               "google",
@@ -50024,6 +50044,16 @@
                     "geoapify",
                     "waze",
                     "openstreet",
+                    "local",
+                    "yandex",
+                    "google",
+                    "apple"
+                  ]
+                },
+                "priotizedAutocompleteApi": {
+                  "type": "string",
+                  "enum": [
+                    "geoapify",
                     "local",
                     "yandex",
                     "google",

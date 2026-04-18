@@ -3856,7 +3856,6 @@ export default function HomePage() {
             </motion.div>
           )}
         </AnimatePresence>
-
       </Box>
     </ClientOnly>
   );
