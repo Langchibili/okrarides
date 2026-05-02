@@ -2,9 +2,9 @@
 // PATH: app/(main)/home/page.jsx — UI POLISH ONLY
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter }                   from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Box, AppBar, Toolbar, Typography, Button, Alert, Paper, Chip } from '@mui/material';
-import { alpha, useTheme }             from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   LocalAtm as EarningsIcon, DirectionsCar as RidesIcon, Star as StarIcon,
   Speed as SpeedIcon, History as HistoryIcon, AccountBalanceWallet as WalletIcon,
@@ -12,22 +12,22 @@ import {
   Savings as SavingsIcon, LightMode as LightIcon, DarkMode as DarkIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { OnlineToggle }     from '@/components/Driver/OnlineToggle';
-import { EarningsCard }     from '@/components/Driver/EarningsCard';
-import { StatCard }         from '@/components/Driver/StatCard';
+import { OnlineToggle } from '@/components/Driver/OnlineToggle';
+import { EarningsCard } from '@/components/Driver/EarningsCard';
+import { StatCard } from '@/components/Driver/StatCard';
 import { RideRequestModal } from '@/components/Driver/RideRequestModal';
 import { HomePageSkeleton } from '@/components/Skeletons/HomePageSkeleton';
-import { useDriver }        from '@/lib/hooks/useDriver';
-import { useRide }          from '@/lib/hooks/useRide';
-import { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
+import { useDriver } from '@/lib/hooks/useDriver';
+import { useRide } from '@/lib/hooks/useRide';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
-import { useDriverStats }   from '@/lib/hooks/useDriverStats';
-import { useThemeMode }     from '@/components/ThemeProvider';
-import { formatCurrency }   from '@/Functions';
+import { useDriverStats } from '@/lib/hooks/useDriverStats';
+import { useThemeMode } from '@/components/ThemeProvider';
+import { formatCurrency } from '@/Functions';
 import { VERIFICATION_STATUS } from '@/Constants';
-import useAuthGuard         from '@/lib/hooks/useAuthGuard';
-import ClientOnly           from '@/components/ClientOnly';
-import { apiClient }        from '@/lib/api/client';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import ClientOnly from '@/components/ClientOnly';
+import { apiClient } from '@/lib/api/client';
 import useAuth from '@/lib/hooks/useAuth';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
@@ -37,9 +37,9 @@ const GREEN_DIM = '#059669';
 function AppsIcon({ size = 20, color = GREEN }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <rect x="3"  y="3"  width="7" height="7" rx="2" fill={color} />
-      <rect x="14" y="3"  width="7" height="7" rx="2" fill={color} opacity="0.7" />
-      <rect x="3"  y="14" width="7" height="7" rx="2" fill={color} opacity="0.7" />
+      <rect x="3" y="3" width="7" height="7" rx="2" fill={color} />
+      <rect x="14" y="3" width="7" height="7" rx="2" fill={color} opacity="0.7" />
+      <rect x="3" y="14" width="7" height="7" rx="2" fill={color} opacity="0.7" />
       <rect x="14" y="14" width="7" height="7" rx="2" fill={color} opacity="0.5" />
     </svg>
   );
@@ -50,7 +50,7 @@ function HelpCircleIcon({ size = 20, color = GREEN }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" fill="none" />
       <path d="M9.5 9.5C9.5 8.12 10.62 7 12 7C13.38 7 14.5 8.12 14.5 9.5C14.5 10.88 12 12 12 13.5"
-            stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        stroke={color} strokeWidth="1.8" strokeLinecap="round" />
       <circle cx="12" cy="16.5" r="0.9" fill={color} />
     </svg>
   );
@@ -65,14 +65,14 @@ function AnimatedHeaderButton({ label, icon, direction, onClick }) {
     return () => { mounted.current = false; clearTimeout(t); };
   }, []);
   const textV = {
-    enter:  { x: direction === 'left' ? 18 : -18, opacity: 0 },
+    enter: { x: direction === 'left' ? 18 : -18, opacity: 0 },
     center: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 340, damping: 28 } },
-    exit:   { x: direction === 'left' ? -22 : 22, opacity: 0, transition: { duration: 0.22 } },
+    exit: { x: direction === 'left' ? -22 : 22, opacity: 0, transition: { duration: 0.22 } },
   }
   const iconV = {
-    enter:  { x: direction === 'left' ? 18 : -18, opacity: 0 },
+    enter: { x: direction === 'left' ? 18 : -18, opacity: 0 },
     center: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 340, damping: 26 } },
-    exit:   { x: 0, opacity: 0, transition: { duration: 0.15 } },
+    exit: { x: 0, opacity: 0, transition: { duration: 0.15 } },
   }
   return (
     <Box onClick={onClick} sx={{
@@ -109,8 +109,8 @@ function AnimatedHeaderButton({ label, icon, direction, onClick }) {
   );
 }
 
-const PILL_W  = 74;
-const PILL_H  = 30;
+const PILL_W = 74;
+const PILL_H = 30;
 const THUMB_D = 22;
 const THUMB_PAD = 3;
 const THUMB_TRAVEL = PILL_W - THUMB_D - THUMB_PAD * 3; // how far thumb moves
@@ -168,26 +168,26 @@ function ThemeToggle({ isDark, onToggle }) {
 }
 
 export default function DriverHomePage() {
-  const router  = useRouter();
-  const theme   = useTheme();
-  const isDark  = theme.palette.mode === 'dark';
+  const router = useRouter();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { toggleTheme: toggleColorMode } = useThemeMode();
   const { isAuthenticated } = useAuth()
-  const { user } = useAuthGuard({requireSubscription : true, requireVerification : true}) // on page running, this handles checks for if driver his verified, etc
+  const { user } = useAuthGuard({ requireSubscription: true, requireVerification: true }) // on page running, this handles checks for if driver his verified, etc
   const { driverProfile, isOnline, toggleOnline, needsVerification, needsVehicle, needsSubscription, paymentSystemType, loadingDriverProfile } = useDriver();
   const { isNegativeFloatAllowed, negativeFloatLimit, minimumFloatTopup, defaultCommissionPercentage, isFloatSystemEnabled, isSubscriptionSystemEnabled } = useAdminSettings();
   const { incomingRide, acceptRide, declineRide, currentRide } = useRide();
   const { isNative, getCurrentLocation, reconnectDeviceSocket } = useReactNative();
   const { summary, lifetime, loading: statsLoading, fetchStats } = useDriverStats();
   const [currentLocation, setCurrentLocation] = useState(null);
-  const [landingPageUrl,  setLandingPageUrl]  = useState(null);
+  const [landingPageUrl, setLandingPageUrl] = useState(null);
   const [isFloatAtLimit, setIsFloatAtLimit] = useState(false);
   const [daysUntilExpiry, setDaysUntilExpiry] = useState(null);
-  const floatBalance    = driverProfile?.floatBalance || 0;
+  const floatBalance = driverProfile?.floatBalance || 0;
   const isFloatNegative = floatBalance <= 0;
-  const isFloatLow      = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
-   const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
-   
+  const isFloatLow = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
+  const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
+
   useEffect(() => {
     if (currentRide) {
       const { rideStatus, id } = currentRide;
@@ -200,10 +200,10 @@ export default function DriverHomePage() {
   useEffect(() => {
     fetchStats('today')
     requestLocationOnMount()
-     if(isNative){
-        reconnectDeviceSocket( user?.id, 'driver', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL) // this is because each time a user switches app, they must reconnect to the current app for all events
-     }
-     apiClient.post('/delivery-driver/toggle-offline'); // the delivery-driver/toggle-offline endpoint toggles  the deliverer offline
+    if (isNative) {
+      reconnectDeviceSocket(user?.id, 'driver', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL) // this is because each time a user switches app, they must reconnect to the current app for all events
+    }
+    apiClient.post('/delivery-driver/toggle-offline'); // the delivery-driver/toggle-offline endpoint toggles  the deliverer offline
   }, []);
 
   useEffect(() => {
@@ -216,20 +216,20 @@ export default function DriverHomePage() {
   }, []);
 
   useEffect(() => {
-  if (!subscriptionExpiresAt) return;
+    if (!subscriptionExpiresAt) return;
 
-  const diff = new Date(subscriptionExpiresAt).getTime() - Date.now();
-  setDaysUntilExpiry(Math.max(0, Math.floor(diff / 86400000)));
-}, [subscriptionExpiresAt])
+    const diff = new Date(subscriptionExpiresAt).getTime() - Date.now();
+    setDaysUntilExpiry(Math.max(0, Math.floor(diff / 86400000)));
+  }, [subscriptionExpiresAt])
 
-useEffect(() => {
-  setIsFloatAtLimit(
-    isFloatNegative &&
-    negativeFloatLimit > 0 &&
-    typeof floatBalance === 'number' &&
-    Math.abs(floatBalance) >= negativeFloatLimit
-  );
-}, [isFloatNegative, negativeFloatLimit, floatBalance]);
+  useEffect(() => {
+    setIsFloatAtLimit(
+      isFloatNegative &&
+      negativeFloatLimit > 0 &&
+      typeof floatBalance === 'number' &&
+      Math.abs(floatBalance) >= negativeFloatLimit
+    );
+  }, [isFloatNegative, negativeFloatLimit, floatBalance]);
 
   const requestLocationOnMount = async () => {
     try {
@@ -238,47 +238,50 @@ useEffect(() => {
         if (loc) { setCurrentLocation({ lat: loc.lat, lng: loc.lng }); return; }
       }
       if (navigator.geolocation) {
+        if (typeof window !== 'undefined' && !!window.ReactNativeWebView) {
+          return // you are in a native environment
+        }
         navigator.geolocation.getCurrentPosition(
           ({ coords }) => setCurrentLocation({ lat: coords.latitude, lng: coords.longitude }),
           (e) => console.error('Location error:', e),
-          { enableHighAccuracy: true, timeout: 10000 },
-        );
+          { enableHighAccuracy: true, timeout: 10000 }
+        )
       }
     } catch (e) { console.error('Error requesting location:', e); }
   }
-  
+
   const handleToggleOnline = async () => {
     try {
       const result = await toggleOnline(!isOnline);
       if (!result.allowed) {
-        if (result.action === 'subscribe')   { if (window.confirm(result.message + '\n\nView plans?')) router.push('/subscription/plans'); }
+        if (result.action === 'subscribe') { if (window.confirm(result.message + '\n\nView plans?')) router.push('/subscription/plans'); }
         if (result.action === 'topup_float') { if (window.confirm(result.message + '\n\nTop up now?')) router.push('/float/topup'); }
       }
     } catch (e) { console.error('Error toggling online:', e); }
   };
 
-  const handleAcceptRide  = async (id) => { try { await acceptRide(id);  router.push(`/active-ride/${id}`); } catch (e) { console.error(e); } };
+  const handleAcceptRide = async (id) => { try { await acceptRide(id); router.push(`/active-ride/${id}`); } catch (e) { console.error(e); } };
   const handleDeclineRide = async (id) => { try { await declineRide(id, 'Driver declined'); } catch (e) { console.error(e); } };
 
-  const subscriptionStatus    = driverProfile?.subscriptionStatus;
+  const subscriptionStatus = driverProfile?.subscriptionStatus;
   const isOnSubscriptionSystem = paymentSystemType === 'subscription_based' || (paymentSystemType === 'hybrid' && ['active', 'trial'].includes(subscriptionStatus));
   const isOnFloatSystem = paymentSystemType === 'float_based' || (paymentSystemType === 'hybrid' && !['active', 'trial'].includes(subscriptionStatus));
-  
-  const isSubscriptionExpired      = ['expired', 'cancelled'].includes(subscriptionStatus);
+
+  const isSubscriptionExpired = ['expired', 'cancelled'].includes(subscriptionStatus);
   const isSubscriptionExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 7;
   const isOnTrial = subscriptionStatus === 'trial';
-  const showVerificationAlert         = needsVerification || needsVehicle;
+  const showVerificationAlert = needsVerification || needsVehicle;
   const showSubscriptionRequiredAlert = !showVerificationAlert && paymentSystemType === 'subscription_based' && needsSubscription;
-  const showSubscriptionExpiryAlert   = !showVerificationAlert && isOnSubscriptionSystem && (isSubscriptionExpired || isSubscriptionExpiringSoon);
-  const showFloatBlockedAlert         = !showVerificationAlert && isOnFloatSystem && (isFloatAtLimit || (isFloatNegative && !isNegativeFloatAllowed));
-  const showFloatLowAlert             = !showVerificationAlert && isOnFloatSystem && isFloatLow;
-  const showFloatNegativeWarning      = !showVerificationAlert && isOnFloatSystem && isFloatNegative && !isFloatAtLimit && isNegativeFloatAllowed;
-  const showFloatWithdrawableNotice   = !showVerificationAlert && isOnSubscriptionSystem && floatBalance > 0;
+  const showSubscriptionExpiryAlert = !showVerificationAlert && isOnSubscriptionSystem && (isSubscriptionExpired || isSubscriptionExpiringSoon);
+  const showFloatBlockedAlert = !showVerificationAlert && isOnFloatSystem && (isFloatAtLimit || (isFloatNegative && !isNegativeFloatAllowed));
+  const showFloatLowAlert = !showVerificationAlert && isOnFloatSystem && isFloatLow;
+  const showFloatNegativeWarning = !showVerificationAlert && isOnFloatSystem && isFloatNegative && !isFloatAtLimit && isNegativeFloatAllowed;
+  const showFloatWithdrawableNotice = !showVerificationAlert && isOnSubscriptionSystem && floatBalance > 0;
 
   const alertVariants = {
     hidden: { opacity: 0, y: -12, height: 0 },
-    show:   { opacity: 1, y: 0,   height: 'auto', transition: { type: 'spring', stiffness: 300, damping: 28 } },
-    exit:   { opacity: 0, y: -8,  height: 0 },
+    show: { opacity: 1, y: 0, height: 'auto', transition: { type: 'spring', stiffness: 300, damping: 28 } },
+    exit: { opacity: 0, y: -8, height: 0 },
   };
 
   // ── Light-mode surface colors ──
@@ -288,9 +291,9 @@ useEffect(() => {
   const appBarBg = isDark
     ? `linear-gradient(135deg, #1E293B 0%, #0F172A 100%)`
     : `linear-gradient(135deg, #065F46 0%, #059669 100%)`;
-  
-  if(!isAuthenticated()){
-    return <HomePageSkeleton/>
+
+  if (!isAuthenticated()) {
+    return <HomePageSkeleton />
   }
 
   return (
@@ -431,9 +434,9 @@ useEffect(() => {
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 12, color: isOnSubscriptionSystem ? (isDark ? 'success.light' : 'success.dark') : (isDark ? 'info.light' : 'info.dark') }}>
                       💰{' '}
                       {paymentSystemType === 'subscription_based' ? '0% Commission — Subscription Plan'
-                        : paymentSystemType === 'float_based'     ? `Float — ${defaultCommissionPercentage}% Commission`
-                        : isOnSubscriptionSystem                  ? '0% Commission — Active Subscription'
-                        : `Hybrid — ${defaultCommissionPercentage}% Commission`}
+                        : paymentSystemType === 'float_based' ? `Float — ${defaultCommissionPercentage}% Commission`
+                          : isOnSubscriptionSystem ? '0% Commission — Active Subscription'
+                            : `Hybrid — ${defaultCommissionPercentage}% Commission`}
                     </Typography>
                     {isOnFloatSystem && (
                       <Chip label={`Float: ${formatCurrency(floatBalance)}`} size="small"
@@ -458,9 +461,9 @@ useEffect(() => {
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: '1fr', gap: 1.5, mb: 1.5, '& > *': { minWidth: 0, minHeight: 0 } }}>
                 {[
                   { el: <EarningsCard title="Today's Earnings" amount={summary.totalEarnings} icon={<EarningsIcon />} color="earnings" onClick={() => router.push('/earnings')} />, delay: 0.08 },
-                  { el: <StatCard title="Rides Today"  value={summary.completedRides}                   icon={<RidesIcon />}  color="primary" />, delay: 0.14 },
-                  { el: <StatCard title="Rating"       value={lifetime.averageRating.toFixed(1)}         icon={<StarIcon />}   color="warning" />, delay: 0.20 },
-                  { el: <StatCard title="Acceptance"   value={`${summary.acceptanceRate}%`}              icon={<SpeedIcon />}  color="info"    />, delay: 0.26 },
+                  { el: <StatCard title="Rides Today" value={summary.completedRides} icon={<RidesIcon />} color="primary" />, delay: 0.14 },
+                  { el: <StatCard title="Rating" value={lifetime.averageRating.toFixed(1)} icon={<StarIcon />} color="warning" />, delay: 0.20 },
+                  { el: <StatCard title="Acceptance" value={`${summary.acceptanceRate}%`} icon={<SpeedIcon />} color="info" />, delay: 0.26 },
                 ].map(({ el, delay }, i) => (
                   <motion.div key={i} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
                     transition={{ type: 'spring', stiffness: 280, damping: 24, delay }} style={{ height: '100%' }}>
@@ -472,8 +475,8 @@ useEffect(() => {
               {/* ── Quick Actions ─────────────────────────────────── */}
               <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
                 {[
-                  { label: 'Ride History', icon: <HistoryIcon />, path: '/rides'    },
-                  { label: 'Earnings',     icon: <WalletIcon />,  path: '/earnings' },
+                  { label: 'Ride History', icon: <HistoryIcon />, path: '/rides' },
+                  { label: 'Earnings', icon: <WalletIcon />, path: '/earnings' },
                 ].map(({ label, icon, path }, i) => (
                   <motion.div key={label} style={{ flex: 1 }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.06 }}
@@ -524,7 +527,7 @@ useEffect(() => {
                       }}>
                       {isSubscriptionExpired ? 'Renew Plan'
                         : ['active', 'trial'].includes(subscriptionStatus) ? `Plan: ${daysUntilExpiry}d left`
-                        : 'View Plans'}
+                          : 'View Plans'}
                     </Button>
                   )}
                 </Box>
@@ -535,7 +538,7 @@ useEffect(() => {
 
         {/* ── Ride Request Modal ──────────────────────────────────────── */}
         <AnimatePresence>
-          {incomingRide && !isNative &&(
+          {incomingRide && !isNative && (
             <RideRequestModal open={!!incomingRide} rideRequest={incomingRide}
               onAccept={handleAcceptRide} onDecline={handleDeclineRide} />
           )}

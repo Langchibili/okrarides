@@ -2,19 +2,19 @@
 // PATH: delivery/app/(main)/DeliveryMainLayoutClient.jsx
 
 import { Box } from '@mui/material';
-import { BottomNav }       from '@/components/Layout/BottomNav';
-import { useAuth }         from '@/lib/hooks/useAuth';
+import { BottomNav } from '@/components/Layout/BottomNav';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useEffect, useState } from 'react';
-import { useRouter }       from 'next/navigation';
-import { useReactNative }  from '@/lib/contexts/ReactNativeWrapper';
-import { useRide }         from '@/lib/hooks/useRide';
-import { apiClient }       from '@/lib/api/client';
-import ContextProviders    from '@/lib/contexts/ContextProviders';
+import { useRouter } from 'next/navigation';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import { useRide } from '@/lib/hooks/useRide';
+import { apiClient } from '@/lib/api/client';
+import ContextProviders from '@/lib/contexts/ContextProviders';
 
 export default function DeliveryMainLayout({ children }) {
   return (
     <ContextProviders>
-      <RenderMainLayout children={children}/>
+      <RenderMainLayout children={children} />
     </ContextProviders>
   );
 }
@@ -51,6 +51,9 @@ function RenderMainLayout({ children }) {
             window.addEventListener('message', handleLocationUpdate);
             setTimeout(() => window.removeEventListener('message', handleLocationUpdate), 10000);
           } else if (navigator.geolocation) {
+            if (typeof window !== 'undefined' && !!window.ReactNativeWebView) {
+              return // you are in a native environment
+            }
             navigator.geolocation.getCurrentPosition(
               ({ coords }) => apiClient.post('/driver/update-location', {
                 location: { lat: coords.latitude, lng: coords.longitude },
@@ -82,14 +85,14 @@ function RenderMainLayout({ children }) {
     }
   }, [currentRide, router, isAuthenticated]);
 
-//  useEffect(() => {
-//     const jssStyles = document.querySelector('#jss-server-side');
-//     if (jssStyles) jssStyles.parentElement?.removeChild(jssStyles);
-//     document.body.classList.remove('map-loaded', 'google-maps-initialized');
-//   }, [pathname]);
+  //  useEffect(() => {
+  //     const jssStyles = document.querySelector('#jss-server-side');
+  //     if (jssStyles) jssStyles.parentElement?.removeChild(jssStyles);
+  //     document.body.classList.remove('map-loaded', 'google-maps-initialized');
+  //   }, [pathname]);
 
   return (
-    <Box sx={{ minHeight:'100vh', pb:'68px', bgcolor:'background.default', overflowX:'hidden' }}>
+    <Box sx={{ minHeight: '100vh', pb: '68px', bgcolor: 'background.default', overflowX: 'hidden' }}>
       {children}
       <BottomNav />
     </Box>

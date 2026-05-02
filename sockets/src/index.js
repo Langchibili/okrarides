@@ -29,27 +29,27 @@ if (environment === 'local' || environment === 'development') {
 } else if (environment === 'test') {
   let clientUrls;
 
-if (environment === 'production') {
-  clientUrls = [
-    'https://okratest.online',
-    'https://book.okratest.online',
-    'https://driver.okratest.online',
-    'https://conductor.okratest.online',
-    'https://delivery.okratest.online',
-    'https://admin.okratest.online',
-  ];
-} else if (environment === 'development' || environment === 'staging' || environment === 'test') {
-  clientUrls = [
-    'https://test.okratest.online',
-    'https://book.test.okratest.online',
-    'https://driver.test.okratest.online',
-    'https://conductor.test.okratest.online',
-    'https://delivery.test.okratest.online',
-    'https://admin.test.okratest.online',
-  ];
-} else {
-  clientUrls = ['http://localhost:3000'];
-}
+  if (environment === 'production') {
+    clientUrls = [
+      'https://okratech.online',
+      'https://book.okratech.online',
+      'https://driver.okratech.online',
+      'https://conductor.okratech.online',
+      'https://delivery.okratech.online',
+      'https://admin.okratech.online',
+    ];
+  } else if (environment === 'development' || environment === 'staging' || environment === 'test') {
+    clientUrls = [
+      'https://test.okratech.online',
+      'https://book.test.okratech.online',
+      'https://driver.test.okratech.online',
+      'https://conductor.test.okratech.online',
+      'https://delivery.test.okratech.online',
+      'https://admin.test.okratech.online',
+    ];
+  } else {
+    clientUrls = ['http://localhost:3000'];
+  }
 }
 
 // ==================== LOGGER SETUP ====================
@@ -140,19 +140,19 @@ function emitToRoom(room, event, data) {
 // MODIFIED: Also emit to device socket server
 function emitToUser(type, userId, event, data) {
   const room = `${type}:${userId}`;
-  
+
   // Emit to web clients in the room
   io.to(room).emit(event, data);
-  
+
   // ALSO emit to device socket server with userId info
-  io.emit(event, { 
-    ...data, 
-    userId, 
+  io.emit(event, {
+    ...data,
+    userId,
     userType: type,
     // Ensure the specific ID field is also present
-    [`${type}Id`]: userId 
+    [`${type}Id`]: userId
   });
-  
+
   console.log(`Emitted '${event}' to ${type} ${userId} (web + devices)`);
 }
 
@@ -162,7 +162,7 @@ function broadcastToNearbyDrivers(location, radius, event, data) {
 
   driverLocations.forEach((driverLoc, driverId) => {
     if (!driverLoc.isAvailable) return;
-    
+
     const distance = calculateDistance(lat, lng, driverLoc.lat, driverLoc.lng);
     if (distance <= radius) {
       nearbyDrivers.push({ driverId, distance });
@@ -178,7 +178,7 @@ function broadcastToNearbyDrivers(location, radius, event, data) {
   });
 
   console.log(`Broadcast to ${nearbyDrivers.length} nearby drivers`, { event, location, radius });
-  
+
   return nearbyDrivers;
 }
 
@@ -187,11 +187,11 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
 
@@ -223,9 +223,9 @@ io.on("connection", (socket) => {
     connections.sockets.set(socket.id, { type: 'rider', id: riderId, metadata });
 
     socket.join(`rider:${riderId}`);
-    
+
     console.log(`Rider ${riderId} joined`, { socketId: socket.id, metadata });
-    
+
     socket.emit('rider:connected', { riderId, socketId: socket.id });
   });
 
@@ -251,7 +251,7 @@ io.on("connection", (socket) => {
     connections.sockets.set(socket.id, { type: 'driver', id: driverId, metadata });
 
     socket.join(`driver:${driverId}`);
-    
+
     // Store initial location if provided
     if (location && location.lat && location.lng) {
       driverLocations.set(driverId, {
@@ -260,9 +260,9 @@ io.on("connection", (socket) => {
         isAvailable: metadata?.isAvailable || false
       });
     }
-    
+
     console.log(`Driver ${driverId} joined`, { socketId: socket.id, location, metadata });
-    
+
     socket.emit('driver:connected', { driverId, socketId: socket.id });
   });
 
@@ -287,9 +287,9 @@ io.on("connection", (socket) => {
     connections.sockets.set(socket.id, { type: 'conductor', id: conductorId, metadata });
 
     socket.join(`conductor:${conductorId}`);
-    
+
     console.log(`Conductor ${conductorId} joined`, { socketId: socket.id });
-    
+
     socket.emit('conductor:connected', { conductorId, socketId: socket.id });
   });
 
@@ -314,7 +314,7 @@ io.on("connection", (socket) => {
     connections.sockets.set(socket.id, { type: 'delivery', id: deliveryPersonId, metadata });
 
     socket.join(`delivery:${deliveryPersonId}`);
-    
+
     if (location && location.lat && location.lng) {
       driverLocations.set(deliveryPersonId, {
         ...location,
@@ -322,13 +322,13 @@ io.on("connection", (socket) => {
         isAvailable: metadata?.isAvailable || false
       });
     }
-    
+
     console.log(`Delivery person ${deliveryPersonId} joined`, { socketId: socket.id });
-    
+
     socket.emit('delivery:connected', { deliveryPersonId, socketId: socket.id });
   });
   // ==================== DELIVERY REQUEST & MATCHING ====================
- 
+
   socket.on('delivery:request:created', (data) => {
     const { deliveryId, senderId, pickupLocation, dropoffLocation, estimatedFare } = data;
     activeRides.set(`del:${deliveryId}`, { senderId, status: 'pending', createdAt: Date.now() });
@@ -338,14 +338,14 @@ io.on("connection", (socket) => {
       deliveryId, senderId, pickupLocation, dropoffLocation, estimatedFare,
     });
   });
- 
+
   socket.on('delivery:request:sent', (data) => {
     const { deliveryId, driverIds, requestData } = data;
     driverIds.forEach(driverId => {
       emitToUser('driver', driverId, 'delivery:request:received', { deliveryId, ...requestData });
     });
   });
- 
+
   socket.on('delivery:accepted', (data) => {
     const { deliveryId, delivererId } = data;
     const del = activeRides.get(`del:${deliveryId}`);
@@ -356,65 +356,65 @@ io.on("connection", (socket) => {
       emitToUser('rider', del.senderId, 'delivery:accepted', data);
     }
   });
- 
+
   socket.on('delivery:taken', (data) => {
     const { deliveryId, driverIds } = data;
     driverIds.forEach(driverId => {
       emitToUser('driver', driverId, 'delivery:taken', { deliveryId });
     });
   });
- 
+
   socket.on('delivery:driver:arrived', (data) => {
     const { deliveryId, delivererId } = data;
     const del = activeRides.get(`del:${deliveryId}`);
     if (del) {
       del.status = 'arrived';
       activeRides.set(`del:${deliveryId}`, del);
-      emitToUser('rider',  del.senderId,   'delivery:driver:arrived', data);
-      emitToUser('driver', delivererId,     'delivery:driver:arrived', data);
+      emitToUser('rider', del.senderId, 'delivery:driver:arrived', data);
+      emitToUser('driver', delivererId, 'delivery:driver:arrived', data);
     }
   });
- 
+
   socket.on('delivery:started', (data) => {
     const { deliveryId, delivererId } = data;
     const del = activeRides.get(`del:${deliveryId}`);
     if (del) {
       del.status = 'in_transit';
       activeRides.set(`del:${deliveryId}`, del);
-      emitToUser('rider',  del.senderId, 'delivery:started', data);
-      emitToUser('driver', delivererId,   'delivery:started', data);
+      emitToUser('rider', del.senderId, 'delivery:started', data);
+      emitToUser('driver', delivererId, 'delivery:started', data);
     }
   });
- 
+
   socket.on('delivery:payment:requested', (data) => {
     const { deliveryId, senderId, delivererId } = data;
-    if (senderId)   emitToUser('rider',  senderId,   'delivery:payment:requested', data);
+    if (senderId) emitToUser('rider', senderId, 'delivery:payment:requested', data);
     if (delivererId) emitToUser('driver', delivererId, 'delivery:payment:requested', data);
   });
- 
+
   socket.on('delivery:completed', (data) => {
     const { deliveryId, delivererId } = data;
     const del = activeRides.get(`del:${deliveryId}`);
     if (del) {
       del.status = 'completed';
       del.completedAt = Date.now();
-      emitToUser('rider',  del.senderId, 'delivery:completed', data);
-      emitToUser('driver', delivererId,   'delivery:completed', data);
+      emitToUser('rider', del.senderId, 'delivery:completed', data);
+      emitToUser('driver', delivererId, 'delivery:completed', data);
       setTimeout(() => activeRides.delete(`del:${deliveryId}`), 300000);
     }
   });
- 
+
   socket.on('delivery:cancelled', (data) => {
     const { deliveryId, cancelledBy, reason, cancellationFee } = data;
     const del = activeRides.get(`del:${deliveryId}`);
     if (del) {
       del.status = 'cancelled';
-      if (del.senderId)   emitToUser('rider',  del.senderId,   'delivery:cancelled', data);
+      if (del.senderId) emitToUser('rider', del.senderId, 'delivery:cancelled', data);
       if (del.delivererId) emitToUser('driver', del.delivererId, 'delivery:cancelled', data);
       setTimeout(() => activeRides.delete(`del:${deliveryId}`), 60000);
     }
   });
- 
+
   socket.on('delivery:no_drivers', (data) => {
     const { deliveryId, senderId } = data;
     if (senderId) emitToUser('rider', senderId, 'delivery:no_drivers', { deliveryId });
@@ -432,9 +432,9 @@ io.on("connection", (socket) => {
 
     socket.join(`admin:${adminId}`);
     socket.join('admin:all'); // All admins room
-    
+
     console.log(`Admin ${adminId} joined`, { socketId: socket.id });
-    
+
     socket.emit('admin:connected', { adminId, socketId: socket.id });
   });
 
@@ -443,7 +443,7 @@ io.on("connection", (socket) => {
   // From Strapi: New ride request created
   socket.on('ride:request:created', (data) => {
     const { rideId, riderId, pickupLocation, dropoffLocation, rideType, estimatedFare } = data;
-    
+
     console.log(`New ride request: ${rideId}`, { riderId, rideType });
 
     // Track this ride
@@ -472,7 +472,7 @@ io.on("connection", (socket) => {
   // From Strapi: Ride request sent to specific drivers
   socket.on('ride:request:sent', (data) => {
     const { rideId, driverIds, requestData } = data;
-    
+
     driverIds.forEach(driverId => {
       emitToUser('driver', driverId, 'ride:request:received', {
         rideId,
@@ -486,7 +486,7 @@ io.on("connection", (socket) => {
   // Driver accepts ride
   socket.on('ride:accept', (data) => {
     const { rideId, driverId } = data;
-    
+
     const ride = activeRides.get(rideId);
     if (!ride) {
       socket.emit('error', { message: 'Ride not found' });
@@ -509,25 +509,25 @@ io.on("connection", (socket) => {
     emitToRoom(`ride:${rideId}:pending`, 'ride:taken', { rideId, driverId });
 
     console.log(`Ride ${rideId} accepted by driver ${driverId}`);
-    
+
     socket.emit('ride:accept:success', { rideId, driverId });
   });
 
   // Driver declines ride
   socket.on('ride:decline', (data) => {
     const { rideId, driverId, reason } = data;
-    
+
     console.log(`Driver ${driverId} declined ride ${rideId}`, { reason });
-    
+
     socket.emit('ride:decline:success', { rideId, driverId });
-    
+
     // This event should trigger Strapi to send request to next driver
   });
 
   // From Strapi: Driver arrived at pickup
   socket.on('ride:driver:arrived', (data) => {
     const { rideId, driverId } = data;
-    
+
     const ride = activeRides.get(rideId);
     if (ride) {
       ride.status = 'arrived';
@@ -544,7 +544,7 @@ io.on("connection", (socket) => {
   // From Strapi: Trip started
   socket.on('ride:trip:started', (data) => {
     const { rideId, driverId } = data;
-    
+
     const ride = activeRides.get(rideId);
     if (ride) {
       ride.status = 'in_progress';
@@ -561,7 +561,7 @@ io.on("connection", (socket) => {
   // From Strapi: Trip completed
   socket.on('ride:trip:completed', (data) => {
     const { rideId, driverId, finalFare, distance, duration } = data;
-    
+
     const ride = activeRides.get(rideId);
     if (ride) {
       ride.status = 'completed';
@@ -629,7 +629,7 @@ io.on("connection", (socket) => {
     // Update activeRides map if you maintain one
     if (rideId && activeRides && activeRides[rideId]) {
       activeRides[rideId].paymentStatus = 'completed';
-      activeRides[rideId].rideStatus    = 'completed';
+      activeRides[rideId].rideStatus = 'completed';
     }
 
     // Broadcast to both parties
@@ -640,12 +640,12 @@ io.on("connection", (socket) => {
       emitToUser('driver', driverId, 'payment:received', data);
     }
   })
-  
+
 
   // From Strapi: Ride cancelled
   socket.on('ride:cancelled', (data) => {
     const { rideId, cancelledBy, reason, cancellationFee } = data;
-    
+
     const ride = activeRides.get(rideId);
     if (ride) {
       ride.status = 'cancelled';
@@ -683,7 +683,7 @@ io.on("connection", (socket) => {
   // Driver location update
   socket.on('driver:location:update', (data) => {
     const { driverId, location, heading, speed } = data;
-    
+
     // Update location cache
     const existingLoc = driverLocations.get(driverId) || {};
     driverLocations.set(driverId, {
@@ -712,7 +712,7 @@ io.on("connection", (socket) => {
   // Rider location update
   socket.on('rider:location:update', (data) => {
     const { riderId, location } = data;
-    
+
     // If rider is on an active ride, broadcast to driver
     activeRides.forEach((ride, rideId) => {
       if (ride.riderId === riderId && ride.driverId && ride.status !== 'completed' && ride.status !== 'cancelled') {
@@ -730,7 +730,7 @@ io.on("connection", (socket) => {
   // Driver goes online
   socket.on('driver:online', (data) => {
     const { driverId, location } = data;
-    
+
     const driverLoc = driverLocations.get(driverId) || {};
     driverLocations.set(driverId, {
       ...driverLoc,
@@ -741,14 +741,14 @@ io.on("connection", (socket) => {
     });
 
     console.log(`Driver ${driverId} is now online`);
-    
+
     socket.emit('driver:online:success', { driverId });
   });
 
   // Driver goes offline
   socket.on('driver:offline', (data) => {
     const { driverId } = data;
-    
+
     const driverLoc = driverLocations.get(driverId);
     if (driverLoc) {
       driverLoc.isAvailable = false;
@@ -756,14 +756,14 @@ io.on("connection", (socket) => {
     }
 
     console.log(`Driver ${driverId} is now offline`);
-    
+
     socket.emit('driver:offline:success', { driverId });
   });
 
   // From Strapi: Driver forced offline (subscription expired, etc.)
   socket.on('driver:forced:offline', (data) => {
     const { driverId, reason, message } = data;
-    
+
     const driverLoc = driverLocations.get(driverId);
     if (driverLoc) {
       driverLoc.isAvailable = false;
@@ -771,7 +771,7 @@ io.on("connection", (socket) => {
     }
 
     emitToUser('driver', driverId, 'driver:forced:offline', { reason, message });
-    
+
     logger.warn(`Driver ${driverId} forced offline`, { reason });
   });
 
@@ -780,7 +780,7 @@ io.on("connection", (socket) => {
   // From Strapi: Subscription expiring soon
   socket.on('subscription:expiring:warning', (data) => {
     const { driverId, daysRemaining, expiresAt, planName } = data;
-    
+
     emitToUser('driver', driverId, 'subscription:expiring:warning', {
       daysRemaining,
       expiresAt,
@@ -791,7 +791,7 @@ io.on("connection", (socket) => {
   // From Strapi: Subscription expired
   socket.on('subscription:expired', (data) => {
     const { driverId, expiredAt, message } = data;
-    
+
     emitToUser('driver', driverId, 'subscription:expired', {
       expiredAt,
       message
@@ -801,7 +801,7 @@ io.on("connection", (socket) => {
   // From Strapi: Subscription activated/renewed
   socket.on('subscription:activated', (data) => {
     const { driverId, planName, expiresAt } = data;
-    
+
     emitToUser('driver', driverId, 'subscription:activated', {
       planName,
       expiresAt
@@ -813,7 +813,7 @@ io.on("connection", (socket) => {
   // From Strapi: Payment successful
   socket.on('payment:success', (data) => {
     const { userId, userType, amount, transactionId, type } = data;
-    
+
     emitToUser(userType, userId, 'payment:success', {
       amount,
       transactionId,
@@ -824,7 +824,7 @@ io.on("connection", (socket) => {
   // From Strapi: Payment failed
   socket.on('payment:failed', (data) => {
     const { userId, userType, amount, reason, transactionId } = data;
-    
+
     emitToUser(userType, userId, 'payment:failed', {
       amount,
       reason,
@@ -835,7 +835,7 @@ io.on("connection", (socket) => {
   // From Strapi: Withdrawal processed
   socket.on('withdrawal:processed', (data) => {
     const { driverId, amount, method, transactionId } = data;
-    
+
     emitToUser('driver', driverId, 'withdrawal:processed', {
       amount,
       method,
@@ -848,7 +848,7 @@ io.on("connection", (socket) => {
   // From Strapi: Request rating from rider
   socket.on('rating:request:rider', (data) => {
     const { riderId, rideId, driverId } = data;
-    
+
     emitToUser('rider', riderId, 'rating:request', {
       rideId,
       driverId,
@@ -859,7 +859,7 @@ io.on("connection", (socket) => {
   // From Strapi: Request rating from driver
   socket.on('rating:request:driver', (data) => {
     const { driverId, rideId, riderId } = data;
-    
+
     emitToUser('driver', driverId, 'rating:request', {
       rideId,
       riderId,
@@ -870,7 +870,7 @@ io.on("connection", (socket) => {
   // From Strapi: Rating submitted confirmation
   socket.on('rating:submitted', (data) => {
     const { userId, userType, rideId, rating } = data;
-    
+
     emitToUser(userType, userId, 'rating:submitted', {
       rideId,
       rating
@@ -882,14 +882,14 @@ io.on("connection", (socket) => {
   // From Strapi: Generic notification
   socket.on('notification:send', (data) => {
     const { userId, userType, notification } = data;
-    
+
     emitToUser(userType, userId, 'notification:new', notification);
   });
 
   // From Strapi: Broadcast to all users of a type
   socket.on('notification:broadcast', (data) => {
     const { userType, notification } = data;
-    
+
     if (userType === 'all') {
       io.emit('notification:broadcast', notification);
     } else {
@@ -897,7 +897,7 @@ io.on("connection", (socket) => {
         emitToUser(userType, userId, 'notification:broadcast', notification);
       });
     }
-    
+
     console.log(`Broadcast notification to ${userType}`, { notification });
   });
 
@@ -906,7 +906,7 @@ io.on("connection", (socket) => {
   // SOS alert triggered
   socket.on('sos:trigger', (data) => {
     const { userId, userType, location, rideId, type } = data;
-    
+
     // Notify all admins immediately
     emitToRoom('admin:all', 'sos:alert', {
       userId,
@@ -918,13 +918,13 @@ io.on("connection", (socket) => {
     });
 
     // Notify emergency contacts (handled by Strapi)
-    
+
     logger.error(`SOS ALERT from ${userType} ${userId}`, { location, rideId, type });
-    
+
     // Send confirmation back to user
     const alertId = `SOS-${Date.now()}`;
     socket.emit('sos:triggered', { alertId, userId });
-    
+
     // Also emit to device socket server
     io.emit('sos:triggered', { alertId, userId, userType });
   });
@@ -932,7 +932,7 @@ io.on("connection", (socket) => {
   // From Strapi: SOS alert acknowledged
   socket.on('sos:acknowledged', (data) => {
     const { alertId, userId, userType, acknowledgedBy } = data;
-    
+
     emitToUser(userType, userId, 'sos:acknowledged', {
       alertId,
       acknowledgedBy
@@ -944,26 +944,26 @@ io.on("connection", (socket) => {
   // Bus driver starts route
   socket.on('bus:route:started', (data) => {
     const { driverId, routeId, busId } = data;
-    
+
     socket.join(`bus:route:${routeId}`);
-    
+
     // Notify passengers waiting on this route
     emitToRoom(`bus:route:${routeId}`, 'bus:route:started', {
       driverId,
       routeId,
       busId
     });
-    
+
     // Also emit to device socket server
     io.emit('bus:route:started', { driverId, routeId, busId, userType: 'driver', userId: driverId });
-    
+
     console.log(`Bus route ${routeId} started by driver ${driverId}`);
   });
 
   // Bus location update
   socket.on('bus:location:update', (data) => {
     const { driverId, routeId, location, nextStation, eta } = data;
-    
+
     // Broadcast to all passengers tracking this route
     emitToRoom(`bus:route:${routeId}`, 'bus:location:updated', {
       driverId,
@@ -971,7 +971,7 @@ io.on("connection", (socket) => {
       nextStation,
       eta
     });
-    
+
     // Also emit to device socket server
     io.emit('bus:location:updated', {
       driverId,
@@ -985,16 +985,16 @@ io.on("connection", (socket) => {
   // Passenger tracking bus route
   socket.on('bus:route:track', (data) => {
     const { riderId, routeId } = data;
-    
+
     socket.join(`bus:route:${routeId}`);
-    
+
     console.log(`Rider ${riderId} tracking bus route ${routeId}`);
   });
 
   // Stop tracking bus route
   socket.on('bus:route:untrack', (data) => {
     const { routeId } = data;
-    
+
     socket.leave(`bus:route:${routeId}`);
   });
 
@@ -1003,7 +1003,7 @@ io.on("connection", (socket) => {
   // From Strapi: Referral signup
   socket.on('affiliate:referral:signup', (data) => {
     const { affiliateId, referredUser, points } = data;
-    
+
     emitToUser('rider', affiliateId, 'affiliate:referral:signup', {
       referredUser,
       points
@@ -1013,7 +1013,7 @@ io.on("connection", (socket) => {
   // From Strapi: Commission earned
   socket.on('affiliate:commission:earned', (data) => {
     const { affiliateId, amount, rideId, points } = data;
-    
+
     emitToUser('rider', affiliateId, 'affiliate:commission:earned', {
       amount,
       rideId,
@@ -1026,7 +1026,7 @@ io.on("connection", (socket) => {
   // From Strapi: System announcement
   socket.on('admin:announcement', (data) => {
     const { targetAudience, message, priority } = data;
-    
+
     if (targetAudience === 'all') {
       io.emit('system:announcement', { message, priority });
     } else {
@@ -1034,33 +1034,33 @@ io.on("connection", (socket) => {
         emitToUser(targetAudience, userId, 'system:announcement', { message, priority });
       });
     }
-    
+
     console.log('System announcement sent', { targetAudience, priority });
   });
 
   // Admin monitoring - watch all rides
   socket.on('admin:monitor:rides', () => {
     socket.join('admin:monitor:rides');
-    
+
     // Send current active rides
     const rides = Array.from(activeRides.entries()).map(([rideId, ride]) => ({
       rideId,
       ...ride
     }));
-    
+
     socket.emit('admin:monitor:rides:data', { rides });
   });
 
   // Admin monitoring - watch all drivers
   socket.on('admin:monitor:drivers', () => {
     socket.join('admin:monitor:drivers');
-    
+
     // Send current driver locations
     const drivers = Array.from(driverLocations.entries()).map(([driverId, location]) => ({
       driverId,
       ...location
     }));
-    
+
     socket.emit('admin:monitor:drivers:data', { drivers });
   });
 
@@ -1074,15 +1074,15 @@ io.on("connection", (socket) => {
 
   socket.on('disconnect', (reason) => {
     console.log(`Socket disconnected: ${socket.id}`, { reason });
-    
+
     const entityInfo = connections.sockets.get(socket.id);
     if (entityInfo) {
       const { type, id } = entityInfo;
-      
+
       // Clean up connection tracking
       connections[`${type}s`]?.delete(id);
       connections.sockets.delete(socket.id);
-      
+
       // Clean up driver location if driver disconnects
       if (type === 'driver' || type === 'delivery') {
         const loc = driverLocations.get(id);
@@ -1091,7 +1091,7 @@ io.on("connection", (socket) => {
           driverLocations.set(id, loc);
         }
       }
-      
+
       console.log(`Cleaned up ${type} ${id}`);
     }
   });
@@ -1166,8 +1166,8 @@ setInterval(() => {
 
   // Clean up old completed/cancelled rides
   activeRides.forEach((ride, rideId) => {
-    if ((ride.status === 'completed' || ride.status === 'cancelled') && 
-        now - (ride.completedAt || ride.cancelledAt || ride.createdAt) > staleThreshold) {
+    if ((ride.status === 'completed' || ride.status === 'cancelled') &&
+      now - (ride.completedAt || ride.cancelledAt || ride.createdAt) > staleThreshold) {
       console.log(`Cleaning up old ride ${rideId}`);
       activeRides.delete(rideId);
     }

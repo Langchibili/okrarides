@@ -12,14 +12,14 @@ export const useReactNative = () => {
 
 // ─── Per-type timeouts ────────────────────────────────────────────────────────
 const REQUEST_TIMEOUTS = {
-  GET_CURRENT_LOCATION:    10_000,
+  GET_CURRENT_LOCATION: 10_000,
   START_LOCATION_TRACKING: 10_000,
-  STOP_LOCATION_TRACKING:   5_000,
-  REQUEST_PERMISSION:      60_000,
-  CHECK_PERMISSION:         5_000,
-  INITIALIZE_SERVICES:     20_000,
-  SHOW_NOTIFICATION:        5_000,
-  DEFAULT:                 30_000,
+  STOP_LOCATION_TRACKING: 5_000,
+  REQUEST_PERMISSION: 60_000,
+  CHECK_PERMISSION: 5_000,
+  INITIALIZE_SERVICES: 20_000,
+  SHOW_NOTIFICATION: 5_000,
+  DEFAULT: 30_000,
 };
 
 // Fire-and-forget: native never replies, never open a pending slot
@@ -29,19 +29,19 @@ const getTimeout = (type) => REQUEST_TIMEOUTS[type] ?? REQUEST_TIMEOUTS.DEFAULT;
 
 
 export function ReactNativeWrapper({ children }) {
-  const [isNative,            setIsNative]            = useState(false);
-  const [isChecking,          setIsChecking]          = useState(true);
-  const [permissions,         setPermissions]         = useState({ location: null, notification: null, drawOver: null });
-  const [deviceInfo,          setDeviceInfo]          = useState(null);
+  const [isNative, setIsNative] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const [permissions, setPermissions] = useState({ location: null, notification: null, drawOver: null });
+  const [deviceInfo, setDeviceInfo] = useState(null);
   const [servicesInitialized, setServicesInitialized] = useState(false);
-  const [currentFrontend,     setCurrentFrontend]     = useState(null);
+  const [currentFrontend, setCurrentFrontend] = useState(null);
 
-  const checkTimeoutRef     = useRef(null);
-  const messageHandlersRef  = useRef(new Map());
-  const pendingRequestsRef  = useRef(new Map());
+  const checkTimeoutRef = useRef(null);
+  const messageHandlersRef = useRef(new Map());
+  const pendingRequestsRef = useRef(new Map());
   const requestIdCounterRef = useRef(0);
-  const deviceIdRef         = useRef(null);
-  const userIdRef           = useRef(null);
+  const deviceIdRef = useRef(null);
+  const userIdRef = useRef(null);
 
   // ═══════════════════════════════════════════════════════════════════════
   // CHECKPOINT 1 — wrapper mounted
@@ -101,11 +101,11 @@ export function ReactNativeWrapper({ children }) {
     if (typeof window === 'undefined') return null;
     const { hostname, pathname } = window.location;
     const frontendMap = [
-      { test: () => hostname.includes('driver.')    || pathname.includes('/driver'),    name: 'driver' },
-      { test: () => hostname.includes('book.')      || hostname.includes('rider.') || pathname.includes('/rider'), name: 'rider' },
+      { test: () => hostname.includes('driver.') || pathname.includes('/driver'), name: 'driver' },
+      { test: () => hostname.includes('book.') || hostname.includes('rider.') || pathname.includes('/rider'), name: 'rider' },
       { test: () => hostname.includes('conductor.') || pathname.includes('/conductor'), name: 'conductor' },
-      { test: () => hostname.includes('delivery.')  || pathname.includes('/delivery'),  name: 'delivery' },
-      { test: () => hostname.includes('admin.')     || pathname.includes('/admin'),     name: 'admin' },
+      { test: () => hostname.includes('delivery.') || pathname.includes('/delivery'), name: 'delivery' },
+      { test: () => hostname.includes('admin.') || pathname.includes('/admin'), name: 'admin' },
     ];
     const detected = frontendMap.find(f => f.test());
     const name = detected ? detected.name : 'landing';
@@ -319,7 +319,7 @@ export function ReactNativeWrapper({ children }) {
           return new Promise((resolve) => {
             navigator.geolocation.getCurrentPosition(
               () => { setPermissions(p => ({ ...p, location: 'granted' })); resolve('granted'); },
-              () => { setPermissions(p => ({ ...p, location: 'denied'  })); resolve('denied');  },
+              () => { setPermissions(p => ({ ...p, location: 'denied' })); resolve('denied'); },
             );
           });
         }
@@ -354,16 +354,16 @@ export function ReactNativeWrapper({ children }) {
   // ============================================
   // Service Initialization
   // ============================================
-  
+
   const initializeNativeServices = useCallback(async (userId, frontendName, socketServerUrl) => {
-    if (!isNative)           return { success: false, reason: 'not_native' };
-    if (servicesInitialized) return { success: true,  reason: 'already_initialized' };
+    if (!isNative) return { success: false, reason: 'not_native' };
+    if (servicesInitialized) return { success: true, reason: 'already_initialized' };
     try {
       const result = await sendToNative('INITIALIZE_SERVICES', {
         userId, frontendName,
         socketServerUrl: socketServerUrl || process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL,
       });
-      userIdRef.current   = userId;
+      userIdRef.current = userId;
       deviceIdRef.current = result.deviceId;
       setServicesInitialized(true);
       setCurrentFrontend(frontendName);
@@ -373,9 +373,9 @@ export function ReactNativeWrapper({ children }) {
       console.error('[RNWrapper] initializeNativeServices:', err);
       return { success: false, error: err.message };
     }
-    
+
   }, [isNative, servicesInitialized, sendToNative, loadPermissionsFromBackend]);
-  
+
   const reconnectDeviceSocket = useCallback(async (userId, frontendName, socketServerUrl) => {
     if (!isNative) return { success: false, reason: 'not_native' };
     try {
@@ -383,7 +383,7 @@ export function ReactNativeWrapper({ children }) {
         userId, frontendName,
         socketServerUrl: socketServerUrl || process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL,
       })
-      userIdRef.current   = userId;
+      userIdRef.current = userId;
       deviceIdRef.current = result.deviceId;
       setCurrentFrontend(frontendName);
       return { success: true, ...result };
@@ -391,7 +391,7 @@ export function ReactNativeWrapper({ children }) {
       console.error('[RECONNECT SOCKET] reconnectDeviceSocket:', err);
       return { success: false, error: err.message };
     }
-    
+
   }, [isNative, sendToNative]);
 
   const disconnectDeviceSocket = useCallback(async (userId, frontendName) => {
@@ -400,7 +400,7 @@ export function ReactNativeWrapper({ children }) {
       const result = await sendToNative('DISCONNECT_SOCKET', {
         userId, frontendName
       })
-      userIdRef.current   = null;
+      userIdRef.current = null;
       setCurrentFrontend(null);
       return { success: true, ...result };
     } catch (err) {
@@ -413,7 +413,7 @@ export function ReactNativeWrapper({ children }) {
   // Location Services
   // ============================================
 
-  const getCurrentLocation = useCallback(async (runAfterLocationUpdate = ()=>{},userId=null) => {
+  const getCurrentLocation = useCallback(async (runAfterLocationUpdate = () => { }, userId = null) => {
     if (isNative) {
       try {
         const location = await sendToNative('GET_CURRENT_LOCATION', {});
@@ -422,7 +422,7 @@ export function ReactNativeWrapper({ children }) {
           accuracy: location?.coords?.accuracy, heading: location?.coords?.heading,
           speed: location?.coords?.speed, timestamp: location?.timestamp,
         };
-         if(location && userId){
+        if (location && userId) {
           runAfterLocationUpdate(userId)
         }
         return locationData;
@@ -473,8 +473,8 @@ export function ReactNativeWrapper({ children }) {
   }, [isNative, sendToNative])
 
 
-  const handleChangeThemeMode  = useCallback(async ({ color, mode } ) => {
-    if (isNative) return await sendToNative('THEME_MODE_CHANGE', { color, mode } );
+  const handleChangeThemeMode = useCallback(async ({ color, mode }) => {
+    if (isNative) return await sendToNative('THEME_MODE_CHANGE', { color, mode });
     return { success: true };
   }, [isNative, sendToNative])
   // ============================================
@@ -504,8 +504,8 @@ export function ReactNativeWrapper({ children }) {
     handleChangeThemeMode,
     reconnectDeviceSocket,
     disconnectDeviceSocket,
-    getCurrentLocation, 
-    startLocationTracking, 
+    getCurrentLocation,
+    startLocationTracking,
     stopLocationTracking,
     showNotification,
   };
