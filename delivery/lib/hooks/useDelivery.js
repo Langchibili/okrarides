@@ -9,15 +9,15 @@ import { useRouter } from 'next/navigation';
 
 // ─── Socket event constants (delivery-specific) ──────────────────────────────
 const DEL_EVENTS = {
-  REQUEST_NEW:      'delivery:request:new',
+  REQUEST_NEW: 'delivery:request:new',
   REQUEST_RECEIVED: 'delivery:request:received',
-  ACCEPTED:         'delivery:accepted',
-  TAKEN:            'delivery:taken',
-  CANCELLED:        'delivery:cancelled',
-  STARTED:          'delivery:started',
-  COMPLETED:        'delivery:completed',
-  PAYMENT_REQUESTED:'delivery:payment:requested',
-  NO_DRIVERS:       'delivery:no_drivers',
+  ACCEPTED: 'delivery:accepted',
+  TAKEN: 'delivery:taken',
+  CANCELLED: 'delivery:cancelled',
+  STARTED: 'delivery:started',
+  COMPLETED: 'delivery:completed',
+  PAYMENT_REQUESTED: 'delivery:payment:requested',
+  NO_DRIVERS: 'delivery:no_drivers',
   PAYMENT_RECEIVED: 'payment:received',
 };
 
@@ -25,24 +25,24 @@ function getPollingInterval() {
   try {
     const v = window.__adminSettings?.appsServerPollingIntervalInSeconds;
     if (v && Number(v) > 0) return Number(v) * 1000;
-  } catch {}
+  } catch { }
   return 20_000;
 }
 
 const ACTIVE_STATUSES = new Set(['accepted', 'arrived', 'passenger_onboard', 'awaiting_payment']);
 
 export const useDelivery = () => {
-  const [currentDelivery, setCurrentDelivery]   = useState(null);
+  const [currentDelivery, setCurrentDelivery] = useState(null);
   const [incomingDelivery, setIncomingDelivery] = useState(null);
-  const [loading, setLoading]                   = useState(false);
-  const [error, setError]                       = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const { on, off, emit, connected } = useSocket();
   const router = useRouter();
 
-  const pollRef               = useRef(null);
-  const mountedRef            = useRef(true);
-  const currentDeliveryRef    = useRef(null);
+  const pollRef = useRef(null);
+  const mountedRef = useRef(true);
+  const currentDeliveryRef = useRef(null);
 
   useEffect(() => { currentDeliveryRef.current = currentDelivery; }, [currentDelivery]);
 
@@ -108,7 +108,7 @@ export const useDelivery = () => {
     const handleRequest = (data) => {
       setIncomingDelivery(data)
       const audio = new Audio('/sounds/ride-request.mp3');
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
       if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
     };
 
@@ -131,10 +131,10 @@ export const useDelivery = () => {
       router.push('/home');
     };
 
-    on(DEL_EVENTS.REQUEST_NEW,      handleRequest);
+    on(DEL_EVENTS.REQUEST_NEW, handleRequest);
     on(DEL_EVENTS.REQUEST_RECEIVED, handleRequest);
-    on(DEL_EVENTS.CANCELLED,        handleCancelled);
-    on(DEL_EVENTS.TAKEN,            handleTaken);
+    on(DEL_EVENTS.CANCELLED, handleCancelled);
+    on(DEL_EVENTS.TAKEN, handleTaken);
     on(DEL_EVENTS.PAYMENT_RECEIVED, handlePaymentReceived);
 
     return () => {
@@ -164,7 +164,7 @@ export const useDelivery = () => {
           setCurrentDelivery(null);
           router.push('/home');
         }
-      } catch {}
+      } catch { }
     };
     if (typeof window !== 'undefined') window.addEventListener('message', handler);
     return () => {
@@ -181,6 +181,9 @@ export const useDelivery = () => {
         setCurrentDelivery(response.data ?? response);
         setIncomingDelivery(null);
         setError(null);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('hasActiveDelivery', "yes")
+        }
         emit(DEL_EVENTS.ACCEPTED, { deliveryId });
         return response;
       }
@@ -197,7 +200,7 @@ export const useDelivery = () => {
     try {
       setLoading(true);
       const response = await apiClient.post(`/deliveries/${deliveryId}/decline`, { reason });
-      console.log('response declineDelivery',response)
+      console.log('response declineDelivery', response)
       setIncomingDelivery(null);
       setError(null);
       return response;
@@ -253,6 +256,9 @@ export const useDelivery = () => {
         stopPoll();
         setCurrentDelivery(null);
         setError(null);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('hasActiveDelivery', "no")
+        }
         return response;
       }
       throw new Error(response?.error || 'Failed to complete delivery');
@@ -273,6 +279,9 @@ export const useDelivery = () => {
         setCurrentDelivery(null);
         setIncomingDelivery(null);
         setError(null);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('hasActiveDelivery', "no")
+        }
         return response;
       }
       throw new Error(response?.error || 'Failed to cancel delivery');

@@ -8,39 +8,45 @@ import {
 } from '@mui/material'
 import {
   CheckCircle as CheckIcon,
-  DriveEta    as CarIcon,
+  DriveEta as CarIcon,
   Description as DocumentIcon,
-  CreditCard  as CardIcon,
-  Home        as HomeIcon,
-  Timer       as TimerIcon,
+  CreditCard as CardIcon,
+  Home as HomeIcon,
+  Timer as TimerIcon,
 } from '@mui/icons-material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { motion } from 'framer-motion'
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } }
-const fadeUp  = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 24 } } }
+const fadeUp = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 24 } } }
 
 export default function WelcomePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const theme  = useTheme()
+  const theme = useTheme()
   const isDark = theme.palette.mode === 'dark'
   const status = searchParams.get('status')
   const [starting, setStarting] = useState(false)
 
-  useEffect(()=>{
-      if(typeof window !== "undefined"){
-        const currentStepPage = localStorage.getItem('onboarding_step_page')
-        router.push(currentStepPage)
-      }
-  },[])
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const currentStepPage = localStorage.getItem('onboarding_step_page')
+      router.push(currentStepPage)
+    }
+  }, [])
 
+  // const requirements = [
+  //   { icon: <CardIcon />,     title: "Driver's License",   description: "Valid Zambian driver's license",    color: '#3B82F6' },
+  //   { icon: <DocumentIcon />, title: 'National ID',         description: 'Your national identification card', color: '#8B5CF6' },
+  //   { icon: <HomeIcon />,     title: 'Address',             description: 'Your current residential address',  color: '#10B981' },
+  //   { icon: <CarIcon />,      title: 'Vehicle Information', description: 'Vehicle registration and details',  color: '#F59E0B' },
+  //   { icon: <TimerIcon />,    title: 'Time Needed',         description: '10-15 minutes to complete',         color: '#06B6D4' },
+  // ]
   const requirements = [
-    { icon: <CardIcon />,     title: "Driver's License",   description: "Valid Zambian driver's license",    color: '#3B82F6' },
-    { icon: <DocumentIcon />, title: 'National ID',         description: 'Your national identification card', color: '#8B5CF6' },
-    { icon: <HomeIcon />,     title: 'Address',             description: 'Your current residential address',  color: '#10B981' },
-    { icon: <CarIcon />,      title: 'Vehicle Information', description: 'Vehicle registration and details',  color: '#F59E0B' },
-    { icon: <TimerIcon />,    title: 'Time Needed',         description: '10-15 minutes to complete',         color: '#06B6D4' },
+    { icon: <CardIcon />, title: "Driver's License", description: "Valid Zambian driver's license", color: '#3B82F6' },
+    { icon: <HomeIcon />, title: 'Address', description: 'Your current residential address', color: '#10B981' },
+    { icon: <CarIcon />, title: 'Vehicle Information', description: 'Vehicle registration and details', color: '#F59E0B' },
+    { icon: <TimerIcon />, title: 'Time Needed', description: '3-5 minutes to complete', color: '#06B6D4' },
   ]
 
   const benefits = [
@@ -52,8 +58,8 @@ export default function WelcomePage() {
   ]
 
   const handleStart = () => {
-    if(typeof window !== "undefined"){
-      localStorage.setItem('onboarding_step_page','/onboarding/license')
+    if (typeof window !== "undefined") {
+      localStorage.setItem('onboarding_step_page', '/onboarding/license')
     }
     setStarting(true)
     router.push('/onboarding/license')

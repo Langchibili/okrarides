@@ -7,201 +7,201 @@ import socketService from '../../../services/socketService'
 import DeviceService from '../../../services/deviceServices'
 
 export default factories.createCoreController('plugin::users-permissions.user', ({ strapi }) => ({
-  
+
   // Toggle driver online/offline status
-async toggleOnline(ctx) {
-  try {
-    const userId = ctx.state.user.id;
-    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-      where: { id: userId },
-      select: ['id', 'username', "isOnline"],
-      populate: {
-        driverProfile: {
-          select: ['id', 'isOnline', 'subscriptionStatus']
-        },
-        riderProfile: {
-          select: ['id']
-        },
-        deliveryProfile: {
-          select: ['id']
-        },
-        conductorProfile: {
-          select: ['id']
+  async toggleOnline(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: userId },
+        select: ['id', 'username', "isOnline"],
+        populate: {
+          driverProfile: {
+            select: ['id', 'isOnline', 'subscriptionStatus']
+          },
+          riderProfile: {
+            select: ['id']
+          },
+          deliveryProfile: {
+            select: ['id']
+          },
+          conductorProfile: {
+            select: ['id']
+          }
         }
+      })
+
+      if (!user?.driverProfile) {
+        return ctx.badRequest('Driver profile not found');
       }
-    })
 
-    if (!user?.driverProfile) {
-      return ctx.badRequest('Driver profile not found');
-    }
+      const newOnlineStatus = !user.driverProfile.isOnline;
 
-    const newOnlineStatus = !user.driverProfile.isOnline;
-
-    // Update driver profile
-    await strapi.db.query('plugin::users-permissions.user').update({
-      where: { id: userId },
-      data: {
-        isOnline: newOnlineStatus,
-        activeProfile: 'driver',
-        profileActivityStatus: {
-          "rider": false,
-          "driver": true,
-          "delivery": false,
-          "conductor": false
-        },
-        lastSeen: new Date()
-      }
-    })
-    if(user.driverProfile?.id){
-      await strapi.db.query('driver-profiles.driver-profile').update({
-        where: { id: user.driverProfile.id },
+      // Update driver profile
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: userId },
         data: {
           isOnline: newOnlineStatus,
-          isAvailable: newOnlineStatus === true ? true : newOnlineStatus,
-          isActive: true
+          activeProfile: 'driver',
+          profileActivityStatus: {
+            "rider": false,
+            "driver": true,
+            "delivery": false,
+            "conductor": false
+          },
+          lastSeen: new Date()
         }
       })
+      if (user.driverProfile?.id) {
+        await strapi.db.query('driver-profiles.driver-profile').update({
+          where: { id: user.driverProfile.id },
+          data: {
+            isOnline: newOnlineStatus,
+            isAvailable: newOnlineStatus === true ? true : newOnlineStatus,
+            isActive: true
+          }
+        })
+      }
+
+
+      if (user.riderProfile?.id) {
+        await strapi.db.query('rider-profiles.rider-profile').update({
+          where: { id: user.riderProfile.id },
+          data: {
+            isOnline: false,
+            isAvailable: false,
+            isActive: false
+          }
+        })
+      }
+
+      if (user.deliveryProfile?.id) {
+        await strapi.db.query('delivery-profiles.delivery-profile').update({
+          where: { id: user.deliveryProfile.id },
+          data: {
+            isOnline: false,
+            isAvailable: false,
+            isActive: false
+          }
+        })
+      }
+
+      if (user.conductorProfile?.id) {
+        await strapi.db.query('conductor-profiles.conductor-profile').update({
+          where: { id: user.conductorProfile.id },
+          data: {
+            isOnline: false,
+            isAvailable: false,
+            isActive: false
+          }
+        })
+      }
+
+
+      // 🆕 If going offline, stop native tracking
+      if (!newOnlineStatus) {
+        try {
+          await DeviceService.sendNotificationToDevice(userId, {
+            type: 'STOP_LOCATION_TRACKING',
+            message: 'You are now offline'
+          });
+        } catch (error) {
+          strapi.log.warn(`Failed to stop tracking for driver ${userId}:`, error);
+        }
+      }
+
+      // 🆕 If going online, request current location from device
+      if (newOnlineStatus) {
+        try {
+          await DeviceService.requestLocationFromDevice(userId, 'driver');
+          strapi.log.info(`Location requested from driver ${userId} after going online`);
+        } catch (error) {
+          strapi.log.warn(`Failed to request location from driver ${userId}:`, error);
+        }
+      }
+
+      // Emit WebSocket event
+      strapi.eventHub.emit('driver:status:changed', {
+        driverId: userId,
+        status: newOnlineStatus ? 'online' : 'offline'
+      });
+
+      return ctx.send({
+        success: true,
+        isOnline: newOnlineStatus,
+        message: `Driver is now ${newOnlineStatus ? 'online' : 'offline'}`,
+        locationRequested: newOnlineStatus // Indicate if location was requested
+      });
+    } catch (error) {
+      strapi.log.error('Toggle online error:', error);
+      return ctx.internalServerError('Failed to update status');
     }
-    
-    
-    if(user.riderProfile?.id ){
-      await strapi.db.query('rider-profiles.rider-profile').update({
-        where: { id: user.riderProfile.id },
+  },
+  async goOffline(ctx) {
+    try {
+      const userId = ctx.state.user.id;
+
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: userId },
+        select: ['id'],
+        populate: {
+          driverProfile: { select: ['id'] },
+          riderProfile: { select: ['id'] },
+          conductorProfile: { select: ['id'] },
+        }
+      });
+
+      if (!user?.driverProfile) {
+        return ctx.badRequest('Driver profile not found');
+      }
+
+      // ── User record ──────────────────────────────────────────────────────
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: userId },
         data: {
-          isOnline: false,
-          isAvailable: false,
-          isActive: false
+          isOnline: true,   // user is still active, just as a rider now
         }
-      })
-    }
-    
-    if(user.deliveryProfile?.id){
-       await strapi.db.query('delivery-profiles.delivery-profile').update({
-        where: { id: user.deliveryProfile.id },
-        data: {
-          isOnline: false,
-          isAvailable: false,
-          isActive: false
-        }
-      })
-    }
-    
-    if(user.conductorProfile?.id){
-      await strapi.db.query('conductor-profiles.conductor-profile').update({
-        where: { id: user.conductorProfile.id },
-        data: {
-          isOnline: false,
-          isAvailable: false,
-          isActive: false
-        }
-      })
-    }
-    
+      });
 
-    // 🆕 If going offline, stop native tracking
-    if (!newOnlineStatus) {
-      try {
-        await DeviceService.sendNotificationToDevice(userId, {
-          type: 'STOP_LOCATION_TRACKING',
-          message: 'You are now offline'
-        });
-      } catch (error) {
-        strapi.log.warn(`Failed to stop tracking for driver ${userId}:`, error);
-      }
-    }
-
-    // 🆕 If going online, request current location from device
-    if (newOnlineStatus) {
-      try {
-        await DeviceService.requestLocationFromDevice(userId, 'driver');
-        strapi.log.info(`Location requested from driver ${userId} after going online`);
-      } catch (error) {
-        strapi.log.warn(`Failed to request location from driver ${userId}:`, error);
-      }
-    }
-
-    // Emit WebSocket event
-    strapi.eventHub.emit('driver:status:changed', {
-      driverId: userId,
-      status: newOnlineStatus ? 'online' : 'offline'
-    });
-
-    return ctx.send({
-      success: true,
-      isOnline: newOnlineStatus,
-      message: `Driver is now ${newOnlineStatus ? 'online' : 'offline'}`,
-      locationRequested: newOnlineStatus // Indicate if location was requested
-    });
-  } catch (error) {
-    strapi.log.error('Toggle online error:', error);
-    return ctx.internalServerError('Failed to update status');
-  }
-},
-async goOffline(ctx) {
-  try {
-    const userId = ctx.state.user.id;
-
-    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-      where: { id: userId },
-      select: ['id'],
-      populate: {
-        driverProfile:   { select: ['id'] },
-        riderProfile:    { select: ['id'] },
-        conductorProfile:{ select: ['id'] },
-      }
-    });
-
-    if (!user?.driverProfile) {
-      return ctx.badRequest('Driver profile not found');
-    }
-
-    // ── User record ──────────────────────────────────────────────────────
-    await strapi.db.query('plugin::users-permissions.user').update({
-      where: { id: userId },
-      data: {
-        isOnline:  true,   // user is still active, just as a rider now
-      }
-    });
-
-    // ── Driver profile → offline ──────────────────────────────────────────
-    await strapi.db.query('driver-profiles.driver-profile').update({
-      where: { id: user.driverProfile.id },
-      data: { isOnline: false, isAvailable: false, isActive: false }
-    });
-
-  
-
-    // ── Conductor profile → offline ───────────────────────────────────────
-    if (user.conductorProfile) {
-      await strapi.db.query('conductor-profiles.conductor-profile').update({
-        where: { id: user.conductorProfile.id },
+      // ── Driver profile → offline ──────────────────────────────────────────
+      await strapi.db.query('driver-profiles.driver-profile').update({
+        where: { id: user.driverProfile.id },
         data: { isOnline: false, isAvailable: false, isActive: false }
       });
+
+
+
+      // ── Conductor profile → offline ───────────────────────────────────────
+      if (user.conductorProfile) {
+        await strapi.db.query('conductor-profiles.conductor-profile').update({
+          where: { id: user.conductorProfile.id },
+          data: { isOnline: false, isAvailable: false, isActive: false }
+        });
+      }
+
+      // ── WebSocket event ───────────────────────────────────────────────────
+      strapi.eventHub.emit('driver:status:changed', {
+        driverId: userId,
+        status: 'offline',
+      });
+
+      return ctx.send({
+        success: true,
+        isOnline: false,
+        activeProfile: 'none',
+        message: 'Driver is now offline. Switched to rider mode.',
+      });
+
+    } catch (error) {
+      strapi.log.error('Go offline error:', error);
+      return ctx.internalServerError('Failed to go offline');
     }
-
-    // ── WebSocket event ───────────────────────────────────────────────────
-    strapi.eventHub.emit('driver:status:changed', {
-      driverId: userId,
-      status:   'offline',
-    });
-
-    return ctx.send({
-      success:       true,
-      isOnline:      false,
-      activeProfile: 'none',
-      message:       'Driver is now offline. Switched to rider mode.',
-    });
-
-  } catch (error) {
-    strapi.log.error('Go offline error:', error);
-    return ctx.internalServerError('Failed to go offline');
-  }
-},
- async updateLocation(ctx) {
+  },
+  async updateLocation(ctx) {
     try {
       const userId = ctx.state.user.id;
       const { lat, lng, heading, speed } = ctx.request.body;
-      console.log('location ctx.request.body',ctx.request.body)
+      console.log('location ctx.request.body', ctx.request.body)
       if (!lat || !lng) {
         return ctx.badRequest('Location coordinates required');
       }
@@ -251,8 +251,8 @@ async goOffline(ctx) {
       // Calculate date range
       const now = new Date();
       let startDate = new Date();
-      
-      switch(period) {
+
+      switch (period) {
         case 'today':
           startDate.setHours(0, 0, 0, 0);
           break;
@@ -277,7 +277,7 @@ async goOffline(ctx) {
 
       const completedRides = rides.filter(r => r.rideStatus === 'completed');
       const cancelledRides = rides.filter(r => r.rideStatus === 'cancelled');
-      
+
       const earnings = completedRides.reduce((sum, ride) => sum + (ride.driverEarnings || 0), 0);
       const totalDistance = completedRides.reduce((sum, ride) => sum + (ride.actualDistance || 0), 0);
       const totalDuration = completedRides.reduce((sum, ride) => sum + (ride.actualDuration || 0), 0);
@@ -321,7 +321,7 @@ async goOffline(ctx) {
         start = new Date(startDate as string);
         end = new Date(endDate as string);
       } else {
-        switch(period) {
+        switch (period) {
           case 'today':
             start.setHours(0, 0, 0, 0);
             break;
@@ -387,8 +387,8 @@ async goOffline(ctx) {
 
       const now = new Date();
       let startDate = new Date();
-      
-      switch(period) {
+
+      switch (period) {
         case 'week':
           startDate.setDate(now.getDate() - 7);
           break;
@@ -434,7 +434,7 @@ async goOffline(ctx) {
       return ctx.internalServerError('Failed to get earnings breakdown');
     }
   },
-   //============================================
+  //============================================
   // ONBOARDING CONTROLLERS
   //============================================
 
@@ -465,7 +465,7 @@ async goOffline(ctx) {
           driverLicenseNumber: licenseNumber,
           licenseExpiryDate: expiryDate,
           // Assuming you have this field in schema, otherwise remove it
-          onboardingStep: 'national-id', 
+          onboardingStep: 'national-id',
         },
       });
 
@@ -519,10 +519,10 @@ async goOffline(ctx) {
 
       const user = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: userId },
-        populate: { 
-            driverProfile: {
-                populate: true 
-             } 
+        populate: {
+          driverProfile: {
+            populate: true
+          }
         }
       })
 
@@ -558,8 +558,8 @@ async goOffline(ctx) {
     try {
       const userId = ctx.state.user.id;
       // vehicleType expected values: 'taxi', 'bus', 'motorbike' to match enum
-      const { vehicleType } = ctx.request.body; 
-     
+      const { vehicleType } = ctx.request.body;
+
       const user = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: userId },
         populate: { driverProfile: true }
@@ -568,55 +568,56 @@ async goOffline(ctx) {
       if (!user?.driverProfile) {
         return ctx.badRequest('Driver profile not found');
       }
-    
+
       const driverProfileWithSubProfiles = await strapi.db.query('driver-profiles.driver-profile').findOne({
         where: { id: user.driverProfile.id },
-        populate: { 
-            taxiDriver: {
-                populate: true // Populate all relations inside taxiDriver
-            },
-            busDriver: {
-                populate: true // Populate all relations inside busDriver
-            },
-            motorbikeRider: {
-                populate: true // Populate all relations inside motorbikeRider
-            }
+        populate: {
+          taxiDriver: {
+            populate: true // Populate all relations inside taxiDriver
+          },
+          busDriver: {
+            populate: true // Populate all relations inside busDriver
+          },
+          motorbikeRider: {
+            populate: true // Populate all relations inside motorbikeRider
+          }
         }
       })
 
-      const driverType = ((vehicleType)=>{
-         if(vehicleType === "bus"){
-            return "busDriver"
-         }
-         else if(vehicleType === "motorbike"){
-            return "motorbikeRider"
-         }
-         return "taxiDriver" 
+      const driverType = ((vehicleType) => {
+        if (vehicleType === "bus") {
+          return "busDriver"
+        }
+        else if (vehicleType === "motorbike") {
+          return "motorbikeRider"
+        }
+        return "taxiDriver"
       })(vehicleType);
-     await strapi.entityService.update('plugin::users-permissions.user', user.id, {
-     data: {
-        driverProfile:{
-            id:user.driverProfile.id,
+      await strapi.entityService.update('plugin::users-permissions.user', user.id, {
+        data: {
+          driverProfile: {
+            id: user.driverProfile.id,
             activeSubProfile: vehicleType,
             // Entity Service will automatically create this component 
             // if it doesn't exist, or update it if it does.
-            [driverType] : driverProfileWithSubProfiles[driverType]? {
-              id:driverProfileWithSubProfiles[driverType]['id'],
+            [driverType]: driverProfileWithSubProfiles[driverType] ? {
+              id: driverProfileWithSubProfiles[driverType]['id'],
               totalEarnings: 0,
               isActive: true
-             } :{
+            } : {
               totalEarnings: 0,
               isActive: true
             },
-            ...["taxiDriver","busDriver","motorbikeRider"].filter(type => 
-               type !== driverType &&  // Filter out vehicle type
-               driverProfileWithSubProfiles[type] // Check if it exists in user.driverProfile
-            ).reduce((acc, type) => ({ ...acc, [type]: { id: driverProfileWithSubProfiles[type]['id'],isActive: false }
+            ...["taxiDriver", "busDriver", "motorbikeRider"].filter(type =>
+              type !== driverType &&  // Filter out vehicle type
+              driverProfileWithSubProfiles[type] // Check if it exists in user.driverProfile
+            ).reduce((acc, type) => ({
+              ...acc, [type]: { id: driverProfileWithSubProfiles[type]['id'], isActive: false }
             }), {}), // this is to ensure that only the chosen vehicle type is active, the rest should be inactive, even if toggled on before
-           onboardingStep: 'vehicle-details',
-        }
-    },
-});
+            onboardingStep: 'vehicle-details',
+          }
+        },
+      });
 
       return ctx.send({ success: true, message: 'Vehicle type saved', nextStep: 'vehicle-details' });
     } catch (error) {
@@ -629,8 +630,8 @@ async goOffline(ctx) {
   async saveVehicleDetails(ctx) {
     try {
       const userId = ctx.state.user.id;
-      const { 
-        make, model, year, numberPlate, color, vehicleType, seatingCapacity, insuranceExpiryDate 
+      const {
+        make, model, year, numberPlate, color, vehicleType, seatingCapacity, insuranceExpiryDate
       } = ctx.request.body;
 
       const user = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -643,35 +644,35 @@ async goOffline(ctx) {
       }
       const driverProfileWithSubProfiles = await strapi.db.query('driver-profiles.driver-profile').findOne({
         where: { id: user.driverProfile.id },
-        populate: { 
-            taxiDriver: {
-                populate: true // Populate all relations inside taxiDriver
-            },
-            busDriver: {
-                populate: true // Populate all relations inside busDriver
-            },
-            motorbikeRider: {
-                populate: true // Populate all relations inside motorbikeRider
-            }
+        populate: {
+          taxiDriver: {
+            populate: true // Populate all relations inside taxiDriver
+          },
+          busDriver: {
+            populate: true // Populate all relations inside busDriver
+          },
+          motorbikeRider: {
+            populate: true // Populate all relations inside motorbikeRider
+          }
         }
       })
-      const driverType = ((vehicleType)=>{
-         if(vehicleType === "bus"){
-            return "busDriver"
-         }
-         else if(vehicleType === "motorbike"){
-            return "motorbikeRider"
-         }
-         return "taxiDriver" 
+      const driverType = ((vehicleType) => {
+        if (vehicleType === "bus") {
+          return "busDriver"
+        }
+        else if (vehicleType === "motorbike") {
+          return "motorbikeRider"
+        }
+        return "taxiDriver"
       })(vehicleType);
 
-      const vehicleConnectType = ((vehicleType)=>{
-         if(vehicleType === "taxi"){
-            return "vehicle"
-         }
-         return vehicleType
+      const vehicleConnectType = ((vehicleType) => {
+        if (vehicleType === "taxi") {
+          return "vehicle"
+        }
+        return vehicleType
       })(vehicleType);
-      
+
       const rideClasses = await strapi.db.query('api::ride-class.ride-class').findMany()
       // 1. Create the Vehicle in the Vehicles Collection
       // We use entityService.create to ensure lifecycle hooks run if you have any
@@ -686,7 +687,7 @@ async goOffline(ctx) {
           seatingCapacity,
           insuranceExpiryDate,
           isActive: true,
-          rideClasses: {connect: rideClasses.map(rc => rc.id)},
+          rideClasses: { connect: rideClasses.map(rc => rc.id) },
           assignedDriver: userId
           // Optional: If vehicle has a 'driver' relation, link it back here
           // driver: userId 
@@ -697,59 +698,65 @@ async goOffline(ctx) {
       await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: user.driverProfile.id },
         data: {
-          [driverType] : driverProfileWithSubProfiles[driverType]? {
-            id:driverProfileWithSubProfiles[driverType]['id'],
+          [driverType]: driverProfileWithSubProfiles[driverType] ? {
+            id: driverProfileWithSubProfiles[driverType]['id'],
             [vehicleConnectType]: newVehicle.id,
             isActive: true
-            } :{
+          } : {
             isActive: true,
             [vehicleConnectType]: newVehicle.id
           },
           assignedVehicle: newVehicle.id, // Linking the ID directly
-          vehicles: {connect:[newVehicle.id]},
+          vehicles: { connect: [newVehicle.id] },
           onboardingStep: 'review',
-          acceptedRideClasses: {connect: rideClasses.map(rc => rc.id)} 
+          acceptedRideClasses: { connect: rideClasses.map(rc => rc.id) }
         },
       });
 
-      const checkIfVehicleExistsAndUserHasInitialFloatToppedUp = async ()=>{
-        const vehicleNumberPlate =  newVehicle?.numberPlate.toLowerCase()
+      const checkIfVehicleExistsAndUserHasInitialFloatToppedUp = async () => {
+        const vehicleNumberPlate = newVehicle?.numberPlate.toLowerCase()
         const capitalize = (text: String) => text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : '';
 
-        if(!newVehicle){ 
-           return false
+        if (!newVehicle) {
+          return false
         }
         let existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
           where: { numberPlate: vehicleNumberPlate },
           populate: { assignedDriver: true }
         })
-        if(!existingVehicle){ // try checking toLowerCase
+        if (!existingVehicle) { // try checking toLowerCase
           existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
             where: { numberPlate: capitalize(vehicleNumberPlate) },
             populate: { assignedDriver: true }
           })
         }
-        if(!existingVehicle){ // try checking toUpperCase
+        if (!existingVehicle) { // try checking toUpperCase
           existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
             where: { numberPlate: vehicleNumberPlate.toUpperCase() },
             populate: { assignedDriver: true }
           })
         }
-        
-        if(existingVehicle?.assignedDriver){
-          if(existingVehicle?.assignedDriver?.initialFloatToppedUp){ // means an account exists which already has float topped up
-             return true
+
+        console.log('assignedDriver', existingVehicle?.assignedDriver)
+
+        if (existingVehicle?.assignedDriver) {
+          if (existingVehicle?.assignedDriver?.initialFloatToppedUp) { // means an account exists which already has float topped up
+            if (existingVehicle?.assignedDriver?.initialFloatToppedUp === null || existingVehicle?.assignedDriver?.initialFloatToppedUp === 'null') {
+              return false
+            }
+            return true
           }
         }
         return false
       }
-
-      if(checkIfVehicleExistsAndUserHasInitialFloatToppedUp){ // to avoid a user getting free float topups twice
+      const userHasInitialFloatToppedUp = checkIfVehicleExistsAndUserHasInitialFloatToppedUp()
+      if (userHasInitialFloatToppedUp) { // to avoid a user getting free float topups twice, userHasInitialFloatToppedUp being true means user has had a vehicle added before already
+        console.log('userHasInitialFloatToppedUp', userHasInitialFloatToppedUp)
         await strapi.db.query('plugin::users-permissions.user').update({
           where: { id: userId },
-           data: {
+          data: {
             initialFloatToppedUp: true
-           }
+          }
         })
       }
 
@@ -773,41 +780,41 @@ async goOffline(ctx) {
       if (!user?.driverProfile) {
         return ctx.badRequest('Driver profile is incomplete');
       }
-      if (user?.driverProfile?.verificationStatus === "pending"){
-         return ctx.badRequest('Verification request already sent');
+      if (user?.driverProfile?.verificationStatus === "pending") {
+        return ctx.badRequest('Verification request already sent');
       }
-      
-     const { adminNumbers } = await strapi.db.query("api::phone-numbers-list.phone-numbers-list").findOne({where: { id: 1 }})
-     const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({where: { id: 1 }})
-     const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
-     const adminEmailMessage = settings?.autoApproveDrivers? 'A driver has been outo approved on OkraRides. User ID: '+ctx.state.user.id :  "A driver is looking for vehicle verification on okrarides, the driver's account id is: "+ctx.state.user.id
-     
-     const initialDriverFloat = ()=>{
-      if(user.initialFloatToppedUp){ // you have already been given the floa top up
-        return user.driverProfile?.floatBalance
+
+      const { adminNumbers } = await strapi.db.query("api::phone-numbers-list.phone-numbers-list").findOne({ where: { id: 1 } })
+      const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({ where: { id: 1 } })
+      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+      const adminEmailMessage = settings?.autoApproveDrivers ? 'A driver has been outo approved on OkraRides. User ID: ' + ctx.state.user.id : "A driver is looking for vehicle verification on okrarides, the driver's account id is: " + ctx.state.user.id
+
+      const initialDriverFloat = () => {
+        if (user.initialFloatToppedUp) { // you have already been given the floa top up
+          return user.driverProfile?.floatBalance
+        }
+        return settings?.initialDriverFloat || 0
       }
-      return settings?.initialDriverFloat || 0
-     } 
-     await strapi.db.query('driver-profiles.driver-profile').update({
+      await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: user.driverProfile.id },
         data: {
-          floatBalance:  initialDriverFloat(), // add initial float to driver account based on how much float we are creating for free on account creation
-          verificationStatus: settings?.autoApproveDrivers? 'approved':'pending', // Mapped to schema enum 'pending'
+          floatBalance: initialDriverFloat(), // add initial float to driver account based on how much float we are creating for free on account creation
+          verificationStatus: settings?.autoApproveDrivers ? 'approved' : 'pending', // Mapped to schema enum 'pending'
           // submittedAt: new Date(), // Schema doesn't show 'submittedAt', only 'verifiedAt'. Add to schema if needed.
         },
       })
-     await strapi.db.query('plugin::users-permissions.user').findOne({
+      await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: userId },
         populate: { initialFloatToppedUp: true }
       })
-      
-      try{
-         adminEmailAddresses.forEach((email)=>{ 
+
+      try {
+        adminEmailAddresses.forEach((email) => {
           SendEmailNotification(email, adminEmailMessage)
-         }) 
+        })
       }
-      catch(e){
-           console.log(e)
+      catch (e) {
+        console.log(e)
       }
       // Notify driver
       socketService.emitNotification(
@@ -843,7 +850,7 @@ async goOffline(ctx) {
         isProfileCreated: !!user?.driverProfile,
         onboardingStatus: profile.verificationStatus || 'not_started',
         currentStep: profile.onboardingStep || 'license', // Ensure 'onboardingStep' exists in schema or handled manually
-        
+
         // Return completeness based on schema fields
         steps: {
           license: !!profile.driverLicenseNumber,
@@ -858,7 +865,7 @@ async goOffline(ctx) {
     }
   },
   // Get driver's vehicles
-   async findDriverVehicle(ctx) {
+  async findDriverVehicle(ctx) {
     try {
       const userId = ctx.state.user.id;
 
@@ -873,14 +880,14 @@ async goOffline(ctx) {
 
       const driverProfileWithAssignedVehicle = await strapi.db.query('driver-profiles.driver-profile').findOne({
         where: { id: user.driverProfile.id },
-        populate: { 
-            assignedVehicle: {
-                populate: true 
-            }
+        populate: {
+          assignedVehicle: {
+            populate: true
+          }
         }
       })
 
-      return ctx.send({success: true, hasVehicle: true, vehicle:driverProfileWithAssignedVehicle.assignedVehicle});
+      return ctx.send({ success: true, hasVehicle: true, vehicle: driverProfileWithAssignedVehicle.assignedVehicle });
     } catch (error) {
       strapi.log.error('Find vehicles error:', error);
       return ctx.internalServerError('Failed to get vehicles');
@@ -901,14 +908,14 @@ async goOffline(ctx) {
 
       const driverProfileWithVehicles = await strapi.db.query('driver-profiles.driver-profile').findOne({
         where: { id: user.driverProfile.id },
-        populate: { 
-            vehicles: {
-                populate: true 
-            }
+        populate: {
+          vehicles: {
+            populate: true
+          }
         }
       })
 
-      return ctx.send({success: true, hasVehicle: true, vehicles: driverProfileWithVehicles.vehicles});
+      return ctx.send({ success: true, hasVehicle: true, vehicles: driverProfileWithVehicles.vehicles });
     } catch (error) {
       strapi.log.error('Find vehicles error:', error);
       return ctx.internalServerError('Failed to get vehicles');
@@ -954,10 +961,10 @@ async goOffline(ctx) {
 
       const driverProfileWithAssignedVehicle = await strapi.db.query('driver-profiles.driver-profile').findOne({
         where: { id: user.driverProfile.id },
-        populate: { 
-            assignedVehicle: {
-                populate: true 
-            }
+        populate: {
+          assignedVehicle: {
+            populate: true
+          }
         }
       })
 

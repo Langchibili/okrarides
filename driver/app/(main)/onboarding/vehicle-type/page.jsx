@@ -11,23 +11,27 @@ import { saveVehicleType } from '@/lib/api/onboarding';
 import useDriver from '@/lib/hooks/useDriver';
 
 const vehicleTypes = [
-  { type: 'taxi',      name: 'Taxi Driver',      icon: <TaxiIcon sx={{ fontSize: 44 }} />, description: 'Drive a car and transport passengers', color: '#10B981' },
-  { type: 'bus',       name: 'Bus Driver',        icon: <BusIcon  sx={{ fontSize: 44 }} />, description: 'Drive a bus on fixed routes',          color: '#3B82F6' },
-  { type: 'motorbike', name: 'Motorbike Rider',   icon: <BikeIcon sx={{ fontSize: 44 }} />, description: 'Ride a motorcycle for quick trips',     color: '#F59E0B' },
+  { type: 'taxi', name: 'Taxi Driver', icon: <TaxiIcon sx={{ fontSize: 44 }} />, description: 'Drive a car and transport passengers', color: '#10B981' },
+  { type: 'motorbike', name: 'Motorbike Rider', icon: <BikeIcon sx={{ fontSize: 44 }} />, description: 'Ride a motorcycle for quick trips', color: '#F59E0B' },
 ];
+// const vehicleTypes = [
+//   { type: 'taxi',      name: 'Taxi Driver',      icon: <TaxiIcon sx={{ fontSize: 44 }} />, description: 'Drive a car and transport passengers', color: '#10B981' },
+//   { type: 'bus',       name: 'Bus Driver',        icon: <BusIcon  sx={{ fontSize: 44 }} />, description: 'Drive a bus on fixed routes',          color: '#3B82F6' },
+//   { type: 'motorbike', name: 'Motorbike Rider',   icon: <BikeIcon sx={{ fontSize: 44 }} />, description: 'Ride a motorcycle for quick trips',     color: '#F59E0B' },
+// ];
 
 export default function VehicleTypePage() {
   const { driverProfile } = useDriver();
   const router = useRouter();
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [selectedType, setSelectedType] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (driverProfile) {
-      if (driverProfile?.taxiDriver?.isActive)     setSelectedType('taxi');
-      if (driverProfile?.busDriver?.isActive)      setSelectedType('bus');
+      if (driverProfile?.taxiDriver?.isActive) setSelectedType('taxi');
+      if (driverProfile?.busDriver?.isActive) setSelectedType('bus');
       if (driverProfile?.motorbikeRider?.isActive) setSelectedType('motorbike');
     }
   }, [driverProfile]);
@@ -35,10 +39,10 @@ export default function VehicleTypePage() {
   const handleNext = async () => {
     if (!selectedType) return;
     setLoading(true);
-    try { 
+    try {
       saveVehicleType({ vehicleType: selectedType })
-      if(typeof window !== "undefined"){
-        localStorage.setItem('onboarding_step_page','/vehicle/add')
+      if (typeof window !== "undefined") {
+        localStorage.setItem('onboarding_step_page', '/vehicle/add')
       }
       router.push('/vehicle/add')
     }
@@ -110,7 +114,8 @@ export default function VehicleTypePage() {
         <Button variant="outlined" size="large" onClick={() => router.back()}
           sx={{ height: 56, borderRadius: 3.5, flex: 1, fontWeight: 600 }}>Back</Button>
         <Button variant="contained" size="large" onClick={handleNext} disabled={!selectedType || loading}
-          sx={{ height: 56, borderRadius: 3.5, flex: 2, fontWeight: 700,
+          sx={{
+            height: 56, borderRadius: 3.5, flex: 2, fontWeight: 700,
             background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
             boxShadow: `0 4px 20px ${alpha('#10B981', 0.4)}`,
           }}>

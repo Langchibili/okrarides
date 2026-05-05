@@ -25,7 +25,7 @@ export default function LicensePage() {
   // FIX 1: Persistence - Load existing data from driverProfile on mount
   useEffect(() => {
     if (driverProfile) {
-      console.log('driverProfile',driverProfile)
+      console.log('driverProfile', driverProfile)
       if (driverProfile.driverLicenseNumber) setLicenseNumber(driverProfile.driverLicenseNumber);
       if (driverProfile.licenseExpiryDate) setExpiryDate(driverProfile.licenseExpiryDate);
       // Strapi components return media as objects. Ensure DocumentUploadCard handles objects.
@@ -75,12 +75,12 @@ export default function LicensePage() {
       const frontId = frontImage?.id || frontImage;
       const backId = backImage?.id || backImage;
       const response = await saveLicenseInfo({
-          licenseNumber,
-          expiryDate,
-          frontImage: frontId,
-          backImage: backId,
-        })
-      console.log('response',response)  
+        licenseNumber,
+        expiryDate,
+        frontImage: frontId,
+        backImage: backId,
+      })
+      console.log('response', response)
       // await fetch('/api/driver/onboarding/license', {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
@@ -91,10 +91,11 @@ export default function LicensePage() {
       //     backImage: backId,
       //   }),
       // })
-      if(typeof window !== "undefined"){
-        localStorage.setItem('onboarding_step_page','/onboarding/national-id')
+      if (typeof window !== "undefined") {
+        localStorage.setItem('onboarding_step_page', '/onboarding/national-id')
       }
-      router.push('/onboarding/national-id')
+      // router.push('/onboarding/national-id')
+      router.push('/onboarding/proof-of-address')
     } catch (err) {
       setError(err.message || 'Failed to save license information')
     } finally {
@@ -156,7 +157,7 @@ export default function LicensePage() {
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 3 }}>{error}</Alert>}
-      
+
       {/* Important Note */}
       <Alert severity="info" sx={{ mb: 3, borderRadius: 3 }}>
         <Typography variant="caption">
@@ -169,7 +170,7 @@ export default function LicensePage() {
           Back
         </Button>
 
-        {loading? null : <Button
+        {loading ? null : <Button
           variant="contained"
           size="large"
           onClick={handleNext}

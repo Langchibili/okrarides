@@ -21,24 +21,24 @@ function getPollingInterval() {
   try {
     const v = window.__adminSettings?.appsServerPollingIntervalInSeconds;
     if (v && Number(v) > 0) return Number(v) * 1000;
-  } catch {}
+  } catch { }
   return 20_000;
 }
 
 const ACTIVE_RIDE_STATUSES = new Set(['accepted', 'arrived', 'passenger_onboard', 'awaiting_payment']);
 
 export const useRide = () => {
-  const [currentRide,  setCurrentRide]  = useState(null);
+  const [currentRide, setCurrentRide] = useState(null);
   const [incomingRide, setIncomingRide] = useState(null);
-  const [loading,      setLoading]      = useState(false);
-  const [error,        setError]        = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const { on, off, emit, connected } = useSocket();
   const router = useRouter();
 
-  const statusPollRef   = useRef(null);
-  const mountedRef      = useRef(true);
-  const currentRideRef  = useRef(null); // keep a ref so interval closure is always fresh
+  const statusPollRef = useRef(null);
+  const mountedRef = useRef(true);
+  const currentRideRef = useRef(null); // keep a ref so interval closure is always fresh
 
   useEffect(() => { currentRideRef.current = currentRide; }, [currentRide]);
 
@@ -96,7 +96,7 @@ export const useRide = () => {
     } else {
       stopStatusPoll();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentRide?.id, currentRide?.rideStatus]);
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -114,7 +114,7 @@ export const useRide = () => {
     const handleRideRequest = (data) => {
       setIncomingRide(data);
       const audio = new Audio('/sounds/ride-request.mp3');
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
       if ('vibrate' in navigator) navigator.vibrate([500, 200, 500]);
     };
 
@@ -140,11 +140,11 @@ export const useRide = () => {
       router.push('/home');
     };
 
-    on(SOCKET_EVENTS.RIDE.REQUEST_NEW,    handleRideRequest);
+    on(SOCKET_EVENTS.RIDE.REQUEST_NEW, handleRideRequest);
     on(SOCKET_EVENTS.RIDE.REQUEST_RECEIVED, handleRideRequest);
-    on(SOCKET_EVENTS.RIDE.CANCELLED,      handleRideCancelled);
-    on(SOCKET_EVENTS.RIDE.TAKEN,          handleRideTaken);
-    on(SOCKET_EVENTS.PAYMENT.RECEIVED,    handlePaymentReceived);
+    on(SOCKET_EVENTS.RIDE.CANCELLED, handleRideCancelled);
+    on(SOCKET_EVENTS.RIDE.TAKEN, handleRideTaken);
+    on(SOCKET_EVENTS.PAYMENT.RECEIVED, handlePaymentReceived);
 
     return () => {
       off(SOCKET_EVENTS.RIDE.REQUEST_NEW);
@@ -153,7 +153,7 @@ export const useRide = () => {
       off(SOCKET_EVENTS.RIDE.TAKEN);
       off(SOCKET_EVENTS.PAYMENT.RECEIVED);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connected, incomingRide?.rideId, on, off, stopStatusPoll, router]);
 
   // ── window message relay (from App.tsx / device socket) ──────────────────
@@ -172,7 +172,7 @@ export const useRide = () => {
           setCurrentRide(null);
           router.push('/home');
         }
-      } catch {}
+      } catch { }
     };
     if (typeof window !== 'undefined') window.addEventListener('message', handler);
     return () => { if (typeof window !== 'undefined') window.removeEventListener('message', handler); };
@@ -189,6 +189,9 @@ export const useRide = () => {
         setCurrentRide(response.data ?? response);
         setIncomingRide(null);
         setError(null);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('hasActiveRide', "yes")
+        }
         emit(SOCKET_EVENTS.RIDE.ACCEPT, { rideId });
         return response;
       }
@@ -203,6 +206,9 @@ export const useRide = () => {
       const response = await apiClient.post(`/rides/${rideId}/decline`, { reason });
       setIncomingRide(null);
       setError(null);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('hasActiveRide', "no")
+      }
       emit(SOCKET_EVENTS.RIDE.DECLINE, { rideId, reason });
       return response;
     } catch (err) { setError(err.message); throw err; }
@@ -231,6 +237,9 @@ export const useRide = () => {
         stopStatusPoll();
         setCurrentRide(null);
         setError(null);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('hasActiveRide', "no")
+        }
         return response;
       }
       throw new Error(response?.error || 'Failed to complete trip');
@@ -247,6 +256,9 @@ export const useRide = () => {
         setCurrentRide(null);
         setIncomingRide(null);
         setError(null);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('hasActiveRide', "no")
+        }
         return response;
       }
       throw new Error(response?.error || 'Failed to cancel ride');
@@ -294,7 +306,7 @@ export const useRide = () => {
     cancelRide,
     confirmArrival,
     loadActiveRide,
-    hasActiveRide:   !!currentRide,
+    hasActiveRide: !!currentRide,
     hasIncomingRide: !!incomingRide,
   };
 };

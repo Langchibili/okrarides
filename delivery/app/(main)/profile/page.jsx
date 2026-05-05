@@ -1,5 +1,5 @@
 'use client';
-import { useRouter }   from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   Box, AppBar, Toolbar, Typography, Avatar, Paper,
   List, ListItemIcon, ListItemText, ListItemButton,
@@ -18,10 +18,10 @@ import {
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { useAuth }   from '@/lib/hooks/useAuth';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { useDriver } from '@/lib/hooks/useDriver';
 import { VERIFICATION_STATUS } from '@/Constants';
-import { useAdminSettings }  from '@/lib/hooks/useAdminSettings';
+import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
 import { getImageUrl } from '@/Functions';
 import { getDriverVehicle } from '@/lib/api/vehicle';
 import { useEffect, useState } from 'react';
@@ -29,13 +29,62 @@ import { apiClient } from '@/lib/api/client';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
-const fadeUp  = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } } };
+const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 26 } } };
 
 // ── Logout confirmation modal ─────────────────────────────────────────────────
 function LogoutModal({ open, onConfirm, onCancel }) {
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-
+  if (typeof window !== 'undefined') {
+    const hasActiveRide = localStorage.getItem('hasActiveDelivery')
+    if (hasActiveRide === 'yes') {
+      return (
+        <Modal open={open} onClose={onCancel}>
+          <Box sx={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            p: 2,
+          }}>
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+            >
+              <Paper elevation={24} sx={{
+                p: 3.5, borderRadius: 4, maxWidth: 320, width: '100%',
+                background: isDark
+                  ? 'linear-gradient(145deg, #1E293B 0%, #0F172A 100%)'
+                  : '#ffffff',
+                border: `1px solid ${alpha('#EF4444', isDark ? 0.22 : 0.12)}`,
+                boxShadow: `0 24px 64px ${alpha('#000', isDark ? 0.55 : 0.18)}`,
+                textAlign: 'center',
+              }}>
+                <motion.div
+                  initial={{ rotate: -12, scale: 0.7 }}
+                  animate={{ rotate: 0, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.05 }}
+                >
+                  <Box sx={{
+                    width: 64, height: 64, borderRadius: '50%', mx: 'auto', mb: 2.5,
+                    background: `linear-gradient(135deg, ${alpha('#EF4444', 0.18)} 0%, ${alpha('#B91C1C', 0.1)} 100%)`,
+                    border: `2px solid ${alpha('#EF4444', 0.25)}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: `0 4px 20px ${alpha('#EF4444', 0.22)}`,
+                  }}>
+                    <LogoutIcon sx={{ fontSize: 28, color: '#EF4444' }} />
+                  </Box>
+                </motion.div>
+                <Typography variant="body2" color="text.danger" sx={{ mb: 3, lineHeight: 1.6 }}>
+                  You cannot logout while there is an active ride, complete it first.
+                </Typography>
+              </Paper>
+            </motion.div>
+          </Box>
+        </Modal>
+      )
+    }
+  }
   return (
     <Modal open={open} onClose={onCancel}>
       <Box sx={{
@@ -45,8 +94,8 @@ function LogoutModal({ open, onConfirm, onCancel }) {
       }}>
         <motion.div
           initial={{ scale: 0.85, opacity: 0, y: 20 }}
-          animate={{ scale: 1,    opacity: 1, y: 0  }}
-          exit={{   scale: 0.85, opacity: 0, y: 20  }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.85, opacity: 0, y: 20 }}
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
         >
           <Paper elevation={24} sx={{
@@ -119,51 +168,65 @@ function LogoutModal({ open, onConfirm, onCancel }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
-  const router  = useRouter();
-  const theme   = useTheme();
-  const isDark  = theme.palette.mode === 'dark';
+  const router = useRouter();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { user, logout } = useAuth();
   const { driverProfile } = useDriver();
   const { isSubscriptionSystemEnabled } = useAdminSettings();
-  const [vehicle,        setVehicle]        = useState(null);
-  const [showLogout,     setShowLogout]     = useState(false);   // ← new
+  const [vehicle, setVehicle] = useState(null);
+  const [showLogout, setShowLogout] = useState(false);   // ← new
   const [frontenUrl, setLandingPageUrl] = useState(process.env.NEXT_PUBLIC_FRONTEND_URL)
 
   const verStatus = driverProfile?.verificationStatus;
   const verBadge = {
-    [VERIFICATION_STATUS.APPROVED]: { label: '✓ Verified',   color: 'success' },
-    [VERIFICATION_STATUS.PENDING]:  { label: '⏳ Pending',    color: 'warning' },
-    [VERIFICATION_STATUS.REJECTED]: { label: '✗ Rejected',   color: 'error'   },
+    [VERIFICATION_STATUS.APPROVED]: { label: '✓ Verified', color: 'success' },
+    [VERIFICATION_STATUS.PENDING]: { label: '⏳ Pending', color: 'warning' },
+    [VERIFICATION_STATUS.REJECTED]: { label: '✗ Rejected', color: 'error' },
   }[verStatus] ?? { label: 'Not Verified', color: 'default' };
 
   const statItems = [
-    { value: driverProfile?.totalRides || 0,                            label: 'Rides',      color: '#3B82F6' },
-    { value: `★ ${driverProfile?.averageRating?.toFixed(1) || '0.0'}`,  label: 'Rating',     color: '#F59E0B' },
-    { value: `${driverProfile?.completionRate?.toFixed(0) || 0}%`,      label: 'Completion', color: '#10B981' },
+    { value: driverProfile?.totalRides || 0, label: 'Rides', color: '#3B82F6' },
+    { value: `★ ${driverProfile?.averageRating?.toFixed(1) || '0.0'}`, label: 'Rating', color: '#F59E0B' },
+    { value: `${driverProfile?.completionRate?.toFixed(0) || 0}%`, label: 'Completion', color: '#10B981' },
   ];
 
   const accountItems = [
-    { icon: ProfileIcon,     primary: 'Edit Profile',    secondary: 'Name, photo, contact info',
-      path: '/profile/edit',        color: '#3B82F6' },
-    { icon: VerifiedIcon,    primary: 'Verification',    secondary: verStatus || 'Not started',
+    {
+      icon: ProfileIcon, primary: 'Edit Profile', secondary: 'Name, photo, contact info',
+      path: '/profile/edit', color: '#3B82F6'
+    },
+    {
+      icon: VerifiedIcon, primary: 'Verification', secondary: verStatus || 'Not started',
       path: verStatus === VERIFICATION_STATUS.PENDING ? '/onboarding/pending' : '/onboarding/welcome',
-      color: verStatus === VERIFICATION_STATUS.APPROVED ? '#10B981' : '#F59E0B' },
-    { icon: VehicleIcon,     primary: 'Vehicle',         secondary: vehicle
+      color: verStatus === VERIFICATION_STATUS.APPROVED ? '#10B981' : '#F59E0B'
+    },
+    {
+      icon: VehicleIcon, primary: 'Vehicle', secondary: vehicle
         ? `${vehicle.make} ${vehicle.model}` : 'No vehicle',
-      path: '/onboarding/delivery-vehicle-type', color: '#8B5CF6' },
-    { icon: PerformanceIcon, primary: 'Performance',     secondary: 'Stats, ratings, completion',
-      path: '/earnings/analytics', color: '#06B6D4' },
+      path: '/onboarding/delivery-vehicle-type', color: '#8B5CF6'
+    },
+    {
+      icon: PerformanceIcon, primary: 'Performance', secondary: 'Stats, ratings, completion',
+      path: '/earnings/analytics', color: '#06B6D4'
+    },
   ];
 
   const financeItems = [
-    { icon: AccountBalanceIcon, primary: 'Mobile Money Numbers',
+    {
+      icon: AccountBalanceIcon, primary: 'Mobile Money Numbers',
       secondary: driverProfile?.paymentPhoneNumbers?.length > 0
         ? `${driverProfile.paymentPhoneNumbers.length} saved` : 'Add payout numbers',
-      path: '/mobile-money-numbers', color: '#3B82F6' },
-    { icon: DocumentIcon, primary: 'Withdrawals',      secondary: 'Request withdrawal',
-      path: '/earnings/withdraw',   color: '#F59E0B' },
-    { icon: ReferralIcon, primary: 'Referral Program', secondary: 'Earn by referring friends',
-      path: '/affiliate',   color: '#EC4899' },
+      path: '/mobile-money-numbers', color: '#3B82F6'
+    },
+    {
+      icon: DocumentIcon, primary: 'Withdrawals', secondary: 'Request withdrawal',
+      path: '/earnings/withdraw', color: '#F59E0B'
+    },
+    {
+      icon: ReferralIcon, primary: 'Referral Program', secondary: 'Earn by referring friends',
+      path: '/affiliate', color: '#EC4899'
+    },
   ];
 
   if (isSubscriptionSystemEnabled) {
@@ -175,16 +238,16 @@ export default function ProfilePage() {
   }
 
   const supportItems = [
-    { icon: SettingsIcon, primary: 'Settings',    secondary: 'Preferences, notifications', path: '/profile/settings', color: '#6B7280' },
-    { icon: HelpIcon,     primary: 'Help Center', secondary: 'FAQs, contact support',      path: '/help',             color: '#3B82F6' },
-    { icon: InfoIcon,     primary: 'About', secondary: 'FAQs, contact support',      path: '/about',             color: '#48a254' },
-    { icon: DocumentIcon, primary: 'Legal',       secondary: 'Terms, privacy policy',       path: frontenUrl+'/terms.html',    color: '#6B7280' },
+    { icon: SettingsIcon, primary: 'Settings', secondary: 'Preferences, notifications', path: '/profile/settings', color: '#6B7280' },
+    { icon: HelpIcon, primary: 'Help Center', secondary: 'FAQs, contact support', path: '/help', color: '#3B82F6' },
+    { icon: InfoIcon, primary: 'About', secondary: 'FAQs, contact support', path: '/about', color: '#48a254' },
+    { icon: DocumentIcon, primary: 'Legal', secondary: 'Terms, privacy policy', path: frontenUrl + '/terms.html', color: '#6B7280' },
   ];
 
   const sections = [
-    { label: 'Account',            items: accountItems  },
-    { label: 'Earnings & Finance', items: financeItems  },
-    { label: 'Support & Settings', items: supportItems  },
+    { label: 'Account', items: accountItems },
+    { label: 'Earnings & Finance', items: financeItems },
+    { label: 'Support & Settings', items: supportItems },
   ];
 
   useEffect(() => {
@@ -192,13 +255,13 @@ export default function ProfilePage() {
       const v = await getDriverVehicle();
       setVehicle(v?.vehicle);
     };
-     const getFrontendUrl = async () => {
-        const res = await apiClient.get('/frontend-url').catch(() => null);
-        const url = res?.data?.paths?.['okra-frontend-app'];
-        if (url) setLandingPageUrl(url);
-      }
-      runGetDriverVehicle()
-      getFrontendUrl()
+    const getFrontendUrl = async () => {
+      const res = await apiClient.get('/frontend-url').catch(() => null);
+      const url = res?.data?.paths?.['okra-frontend-app'];
+      if (url) setLandingPageUrl(url);
+    }
+    runGetDriverVehicle()
+    getFrontendUrl()
   }, [])
 
   return (

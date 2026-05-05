@@ -8,15 +8,15 @@ const withPWA = require('next-pwa')({
 module.exports = withPWA({
   reactStrictMode: true,
   swcMinify: true,
-  
+
   // Disable font optimization to avoid timeout
   optimizeFonts: false,
-  
+
   images: {
-    domains: ['localhost', 'driver.okrarides.com','172.31.156.23'],
+    domains: ['localhost', 'driver.okrarides.com', '172.31.156.23'],
     formats: ['image/avif', 'image/webp'],
   },
-  allowedDevOrigins: [process.env.NEXT_PUBLIC_RIDER_APP_URL],
+  allowedDevOrigins: ['10.196.209.23'],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

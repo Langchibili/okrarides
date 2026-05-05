@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     loadUser();
   }, []);
-  
+
   const loadUser = async () => {
     try {
       const token = apiClient.getToken();
@@ -34,37 +34,37 @@ export function AuthProvider({ children }) {
         setLoading(false);
         return;
       }
-      
+
       const userData = await authAPI.me();
       setUser(userData);
     } catch (err) {
       console.error('Error loading user:', err);
       setError(err.message);
-      apiClient.clearToken();
+      // apiClient.clearToken();
     } finally {
       setLoading(false);
     }
   };
-  
+
   // Register
   const register = async (data) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await authAPI.register(data);
       return response;
     } catch (err) {
-      if(err.message === "Error: Email or Username are already taken" || err.message === "Email or Username are already taken"){
-         setError("Oops! Account Exists Already, Log In Instead.");
+      if (err.message === "Error: Email or Username are already taken" || err.message === "Email or Username are already taken") {
+        setError("Oops! Account Exists Already, Log In Instead.");
       }
-      
+
       throw err;
     } finally {
       setLoading(false);
     }
   };
-  
+
   // Send OTP
   const sendOTP = async (phoneNumber, purpose) => {
     try {
@@ -75,7 +75,7 @@ export function AuthProvider({ children }) {
       throw err;
     }
   };
-   // reSend  OTP
+  // reSend  OTP
   const reSendOTP = async (phoneNumber, purpose) => {
     try {
       setError(null);
@@ -86,20 +86,20 @@ export function AuthProvider({ children }) {
     }
   };
 
-  
-  
+
+
   // Verify OTP
   const verifyOTP = async (phoneNumber, otp, purpose) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await authAPI.verifyOTP(phoneNumber, otp, purpose);
-      
+
       if (response.user) {
         setUser(response.user);
       }
-      
+
       return response;
     } catch (err) {
       setError(err.message);
@@ -108,16 +108,16 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
-  
+
   // Login
   const login = async (phoneNumber, password) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await authAPI.login(phoneNumber, password);
       setUser(response.user);
-      
+
       return response;
     } catch (err) {
       setError(err.message);
@@ -126,7 +126,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
-  
+
   // Login with OTP
   const loginWithOTP = async (phoneNumber) => {
     try {
@@ -137,32 +137,32 @@ export function AuthProvider({ children }) {
       throw err;
     }
   };
-  
+
   // Logout
   const logout = async () => {
     authAPI.logout();
     setUser(null);
     let userId
-    if(user){
-        userId = user.id
+    if (user) {
+      userId = user.id
     }
-    else{
-       const response = await authAPI.me()
-       userId = response?.id
+    else {
+      const response = await authAPI.me()
+      userId = response?.id
     }
-    disconnectDeviceSocket(userId,'rider')
+    disconnectDeviceSocket(userId, 'rider')
     stopLocationTracking() // no need to continue having you send your location, you are logged out
-    if(typeof window !== 'undefined'){
+    if (typeof window !== 'undefined') {
       localStorage.clear();
       window.location.href = '/login';
     }
   }
-  
+
   // Update user
   const updateUser = (updates) => {
     setUser(prev => ({ ...prev, ...updates }));
   };
-  
+
   // Refresh user data
   const refreshUser = async () => {
     try {
@@ -174,12 +174,12 @@ export function AuthProvider({ children }) {
       throw err;
     }
   };
-  
+
   // Check auth status
   const isAuthenticated = () => {
     return !!user && !!apiClient.getToken();
   };
-  
+
   // Forgot password
   const forgotPassword = async (phoneNumber) => {
     try {
@@ -190,16 +190,16 @@ export function AuthProvider({ children }) {
       throw err;
     }
   };
-  
+
   // Reset password
   const resetPassword = async (phoneNumber, otp, newPassword) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const response = await authAPI.resetPassword(phoneNumber, otp, newPassword);
       setUser(response.user);
-      
+
       return response;
     } catch (err) {
       setError(err.message);
@@ -208,7 +208,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     }
   };
-  
+
   const value = {
     user,
     loading,
@@ -226,7 +226,7 @@ export function AuthProvider({ children }) {
     forgotPassword,
     resetPassword,
   };
-  
+
   return (
     <AuthContext.Provider value={value}>
       {children}

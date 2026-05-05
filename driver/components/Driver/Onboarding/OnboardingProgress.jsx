@@ -1,8 +1,15 @@
 import { Box, Stepper, Step, StepLabel, useTheme, useMediaQuery } from '@mui/material'
 
+// const steps = [
+//   { label: 'License', key: 'license' },
+//   { label: 'ID', key: 'national-id' },
+//   { label: 'Address', key: 'proof-of-address' },
+//   { label: 'Vehicle', key: 'vehicle-type' },
+//   { label: 'Documents', key: 'vehicle-documents' },
+//   { label: 'Review', key: 'review' },
+// ]
 const steps = [
   { label: 'License', key: 'license' },
-  { label: 'ID', key: 'national-id' },
   { label: 'Address', key: 'proof-of-address' },
   { label: 'Vehicle', key: 'vehicle-type' },
   { label: 'Documents', key: 'vehicle-documents' },
@@ -35,4 +42,4 @@ export const OnboardingProgress = ({ currentStep }) => {
     </Box>
   )
 }
-
+
