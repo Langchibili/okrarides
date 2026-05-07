@@ -705,15 +705,15 @@ function haversine(a, b) {
   const lat1 = a.lat ?? 0, lat2 = b.lat ?? 0, lng1 = a.lng ?? 0, lng2 = b.lng ?? 0;
   const R = 6371;
   const dLat = deg2rad(lat2 - lat1), dLon = deg2rad(lng2 - lng1);
-  const x = Math.sin(dLat/2)**2 + Math.cos(deg2rad(lat1))*Math.cos(deg2rad(lat2))*Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 }
 const estimateMins = (km) => Math.ceil((km / 30) * 60);
 const fmtETA = (m) => {
   if (m == null) return 'Calculating…';
-  if (m < 1)  return 'Arriving soon';
+  if (m < 1) return 'Arriving soon';
   if (m < 60) return `${m} min`;
-  return `${Math.floor(m/60)}h ${m%60 ? m%60+'m' : ''}`.trim();
+  return `${Math.floor(m / 60)}h ${m % 60 ? m % 60 + 'm' : ''}`.trim();
 };
 
 function normalizeCoords(loc) {
@@ -725,19 +725,19 @@ function normalizeCoords(loc) {
 }
 
 const STATUS_STEPS = [
-  { status: 'accepted',          label: 'Deliverer En Route',  emoji: '🚗' },
-  { status: 'arrived',           label: 'Arrived at Pickup',   emoji: '📍' },
-  { status: 'passenger_onboard', label: 'Package In Transit',  emoji: '📦' },
-  { status: 'awaiting_payment',  label: 'Awaiting Payment',    emoji: '💳' },
-  { status: 'completed',         label: 'Delivered!',          emoji: '✅' },
+  { status: 'accepted', label: 'Deliverer En Route', emoji: '🚗' },
+  { status: 'arrived', label: 'Arrived at Pickup', emoji: '📍' },
+  { status: 'passenger_onboard', label: 'Package In Transit', emoji: '📦' },
+  { status: 'awaiting_payment', label: 'Awaiting Payment', emoji: '💳' },
+  { status: 'completed', label: 'Delivered!', emoji: '✅' },
 ];
 
 const STATUS_IDX = Object.fromEntries(STATUS_STEPS.map((s, i) => [s.status, i]));
 
 function ProgressStepper({ rideStatus }) {
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const cur    = STATUS_IDX[rideStatus] ?? 0;
+  const cur = STATUS_IDX[rideStatus] ?? 0;
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
       {STATUS_STEPS.slice(0, 4).map((step, i) => (
@@ -747,17 +747,17 @@ function ProgressStepper({ rideStatus }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: i <= cur
               ? `linear-gradient(135deg,${AMBER} 0%,#D97706 100%)`
-              : alpha(isDark?'#fff':'#000', isDark?0.12:0.08),
+              : alpha(isDark ? '#fff' : '#000', isDark ? 0.12 : 0.08),
             border: `2px solid ${i === cur ? AMBER : 'transparent'}`,
             fontSize: '0.75rem', fontWeight: 700,
             color: i <= cur ? '#fff' : 'text.disabled',
             transition: 'all 0.3s ease',
-            boxShadow: i === cur ? `0 0 0 4px ${alpha(AMBER,0.25)}` : 'none',
+            boxShadow: i === cur ? `0 0 0 4px ${alpha(AMBER, 0.25)}` : 'none',
           }}>
             {i < cur ? '✓' : step.emoji}
           </Box>
           {i < 3 && (
-            <Box sx={{ flex: 1, height: 3, borderRadius: 1.5, background: i < cur ? `linear-gradient(90deg,${AMBER},#D97706)` : alpha(isDark?'#fff':'#000', isDark?0.1:0.07), transition: 'background 0.3s ease', mx: 0.5 }} />
+            <Box sx={{ flex: 1, height: 3, borderRadius: 1.5, background: i < cur ? `linear-gradient(90deg,${AMBER},#D97706)` : alpha(isDark ? '#fff' : '#000', isDark ? 0.1 : 0.07), transition: 'background 0.3s ease', mx: 0.5 }} />
           )}
         </Box>
       ))}
@@ -817,18 +817,18 @@ function LicensePlate({ plate, size = 'medium' }) {
 
 // ── Vehicle Color Dot ─────────────────────────────────────────────────────────
 const COLOR_MAP = {
-  white:  { bg: '#FFFFFF', border: '#ccc', label: 'White' },
-  black:  { bg: '#111111', border: '#555', label: 'Black' },
+  white: { bg: '#FFFFFF', border: '#ccc', label: 'White' },
+  black: { bg: '#111111', border: '#555', label: 'Black' },
   silver: { bg: '#C0C0C0', border: '#999', label: 'Silver' },
-  gray:   { bg: '#808080', border: '#666', label: 'Gray' },
-  red:    { bg: '#DC2626', border: '#b91c1c', label: 'Red' },
-  blue:   { bg: '#2563EB', border: '#1d4ed8', label: 'Blue' },
-  green:  { bg: '#16A34A', border: '#15803d', label: 'Green' },
+  gray: { bg: '#808080', border: '#666', label: 'Gray' },
+  red: { bg: '#DC2626', border: '#b91c1c', label: 'Red' },
+  blue: { bg: '#2563EB', border: '#1d4ed8', label: 'Blue' },
+  green: { bg: '#16A34A', border: '#15803d', label: 'Green' },
   yellow: { bg: '#EAB308', border: '#ca8a04', label: 'Yellow' },
   orange: { bg: '#EA580C', border: '#c2410c', label: 'Orange' },
-  brown:  { bg: '#92400E', border: '#78350f', label: 'Brown' },
+  brown: { bg: '#92400E', border: '#78350f', label: 'Brown' },
   purple: { bg: '#7C3AED', border: '#6d28d9', label: 'Purple' },
-  gold:   { bg: '#D97706', border: '#b45309', label: 'Gold' },
+  gold: { bg: '#D97706', border: '#b45309', label: 'Gold' },
 };
 
 function VehicleColorSwatch({ color }) {
@@ -851,38 +851,42 @@ function VehicleColorSwatch({ color }) {
 export default function DeliveryTrackingPage() {
   const params = useParams();
   const router = useRouter();
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const id     = params.id;
+  const id = params.id;
 
-  const [delivery,      setDelivery]      = useState(null);
-  const [delivererLoc,  setDelivererLoc]  = useState(null);
-  const [eta,           setEta]           = useState(null);
-  const [distance,      setDistance]      = useState(null);
-  const [loading,       setLoading]       = useState(true);
+  const [delivery, setDelivery] = useState(null);
+  const [delivererLoc, setDelivererLoc] = useState(null);
+  const [eta, setEta] = useState(null);
+  const [distance, setDistance] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showFullSheet, setShowFullSheet] = useState(false);
 
-  const [routePickup,  setRoutePickup]  = useState(null);
+  const [routePickup, setRoutePickup] = useState(null);
   const [routeDropoff, setRouteDropoff] = useState(null);
-  const [routeReady,   setRouteReady]   = useState(false);
+  const [routeReady, setRouteReady] = useState(false);
   const routeStatusRef = useRef(null);
 
   // ── Cancel flow ───────────────────────────────────────────────────────────
-  const [showCancelConfirm,    setShowCancelConfirm]    = useState(false);
-  const [showCancelReasons,    setShowCancelReasons]    = useState(false);
-  const [cancelReasons,        setCancelReasons]        = useState([]);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showCancelReasons, setShowCancelReasons] = useState(false);
+  const [cancelReasons, setCancelReasons] = useState([]);
   const [cancelReasonsLoading, setCancelReasonsLoading] = useState(false);
   const [selectedCancelReason, setSelectedCancelReason] = useState('');
-  const [cancelOtherText,      setCancelOtherText]      = useState('');
-  const [cancelling,           setCancelling]           = useState(false);
+  const [cancelOtherText, setCancelOtherText] = useState('');
+  const [cancelling, setCancelling] = useState(false);
 
   const mapControlsRef = useRef(null);
-  const pollRef        = useRef(null);
-  const locPollRef     = useRef(null);
-  const mountedRef     = useRef(true);
+  const pollRef = useRef(null);
+  const locPollRef = useRef(null);
+  const mountedRef = useRef(true);
 
   const { on: socketOn, off: socketOff, connected } = useSocket();
-  const { on: rnOn } = useReactNative();
+  const { on: rnOn, stopLocationTracking } = useReactNative();
+
+  useEffect(() => {
+    stopLocationTracking() // stop location tracking, to not prompt page reload cycles
+  }, [router])
 
   useEffect(() => {
     mountedRef.current = true;
@@ -896,10 +900,10 @@ export default function DeliveryTrackingPage() {
   // ─── Load delivery ────────────────────────────────────────────────────
   const load = useCallback(async () => {
     try {
-      const res  = await getDelivery(id);
+      const res = await getDelivery(id);
       const data = res?.data ?? res;
       if (data && mountedRef.current) setDelivery(data);
-    } catch {}
+    } catch { }
     finally { if (mountedRef.current) setLoading(false); }
   }, [id]);
 
@@ -913,7 +917,7 @@ export default function DeliveryTrackingPage() {
     pollRef.current = setInterval(async () => {
       if (!mountedRef.current) return;
       try {
-        const res  = await getDelivery(id);
+        const res = await getDelivery(id);
         const data = res?.data ?? res;
         if (!data || !mountedRef.current) return;
         setDelivery(prev => prev ? { ...prev, ...data } : data);
@@ -925,7 +929,7 @@ export default function DeliveryTrackingPage() {
           clearInterval(pollRef.current);
           router.replace('/deliveries');
         }
-      } catch {}
+      } catch { }
     }, 15000);
     return () => clearInterval(pollRef.current);
   }, [id, router]);
@@ -936,17 +940,17 @@ export default function DeliveryTrackingPage() {
 
     const match = (data) => !data?.deliveryId || String(data.deliveryId) === String(id);
 
-    const onArrived   = (data) => { if (!match(data)) return; setDelivery(p => p ? { ...p, rideStatus: 'arrived' } : p); };
-    const onStarted   = (data) => { if (!match(data)) return; setDelivery(p => p ? { ...p, rideStatus: 'passenger_onboard' } : p); };
-    const onPayReq    = (data) => { if (!match(data)) return; setDelivery(p => p ? { ...p, rideStatus: 'awaiting_payment' } : p); };
-    const onComplete  = (data) => { if (!match(data)) return; clearInterval(pollRef.current); router.replace(`/deliveries/${id}`); };
+    const onArrived = (data) => { if (!match(data)) return; setDelivery(p => p ? { ...p, rideStatus: 'arrived' } : p); };
+    const onStarted = (data) => { if (!match(data)) return; setDelivery(p => p ? { ...p, rideStatus: 'passenger_onboard' } : p); };
+    const onPayReq = (data) => { if (!match(data)) return; setDelivery(p => p ? { ...p, rideStatus: 'awaiting_payment' } : p); };
+    const onComplete = (data) => { if (!match(data)) return; clearInterval(pollRef.current); router.replace(`/deliveries/${id}`); };
     const onCancelled = (data) => { if (!match(data)) return; clearInterval(pollRef.current); router.replace('/deliveries'); };
 
-    socketOn(SOCKET_EVENTS.DELIVERY.DRIVER_ARRIVED,    onArrived);
-    socketOn(SOCKET_EVENTS.DELIVERY.STARTED,           onStarted);
+    socketOn(SOCKET_EVENTS.DELIVERY.DRIVER_ARRIVED, onArrived);
+    socketOn(SOCKET_EVENTS.DELIVERY.STARTED, onStarted);
     socketOn(SOCKET_EVENTS.DELIVERY.PAYMENT_REQUESTED, onPayReq);
-    socketOn(SOCKET_EVENTS.DELIVERY.COMPLETED,         onComplete);
-    socketOn(SOCKET_EVENTS.DELIVERY.CANCELLED,         onCancelled);
+    socketOn(SOCKET_EVENTS.DELIVERY.COMPLETED, onComplete);
+    socketOn(SOCKET_EVENTS.DELIVERY.CANCELLED, onCancelled);
 
     return () => {
       socketOff(SOCKET_EVENTS.DELIVERY.DRIVER_ARRIVED);
@@ -964,13 +968,13 @@ export default function DeliveryTrackingPage() {
     if (!loc || !mountedRef.current) return;
     setDelivererLoc(loc);
     mapControlsRef.current?.updateDriverLocation(loc);
-    if (payload.eta      != null) setEta(payload.eta);
+    if (payload.eta != null) setEta(payload.eta);
     if (payload.distance != null) setDistance(payload.distance);
   }, []);
 
   useEffect(() => {
     const unsub1 = rnOn('DELIVERY_LOCATION_UPDATED', handleDelivererLocFromRN);
-    const unsub2 = rnOn('DRIVER_LOCATION_UPDATED',   handleDelivererLocFromRN);
+    const unsub2 = rnOn('DRIVER_LOCATION_UPDATED', handleDelivererLocFromRN);
     return () => { unsub1?.(); unsub2?.(); };
   }, [rnOn, handleDelivererLocFromRN]);
 
@@ -1016,7 +1020,7 @@ export default function DeliveryTrackingPage() {
 
         if (rideStatus === 'passenger_onboard' && routeStatusRef.current !== 'passenger_onboard') {
           routeStatusRef.current = 'passenger_onboard';
-          const pickup  = normalizeCoords(delivery.pickupLocation);
+          const pickup = normalizeCoords(delivery.pickupLocation);
           const dropoff = normalizeCoords(delivery.dropoffLocation);
           if (pickup && dropoff) {
             setRoutePickup(pickup);
@@ -1025,7 +1029,7 @@ export default function DeliveryTrackingPage() {
           }
         }
 
-      } catch {}
+      } catch { }
     };
 
     updateLoc();
@@ -1038,7 +1042,7 @@ export default function DeliveryTrackingPage() {
   const markers = useMemo(() => {
     if (!delivery) return [];
 
-    const actualPickup  = normalizeCoords(delivery.pickupLocation);
+    const actualPickup = normalizeCoords(delivery.pickupLocation);
     const actualDropoff = normalizeCoords(delivery.dropoffLocation);
 
     const PACKAGE_MARKER = { bg: '#92400E', label: '📦', size: 36 };
@@ -1054,7 +1058,7 @@ export default function DeliveryTrackingPage() {
     if (rideStatus === 'passenger_onboard') {
       const result = [];
       if (actualPickup) {
-        result.push({ id: 'pickup',  position: actualPickup,  type: 'pickup',  custom: PACKAGE_MARKER });
+        result.push({ id: 'pickup', position: actualPickup, type: 'pickup', custom: PACKAGE_MARKER });
       }
       if (actualDropoff) {
         result.push({ id: 'dropoff', position: actualDropoff, type: 'dropoff', custom: null });
@@ -1063,7 +1067,7 @@ export default function DeliveryTrackingPage() {
     }
 
     const result = [];
-    if (actualPickup)  result.push({ id: 'pickup',  position: actualPickup,  type: 'pickup',  custom: PACKAGE_MARKER });
+    if (actualPickup) result.push({ id: 'pickup', position: actualPickup, type: 'pickup', custom: PACKAGE_MARKER });
     if (actualDropoff) result.push({ id: 'dropoff', position: actualDropoff, type: 'dropoff', custom: null });
     return result;
 
@@ -1094,7 +1098,7 @@ export default function DeliveryTrackingPage() {
 
   const handleCancelWithReason = async () => {
     const isOther = selectedCancelReason === '__other__';
-    const reason  = isOther
+    const reason = isOther
       ? (cancelOtherText.trim() || 'Other')
       : (cancelReasons.find(r => String(r.id) === String(selectedCancelReason))?.reason || selectedCancelReason);
     if (!reason) return;
@@ -1127,9 +1131,9 @@ export default function DeliveryTrackingPage() {
     selectedCancelReason !== '__other__' || cancelOtherText.trim().length > 0
   );
 
-  const curStep    = STATUS_STEPS.find(s => s.status === rideStatus) ?? STATUS_STEPS[0];
+  const curStep = STATUS_STEPS.find(s => s.status === rideStatus) ?? STATUS_STEPS[0];
   const bannerColor = rideStatus === 'accepted' ? '#10B981' : AMBER;
-  const bannerBg    = rideStatus === 'accepted'
+  const bannerBg = rideStatus === 'accepted'
     ? 'linear-gradient(135deg,rgba(16,185,129,0.12) 0%,rgba(5,150,105,0.06) 100%)'
     : 'linear-gradient(135deg,rgba(245,158,11,0.12) 0%,rgba(217,119,6,0.06) 100%)';
 
@@ -1141,7 +1145,7 @@ export default function DeliveryTrackingPage() {
   }
 
   const deliverer = delivery.deliverer;
-  const vehicle   = delivery.vehicle;
+  const vehicle = delivery.vehicle;
 
   return (
     <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -1248,7 +1252,7 @@ export default function DeliveryTrackingPage() {
           {/* ETA / status banner */}
           <AnimatePresence mode="wait">
             <motion.div key={rideStatus} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-              <Box sx={{ p: 2, borderRadius: 3, mb: 2, background: bannerBg, border: `1px solid ${alpha(bannerColor,0.25)}` }}>
+              <Box sx={{ p: 2, borderRadius: 3, mb: 2, background: bannerBg, border: `1px solid ${alpha(bannerColor, 0.25)}` }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                   <Typography sx={{ fontSize: 18 }}>{curStep.emoji}</Typography>
                   <Typography variant="subtitle2" fontWeight={700}>{curStep.label}</Typography>
@@ -1260,7 +1264,7 @@ export default function DeliveryTrackingPage() {
                   )}
                 </Box>
                 {(rideStatus === 'accepted' || rideStatus === 'passenger_onboard') && eta != null && (
-                  <LinearProgress variant="indeterminate" sx={{ borderRadius: 2, height: 4, bgcolor: alpha(bannerColor,0.15), '& .MuiLinearProgress-bar': { background: `linear-gradient(90deg,${bannerColor},${alpha(bannerColor,0.7)})` } }} />
+                  <LinearProgress variant="indeterminate" sx={{ borderRadius: 2, height: 4, bgcolor: alpha(bannerColor, 0.15), '& .MuiLinearProgress-bar': { background: `linear-gradient(90deg,${bannerColor},${alpha(bannerColor, 0.7)})` } }} />
                 )}
               </Box>
             </motion.div>
@@ -1268,9 +1272,9 @@ export default function DeliveryTrackingPage() {
 
           {/* Deliverer card */}
           {deliverer && (
-            <Paper elevation={0} sx={{ p: 2, borderRadius: 3, mb: 2, border: `1px solid ${alpha(isDark?'#fff':'#000',0.08)}`, bgcolor: isDark ? alpha('#fff',0.04) : alpha('#000',0.02) }}>
+            <Paper elevation={0} sx={{ p: 2, borderRadius: 3, mb: 2, border: `1px solid ${alpha(isDark ? '#fff' : '#000', 0.08)}`, bgcolor: isDark ? alpha('#fff', 0.04) : alpha('#000', 0.02) }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ width: 50, height: 50, border: `2px solid ${alpha(AMBER,0.5)}` }}>
+                <Avatar sx={{ width: 50, height: 50, border: `2px solid ${alpha(AMBER, 0.5)}` }}>
                   {deliverer.firstName?.[0]}{deliverer.lastName?.[0]}
                 </Avatar>
                 <Box sx={{ flex: 1 }}>
@@ -1294,7 +1298,7 @@ export default function DeliveryTrackingPage() {
                     sx={{ bgcolor: 'success.main', color: '#fff', width: 38, height: 38, '&:hover': { bgcolor: 'success.dark' } }}>
                     <PhoneIcon sx={{ fontSize: 17 }} />
                   </IconButton>
-                  <IconButton onClick={() => window.open(`https://wa.me/${deliverer.phoneNumber?.replace(/\D/g,'')}`, '_blank')}
+                  <IconButton onClick={() => window.open(`https://wa.me/${deliverer.phoneNumber?.replace(/\D/g, '')}`, '_blank')}
                     sx={{ background: 'linear-gradient(135deg,#10B981,#059669)', color: '#fff', width: 38, height: 38 }}>
                     <MessageIcon sx={{ fontSize: 17 }} />
                   </IconButton>
@@ -1306,7 +1310,7 @@ export default function DeliveryTrackingPage() {
                 <Box sx={{
                   mt: 1.75,
                   pt: 1.75,
-                  borderTop: `1px solid ${alpha(isDark?'#fff':'#000',0.07)}`,
+                  borderTop: `1px solid ${alpha(isDark ? '#fff' : '#000', 0.07)}`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -1335,7 +1339,7 @@ export default function DeliveryTrackingPage() {
           {showFullSheet && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {/* Route summary */}
-              <Paper elevation={0} sx={{ p: 2, borderRadius: 3, mb: 2, border: `1px solid ${alpha(isDark?'#fff':'#000',0.08)}` }}>
+              <Paper elevation={0} sx={{ p: 2, borderRadius: 3, mb: 2, border: `1px solid ${alpha(isDark ? '#fff' : '#000', 0.08)}` }}>
                 <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
                   <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10B981', mt: 0.6, flexShrink: 0 }} />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -1357,7 +1361,7 @@ export default function DeliveryTrackingPage() {
 
                 {/* Package details */}
                 {delivery.package && (
-                  <Box sx={{ mt: 1.5, pt: 1.5, borderTop: `1px solid ${alpha(isDark?'#fff':'#000',0.07)}`, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Box sx={{ mt: 1.5, pt: 1.5, borderTop: `1px solid ${alpha(isDark ? '#fff' : '#000', 0.07)}`, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                     <PackageIcon sx={{ fontSize: 15, color: AMBER }} />
                     <Typography variant="caption" textTransform="capitalize" fontWeight={600}>
                       {delivery.package.packageType ?? 'Package'}
@@ -1372,13 +1376,13 @@ export default function DeliveryTrackingPage() {
 
               {/* Fare */}
               {delivery.totalFare != null && (
-                <Paper elevation={0} sx={{ p: 2, borderRadius: 3, mb: 2, border: `1px solid ${alpha(AMBER,0.2)}`, background: alpha(AMBER,isDark?0.08:0.04) }}>
+                <Paper elevation={0} sx={{ p: 2, borderRadius: 3, mb: 2, border: `1px solid ${alpha(AMBER, 0.2)}`, background: alpha(AMBER, isDark ? 0.08 : 0.04) }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="body2" fontWeight={600}>Total Fare</Typography>
                     <Typography variant="h6" fontWeight={800} sx={{ color: AMBER }}>{formatCurrency(delivery.totalFare)}</Typography>
                   </Box>
                   <Chip label={delivery.paymentMethod === 'cash' ? '💵 Cash' : '💳 OkraPay'} size="small"
-                    sx={{ mt: 0.75, fontWeight: 700, bgcolor: alpha(AMBER,isDark?0.15:0.1), color: AMBER, border: `1px solid ${alpha(AMBER,0.3)}` }} />
+                    sx={{ mt: 0.75, fontWeight: 700, bgcolor: alpha(AMBER, isDark ? 0.15 : 0.1), color: AMBER, border: `1px solid ${alpha(AMBER, 0.3)}` }} />
                 </Paper>
               )}
             </motion.div>
@@ -1390,7 +1394,7 @@ export default function DeliveryTrackingPage() {
               const dest = normalizeCoords(delivery.dropoffLocation);
               if (dest) window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}`, '_blank');
             }}
-            sx={{ height: 44, borderRadius: 3, fontWeight: 600, borderColor: alpha(AMBER,0.5), color: AMBER, mb: ['accepted','arrived'].includes(rideStatus) ? 1.5 : 0 }}>
+            sx={{ height: 44, borderRadius: 3, fontWeight: 600, borderColor: alpha(AMBER, 0.5), color: AMBER, mb: ['accepted', 'arrived'].includes(rideStatus) ? 1.5 : 0 }}>
             Open Dropoff in Google Maps
           </Button>
 
@@ -1416,8 +1420,8 @@ export default function DeliveryTrackingPage() {
       >
         <DialogTitle sx={{ fontWeight: 700, pb: 0.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{ width:40, height:40, borderRadius:2, flexShrink:0, background:'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 12px rgba(239,68,68,0.35)' }}>
-              <WarningIcon sx={{ fontSize:22, color:'#fff' }} />
+            <Box sx={{ width: 40, height: 40, borderRadius: 2, flexShrink: 0, background: 'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(239,68,68,0.35)' }}>
+              <WarningIcon sx={{ fontSize: 22, color: '#fff' }} />
             </Box>
             Cancel Delivery?
           </Box>
@@ -1428,8 +1432,8 @@ export default function DeliveryTrackingPage() {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 2.5, pb: 2.5, gap: 1 }}>
-          <Button onClick={handleCancelConfirmNo} variant="outlined" sx={{ flex:1, borderRadius:2.5, fontWeight:600, height:44 }}>No</Button>
-          <Button onClick={handleCancelConfirmYes} variant="contained" color="error" sx={{ flex:1, borderRadius:2.5, fontWeight:700, height:44 }}>Yes</Button>
+          <Button onClick={handleCancelConfirmNo} variant="outlined" sx={{ flex: 1, borderRadius: 2.5, fontWeight: 600, height: 44 }}>No</Button>
+          <Button onClick={handleCancelConfirmYes} variant="contained" color="error" sx={{ flex: 1, borderRadius: 2.5, fontWeight: 700, height: 44 }}>Yes</Button>
         </DialogActions>
       </Dialog>
 
@@ -1441,8 +1445,8 @@ export default function DeliveryTrackingPage() {
       >
         <DialogTitle sx={{ fontWeight: 700, pb: 0.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{ width:40, height:40, borderRadius:2, flexShrink:0, background:'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 12px rgba(239,68,68,0.35)' }}>
-              <CancelIcon sx={{ fontSize:22, color:'#fff' }} />
+            <Box sx={{ width: 40, height: 40, borderRadius: 2, flexShrink: 0, background: 'linear-gradient(135deg,#ef4444 0%,#dc2626 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(239,68,68,0.35)' }}>
+              <CancelIcon sx={{ fontSize: 22, color: '#fff' }} />
             </Box>
             Reason for Cancellation
           </Box>
@@ -1472,20 +1476,20 @@ export default function DeliveryTrackingPage() {
           )}
           <AnimatePresence>
             {selectedCancelReason === '__other__' && (
-              <motion.div key="other-input" initial={{ opacity:0, height:0, marginTop:0 }} animate={{ opacity:1, height:'auto', marginTop:16 }} exit={{ opacity:0, height:0, marginTop:0 }} transition={{ type:'spring', stiffness:300, damping:28 }} style={{ overflow:'hidden' }}>
+              <motion.div key="other-input" initial={{ opacity: 0, height: 0, marginTop: 0 }} animate={{ opacity: 1, height: 'auto', marginTop: 16 }} exit={{ opacity: 0, height: 0, marginTop: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 28 }} style={{ overflow: 'hidden' }}>
                 <TextField fullWidth multiline minRows={2} maxRows={4} placeholder="Explain more…" value={cancelOtherText} onChange={(e) => setCancelOtherText(e.target.value)} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
               </motion.div>
             )}
           </AnimatePresence>
         </DialogContent>
         <DialogActions sx={{ px: 2.5, pb: 1.5, gap: 1, flexDirection: 'column' }}>
-          <Button fullWidth variant="contained" color="error" size="large" disabled={!canSubmitCancel || cancelling} startIcon={cancelling ? <CircularProgress size={16} color="inherit" /> : <CancelIcon />} onClick={handleCancelWithReason} sx={{ height:50, borderRadius:2.5, fontWeight:700 }}>
+          <Button fullWidth variant="contained" color="error" size="large" disabled={!canSubmitCancel || cancelling} startIcon={cancelling ? <CircularProgress size={16} color="inherit" /> : <CancelIcon />} onClick={handleCancelWithReason} sx={{ height: 50, borderRadius: 2.5, fontWeight: 700 }}>
             {cancelling ? 'Cancelling…' : 'Cancel Delivery'}
           </Button>
-          <Divider sx={{ width:'100%', my:0.5 }}>
-            <Typography variant="caption" color="text.disabled" sx={{ px:1 }}>or</Typography>
+          <Divider sx={{ width: '100%', my: 0.5 }}>
+            <Typography variant="caption" color="text.disabled" sx={{ px: 1 }}>or</Typography>
           </Divider>
-          <Button fullWidth variant="text" size="medium" disabled={cancelling} onClick={handleCancelWithoutReason} sx={{ height:44, borderRadius:2.5, fontWeight:600, color:'text.secondary', textTransform:'none', fontSize:'0.875rem', '&:hover':{ bgcolor:'action.hover' } }}>
+          <Button fullWidth variant="text" size="medium" disabled={cancelling} onClick={handleCancelWithoutReason} sx={{ height: 44, borderRadius: 2.5, fontWeight: 600, color: 'text.secondary', textTransform: 'none', fontSize: '0.875rem', '&:hover': { bgcolor: 'action.hover' } }}>
             Cancel without reason
           </Button>
         </DialogActions>

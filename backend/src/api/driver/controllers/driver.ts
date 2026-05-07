@@ -749,9 +749,8 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         }
         return false
       }
-      const userHasInitialFloatToppedUp = checkIfVehicleExistsAndUserHasInitialFloatToppedUp()
+      const userHasInitialFloatToppedUp = await checkIfVehicleExistsAndUserHasInitialFloatToppedUp()
       if (userHasInitialFloatToppedUp) { // to avoid a user getting free float topups twice, userHasInitialFloatToppedUp being true means user has had a vehicle added before already
-        console.log('userHasInitialFloatToppedUp', userHasInitialFloatToppedUp)
         await strapi.db.query('plugin::users-permissions.user').update({
           where: { id: userId },
           data: {

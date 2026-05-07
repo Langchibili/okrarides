@@ -2036,7 +2036,7 @@ export default function TrackingPage() {
     startTracking, stopTracking, loading,
     loadRideDriverProfilePicUrl,
   } = useRide();
-  const { on: rnOn, sendToNative } = useReactNative();
+  const { on: rnOn, sendToNative, stopLocationTracking } = useReactNative();
 
   const log = useCallback((key, data = {}) => {
     const payload = { key: `tracking-page-${key}`, ts: Date.now(), ...data };
@@ -2071,6 +2071,10 @@ export default function TrackingPage() {
   // Keep stopTracking in a ref so the status effect can call it without
   // needing it as a dependency (which would cause the effect to re-fire
   // every render if stopTracking isn't memoized inside useRide).
+  useEffect(() => {
+    stopLocationTracking() // stop location tracking, to not prompt page reload cycles
+  }, [router]);
+
   const stopTrackingRef = useRef(stopTracking);
   useEffect(() => { stopTrackingRef.current = stopTracking; }, [stopTracking]);
 
@@ -2206,7 +2210,7 @@ export default function TrackingPage() {
               log('route-set-onboard', {
                 pickup: coordKey(pickup),
                 dropoff: coordKey(dropoff),
-              });
+              })
               lastRouteKeyRef.current = `${coordKey(pickup)}->${coordKey(dropoff)}`;
               setRoutePickup(pickup);
               setRouteDropoff(dropoff);
@@ -2224,7 +2228,7 @@ export default function TrackingPage() {
           log('poll-no-driver-location', { rawLoc });
         }
 
-        const backendStatus = td.ride?.rideStatus;
+        const backendStatus = td.ride?.rideStatus
         if (backendStatus === 'completed' || backendStatus === 'cancelled') {
           log('poll-terminal-status', { backendStatus });
           clearInterval(locPollRef.current);

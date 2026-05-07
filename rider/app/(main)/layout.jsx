@@ -17,7 +17,7 @@ import ContextProviders from '@/lib/contexts/ContextProviders';
 export default function MainLayoutClient({ children }) {
   return (
     <ContextProviders>
-      <RenderMainLayout children={children}/>
+      <RenderMainLayout children={children} />
     </ContextProviders>
   );
 }
@@ -28,7 +28,7 @@ function RenderMainLayout({ children }) {
   const pathname = usePathname();
   const { activeRide } = useRide();
   const theme = useThemeMode();
-  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking,stopLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking, stopLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
 
   useEffect(() => {
     const initializeNativeCode = async () => {
@@ -84,10 +84,17 @@ function RenderMainLayout({ children }) {
           console.error('❌ Failed to initialize native services:', result.error);
         }
       }
-      if(isNative){
-         getNativeLocation() // make the device send the current location to the server at least once
+      if (isNative) {
+        getNativeLocation() // make the device send the current location to the server at least once
       }
-      startLocationTracking()
+      if (typeof window !== 'undefined') {
+        if (window.location.pathname.startsWith('/deliveries/send')) {
+          startLocationTracking(); // only do location tracking on those pages, as for the homepage, it's location tracking code is run on the page.jsx file in the root layout folder
+        }
+        else {
+          stopLocationTracking();
+        }
+      }
     }
 
     if (!loading) {
@@ -127,7 +134,7 @@ function RenderMainLayout({ children }) {
   return (
     <Box sx={{ minHeight: '100vh', pb: '80px' }}>
       {children}
-       <BottomNav userType="rider" />
+      <BottomNav userType="rider" />
     </Box>
-  );
+  )
 }

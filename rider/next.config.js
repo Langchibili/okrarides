@@ -16,7 +16,7 @@ module.exports = withPWA({
     domains: ['localhost', 'driver.okrarides.com', '172.31.156.23'],
     formats: ['image/avif', 'image/webp'],
   },
-  allowedDevOrigins: ['10.196.209.23'],
+  allowedDevOrigins: ['10.125.70.23'],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

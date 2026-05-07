@@ -7,29 +7,49 @@ import { apiClient } from './lib/api/client';
 export const formatCurrency = (amount, currency = 'K') => {
   return `${currency}${Number(amount).toFixed(2)}`;
 }
+export const isValidLocation = (input) => {
+  // Regex: matches (number),(number) with optional whitespace
+  const coordRegex = /^([-+]?\d{1,3}(?:\.\d+)?),\s*([-+]?\d{1,3}(?:\.\d+)?)$/;
+  const match = input.match(coordRegex);
 
-export const formatPhoneNumber = (phone,phoneNumberDigitLength = 9) => {
+  if (!match) return false;
+
+  const val1 = parseFloat(match[1]);
+  const val2 = parseFloat(match[2]);
+
+  // Check if coordinates fit either (Lat, Lon) or (Lon, Lat) bounds
+  const isLat1 = val1 >= -90 && val1 <= 90;
+  const isLon1 = val1 >= -180 && val1 <= 180;
+
+  const isLat2 = val2 >= -90 && val2 <= 90;
+  const isLon2 = val2 >= -180 && val2 <= 180;
+
+  // It is valid if:
+  // (First is Lat AND Second is Lon) OR (First is Lon AND Second is Lat)
+  return (isLat1 && isLon2) || (isLon1 && isLat2);
+}
+export const formatPhoneNumber = (phone, phoneNumberDigitLength = 9) => {
   const cleaned = phone?.replace(/\D/g, '');
   let phoneCode = null
-  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
-  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
-  const savedPhoneCode = typeof window !== 'undefined'? localStorage.getItem('savedPhoneCode') : "260"
-  if(savedphoneNumberDigitLength){
-    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null" ? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined' ? localStorage.getItem('phoneNumberDigitLength') : 9
+  const savedPhoneCode = typeof window !== 'undefined' ? localStorage.getItem('savedPhoneCode') : "260"
+  if (savedphoneNumberDigitLength) {
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null" ? 9 : (savedphoneNumberDigitLength || 9)
   }
-  if(savedPhoneCode){
-     phoneCode = savedPhoneCode === null || savedPhoneCode === "null"? "260" : (savedPhoneCode || "260")
+  if (savedPhoneCode) {
+    phoneCode = savedPhoneCode === null || savedPhoneCode === "null" ? "260" : (savedPhoneCode || "260")
   }
   if (cleaned?.length === numberLength) {
-     return `${savedPhoneCode}${getPhoneDigits(cleaned)}`;
+    return `${savedPhoneCode}${getPhoneDigits(cleaned)}`;
   }
   return phone;
 }
-export const validatePhoneNumber = (phone,phoneNumberDigitLength=9) => {
-  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
-  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
-  if(savedphoneNumberDigitLength){
-    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+export const validatePhoneNumber = (phone, phoneNumberDigitLength = 9) => {
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null" ? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined' ? localStorage.getItem('phoneNumberDigitLength') : 9
+  if (savedphoneNumberDigitLength) {
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null" ? 9 : (savedphoneNumberDigitLength || 9)
   }
   const cleaned = phone.replace(/\D/g, '')
   return cleaned.length === numberLength && /^[123456789]/.test(cleaned)
@@ -37,22 +57,22 @@ export const validatePhoneNumber = (phone,phoneNumberDigitLength=9) => {
 
 export const getPhoneDigits = (phoneNumber, phoneNumberDigitLength = 9) => {
   if (!phoneNumber) return '';
-  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
-  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
-  if(savedphoneNumberDigitLength){
-    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null" ? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined' ? localStorage.getItem('phoneNumberDigitLength') : 9
+  if (savedphoneNumberDigitLength) {
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null" ? 9 : (savedphoneNumberDigitLength || 9)
   }
   const digits = String(phoneNumber).replace(/\D/g, '');
   return digits.slice(-numberLength)
 }
 
-export const getSavedPhoneCode = ()=>{
-  const savedPhoneCode = typeof window !== 'undefined'? localStorage.getItem('savedPhoneCode') : "260"
-  return savedPhoneCode === null || savedPhoneCode === "null"? "260" : (savedPhoneCode || "260")
+export const getSavedPhoneCode = () => {
+  const savedPhoneCode = typeof window !== 'undefined' ? localStorage.getItem('savedPhoneCode') : "260"
+  return savedPhoneCode === null || savedPhoneCode === "null" ? "260" : (savedPhoneCode || "260")
 }
 export const formatDate = (date, format = 'short') => {
   const d = new Date(date);
-  
+
   if (format === 'short') {
     return d.toLocaleDateString('en-GB', {
       day: '2-digit',
@@ -60,7 +80,7 @@ export const formatDate = (date, format = 'short') => {
       year: 'numeric',
     });
   }
-  
+
   if (format === 'long') {
     return d.toLocaleDateString('en-GB', {
       weekday: 'long',
@@ -69,14 +89,14 @@ export const formatDate = (date, format = 'short') => {
       year: 'numeric',
     });
   }
-  
+
   if (format === 'time') {
     return d.toLocaleTimeString('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
     });
   }
-  
+
   return d.toLocaleDateString();
 };
 
@@ -137,7 +157,7 @@ export const storage = {
       return null;
     }
   },
-  
+
   set: (key, value) => {
     if (typeof window === 'undefined') return;
     try {
@@ -146,7 +166,7 @@ export const storage = {
       console.error(`Error setting ${key} in storage:`, error);
     }
   },
-  
+
   remove: (key) => {
     if (typeof window === 'undefined') return;
     try {
@@ -155,7 +175,7 @@ export const storage = {
       console.error(`Error removing ${key} from storage:`, error);
     }
   },
-  
+
   clear: () => {
     if (typeof window === 'undefined') return;
     try {
@@ -173,16 +193,16 @@ export const requestNotificationPermission = async () => {
     console.log('This browser does not support notifications');
     return false;
   }
-  
+
   if (Notification.permission === 'granted') {
     return true;
   }
-  
+
   if (Notification.permission !== 'denied') {
     const permission = await Notification.requestPermission();
     return permission === 'granted';
   }
-  
+
   return false;
 };
 
@@ -225,7 +245,7 @@ export const throttle = (func, limit) => {
 
 export const handleError = (error) => {
   console.error('Error:', error);
-  
+
   if (error.response) {
     // Server responded with error
     return error.response.data?.message || 'Server error occurred';
@@ -264,7 +284,7 @@ export const getRelativeTime = (date) => {
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
+
   if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
   if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
   if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
@@ -280,17 +300,17 @@ export const CRUD = {
     const url = query ? `${endpoint}?${query}` : endpoint;
     return apiClient.get(url);
   },
-  
+
   // Generic POST
   async create(endpoint, data) {
     return apiClient.post(endpoint, data);
   },
-  
+
   // Generic PUT
   async update(endpoint, id, data) {
     return apiClient.put(`${endpoint}/${id}`, data);
   },
-  
+
   // Generic DELETE
   async delete(endpoint, id) {
     return apiClient.delete(`${endpoint}/${id}`);
@@ -326,7 +346,7 @@ export function getImageUrl(image, format = null, baseUrl = '') {
   }
 
   return null;
-} 
+}
 // ============= Export all =============
 export default {
   getImageUrl,

@@ -129,7 +129,7 @@
 // //     // Clean up: restore nav when this page unmounts
 // //     return () => showNav();
 // //   }, [estimatesVisible]); // eslint-disable-line react-hooks/exhaustive-dep
-  
+
 
 // //   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
@@ -138,7 +138,7 @@
 // //     const saved = localStorage.getItem('okra_rides_recent_locations');
 // //     if (saved) { try { setRecentLocations(JSON.parse(saved)); } catch {} }
 // //   }, []);
-  
+
 
 // //   useEffect(() => {
 // //     if (currentDelivery) {
@@ -1015,7 +1015,7 @@
 //     else showNav();
 //     return () => showNav();
 //   }, [estimatesVisible]); // eslint-disable-line react-hooks/exhaustive-dep
-  
+
 
 //   useEffect(() => { mapControlsRef.current = mapControls; }, [mapControls]);
 
@@ -1024,7 +1024,7 @@
 //     const saved = localStorage.getItem('okra_rides_recent_locations');
 //     if (saved) { try { setRecentLocations(JSON.parse(saved)); } catch {} }
 //   }, []);
-  
+
 
 //   useEffect(() => {
 //     if (currentDelivery) {
@@ -1791,6 +1791,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
 import { HomePageSkeleton } from '@/components/Skeletons/HomePageSkeleton';
 import { useBottomNav } from '@/lib/contexts/BottomNavContext';
+import { isValidLocation } from '@/Functions';
 
 const AMBER = '#F59E0B';
 
@@ -1801,69 +1802,70 @@ const CLEAN_INPUT_SX = {
   },
   '& .MuiOutlinedInput-notchedOutline': { border: 'none !important' },
   '& .MuiFilledInput-underline:before': { display: 'none' },
-  '& .MuiFilledInput-underline:after':  { display: 'none' },
-  '& .MuiInput-underline:before':       { display: 'none' },
-  '& .MuiInput-underline:after':        { display: 'none' },
-  '& .MuiInputAdornment-root':          { display: 'none' },
-  '& .MuiIconButton-root':              { display: 'none' },
+  '& .MuiFilledInput-underline:after': { display: 'none' },
+  '& .MuiInput-underline:before': { display: 'none' },
+  '& .MuiInput-underline:after': { display: 'none' },
+  '& .MuiInputAdornment-root': { display: 'none' },
+  '& .MuiIconButton-root': { display: 'none' },
   '& .MuiInputBase-input': { p: '0 !important', fontSize: '0.9rem', fontWeight: 500 },
 };
 
 export default function SendPackagePage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { hideNav, showNav, setNavVisible } = useBottomNav();
   const [estimatesVisible, setEstimatesVisible] = useState(false);
 
   // ── Location hooks ─────────────────────────────────────────────────────
   const { location, loading: locationLoading, refresh: refreshWebLocation } = useGeolocation({ watch: true });
-  const { isNative, reconnectDeviceSocket, stopLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
+  const { isNative, reconnectDeviceSocket, stopLocationTracking, startLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
 
   // ── Delivery booking ───────────────────────────────────────────────────
   const { bookDelivery, booking, currentDelivery } = useDeliveryBooking();
 
   // ── Location state ─────────────────────────────────────────────────────
-  const [pickupLocation,    setPickupLocation]    = useState(null);
-  const [dropoffLocation,   setDropoffLocation]   = useState(null);
-  const [mapCenter,         setMapCenter]         = useState({ lat: -15.4167, lng: 28.2833 });
-  const [routeInfo,         setRouteInfo]         = useState(null);
-  const [focusedInput,      setFocusedInput]      = useState(null);
-  const [sheetExpanded,     setSheetExpanded]     = useState(false);
+  const [pickupLocation, setPickupLocation] = useState(null);
+  const [dropoffLocation, setDropoffLocation] = useState(null);
+  const [mapCenter, setMapCenter] = useState({ lat: -15.4167, lng: 28.2833 });
+  const [routeInfo, setRouteInfo] = useState(null);
+  const [focusedInput, setFocusedInput] = useState(null);
+  const [sheetExpanded, setSheetExpanded] = useState(false);
   const [pickupChipVisible, setPickupChipVisible] = useState(false);
 
   // ── Refs — always current inside any closure, unlike state ────────────
-  const geoCodeCounterRef       = useRef(0);    // replaces useState geoCodeCounter
-  const stopGeoCodeRef          = useRef(false); // replaces useState stopGettingGeoCodedLoc
+  const geoCodeCounterRef = useRef(0);    // replaces useState geoCodeCounter
+  const stopGeoCodeRef = useRef(false); // replaces useState stopGettingGeoCodedLoc
 
   // ── Tracks every time location is successfully obtained/refreshed ──────
   const [locationObtainedAt, setLocationObtainedAt] = useState(null);
 
   // ── Sheet visibility ───────────────────────────────────────────────────
-  const [showLocationSheet,   setShowLocationSheet]   = useState(true);
+  const [showLocationSheet, setShowLocationSheet] = useState(true);
   const [showDeliveryOptions, setShowDeliveryOptions] = useState(false);
 
   // ── Misc ───────────────────────────────────────────────────────────────
+  const [locationGeocoded, setLocationGeocoded] = useState(true)
   const [recentLocations, setRecentLocations] = useState([]);
-  const [mapControls,     setMapControls]     = useState(null);
-  const [showTraffic,     setShowTraffic]     = useState(false);
-  const [isRelocating,    setIsRelocating]    = useState(false);
+  const [mapControls, setMapControls] = useState(null);
+  const [showTraffic, setShowTraffic] = useState(false);
+  const [isRelocating, setIsRelocating] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
   // ── Refs ───────────────────────────────────────────────────────────────
-  const mapControlsRef      = useRef(null);
+  const mapControlsRef = useRef(null);
   const locationObtainedRef = useRef(false);
-  const fastIntervalRef     = useRef(null);
-  const slowIntervalRef     = useRef(null);
+  const fastIntervalRef = useRef(null);
+  const slowIntervalRef = useRef(null);
 
   const HEADER_GRADIENT_DARK_SX = {
     background: 'linear-gradient(-60deg, #6D4C41 0%, #4E342E 25%, #795548 50%, #5D4037 75%, #8D6E63 100%)',
     backgroundSize: '300% 300%',
     animation: 'deliverySendWave 7s ease infinite',
     '@keyframes deliverySendWave': {
-      '0%':   { backgroundPosition: '0% 50%' },
-      '50%':  { backgroundPosition: '100% 50%' },
+      '0%': { backgroundPosition: '0% 50%' },
+      '50%': { backgroundPosition: '100% 50%' },
       '100%': { backgroundPosition: '0% 50%' },
     },
   };
@@ -1873,8 +1875,8 @@ export default function SendPackagePage() {
     backgroundSize: '300% 300%',
     animation: 'deliverySendWave 7s ease infinite',
     '@keyframes deliverySendWave': {
-      '0%':   { backgroundPosition: '0% 50%' },
-      '50%':  { backgroundPosition: '100% 50%' },
+      '0%': { backgroundPosition: '0% 50%' },
+      '50%': { backgroundPosition: '100% 50%' },
       '100%': { backgroundPosition: '0% 50%' },
     },
   };
@@ -1892,8 +1894,15 @@ export default function SendPackagePage() {
   // ── Load recent locations ──────────────────────────────────────────────
   useEffect(() => {
     const saved = localStorage.getItem('okra_rides_recent_locations');
-    if (saved) { try { setRecentLocations(JSON.parse(saved)); } catch {} }
-  }, []);
+    if (saved) { try { setRecentLocations(JSON.parse(saved)); } catch { } }
+  }, [])
+
+  useEffect(() => {
+    startLocationTracking()
+    setTimeout(() => {
+      stopLocationTracking();
+    }, 3000) // if user does not book a ride in those few seconds, then we stop location tracking
+  }, [router])
 
   useEffect(() => {
     if (currentDelivery) {
@@ -1961,11 +1970,11 @@ export default function SendPackagePage() {
       if (prev?.isCurrentLocation && prev._geocoded) return prev;
       return {
         lat, lng,
-        address:           `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-        name:              `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-        placeId:           `geo_${lat}_${lng}`,
+        address: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+        name: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+        placeId: `geo_${lat}_${lng}`,
         isCurrentLocation: true,
-        _geocoded:         false, // raw — may be upgraded below
+        _geocoded: false, // raw — may be upgraded below
       };
     });
 
@@ -1976,17 +1985,17 @@ export default function SendPackagePage() {
       setPickupLocation((prev) => {
         if (prev && !prev.isCurrentLocation) return prev;
         return {
-          lat:               geocoded.latitude,
-          lng:               geocoded.longitude,
-          address:           geocoded.address   || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-          name:              geocoded.name      || geocoded.streetAddress || geocoded.address?.split(',')[0] || `(${geocoded.latitude.toFixed(2)},${geocoded.longitude.toFixed(2)})`,
-          placeId:           geocoded.placeId  || `geo_${lat}_${lng}`,
-          city:              geocoded.city,
-          country:           geocoded.country,
-          state:             geocoded.state,
-          postalCode:        geocoded.postalCode,
+          lat: geocoded.latitude,
+          lng: geocoded.longitude,
+          address: geocoded.address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+          name: geocoded.name || geocoded.streetAddress || geocoded.address?.split(',')[0] || `(${geocoded.latitude.toFixed(2)},${geocoded.longitude.toFixed(2)})`,
+          placeId: geocoded.placeId || `geo_${lat}_${lng}`,
+          city: geocoded.city,
+          country: geocoded.country,
+          state: geocoded.state,
+          postalCode: geocoded.postalCode,
           isCurrentLocation: true,
-          _geocoded:         true, // ── FIX: mark as geocoded ──
+          _geocoded: true, // ── FIX: mark as geocoded ──
         };
       });
       setLocationObtainedAt(Date.now());
@@ -2005,24 +2014,24 @@ export default function SendPackagePage() {
         if (stopGeoCodeRef.current) return; // ← ref, always current
         const needsGeocode = !cl.address && !cl.name;
         const geocoded = needsGeocode ? await reverseGeocodeCoords(cl.latitude, cl.longitude) : null;
-        const source = geocoded ?? cl;
+        const source = geocoded.hasOwnProperty('name') || geocoded.hasOwnProperty('address') ? geocoded : cl;
         if (!source.hasOwnProperty('address')) {
           stopGeoCodeRef.current = true; // ← mutate ref directly
         }
         const loc = {
-          lat:               source.latitude  ?? cl.latitude,
-          lng:               source.longitude ?? cl.longitude,
-          address:           source.address   || `${cl.latitude}, ${cl.longitude}`,
-          name:              source.name      || source.streetAddress || source.address?.split(',')[0] || `(${(geocoded?.latitude ?? cl.latitude).toFixed(2)},${(geocoded?.longitude ?? cl.longitude).toFixed(2)})`,
-          placeId:           source.placeId   || `geo_${cl.latitude}_${cl.longitude}`,
-          city:              source.city,
-          country:           source.country,
-          state:             source.state,
-          postalCode:        source.postalCode,
+          lat: source.latitude ?? cl.latitude,
+          lng: source.longitude ?? cl.longitude,
+          address: source.address || `${cl.latitude}, ${cl.longitude}`,
+          name: source.name || source.streetAddress || source.address?.split(',')[0] || `(${(geocoded?.latitude ?? cl.latitude).toFixed(2)},${(geocoded?.longitude ?? cl.longitude).toFixed(2)})`,
+          placeId: source.placeId || `geo_${cl.latitude}_${cl.longitude}`,
+          city: source.city,
+          country: source.country,
+          state: source.state,
+          postalCode: source.postalCode,
           isCurrentLocation: true,
           // ── FIX: mark as geocoded if we have a real address so applyLocationFix
           //         won't overwrite this with raw coordinates ──
-          _geocoded:         !!(source.address || source.name),
+          _geocoded: !!(source.address || source.name),
         };
         setPickupLocation((prev) => (prev && !prev.isCurrentLocation ? prev : loc));
         setLocationObtainedAt(Date.now());
@@ -2062,7 +2071,7 @@ export default function SendPackagePage() {
 
   useEffect(() => {
     if (location && !locationObtainedRef.current) applyLocationFix(location.lat, location.lng);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location]);
 
   useEffect(() => {
@@ -2081,15 +2090,15 @@ export default function SendPackagePage() {
             clearInterval(fastIntervalRef.current);
             fastIntervalRef.current = null;
           }
-        }).catch(() => {});
+        }).catch(() => { });
       }, FAST_MS);
     }
 
     slowIntervalRef.current = setInterval(() => {
       if (isNative && getNativeLocation) {
-        fetchAndApplyNativeLocation().catch(() => {});
+        fetchAndApplyNativeLocation().catch(() => { });
       } else {
-        refreshWebLocation().catch(() => {});
+        refreshWebLocation().catch(() => { });
       }
     }, SLOW_MS);
 
@@ -2097,13 +2106,24 @@ export default function SendPackagePage() {
       if (fastIntervalRef.current) clearInterval(fastIntervalRef.current);
       if (slowIntervalRef.current) clearInterval(slowIntervalRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (isNative) fetchAndApplyNativeLocation();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (locationGeocoded) {
+      return
+    }
+    const runGetGeocodedLocation = async () => {
+      fetchServerStoredLocation(user.id);
+      setLocationGeocoded(true)
+    }
+    runGetGeocodedLocation()
+  }, [locationGeocoded])
 
   useEffect(() => {
     if (mapControls && mapCenter) mapControls.animateToLocation(mapCenter, 16);
@@ -2156,15 +2176,15 @@ export default function SendPackagePage() {
 
     if (input === 'dropoff') {
       if (isNative) {
-        fetchAndApplyNativeLocation().catch(() => {});
+        fetchAndApplyNativeLocation().catch(() => { });
       } else {
-        refreshWebLocation().catch(() => {});
+        refreshWebLocation().catch(() => { });
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sheetExpanded, isNative]);
 
-  const handleInputBlur  = () => { setTimeout(() => setFocusedInput(null), 180); };
+  const handleInputBlur = () => { setTimeout(() => setFocusedInput(null), 180); };
 
   const handleIAmHere = () => {
     if (isNative) { fetchAndApplyNativeLocation(); setFocusedInput(null); return; }
@@ -2225,27 +2245,27 @@ export default function SendPackagePage() {
     try {
       const data = await bookDelivery({
         pickupLocation, dropoffLocation,
-        paymentMethod:         details.paymentMethod,
-        deliveryMode:          details.deliveryMode,
-        recipient:             details.recipient,
-        packageType:           details.packageType,
-        isFragile:             details.isFragile,
-        weightKg:              details.weightKg,
-        bigItemFit:            details.bigItemFit,
-        vehiclePreference:     details.vehiclePreference,
-        deliveryClassName:     details.deliveryClass?.deliveryClassName,
-        deliveryClassId:       details.deliveryClass?.deliveryClassId,
+        paymentMethod: details.paymentMethod,
+        deliveryMode: details.deliveryMode,
+        recipient: details.recipient,
+        packageType: details.packageType,
+        isFragile: details.isFragile,
+        weightKg: details.weightKg,
+        bigItemFit: details.bigItemFit,
+        vehiclePreference: details.vehiclePreference,
+        deliveryClassName: details.deliveryClass?.deliveryClassName,
+        deliveryClassId: details.deliveryClass?.deliveryClassId,
         vehicleTypePreference: details.vehiclePreference,
-        estimatedFare:         details.totalFare,
-        totalFare:             details.totalFare,
-        estimatedDistance:     parseFloat(routeInfo?.distance) || null,
-        estimatedDuration:     parseFloat(routeInfo?.duration) || null,
+        estimatedFare: details.totalFare,
+        totalFare: details.totalFare,
+        estimatedDistance: parseFloat(routeInfo?.distance) || null,
+        estimatedDuration: parseFloat(routeInfo?.duration) || null,
       });
 
       // Reset refs so a fresh geocode cycle can run if no driver is found
       // and the user moves to a new location before retrying.
       geoCodeCounterRef.current = 0;    // replaces setGeoCodeCounter(0)
-      stopGeoCodeRef.current    = false; // replaces setStopGettingGeoCodedLoc(false)
+      stopGeoCodeRef.current = false; // replaces setStopGettingGeoCodedLoc(false)
 
       if (data?.id) router.push(`/deliveries/finding-deliverer?id=${data.id}`);
     } catch (e) {
@@ -2256,7 +2276,7 @@ export default function SendPackagePage() {
   // ── Markers ────────────────────────────────────────────────────────────
   const markers = useMemo(() => {
     const m = [];
-    if (pickupLocation)  m.push({ id: 'pickup',  position: pickupLocation,  type: 'pickup'  });
+    if (pickupLocation) m.push({ id: 'pickup', position: pickupLocation, type: 'pickup' });
     if (dropoffLocation) m.push({ id: 'dropoff', position: dropoffLocation, type: 'dropoff' });
     return m;
   }, [pickupLocation?.lat, pickupLocation?.lng, dropoffLocation?.lat, dropoffLocation?.lng]);
@@ -2266,32 +2286,37 @@ export default function SendPackagePage() {
     if (!pickupLocation) return 'Detecting location…';
     if (pickupLocation.isCurrentLocation) {
       const label = pickupLocation.name || pickupLocation.address;
+      if (isValidLocation(label)) { // if it's a location like, "45.523062, -122.676482"
+        fetchServerStoredLocation(user.id);
+        setLocationGeocoded(false)
+      }
+      // const geocoded = needsGeocode ? await reverseGeocodeCoords(cl.latitude, cl.longitude) : null;
       if (label) return label.split(',')[0];
       if (location) return `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
       return 'Detecting location…';
     }
     return pickupLocation.name || pickupLocation.address?.split(',')[0] || 'Current Location';
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pickupLocation, location, locationObtainedAt]);
 
   // ── Derived dark-mode-aware style values ──────────────────────────────
-  const sheetBg          = isDark ? '#1A1208'              : '#FBF3E8';
-  const inputFocusedBg   = isDark ? '#2A1F10'              : 'white';
+  const sheetBg = isDark ? '#1A1208' : '#FBF3E8';
+  const inputFocusedBg = isDark ? '#2A1F10' : 'white';
   const inputUnfocusedBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.88)';
   const iconPanelFocused = 'rgba(245,158,11,0.12)';
   const iconPanelUnfocused = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.15)';
-  const recentIconBg     = isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.12)';
+  const recentIconBg = isDark ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.12)';
 
-  const rideBtnBorder        = `1.5px solid rgba(255,179,0,${isDark ? '0.5' : '0.35'})`;
-  const rideBtnBg            = isDark
+  const rideBtnBorder = `1.5px solid rgba(255,179,0,${isDark ? '0.5' : '0.35'})`;
+  const rideBtnBg = isDark
     ? 'linear-gradient(-60deg, rgba(255,179,0,0.18) 0%, rgba(255,138,0,0.14) 25%, rgba(255,193,7,0.16) 50%, rgba(255,109,0,0.12) 75%, rgba(255,213,79,0.1) 100%)'
     : 'linear-gradient(-60deg, rgba(255,179,0,0.12) 0%, rgba(255,138,0,0.08) 25%, rgba(255,193,7,0.1) 50%, rgba(255,109,0,0.07) 75%, rgba(255,213,79,0.06) 100%)';
-  const rideBtnHoverBorder   = `1.5px solid rgba(255,179,0,${isDark ? '0.8' : '0.65'})`;
-  const rideBtnHoverBg       = isDark
+  const rideBtnHoverBorder = `1.5px solid rgba(255,179,0,${isDark ? '0.8' : '0.65'})`;
+  const rideBtnHoverBg = isDark
     ? 'linear-gradient(-60deg, rgba(255,179,0,0.28) 0%, rgba(255,138,0,0.22) 25%, rgba(255,193,7,0.26) 50%, rgba(255,109,0,0.2) 75%, rgba(255,213,79,0.18) 100%)'
     : 'linear-gradient(-60deg, rgba(255,179,0,0.2) 0%, rgba(255,138,0,0.14) 25%, rgba(255,193,7,0.18) 50%, rgba(255,109,0,0.12) 75%, rgba(255,213,79,0.1) 100%)';
-  const rideBtnIconBg        = isDark ? 'rgba(255,179,0,0.22)' : 'rgba(255,179,0,0.15)';
-  const rideBtnChevronBg     = isDark ? 'rgba(255,179,0,0.18)' : 'rgba(255,179,0,0.12)';
+  const rideBtnIconBg = isDark ? 'rgba(255,179,0,0.22)' : 'rgba(255,179,0,0.15)';
+  const rideBtnChevronBg = isDark ? 'rgba(255,179,0,0.18)' : 'rgba(255,179,0,0.12)';
 
   if (!isAuthenticated()) {
     return <HomePageSkeleton />;
@@ -2390,130 +2415,130 @@ export default function SendPackagePage() {
 
                 {/* Input fields */}
                 <motion.div layout transition={{ duration: 0.26 }} style={{ width: '100%' }}>
-                <Box sx={{ px: 2.5, pt: 0.5, pb: 2.5, width: '100%', boxSizing: 'border-box' }}>
+                  <Box sx={{ px: 2.5, pt: 0.5, pb: 2.5, width: '100%', boxSizing: 'border-box' }}>
 
-                  {/* ── PICKUP — hidden when dropoff is focused ── */}
-                  <AnimatePresence initial={false}>
-                    {focusedInput !== 'dropoff' && (
-                      <motion.div
-                        key="pickup-input"
-                        initial={{ opacity: 0, y: -18, height: 0 }}
-                        animate={{ opacity: 1, y: 0,   height: 'auto' }}
-                        exit={{   opacity: 0, y: -18,  height: 0 }}
-                        transition={{ type: 'spring', stiffness: 340, damping: 30 }}
-                        style={{ overflow: 'hidden', marginBottom: 6 }}
-                      >
-                        <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Pickup</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
-                          <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
-                            <PersonIcon sx={{ fontSize: 19, color: focusedInput === 'pickup' ? AMBER : pickupLocation ? 'success.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
+                    {/* ── PICKUP — hidden when dropoff is focused ── */}
+                    <AnimatePresence initial={false}>
+                      {focusedInput !== 'dropoff' && (
+                        <motion.div
+                          key="pickup-input"
+                          initial={{ opacity: 0, y: -18, height: 0 }}
+                          animate={{ opacity: 1, y: 0, height: 'auto' }}
+                          exit={{ opacity: 0, y: -18, height: 0 }}
+                          transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                          style={{ overflow: 'hidden', marginBottom: 6 }}
+                        >
+                          <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'pickup' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Pickup</Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'pickup' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'pickup' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
+                            <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'pickup' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'pickup' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
+                              <PersonIcon sx={{ fontSize: 19, color: focusedInput === 'pickup' ? AMBER : pickupLocation ? 'success.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
+                            </Box>
+                            <Box sx={{ flex: 1, px: 1.5, py: 1, display: 'flex', alignItems: 'center', cursor: 'text', minWidth: 0 }}
+                              onClick={() => { if (pickupChipVisible) { setPickupChipVisible(false); handleInputFocus('pickup'); } }}>
+                              {pickupChipVisible ? (
+                                <Chip
+                                  icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />}
+                                  label="Current Location"
+                                  onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }}
+                                  onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }}
+                                  size="small"
+                                  sx={{ bgcolor: 'rgba(245,158,11,0.15)', color: '#5D4037', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#5D4037', opacity: 0.7 }, '& .MuiChip-icon': { color: '#5D4037' } }}
+                                />
+                              ) : (
+                                <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
+                                  <LocationSearch
+                                    displayKey="d1"
+                                    HandleOnBlur={showNav}
+                                    HandleOnfocus={hideNav}
+                                    placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'}
+                                    onSelectLocation={handlePickupSelect}
+                                    mapControls={mapControls}
+                                    value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? (pickupLocation?.name || pickupLocation?.address) || '' : '') : (pickupLocation?.address || '')}
+                                    autoFocus={focusedInput === 'pickup'}
+                                    onFocus={() => handleInputFocus('pickup')}
+                                    onBlur={handleInputBlur}
+                                  />
+                                </Box>
+                              )}
+                            </Box>
+                            {pickupLocation && !pickupChipVisible && (
+                              <IconButton size="small" sx={{ mr: 0.5, p: 0.5, color: 'text.disabled' }}
+                                onClick={(e) => { e.stopPropagation(); }}>
+                                <CloseIcon sx={{ fontSize: 13 }} />
+                              </IconButton>
+                            )}
                           </Box>
-                          <Box sx={{ flex: 1, px: 1.5, py: 1, display: 'flex', alignItems: 'center', cursor: 'text', minWidth: 0 }}
-                            onClick={() => { if (pickupChipVisible) { setPickupChipVisible(false); handleInputFocus('pickup'); } }}>
-                            {pickupChipVisible ? (
-                              <Chip
-                                icon={<MyLocationIcon sx={{ fontSize: '14px !important' }} />}
-                                label="Current Location"
-                                onDelete={() => { setPickupLocation(null); setPickupChipVisible(false); handleInputFocus('pickup'); }}
-                                onClick={() => { setPickupChipVisible(false); handleInputFocus('pickup'); }}
-                                size="small"
-                                sx={{ bgcolor: 'rgba(245,158,11,0.15)', color: '#5D4037', fontWeight: 700, fontSize: '0.75rem', height: 28, '& .MuiChip-deleteIcon': { color: '#5D4037', opacity: 0.7 }, '& .MuiChip-icon': { color: '#5D4037' } }}
-                              />
-                            ) : (
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* ── CONNECTOR + SWAP — only when neither is focused ── */}
+                    <AnimatePresence initial={false}>
+                      {!focusedInput && (
+                        <motion.div
+                          key="connector"
+                          initial={{ opacity: 0, scaleY: 0 }}
+                          animate={{ opacity: 1, scaleY: 1 }}
+                          exit={{ opacity: 0, scaleY: 0 }}
+                          transition={{ duration: 0.18 }}
+                          style={{ transformOrigin: 'top' }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: '21px', my: 0.2 }}>
+                            <Box sx={{ width: 2, height: 18, bgcolor: pickupLocation && dropoffLocation ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)', borderRadius: 1, transition: 'background-color 0.3s' }} />
+                            {pickupLocation && dropoffLocation && (
+                              <IconButton size="small" onClick={handleSwap} sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5, '&:hover': { color: 'white', bgcolor: 'rgba(255,255,255,0.15)' } }}>
+                                <SwapIcon sx={{ fontSize: 18 }} />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* ── DROPOFF — hidden when pickup is focused ── */}
+                    <AnimatePresence initial={false}>
+                      {focusedInput !== 'pickup' && (
+                        <motion.div
+                          key="dropoff-input"
+                          initial={{ opacity: 0, y: 18, height: 0 }}
+                          animate={{ opacity: 1, y: 0, height: 'auto' }}
+                          exit={{ opacity: 0, y: 18, height: 0 }}
+                          transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                          style={{ overflow: 'hidden' }}
+                        >
+                          <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Destination</Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
+                            <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'dropoff' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
+                              <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? AMBER : dropoffLocation ? 'error.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
+                            </Box>
+                            <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
                               <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                                 <LocationSearch
-                                  displayKey="d1"
+                                  displayKey="d2"
                                   HandleOnBlur={showNav}
                                   HandleOnfocus={hideNav}
-                                  placeholder={pickupLocation?.address && !pickupLocation.isCurrentLocation ? pickupLocation.address : 'Enter pickup location'}
-                                  onSelectLocation={handlePickupSelect}
+                                  placeholder="Where to deliver?"
+                                  onSelectLocation={handleDropoffSelect}
                                   mapControls={mapControls}
-                                  value={focusedInput === 'pickup' ? (pickupLocation?.isCurrentLocation ? '' : pickupLocation?.address || '') : (pickupLocation?.address || '')}
-                                  autoFocus={focusedInput === 'pickup'}
-                                  onFocus={() => handleInputFocus('pickup')}
+                                  value={dropoffLocation?.address || ''}
+                                  autoFocus={focusedInput === 'dropoff'}
+                                  onFocus={() => handleInputFocus('dropoff')}
                                   onBlur={handleInputBlur}
                                 />
                               </Box>
+                            </Box>
+                            {dropoffLocation && (
+                              <IconButton size="small" sx={{ mr: 0.5, p: 0.5, color: 'text.disabled' }}
+                                onClick={(e) => { e.stopPropagation(); }}>
+                                <CloseIcon sx={{ fontSize: 13 }} />
+                              </IconButton>
                             )}
                           </Box>
-                          {pickupLocation && !pickupChipVisible && (
-                            <IconButton size="small" sx={{ mr: 0.5, p: 0.5, color: 'text.disabled' }}
-                              onClick={(e) => { e.stopPropagation(); setPickupLocation(null); }}>
-                              <CloseIcon sx={{ fontSize: 13 }} />
-                            </IconButton>
-                          )}
-                        </Box>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-                  {/* ── CONNECTOR + SWAP — only when neither is focused ── */}
-                  <AnimatePresence initial={false}>
-                    {!focusedInput && (
-                      <motion.div
-                        key="connector"
-                        initial={{ opacity: 0, scaleY: 0 }}
-                        animate={{ opacity: 1, scaleY: 1 }}
-                        exit={{   opacity: 0, scaleY: 0 }}
-                        transition={{ duration: 0.18 }}
-                        style={{ transformOrigin: 'top' }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: '21px', my: 0.2 }}>
-                          <Box sx={{ width: 2, height: 18, bgcolor: pickupLocation && dropoffLocation ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.35)', borderRadius: 1, transition: 'background-color 0.3s' }} />
-                          {pickupLocation && dropoffLocation && (
-                            <IconButton size="small" onClick={handleSwap} sx={{ color: 'rgba(255,255,255,0.8)', mr: 0.5, '&:hover': { color: 'white', bgcolor: 'rgba(255,255,255,0.15)' } }}>
-                              <SwapIcon sx={{ fontSize: 18 }} />
-                            </IconButton>
-                          )}
-                        </Box>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* ── DROPOFF — hidden when pickup is focused ── */}
-                  <AnimatePresence initial={false}>
-                    {focusedInput !== 'pickup' && (
-                      <motion.div
-                        key="dropoff-input"
-                        initial={{ opacity: 0, y: 18, height: 0 }}
-                        animate={{ opacity: 1, y: 0,  height: 'auto' }}
-                        exit={{   opacity: 0, y: 18,  height: 0 }}
-                        transition={{ type: 'spring', stiffness: 340, damping: 30 }}
-                        style={{ overflow: 'hidden' }}
-                      >
-                        <Typography variant="caption" sx={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', mb: 0.4, pl: 0.5, color: focusedInput === 'dropoff' ? 'white' : 'rgba(255,255,255,0.65)', transition: 'color 0.2s' }}>Destination</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.45)', borderRadius: 2, boxShadow: focusedInput === 'dropoff' ? '0 0 0 3px rgba(255,255,255,0.22)' : 'none', bgcolor: focusedInput === 'dropoff' ? inputFocusedBg : inputUnfocusedBg, minHeight: 52, width: '100%', boxSizing: 'border-box', transition: 'all 0.22s', overflow: 'hidden' }}>
-                          <Box sx={{ width: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', flexShrink: 0, borderRight: '1.5px solid', borderColor: focusedInput === 'dropoff' ? 'divider' : 'rgba(255,255,255,0.3)', bgcolor: focusedInput === 'dropoff' ? iconPanelFocused : iconPanelUnfocused, transition: 'all 0.22s' }}>
-                            <FlagIcon sx={{ fontSize: 19, color: focusedInput === 'dropoff' ? AMBER : dropoffLocation ? 'error.main' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), transition: 'color 0.22s' }} />
-                          </Box>
-                          <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
-                            <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
-                              <LocationSearch
-                                displayKey="d2"
-                                HandleOnBlur={showNav}
-                                HandleOnfocus={hideNav}
-                                placeholder="Where to deliver?"
-                                onSelectLocation={handleDropoffSelect}
-                                mapControls={mapControls}
-                                value={dropoffLocation?.address || ''}
-                                autoFocus={focusedInput === 'dropoff'}
-                                onFocus={() => handleInputFocus('dropoff')}
-                                onBlur={handleInputBlur}
-                              />
-                            </Box>
-                          </Box>
-                          {dropoffLocation && (
-                            <IconButton size="small" sx={{ mr: 0.5, p: 0.5, color: 'text.disabled' }}
-                              onClick={(e) => { e.stopPropagation(); setDropoffLocation(null); }}>
-                              <CloseIcon sx={{ fontSize: 13 }} />
-                            </IconButton>
-                          )}
-                        </Box>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                </Box>
+                  </Box>
                 </motion.div>
               </Box>
 
@@ -2570,7 +2595,7 @@ export default function SendPackagePage() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M9 18l6-6-6-6" stroke="#FF8A00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9 18l6-6-6-6" stroke="#FF8A00" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </Box>
                   </Box>

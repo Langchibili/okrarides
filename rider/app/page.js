@@ -14,7 +14,7 @@ import ContextProviders from '@/lib/contexts/ContextProviders';
 
 // ── Splash overlay — renders ABOVE the app, app loads behind it ──────────────
 function LoadingSplash({ visible }) {
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   return (
     <AnimatePresence>
@@ -83,18 +83,18 @@ function LoadingSplash({ visible }) {
 }
 
 
-const RenderHomePage = ()=>{
+const RenderHomePage = () => {
   const { user, loading, isAuthenticated } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { setAccentColor, setMode } = useThemeMode()
-  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
+  const { isNative, servicesInitialized, initializeNativeServices, startLocationTracking, stopLocationTracking, getCurrentLocation: getNativeLocation } = useReactNative();
   const [checkingAuth, setCheckingAuth] = useState(() => loading)
   const [splashVisible, setSplashVisible] = useState(() => {
     // Only show splash if this is a fresh page load — not an in-app navigation
     if (typeof window === 'undefined') return false;
     const already = sessionStorage.getItem('okra_splash_shown');
-    if(!already){
+    if (!already) {
       setMode('light')
     }
     return !already;
@@ -104,15 +104,15 @@ const RenderHomePage = ()=>{
     return () => clearTimeout(t);
   }, []);
 
-  useEffect(()=>{
-    if(typeof window !== "undefined"){
+  useEffect(() => {
+    if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const fromUrl = params.get('ref') || params.get('afcode');
       if (fromUrl) {
-       localStorage.setItem('affiliateRef', fromUrl)
+        localStorage.setItem('affiliateRef', fromUrl)
       }
     }
-  },[])
+  }, [])
 
 
 
@@ -126,7 +126,7 @@ const RenderHomePage = ()=>{
   }, [splashVisible])
 
   // Redirect to login if not authenticated
-   useEffect(() => {
+  useEffect(() => {
     const initializeNativeCode = async () => {
       // ONLY NOW initialize native services (if in native environment, and user has authenticated)
       if (isNative && !servicesInitialized && user?.id) {
@@ -136,60 +136,62 @@ const RenderHomePage = ()=>{
           'rider', // frontendName
           process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL
         )
-       
+
         if (window.ReactNativeWebView || result.success) {
-            if (typeof window !== 'undefined') {
-                window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'GET_CURRENT_LOCATION',
-                    requestId: `init_loc_${Date.now()}`
-                }));
+          if (typeof window !== 'undefined') {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'GET_CURRENT_LOCATION',
+              requestId: `init_loc_${Date.now()}`
+            }));
 
-                // Listen for location response
-                const handleLocationUpdate = (event) => {
-                    try {
-                    const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-                   // even though we are calling /driver/update-location, it simply is because this updates the user's current location, not to driver profile, but to the entire user account
-                    if (data.type === 'LOCATION_UPDATE' && data.payload) {
-                        const { lat, lng } = data.payload;
-                        // Update backend with location
-                        apiClient.post('/driver/update-location', {
-                        location: { lat, lng }
-                        }).catch(err => console.error('Location update error:', err));
-                        
-                        window.removeEventListener('message', handleLocationUpdate);
-                    }
-                    } catch (e) {
-                    console.error('Location response parse error:', e);
-                    }
-                };
+            // Listen for location response
+            const handleLocationUpdate = (event) => {
+              try {
+                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                // even though we are calling /driver/update-location, it simply is because this updates the user's current location, not to driver profile, but to the entire user account
+                if (data.type === 'LOCATION_UPDATE' && data.payload) {
+                  const { lat, lng } = data.payload;
+                  // Update backend with location
+                  apiClient.post('/driver/update-location', {
+                    location: { lat, lng }
+                  }).catch(err => console.error('Location update error:', err));
 
-                window.addEventListener('message', handleLocationUpdate);
-                setTimeout(() => window.removeEventListener('message', handleLocationUpdate), 10000);
-            } else {
+                  window.removeEventListener('message', handleLocationUpdate);
+                }
+              } catch (e) {
+                console.error('Location response parse error:', e);
+              }
+            };
+
+            window.addEventListener('message', handleLocationUpdate);
+            setTimeout(() => window.removeEventListener('message', handleLocationUpdate), 10000);
+          } else {
             // Web fallback
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
+              navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    apiClient.post('/driver/update-location', {
+                  apiClient.post('/driver/update-location', {
                     location: {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude
                     }
-                    }).catch(err => console.error('Location update error:', err));
+                  }).catch(err => console.error('Location update error:', err));
                 },
                 (error) => console.error('Geolocation error:', error)
-                );
+              );
             }
-            }
-            console.log('✅ Native services initialized successfully');
-            } else {
-            console.error('❌ Failed to initialize native services:', result.error);
-            // Continue anyway - app should work in web mode
-            }
+          }
+          console.log('✅ Native services initialized successfully');
+        } else {
+          console.error('❌ Failed to initialize native services:', result.error);
+          // Continue anyway - app should work in web mode
+        }
       }
-      if(isNative){
-         getNativeLocation() // make the device send the current location to the server at least once
+      if (isNative) {
+        getNativeLocation() // make the device send the current location to the server at least once
       }
+      startLocationTracking()
+
       // startLocationTracking() // no need, since this page displays /home, which starts the tracking via it's layout file too
     }
 
@@ -207,14 +209,14 @@ const RenderHomePage = ()=>{
     if (!loading) setCheckingAuth(false);
   }, [loading])
 
-  useEffect(()=>{
+  useEffect(() => {
     // Set different colours for each mode
     setAccentColor('#FFFFFF', 'orange')
-  },[])
+  }, [])
   // ============================================
   // Redirect Logic for Active Rides
   // ============================================
- 
+
 
   useEffect(() => {
     // Force MUI to re-evaluate styles on route change
@@ -233,11 +235,10 @@ const RenderHomePage = ()=>{
       sx={{
         minHeight: '100vh',
         pb: '80px', // Space for bottom nav
-        bgcolor: 'background.default', overflowX: 'hidden' 
+        bgcolor: 'background.default', overflowX: 'hidden'
       }}
     >
       <HomePage />
-      
       <LoadingSplash visible={splashVisible} />   {/* ← overlays for 800ms then fades */}
     </Box>
   )
@@ -245,5 +246,5 @@ const RenderHomePage = ()=>{
 
 
 export default function Home() {
-       return <ContextProviders> <RenderHomePage/><BottomNav userType="rider" /> </ContextProviders>               
+  return <ContextProviders> <RenderHomePage /><BottomNav userType="rider" /> </ContextProviders>
 }
