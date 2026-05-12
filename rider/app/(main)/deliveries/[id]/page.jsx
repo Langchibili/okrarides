@@ -401,7 +401,7 @@ const PKG_ICONS = { document: '📄', parcel: '📦', food: '🍔', groceries: '
 const ACTIVE = new Set(['accepted', 'arrived', 'passenger_onboard', 'awaiting_payment']);
 
 function SectionCard({ title, icon, children, accent, sx = {} }) {
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 24 }}>
@@ -409,7 +409,7 @@ function SectionCard({ title, icon, children, accent, sx = {} }) {
         p: 2.5, borderRadius: 3, mb: 2,
         border: `1px solid ${alpha(accent ?? theme.palette.divider, isDark ? 0.18 : 0.1)}`,
         background: accent
-          ? isDark ? `linear-gradient(145deg,${alpha(accent,0.1)} 0%,transparent 60%)` : `linear-gradient(145deg,${alpha(accent,0.05)} 0%,#FFF 100%)`
+          ? isDark ? `linear-gradient(145deg,${alpha(accent, 0.1)} 0%,transparent 60%)` : `linear-gradient(145deg,${alpha(accent, 0.05)} 0%,#FFF 100%)`
           : isDark ? undefined : 'linear-gradient(145deg,#FFF 0%,#FAFAFA 100%)',
         ...sx,
       }}>
@@ -426,15 +426,15 @@ function SectionCard({ title, icon, children, accent, sx = {} }) {
 }
 
 function RateDeliveryModal({ open, onClose, deliveryId, onRated }) {
-  const [rating,  setRating]  = useState(0);
-  const [review,  setReview]  = useState('');
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!rating) return;
     setLoading(true);
     try { await rateDelivery(deliveryId, rating, review); onRated?.(); onClose(); }
-    catch {} finally { setLoading(false); }
+    catch { } finally { setLoading(false); }
   };
 
   return (
@@ -462,42 +462,42 @@ function RateDeliveryModal({ open, onClose, deliveryId, onRated }) {
 export default function DeliveryDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const [delivery,   setDelivery]   = useState(null);
-  const [loading,    setLoading]    = useState(true);
+  const [delivery, setDelivery] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [ratingOpen, setRatingOpen] = useState(false);
-  const [rated,      setRated]      = useState(false);
+  const [rated, setRated] = useState(false);
   const mapControlsRef = useRef(null);
 
   useEffect(() => { load(); }, [params.id]);
 
   const load = async () => {
     try {
-      const res  = await getDelivery(params.id);
+      const res = await getDelivery(params.id);
       const data = res?.data ?? res;
       if (data) setDelivery(data);
-    } catch {} finally { setLoading(false); }
+    } catch { } finally { setLoading(false); }
   };
 
   const handleCancel = async () => {
     setCancelling(true);
     try { await cancelDelivery(params.id, 'Sender cancelled'); setCancelOpen(false); load(); }
-    catch {} finally { setCancelling(false); }
+    catch { } finally { setCancelling(false); }
   };
 
-  const rideStatus    = delivery?.rideStatus;
-  const hex           = STATUS_HEX[rideStatus] ?? '#9CA3AF';
-  const isActive      = ACTIVE.has(rideStatus);
-  const isCompleted   = rideStatus === 'completed';
+  const rideStatus = delivery?.rideStatus;
+  const hex = STATUS_HEX[rideStatus] ?? '#9CA3AF';
+  const isActive = ACTIVE.has(rideStatus);
+  const isCompleted = rideStatus === 'completed';
   const isCancellable = ['pending', 'accepted'].includes(rideStatus);
 
   const markers = useMemo(() => {
     const m = [];
-    if (delivery?.pickupLocation)  m.push({ id: 'pickup',  position: delivery.pickupLocation,  type: 'pickup',  icon: '📍' });
+    if (delivery?.pickupLocation) m.push({ id: 'pickup', position: delivery.pickupLocation, type: 'pickup', icon: '📍' });
     if (delivery?.dropoffLocation) m.push({ id: 'dropoff', position: delivery.dropoffLocation, type: 'dropoff', icon: '🎯' });
     return m;
   }, [delivery?.pickupLocation?.lat, delivery?.dropoffLocation?.lat]);
@@ -516,7 +516,7 @@ export default function DeliveryDetailPage() {
           <Typography variant="h6" sx={{ flex: 1, fontWeight: 700 }}>Delivery Details</Typography>
           {rideStatus && (
             <Chip label={STATUS_LABELS[rideStatus] ?? rideStatus} size="small"
-              sx={{ bgcolor: alpha(hex, isDark?0.25:0.22), color: isDark?hex:'#fff', border: `1px solid ${alpha(hex,isDark?0.4:0.35)}`, fontWeight: 700, height: 24, maxWidth: 160, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' } }} />
+              sx={{ bgcolor: alpha(hex, isDark ? 0.25 : 0.22), color: isDark ? hex : '#fff', border: `1px solid ${alpha(hex, isDark ? 0.4 : 0.35)}`, fontWeight: 700, height: 24, maxWidth: 160, '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' } }} />
           )}
         </Toolbar>
       </AppBar>
@@ -530,7 +530,7 @@ export default function DeliveryDetailPage() {
         ) : (
           <>
             {/* Status accent bar */}
-            <Box sx={{ height: 4, background: `linear-gradient(90deg,${hex} 0%,${alpha(hex,0.2)} 100%)` }} />
+            <Box sx={{ height: 4, background: `linear-gradient(90deg,${hex} 0%,${alpha(hex, 0.2)} 100%)` }} />
 
             {/* Map preview */}
             <Box sx={{ height: 200, position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
@@ -550,7 +550,7 @@ export default function DeliveryDetailPage() {
                   <Button fullWidth variant="contained" size="large"
                     onClick={() => router.push(`/deliveries/${params.id}/tracking`)}
                     startIcon={<DeliveryIcon />}
-                    sx={{ height: 52, borderRadius: 3, fontWeight: 700, mb: 2.5, background: `linear-gradient(135deg,${AMBER} 0%,#D97706 100%)`, boxShadow: `0 6px 20px ${alpha(AMBER,0.45)}`, color: '#fff' }}>
+                    sx={{ height: 52, borderRadius: 3, fontWeight: 700, mb: 2.5, background: `linear-gradient(135deg,${AMBER} 0%,#D97706 100%)`, boxShadow: `0 6px 20px ${alpha(AMBER, 0.45)}`, color: '#fff' }}>
                     Track Package
                   </Button>
                 </motion.div>
@@ -559,7 +559,7 @@ export default function DeliveryDetailPage() {
               {/* Rate button */}
               {isCompleted && !rated && !delivery.senderRating && (
                 <Button fullWidth variant="outlined" size="large" onClick={() => setRatingOpen(true)} startIcon={<StarIcon />}
-                  sx={{ height: 48, borderRadius: 3, fontWeight: 600, mb: 2, borderColor: alpha(AMBER,0.6), color: AMBER }}>
+                  sx={{ height: 48, borderRadius: 3, fontWeight: 600, mb: 2, borderColor: alpha(AMBER, 0.6), color: AMBER }}>
                   Rate this Delivery
                 </Button>
               )}
@@ -578,14 +578,14 @@ export default function DeliveryDetailPage() {
                     <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
                       {delivery.package?.isFragile && <Chip label="⚠️ Fragile" size="small" color="error" sx={{ fontWeight: 700, height: 20 }} />}
                       {delivery.package?.packageStatus && (
-                        <Chip label={delivery.package.packageStatus.replace(/_/g,' ')} size="small"
+                        <Chip label={delivery.package.packageStatus.replace(/_/g, ' ')} size="small"
                           color={delivery.package.packageStatus === 'delivered' ? 'success' : 'default'} sx={{ fontWeight: 700, height: 20 }} />
                       )}
                     </Box>
                   </Box>
                 </Box>
                 {delivery.package?.recipientName && (
-                  <Box sx={{ mt: 1.5, pt: 1.5, borderTop: `1px solid ${alpha(isDark?'#fff':'#000',0.07)}` }}>
+                  <Box sx={{ mt: 1.5, pt: 1.5, borderTop: `1px solid ${alpha(isDark ? '#fff' : '#000', 0.07)}` }}>
                     <Typography variant="caption" color="text.disabled" fontWeight={700} sx={{ letterSpacing: 0.5, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>Recipient</Typography>
                     <Typography variant="body2" fontWeight={600}>{delivery.package.recipientName}</Typography>
                     {delivery.package.recipientPhone && (
@@ -599,7 +599,7 @@ export default function DeliveryDetailPage() {
               {delivery.deliverer && (
                 <SectionCard title="Deliverer" accent={hex}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ width: 52, height: 52, border: `2.5px solid ${alpha(hex,0.45)}` }}>
+                    <Avatar sx={{ width: 52, height: 52, border: `2.5px solid ${alpha(hex, 0.45)}` }}>
                       {delivery.deliverer.firstName?.[0]}{delivery.deliverer.lastName?.[0]}
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
@@ -622,7 +622,7 @@ export default function DeliveryDetailPage() {
                           sx={{ bgcolor: 'success.main', color: '#fff', width: 36, height: 36 }}>
                           <PhoneIcon sx={{ fontSize: 16 }} />
                         </IconButton>
-                        <IconButton onClick={() => window.open(`https://wa.me/${delivery.deliverer.phoneNumber?.replace(/\D/g,'')}`, '_blank')}
+                        <IconButton onClick={() => window.open(`https://wa.me/${delivery.deliverer.phoneNumber?.replace(/\D/g, '')}`, '_blank')}
                           sx={{ background: 'linear-gradient(135deg,#10B981,#059669)', color: '#fff', width: 36, height: 36 }}>
                           <MessageIcon sx={{ fontSize: 16 }} />
                         </IconButton>
@@ -635,7 +635,7 @@ export default function DeliveryDetailPage() {
               {/* Route */}
               <SectionCard title="Route" icon={<NavIcon />} accent="#3B82F6">
                 <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
-                  <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: alpha('#10B981',isDark?0.2:0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: alpha('#10B981', isDark ? 0.2 : 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <PickupIcon sx={{ color: '#10B981', fontSize: 18 }} />
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -644,9 +644,9 @@ export default function DeliveryDetailPage() {
                     {delivery.acceptedAt && <Typography variant="caption" color="text.disabled">{formatDate(delivery.acceptedAt)}</Typography>}
                   </Box>
                 </Box>
-                <Box sx={{ width: 2, height: 16, bgcolor: alpha(theme.palette.divider,0.5), ml: 2, mb: 1.5, borderRadius: 1 }} />
+                <Box sx={{ width: 2, height: 16, bgcolor: alpha(theme.palette.divider, 0.5), ml: 2, mb: 1.5, borderRadius: 1 }} />
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: alpha('#EF4444',isDark?0.2:0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: alpha('#EF4444', isDark ? 0.2 : 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <DropIcon sx={{ color: '#EF4444', fontSize: 18 }} />
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -674,7 +674,7 @@ export default function DeliveryDetailPage() {
                 </List>
                 {delivery.paymentMethod && (
                   <Chip label={delivery.paymentMethod === 'cash' ? '💵 Cash' : '💳 OkraPay'} size="small"
-                    sx={{ mt: 1, fontWeight: 700, bgcolor: alpha(AMBER,isDark?0.18:0.1), color: AMBER, border: `1px solid ${alpha(AMBER,0.3)}` }} />
+                    sx={{ mt: 1, fontWeight: 700, bgcolor: alpha(AMBER, isDark ? 0.18 : 0.1), color: AMBER, border: `1px solid ${alpha(AMBER, 0.3)}` }} />
                 )}
               </SectionCard>
 
@@ -704,5 +704,5 @@ export default function DeliveryDetailPage() {
 
       <RateDeliveryModal open={ratingOpen} onClose={() => setRatingOpen(false)} deliveryId={params.id} onRated={() => { setRated(true); load(); }} />
     </Box>
-  );
+  )
 }

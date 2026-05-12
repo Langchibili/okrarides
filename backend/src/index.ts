@@ -14,9 +14,9 @@
  */
 
 import socketService from './services/socketService';
-import { pollPendingCollections }   from './services/collection-poller';
+import { pollPendingCollections } from './services/collection-poller';
 import { recalculatePlatformStats } from './services/platform-stats';
-import { SendSmsNotification }      from './services/messages';
+import { SendSmsNotification, SendEmailNotification } from './services/messages';
 import { handleUserCreation, handleUserUpdate } from "./pluginExtensionsFiles/userLifecycleMethods"
 
 // =============================================================================
@@ -43,9 +43,9 @@ const resolvePhone = (user: any): string | null =>
 /** "Dear John Doe," — falls back to "Dear driver," when names are absent */
 const greeting = (user: any): string => {
   const first = user.firstName?.trim();
-  const last  = user.lastName?.trim();
+  const last = user.lastName?.trim();
   if (first && last) return `Dear ${first} ${last}`;
-  if (first)         return `Dear ${first}`;
+  if (first) return `Dear ${first}`;
   return 'Dear driver';
 };
 
@@ -77,7 +77,7 @@ async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
           expiresAt: { $lte: now },
         },
         populate: {
-          driver:          { select: ['id'] },
+          driver: { select: ['id'] },
           subscriptionPlan: true,
         },
       });
@@ -90,13 +90,13 @@ async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
 
       await strapi.db.query('api::driver-subscription.driver-subscription').update({
         where: { id: sub.id },
-        data:  { subscriptionStatus: 'expired' },
+        data: { subscriptionStatus: 'expired' },
       });
 
       // Sync the driver profile component
       const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-        where:    { id: driverId },
-        select:   ['id'],
+        where: { id: driverId },
+        select: ['id'],
         populate: { driverProfile: { select: ['id'] } },
       });
 
@@ -105,9 +105,9 @@ async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
           where: { id: user.driverProfile.id },
           data: {
             subscriptionStatus: 'expired',
-            isOnline:    false,
+            isOnline: false,
             isAvailable: false,
-            isActive:    false,
+            isActive: false,
           },
         });
       }
@@ -140,7 +140,7 @@ async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
           expiresAt: { $gte: now, $lte: sevenDaysFromNow },
         },
         populate: {
-          driver:           { select: ['id'] },
+          driver: { select: ['id'] },
           subscriptionPlan: true,
         },
       });
@@ -195,8 +195,8 @@ async function sendMessagesToUsersWithExpiredSubscriptions(strapi: any): Promise
     const expiredSubs = await strapi.db
       .query('api::driver-subscription.driver-subscription')
       .findMany({
-        where:    { subscriptionStatus: 'expired' },
-        select:   ['id'],
+        where: { subscriptionStatus: 'expired' },
+        select: ['id'],
         populate: {
           driver: { select: ['id', 'firstName', 'lastName', 'username', 'phoneNumber'] },
         },
@@ -223,7 +223,7 @@ async function sendMessagesToUsersWithExpiredSubscriptions(strapi: any): Promise
     const allSubRecords = await strapi.db
       .query('api::driver-subscription.driver-subscription')
       .findMany({
-        select:   ['id'],
+        select: ['id'],
         populate: { driver: { select: ['id'] } },
       });
 
@@ -238,7 +238,7 @@ async function sendMessagesToUsersWithExpiredSubscriptions(strapi: any): Promise
         where: {
           driverProfile: { isActive: { $notNull: true } }, // component exists
         },
-        select:   ['id', 'firstName', 'lastName', 'username', 'phoneNumber'],
+        select: ['id', 'firstName', 'lastName', 'username', 'phoneNumber'],
         populate: { driverProfile: { select: ['id'] } },
       });
 
@@ -295,7 +295,7 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
         where: {
           driverProfile: { isActive: true },
         },
-        select:   ['id', 'firstName', 'lastName', 'username', 'phoneNumber'],
+        select: ['id', 'firstName', 'lastName', 'username', 'phoneNumber'],
         populate: {
           driverProfile: { select: ['id', 'floatBalance', 'totalRides'] },
         },
@@ -311,9 +311,9 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
         continue;
       }
 
-      const totalRides   = Number(profile.totalRides)   || 0;
+      const totalRides = Number(profile.totalRides) || 0;
       const floatBalance = parseFloat(profile.floatBalance) || 0;
-      const greet        = greeting(user);
+      const greet = greeting(user);
 
       // ── Case A: never completed a ride AND has no float ──────────────────
       if (totalRides < 1 && floatBalance <= 0) {
@@ -330,11 +330,11 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
       if (totalRides >= 1) {
         const lastCompletedRide = await strapi.db.query('api::ride.ride').findOne({
           where: {
-            driver:     user.id,
+            driver: user.id,
             rideStatus: 'completed',
           },
-          select:   ['id', 'tripCompletedAt'],
-          orderBy:  { tripCompletedAt: 'desc' },
+          select: ['id', 'tripCompletedAt'],
+          orderBy: { tripCompletedAt: 'desc' },
         });
 
         if (
@@ -361,13 +361,12 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
 // STRAPI BOOTSTRAP — register all cron tasks
 // =============================================================================
 export default {
-  register({ strapi }: { strapi: any }) {},
+  register({ strapi }: { strapi: any }) { },
 
   bootstrap({ strapi }: { strapi: any }) {
     // Connect socket service
     socketService.connect();
     console.log('✅ Socket Service initialized');
-
     // ── User lifecycle hooks ──────────────────────────────────────────────────
     strapi.db.lifecycles.subscribe({
       models: ['plugin::users-permissions.user'],
@@ -393,7 +392,7 @@ export default {
       },
     });
 
-   
+
     // Define your jobs in an array for easy management
     const jobsToRegister = [
       {
@@ -457,7 +456,7 @@ export default {
 
     // Run the expiry check immediately on startup so stale subs are resolved
     // before the first scheduled 6-hour tick.
-    
+
     runSubscriptionExpiryCheck(strapi).then(() => {
       console.log('[bootstrap] Initial subscription expiry check complete');
     })

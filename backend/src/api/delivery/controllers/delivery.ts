@@ -15,6 +15,8 @@ import RiderBlockingService from '../../../services/riderBlockingService';
 import socketService from '../../../services/socketService';
 import { processAffiliatePoints } from '../../../services/affiliateService';
 import { checkAndApplyDeliveryDiscount } from '../../../services/affiliatePromotionService';
+import { SendEmailNotification } from '../../../services/messages';
+
 // ─── Complete delivery helper ─────────────────────────────────────────────
 interface HandleCompleteDeliveryInput {
   deliveryId: string | number;
@@ -38,7 +40,7 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
   const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
     where: { id: delivererId },
     populate: {
-       driverProfile: {
+      driverProfile: {
         select: ['id', 'floatBalance', 'withdrawableFloatBalance'],
         populate: { currentSubscription: true },
       },
@@ -79,10 +81,10 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
   }
 
   // Balances — float lives on driverProfile
-  const currentFloat   = driver.driverProfile.floatBalance || 0;
+  const currentFloat = driver.driverProfile.floatBalance || 0;
   const currentBalance = driver.deliveryProfile?.currentBalance || 0;
-  let newFloatBalance    = currentFloat;
-  let newCurrentBalance  = currentBalance;
+  let newFloatBalance = currentFloat;
+  let newCurrentBalance = currentBalance;
 
   if (!isSubscriptionDelivery) {
     newFloatBalance = currentFloat - floatDeduction;
@@ -99,15 +101,15 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
   const updatedDelivery = await strapi.db.query('api::delivery.delivery').update({
     where: { id: deliveryId },
     data: {
-      rideStatus:        'completed',
-      tripCompletedAt:   new Date(),
-      actualDistance:    actualDistance || delivery.estimatedDistance,
-      actualDuration:    actualDuration || delivery.estimatedDuration,
+      rideStatus: 'completed',
+      tripCompletedAt: new Date(),
+      actualDistance: actualDistance || delivery.estimatedDistance,
+      actualDuration: actualDuration || delivery.estimatedDuration,
       commission,
       driverEarnings,
-      commissionDeducted:  !isSubscriptionDelivery,
+      commissionDeducted: !isSubscriptionDelivery,
       wasSubscriptionRide: isSubscriptionDelivery,
-      paymentStatus:       'completed',
+      paymentStatus: 'completed',
     },
   });
 
@@ -115,8 +117,8 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
   await strapi.db.query('driver-profiles.driver-profile').update({
     where: { id: driver.driverProfile.id },
     data: {
-      floatBalance:              newFloatBalance,
-      withdrawableFloatBalance:  withdrawableFloatBalance > 0 ? withdrawableFloatBalance : 0,
+      floatBalance: newFloatBalance,
+      withdrawableFloatBalance: withdrawableFloatBalance > 0 ? withdrawableFloatBalance : 0,
     },
   });
 
@@ -125,13 +127,13 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
     await strapi.db.query('delivery-profiles.delivery-profile').update({
       where: { id: driver.deliveryProfile.id },
       data: {
-        isAvailable:          true,
-        isEnroute:            false,
-        currentDelivery:      null,
+        isAvailable: true,
+        isEnroute: false,
+        currentDelivery: null,
         completedDeliveries: (driver.deliveryProfile.completedDeliveries || 0) + 1,
-        totalDeliveries:     (driver.deliveryProfile.totalDeliveries || 0) + 1,
-        totalEarnings:       (driver.deliveryProfile.totalEarnings || 0) + driverEarnings,
-        currentBalance:       newCurrentBalance,
+        totalDeliveries: (driver.deliveryProfile.totalDeliveries || 0) + 1,
+        totalEarnings: (driver.deliveryProfile.totalEarnings || 0) + driverEarnings,
+        currentBalance: newCurrentBalance,
       },
     });
   }
@@ -142,7 +144,7 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
       where: { id: delivery.package.id },
       data: {
         packageStatus: 'delivered',
-        deliveredAt:   new Date(),
+        deliveredAt: new Date(),
       },
     });
   }
@@ -151,11 +153,11 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
   await strapi.db.query('api::ledger-entry.ledger-entry').create({
     data: {
       entryId: `LE-DEL-${Date.now()}`,
-      driver:  delivererId,
-      ride:    deliveryId, // ledger points to delivery via ride FK
-      type:    isSubscriptionDelivery ? 'fare' : delivery.paymentMethod === 'cash' ? 'fare' : 'fare',
-      amount:  driverEarnings,
-      source:  delivery.paymentMethod,
+      driver: delivererId,
+      ride: deliveryId, // ledger points to delivery via ride FK
+      type: isSubscriptionDelivery ? 'fare' : delivery.paymentMethod === 'cash' ? 'fare' : 'fare',
+      amount: driverEarnings,
+      source: delivery.paymentMethod,
       ledgerStatus: 'settled',
     },
   });
@@ -164,10 +166,10 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
     await strapi.db.query('api::ledger-entry.ledger-entry').create({
       data: {
         entryId: `LE-DEL-FD-${Date.now()}`,
-        driver:  delivererId,
-        type:    'float_deduction',
-        amount:  -floatDeduction,
-        source:  'system',
+        driver: delivererId,
+        type: 'float_deduction',
+        amount: -floatDeduction,
+        source: 'system',
         ledgerStatus: 'settled',
       },
     });
@@ -177,35 +179,45 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
     await strapi.db.query('api::ledger-entry.ledger-entry').create({
       data: {
         entryId: `LE-DEL-COMM-${Date.now()}`,
-        driver:  delivererId,
-        type:    'commission',
-        amount:  -commission,
-        source:  'system',
+        driver: delivererId,
+        type: 'commission',
+        amount: -commission,
+        source: 'system',
         ledgerStatus: 'settled',
       },
     });
   }
 
-strapi.log.info(
-  `[handleCompleteDelivery] Delivery ${deliveryId} finalised. ` +
-  `System: ${paymentSystemType}${isSubscriptionDelivery ? ' (subscription)' : ''}. ` +
-  `Fare: ${delivery.totalFare}, Commission: ${commission}, ` +
-  `FloatDeduction: ${floatDeduction}, DriverEarnings: ${driverEarnings}.`
-)
+  strapi.log.info(
+    `[handleCompleteDelivery] Delivery ${deliveryId} finalised. ` +
+    `System: ${paymentSystemType}${isSubscriptionDelivery ? ' (subscription)' : ''}. ` +
+    `Fare: ${delivery.totalFare}, Commission: ${commission}, ` +
+    `FloatDeduction: ${floatDeduction}, DriverEarnings: ${driverEarnings}.`
+  )
 
-processAffiliatePoints({
+  processAffiliatePoints({
     eventType: 'onDeliveryCompletion',
     triggeringUserId: Number(delivererId),
     fare: delivery.totalFare,
     deliveryId: Number(deliveryId)
-})
-// fire-and-forget — safe, errors are swallowed internally
-processAffiliatePoints({
+  })
+  // fire-and-forget — safe, errors are swallowed internally
+  processAffiliatePoints({
     eventType: 'onDeliveryBooking',
     triggeringUserId: Number(delivery.sender.id),
     deliveryId: Number(delivery.id)
-})
+  })
+  const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({ where: { id: 1 } })
+  const adminEmailMessage = "A delivery with id #" + deliveryId + " has been completed"
 
+  try {
+    adminEmailAddresses.forEach((email) => {
+      SendEmailNotification(email, adminEmailMessage)
+    })
+  }
+  catch (e) {
+    console.log(e)
+  }
   return {
     updatedDelivery,
     driverEarnings,
@@ -257,7 +269,7 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       const userId = ctx.state.user.id;
 
       const pageSize = query.pagination?.pageSize || 20;
-      const page     = query.pagination?.page || 1;
+      const page = query.pagination?.page || 1;
 
       const where: any = {
         $or: [{ sender: userId }, { deliverer: userId }],
@@ -267,13 +279,13 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       const entities = await strapi.db.query('api::delivery.delivery').findMany({
         where,
         populate: {
-          sender:   { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+          sender: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
           deliverer: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'], populate: { deliveryProfile: { fields: ['id', 'averageRating'] } } },
-          package:  true,
+          package: true,
         },
         orderBy: { createdAt: 'desc' },
-        limit:   pageSize,
-        offset:  (page - 1) * pageSize,
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
       });
 
       const total = await strapi.db.query('api::delivery.delivery').count({ where });
@@ -304,16 +316,16 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       const entity = await strapi.db.query('api::delivery.delivery').findOne({
         where: { id },
         populate: {
-          sender:    { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+          sender: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
           deliverer: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'], populate: { deliveryProfile: { fields: ['id', 'averageRating'] } } },
-          package:   true,
-          vehicle:   true,
+          package: true,
+          vehicle: true,
         },
       });
 
       if (!entity) return ctx.notFound('Delivery not found');
 
-      const isSender   = entity.sender?.id === userId || entity.sender === userId;
+      const isSender = entity.sender?.id === userId || entity.sender === userId;
       const isDeliverer = entity.deliverer?.id === userId || entity.deliverer === userId;
       if (!isSender && !isDeliverer) return ctx.forbidden('You do not have access to this delivery');
 
@@ -324,37 +336,37 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       return ctx.internalServerError('Failed to fetch delivery');
     }
   },
-// ─── Get delivery by ride code (public — no auth required) ───────────────
-async getDeliveryByRideCode(ctx) {
-  try {
-    const { rideCode } = ctx.params;
+  // ─── Get delivery by ride code (public — no auth required) ───────────────
+  async getDeliveryByRideCode(ctx) {
+    try {
+      const { rideCode } = ctx.params;
 
-    if (!rideCode) return ctx.badRequest('rideCode is required');
+      if (!rideCode) return ctx.badRequest('rideCode is required');
 
-    const delivery = await strapi.db.query('api::delivery.delivery').findOne({
-      where: { rideCode },
-      populate: {
-        sender:    { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
-        deliverer: {
-          fields: ['id', 'firstName', 'lastName', 'phoneNumber'],
-          populate: {
-            deliveryProfile: { fields: ['id', 'averageRating', 'completedDeliveries'] },
+      const delivery = await strapi.db.query('api::delivery.delivery').findOne({
+        where: { rideCode },
+        populate: {
+          sender: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+          deliverer: {
+            fields: ['id', 'firstName', 'lastName', 'phoneNumber'],
+            populate: {
+              deliveryProfile: { fields: ['id', 'averageRating', 'completedDeliveries'] },
+            },
           },
+          package: true,
+          vehicle: true,
         },
-        package: true,
-        vehicle: true,
-      },
-    });
+      });
 
-    if (!delivery) return ctx.notFound('Delivery not found');
+      if (!delivery) return ctx.notFound('Delivery not found');
 
-    const sanitized = await this.sanitizeOutput(delivery, ctx);
-    return ctx.send({ data: sanitized });
-  } catch (error) {
-    strapi.log.error('[Delivery] getDeliveryByRideCode error:', error);
-    return ctx.internalServerError('Failed to fetch delivery by ride code');
-  }
-},
+      const sanitized = await this.sanitizeOutput(delivery, ctx);
+      return ctx.send({ data: sanitized });
+    } catch (error) {
+      strapi.log.error('[Delivery] getDeliveryByRideCode error:', error);
+      return ctx.internalServerError('Failed to fetch delivery by ride code');
+    }
+  },
   // ─── Create delivery request ──────────────────────────────────────────────
   async create(ctx) {
     try {
@@ -368,30 +380,30 @@ async getDeliveryByRideCode(ctx) {
 
       if (!sender) return ctx.badRequest('Sender not found');
 
-      data.rideCode    = data.rideCode || await generateUniqueRideCode({ prefix: 'DEL' });
-      data.sender      = senderId;
+      data.rideCode = data.rideCode || await generateUniqueRideCode({ prefix: 'DEL' });
+      data.sender = senderId;
       // ── Affiliate promotion discount (delivery) ───────────────────────────
       let affiliateDeliveryDiscount = 0;
       if (data.totalFare || data.estimatedFare) {
-      const baseFare = parseFloat(data.totalFare ?? data.estimatedFare ?? 0);
-      if (baseFare > 0) {
-            const discountResult = await checkAndApplyDeliveryDiscount(senderId, baseFare);
-            if (discountResult.discountAmount > 0) {
-            data.promoDiscount                = (parseFloat(data.promoDiscount ?? 0)) + discountResult.discountAmount;
-            data.totalFare                    = discountResult.discountedFare;
-            data.subtotal                     = discountResult.discountedFare;
-            data.appliedAffiliatePromoCode    = discountResult.appliedCode;
-            data.appliedAffiliatePromotionId  = discountResult.promotionId;
-            }
+        const baseFare = parseFloat(data.totalFare ?? data.estimatedFare ?? 0);
+        if (baseFare > 0) {
+          const discountResult = await checkAndApplyDeliveryDiscount(senderId, baseFare);
+          if (discountResult.discountAmount > 0) {
+            data.promoDiscount = (parseFloat(data.promoDiscount ?? 0)) + discountResult.discountAmount;
+            data.totalFare = discountResult.discountedFare;
+            data.subtotal = discountResult.discountedFare;
+            data.appliedAffiliatePromoCode = discountResult.appliedCode;
+            data.appliedAffiliatePromotionId = discountResult.promotionId;
+          }
         }
       }
       // ── End affiliate promotion discount (delivery) ───────────────────────
-      data.rideStatus  = 'pending';
+      data.rideStatus = 'pending';
       data.requestedAt = new Date();
-      data.isDelivery  = true;
-      data.rideType    = 'delivery';
-      data.requestedDrivers        = [];
-      data.declinedDrivers         = [];
+      data.isDelivery = true;
+      data.rideType = 'delivery';
+      data.requestedDrivers = [];
+      data.declinedDrivers = [];
 
       // Validate package if provided
       if (data.package) {
@@ -409,22 +421,22 @@ async getDeliveryByRideCode(ctx) {
       });
 
       socketService.emit('delivery:request:created', {
-        deliveryId:     delivery.id,
+        deliveryId: delivery.id,
         senderId,
         pickupLocation: data.pickupLocation,
         dropoffLocation: data.dropoffLocation,
-        estimatedFare:  delivery.totalFare,
+        estimatedFare: delivery.totalFare,
       });
 
       strapi.log.info(`[Delivery] Delivery ${delivery.id} created by sender ${senderId}`);
 
       // Find eligible delivery drivers
       const eligibleResult = await DeliveryBookingService.findEligibleDeliveryDrivers({
-        pickupLocation:        data.pickupLocation,
+        pickupLocation: data.pickupLocation,
         senderId,
-        deliveryClassName:     data.deliveryClassName     ?? null,
+        deliveryClassName: data.deliveryClassName ?? null,
         vehicleTypePreference: data.vehicleTypePreference ?? null,
-        packageType:           data.packageType           ?? null,
+        packageType: data.packageType ?? null,
       });
 
       if (eligibleResult.success && eligibleResult.drivers.length > 0) {
@@ -456,7 +468,7 @@ async getDeliveryByRideCode(ctx) {
         dropoffLocation,
         deliveryClassName,    // 'standard' | 'midsize' | 'big' | 'large'
         isFragile = false,
-        weightKg  = null,
+        weightKg = null,
         vehicleTypePreference = null,
       } = ctx.request.body;
 
@@ -482,10 +494,10 @@ async getDeliveryByRideCode(ctx) {
       }
 
       const estimates = deliveryClasses.map((dc: any) => {
-        const baseFare     = dc.baseFare     || 0;
-        const distanceFare = distance * (dc.perKmRate      || 0);
-        const timeFare     = duration * (dc.perMinuteRate  || 0);
-        let   subtotal     = baseFare + distanceFare + timeFare;
+        const baseFare = dc.baseFare || 0;
+        const distanceFare = distance * (dc.perKmRate || 0);
+        const timeFare = duration * (dc.perMinuteRate || 0);
+        let subtotal = baseFare + distanceFare + timeFare;
 
         // Fragile surcharge
         const fragileSurcharge = isFragile ? (dc.extraChargeForFragileItem || 0) : 0;
@@ -496,27 +508,27 @@ async getDeliveryByRideCode(ctx) {
         // as a flat multiplier when weightKg > maxWeightKg)
         let extraWeightCharge = 0;
         if (weightKg && dc.maxWeightKg && weightKg > dc.maxWeightKg && dc.extraWeightCharge) {
-          const extraKg     = weightKg - dc.maxWeightKg;
+          const extraKg = weightKg - dc.maxWeightKg;
           extraWeightCharge = extraKg * dc.extraWeightCharge;
-          subtotal         += extraWeightCharge;
+          subtotal += extraWeightCharge;
         }
 
         // Ensure minimum fare
         const totalFare = Math.max(subtotal, dc.minimumFare || 0);
 
         return {
-          deliveryClassId:   dc.id,
+          deliveryClassId: dc.id,
           deliveryClassName: dc.name,
-          name:              dc.name,
-          description:       dc.description,
-          maxWeightKg:       dc.maxWeightKg,
-          baseFare:          parseFloat(baseFare.toFixed(2)),
-          distanceFare:      parseFloat(distanceFare.toFixed(2)),
-          timeFare:          parseFloat(timeFare.toFixed(2)),
-          fragileSurcharge:  parseFloat(fragileSurcharge.toFixed(2)),
+          name: dc.name,
+          description: dc.description,
+          maxWeightKg: dc.maxWeightKg,
+          baseFare: parseFloat(baseFare.toFixed(2)),
+          distanceFare: parseFloat(distanceFare.toFixed(2)),
+          timeFare: parseFloat(timeFare.toFixed(2)),
+          fragileSurcharge: parseFloat(fragileSurcharge.toFixed(2)),
           extraWeightCharge: parseFloat(extraWeightCharge.toFixed(2)),
-          subtotal:          parseFloat(subtotal.toFixed(2)),
-          totalFare:         parseFloat(totalFare.toFixed(2)),
+          subtotal: parseFloat(subtotal.toFixed(2)),
+          totalFare: parseFloat(totalFare.toFixed(2)),
           estimatedDistance: parseFloat(distance.toFixed(2)),
           estimatedDuration: duration,
         };
@@ -546,10 +558,10 @@ async getDeliveryByRideCode(ctx) {
       const senderDelivery = await strapi.db.query('api::delivery.delivery').findOne({
         where: { sender: userId, rideStatus: { $in: activeStatuses } },
         populate: {
-          sender:    { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+          sender: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
           deliverer: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'], populate: { deliveryProfile: true } },
-          package:   true,
-          vehicle:   true,
+          package: true,
+          vehicle: true,
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -565,10 +577,10 @@ async getDeliveryByRideCode(ctx) {
           rideStatus: { $notIn: ['completed', 'cancelled', 'no_drivers_available'] },
         },
         populate: {
-          sender:    { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+          sender: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
           deliverer: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'], populate: { deliveryProfile: true } },
-          package:   true,
-          vehicle:   true,
+          package: true,
+          vehicle: true,
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -616,15 +628,15 @@ async getDeliveryByRideCode(ctx) {
 
       // Get the active vehicle
       const activeType = driver.deliveryProfile.activeVehicleType;
-      const vehicleId  = activeType && activeType !== 'none' ? driver.deliveryProfile[activeType]?.vehicle?.id : null;
+      const vehicleId = activeType && activeType !== 'none' ? driver.deliveryProfile[activeType]?.vehicle?.id : null;
 
       const updatedDelivery = await strapi.db.query('api::delivery.delivery').update({
         where: { id },
         data: {
-          rideStatus:  'accepted',
-          deliverer:   delivererId,
-          vehicle:     vehicleId || null,
-          acceptedAt:  new Date(),
+          rideStatus: 'accepted',
+          deliverer: delivererId,
+          vehicle: vehicleId || null,
+          acceptedAt: new Date(),
         },
         populate: true,
       });
@@ -639,9 +651,9 @@ async getDeliveryByRideCode(ctx) {
         deliveryId: updatedDelivery.id,
         delivererId,
         deliverer: {
-          id:          driver.id,
-          firstName:   driver.firstName,
-          lastName:    driver.lastName,
+          id: driver.id,
+          firstName: driver.firstName,
+          lastName: driver.lastName,
           phoneNumber: driver.phoneNumber,
           deliveryProfile: { averageRating: driver.deliveryProfile.averageRating },
         },
@@ -880,10 +892,10 @@ async getDeliveryByRideCode(ctx) {
         await strapi.db.query('api::transaction.transaction').create({
           data: {
             transactionId: `TXN-DEL-${Date.now()}`,
-            user:          delivery.sender?.id,
-            type:          'ride_payment',
+            user: delivery.sender?.id,
+            type: 'ride_payment',
             paymentMethod: 'cash',
-            amount:        delivery.totalFare ?? 0,
+            amount: delivery.totalFare ?? 0,
             transactionStatus: 'completed',
             notes: `Cash payment for delivery #${delivery.rideCode ?? deliveryId}`,
             processedAt: new Date().toISOString(),
@@ -909,11 +921,11 @@ async getDeliveryByRideCode(ctx) {
 
       return ctx.send({
         success: true,
-        message:       'Cash payment recorded. Delivery completed.',
-        rideStatus:    'completed',
+        message: 'Cash payment recorded. Delivery completed.',
+        rideStatus: 'completed',
         paymentStatus: 'completed',
         paymentMethod: 'cash',
-        paidAt:        now,
+        paidAt: now,
       });
     } catch (error) {
       strapi.log.error('[Delivery] payCash error:', error);
@@ -945,9 +957,9 @@ async getDeliveryByRideCode(ctx) {
       socketService.emit('delivery:completed', {
         deliveryId: updatedDelivery.id,
         delivererId,
-        finalFare:  updatedDelivery.totalFare,
-        distance:   updatedDelivery.actualDistance || updatedDelivery.estimatedDistance,
-        duration:   updatedDelivery.actualDuration || updatedDelivery.estimatedDuration,
+        finalFare: updatedDelivery.totalFare,
+        distance: updatedDelivery.actualDistance || updatedDelivery.estimatedDistance,
+        duration: updatedDelivery.actualDuration || updatedDelivery.estimatedDuration,
         tripCompletedAt: updatedDelivery.tripCompletedAt,
       });
 
@@ -976,11 +988,11 @@ async getDeliveryByRideCode(ctx) {
       const updated = await strapi.db.query('api::delivery.delivery').update({
         where: { id },
         data: {
-          rideStatus:          'cancelled',
-          cancelledAt:         new Date(),
+          rideStatus: 'cancelled',
+          cancelledAt: new Date(),
           cancelledBy,
-          cancellationReason:  reason,
-          cancellationFee:     0,
+          cancellationReason: reason,
+          cancellationFee: 0,
         },
       });
 
@@ -994,9 +1006,9 @@ async getDeliveryByRideCode(ctx) {
           await strapi.db.query('delivery-profiles.delivery-profile').update({
             where: { id: driver.deliveryProfile.id },
             data: {
-              isAvailable:         true,
-              isEnroute:           false,
-              currentDelivery:     null,
+              isAvailable: true,
+              isEnroute: false,
+              currentDelivery: null,
               cancelledDeliveries: (driver.deliveryProfile.cancelledDeliveries || 0) + 1,
             },
           });
@@ -1017,7 +1029,17 @@ async getDeliveryByRideCode(ctx) {
         reason,
         cancellationFee: 0,
       });
+      const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({ where: { id: 1 } })
+      const adminEmailMessage = "A delivery with id #" + delivery.id + " has been canceled by " + cancelledBy
 
+      try {
+        adminEmailAddresses.forEach((email) => {
+          SendEmailNotification(email, adminEmailMessage)
+        })
+      }
+      catch (e) {
+        console.log(e)
+      }
       return ctx.send(updated);
     } catch (error) {
       strapi.log.error('[Delivery] cancelDelivery error:', error);
@@ -1034,8 +1056,8 @@ async getDeliveryByRideCode(ctx) {
         where: { id },
         populate: {
           deliverer: { fields: ['id', 'firstName', 'lastName', 'phoneNumber'] },
-          vehicle:   true,
-          package:   true,
+          vehicle: true,
+          package: true,
         },
       });
 
@@ -1065,33 +1087,33 @@ async getDeliveryByRideCode(ctx) {
 
       return ctx.send({
         delivery: {
-          id:           delivery.id,
-          rideCode:     delivery.rideCode,
-          rideStatus:   delivery.rideStatus,
-          pickupLocation:  delivery.pickupLocation,
+          id: delivery.id,
+          rideCode: delivery.rideCode,
+          rideStatus: delivery.rideStatus,
+          pickupLocation: delivery.pickupLocation,
           dropoffLocation: delivery.dropoffLocation,
-          requestedAt:  delivery.requestedAt,
-          acceptedAt:   delivery.acceptedAt,
-          arrivedAt:    delivery.arrivedAt,
+          requestedAt: delivery.requestedAt,
+          acceptedAt: delivery.acceptedAt,
+          arrivedAt: delivery.arrivedAt,
           tripStartedAt: delivery.tripStartedAt,
           packageStatus: delivery.package?.packageStatus,
         },
         deliverer: delivery.deliverer ? {
-          id:          delivery.deliverer.id,
-          firstName:   delivery.deliverer.firstName,
-          lastName:    delivery.deliverer.lastName,
+          id: delivery.deliverer.id,
+          firstName: delivery.deliverer.firstName,
+          lastName: delivery.deliverer.lastName,
           phoneNumber: delivery.deliverer.phoneNumber,
           currentLocation: delivererLocation,
         } : null,
         vehicle: delivery.vehicle ? {
           numberPlate: delivery.vehicle.numberPlate,
-          make:        delivery.vehicle.make,
-          model:       delivery.vehicle.model,
-          color:       delivery.vehicle.color,
+          make: delivery.vehicle.make,
+          model: delivery.vehicle.model,
+          color: delivery.vehicle.color,
         } : null,
         tracking: {
-          eta:         eta ? `${eta} min` : null,
-          distance:    distance ? `${distance.toFixed(1)} km` : null,
+          eta: eta ? `${eta} min` : null,
+          distance: distance ? `${distance.toFixed(1)} km` : null,
           lastUpdated: new Date(),
         },
       });
@@ -1122,10 +1144,10 @@ async getDeliveryByRideCode(ctx) {
       if (!driver?.currentLocation) return ctx.notFound('Deliverer location not available');
 
       return ctx.send({
-        location:    driver.currentLocation,
+        location: driver.currentLocation,
         lastUpdated: driver.lastSeen || new Date(),
-        isOnline:    driver.isOnline || false,
-        rideStatus:  delivery.rideStatus,
+        isOnline: driver.isOnline || false,
+        rideStatus: delivery.rideStatus,
       });
     } catch (error) {
       strapi.log.error('[Delivery] getDelivererLocation error:', error);
@@ -1148,7 +1170,7 @@ async getDeliveryByRideCode(ctx) {
       const delivery = await strapi.db.query('api::delivery.delivery').findOne({
         where: { id },
         populate: {
-          sender:    { populate: { riderProfile: true } },
+          sender: { populate: { riderProfile: true } },
           deliverer: { populate: { deliveryProfile: true } },
         },
       });
@@ -1156,7 +1178,7 @@ async getDeliveryByRideCode(ctx) {
       if (!delivery) return ctx.notFound('Delivery not found');
       if (delivery.rideStatus !== 'completed') return ctx.badRequest('Can only rate completed deliveries');
 
-      const isSender   = delivery.sender?.id === userId;
+      const isSender = delivery.sender?.id === userId;
       const isDeliverer = delivery.deliverer?.id === userId;
 
       if (!isSender && !isDeliverer) return ctx.forbidden('You are not authorised to rate this delivery');
@@ -1173,10 +1195,10 @@ async getDeliveryByRideCode(ctx) {
       let ratedUserType: string;
 
       if (ratedBy === 'sender') {
-        ratedUserId   = delivery.deliverer?.id;
+        ratedUserId = delivery.deliverer?.id;
         ratedUserType = 'deliverer';
       } else {
-        ratedUserId   = delivery.sender?.id;
+        ratedUserId = delivery.sender?.id;
         ratedUserType = 'sender';
       }
 
@@ -1193,10 +1215,10 @@ async getDeliveryByRideCode(ctx) {
           populate: { deliveryProfile: { select: ['id', 'averageRating', 'totalRatings'] } },
         });
         if (ratedDriver?.deliveryProfile) {
-          const currentAvg   = ratedDriver.deliveryProfile.averageRating || 0;
+          const currentAvg = ratedDriver.deliveryProfile.averageRating || 0;
           const currentTotal = ratedDriver.deliveryProfile.totalRatings || 0;
-          const newTotal     = currentTotal + 1;
-          const newAverage   = ((currentAvg * currentTotal) + rating) / newTotal;
+          const newTotal = currentTotal + 1;
+          const newAverage = ((currentAvg * currentTotal) + rating) / newTotal;
           await strapi.db.query('delivery-profiles.delivery-profile').update({
             where: { id: ratedDriver.deliveryProfile.id },
             data: { averageRating: parseFloat(newAverage.toFixed(2)), totalRatings: newTotal },
@@ -1210,7 +1232,7 @@ async getDeliveryByRideCode(ctx) {
       return ctx.send({
         success: true,
         message: 'Rating submitted successfully',
-        rating:  { id: newRating.id, rating, review, tags },
+        rating: { id: newRating.id, rating, review, tags },
       });
     } catch (error) {
       strapi.log.error('[Delivery] rateDelivery error:', error);

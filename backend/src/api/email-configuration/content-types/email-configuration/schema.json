@@ -1,0 +1,18 @@
+{
+  "kind": "singleType",
+  "collectionName": "email_configurations",
+  "info": {
+    "singularName": "email-configuration",
+    "pluralName": "email-configurations",
+    "displayName": "emailConfigurations"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "config": {
+      "type": "json"
+    }
+  }
+}

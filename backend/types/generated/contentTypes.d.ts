@@ -1995,6 +1995,35 @@ export interface ApiEmailAddressesListEmailAddressesList
   };
 }
 
+export interface ApiEmailConfigurationEmailConfiguration
+  extends Struct.SingleTypeSchema {
+  collectionName: 'email_configurations';
+  info: {
+    displayName: 'emailConfigurations';
+    pluralName: 'email-configurations';
+    singularName: 'email-configuration';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    config: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::email-configuration.email-configuration'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEmailLogEmailLog extends Struct.CollectionTypeSchema {
   collectionName: 'email_logs';
   info: {
@@ -4832,6 +4861,7 @@ declare module '@strapi/strapi' {
       'api::driver-subscription.driver-subscription': ApiDriverSubscriptionDriverSubscription;
       'api::driver.driver': ApiDriverDriver;
       'api::email-addresses-list.email-addresses-list': ApiEmailAddressesListEmailAddressesList;
+      'api::email-configuration.email-configuration': ApiEmailConfigurationEmailConfiguration;
       'api::email-log.email-log': ApiEmailLogEmailLog;
       'api::emergency-contact.emergency-contact': ApiEmergencyContactEmergencyContact;
       'api::favorite-location.favorite-location': ApiFavoriteLocationFavoriteLocation;
