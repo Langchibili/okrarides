@@ -26,6 +26,11 @@ export interface AdminApiToken extends Struct.CollectionTypeSchema {
       Schema.Attribute.SetMinMaxLength<{
         minLength: 1;
       }>;
+    adminPermissions: Schema.Attribute.Relation<
+      'oneToMany',
+      'admin::permission'
+    >;
+    adminUserOwner: Schema.Attribute.Relation<'manyToOne', 'admin::user'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -39,6 +44,9 @@ export interface AdminApiToken extends Struct.CollectionTypeSchema {
         minLength: 1;
       }>;
     expiresAt: Schema.Attribute.DateTime;
+    kind: Schema.Attribute.Enumeration<['content-api', 'admin']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'content-api'>;
     lastUsedAt: Schema.Attribute.DateTime;
     lifespan: Schema.Attribute.BigInteger;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -56,7 +64,6 @@ export interface AdminApiToken extends Struct.CollectionTypeSchema {
     >;
     publishedAt: Schema.Attribute.DateTime;
     type: Schema.Attribute.Enumeration<['read-only', 'full-access', 'custom']> &
-      Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'read-only'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -134,6 +141,7 @@ export interface AdminPermission extends Struct.CollectionTypeSchema {
         minLength: 1;
       }>;
     actionParameters: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<{}>;
+    apiToken: Schema.Attribute.Relation<'manyToOne', 'admin::api-token'>;
     conditions: Schema.Attribute.JSON & Schema.Attribute.DefaultTo<[]>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -385,6 +393,8 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
     };
   };
   attributes: {
+    apiTokens: Schema.Attribute.Relation<'oneToMany', 'admin::api-token'> &
+      Schema.Attribute.Private;
     blocked: Schema.Attribute.Boolean &
       Schema.Attribute.Private &
       Schema.Attribute.DefaultTo<false>;
@@ -1637,7 +1647,7 @@ export interface ApiDeliveryDelivery extends Struct.CollectionTypeSchema {
     cancellationReason: Schema.Attribute.Text;
     cancelledAt: Schema.Attribute.DateTime;
     cancelledBy: Schema.Attribute.Enumeration<
-      ['sender', 'deliverer', 'system']
+      ['sender', 'deliverer', 'system', 'partner']
     >;
     commission: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     commissionDeducted: Schema.Attribute.Boolean &
@@ -2293,6 +2303,7 @@ export interface ApiFloatTopupFloatTopup extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     notes: Schema.Attribute.Text;
+    partner: Schema.Attribute.Integer;
     paymentMethod: Schema.Attribute.Enumeration<
       ['okrapay', 'mobile_money', 'bank_transfer', 'cash']
     > &
@@ -2492,6 +2503,8 @@ export interface ApiLedgerEntryLedgerEntry extends Struct.CollectionTypeSchema {
         'withdrawal',
         'adjustment',
         'refund',
+        'float_topup-partner',
+        'float_debit-partner',
       ]
     > &
       Schema.Attribute.Required;
@@ -2777,6 +2790,33 @@ export interface ApiPackagePackage extends Struct.CollectionTypeSchema {
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     weight: Schema.Attribute.Decimal;
+  };
+}
+
+export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
+  collectionName: 'partners';
+  info: {
+    displayName: 'partner';
+    pluralName: 'partners';
+    singularName: 'partner';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::partner.partner'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -3277,7 +3317,9 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
     cancellationFee: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     cancellationReason: Schema.Attribute.Text;
     cancelledAt: Schema.Attribute.DateTime;
-    cancelledBy: Schema.Attribute.Enumeration<['rider', 'driver', 'system']>;
+    cancelledBy: Schema.Attribute.Enumeration<
+      ['rider', 'driver', 'system', 'partner']
+    >;
     commission: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     commissionDeducted: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
@@ -4494,12 +4536,13 @@ export interface PluginUploadFile extends Struct.CollectionTypeSchema {
     };
   };
   attributes: {
-    alternativeText: Schema.Attribute.String;
-    caption: Schema.Attribute.String;
+    alternativeText: Schema.Attribute.Text;
+    caption: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     ext: Schema.Attribute.String;
+    focalPoint: Schema.Attribute.JSON;
     folder: Schema.Attribute.Relation<'manyToOne', 'plugin::upload.folder'> &
       Schema.Attribute.Private;
     folderPath: Schema.Attribute.String &
@@ -4519,7 +4562,7 @@ export interface PluginUploadFile extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     mime: Schema.Attribute.String & Schema.Attribute.Required;
     name: Schema.Attribute.String & Schema.Attribute.Required;
-    previewUrl: Schema.Attribute.String;
+    previewUrl: Schema.Attribute.Text;
     provider: Schema.Attribute.String & Schema.Attribute.Required;
     provider_metadata: Schema.Attribute.JSON;
     publishedAt: Schema.Attribute.DateTime;
@@ -4528,7 +4571,7 @@ export interface PluginUploadFile extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    url: Schema.Attribute.String & Schema.Attribute.Required;
+    url: Schema.Attribute.Text & Schema.Attribute.Required;
     width: Schema.Attribute.Integer;
   };
 }
@@ -4715,8 +4758,7 @@ export interface PluginUsersPermissionsUser
     affiliateProfile: Schema.Attribute.Component<
       'affiliate.affiliate-profile',
       false
-    > &
-      Schema.Attribute.Required;
+    >;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     conductorProfile: Schema.Attribute.Component<
       'conductor-profiles.conductor-profile',
@@ -4772,6 +4814,14 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    partner: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    partnerProfile: Schema.Attribute.Component<
+      'partner-profile.partner-profile',
+      false
+    >;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -4817,6 +4867,10 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 3;
       }>;
+    users: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -4875,6 +4929,7 @@ declare module '@strapi/strapi' {
       'api::okrapay.okrapay': ApiOkrapayOkrapay;
       'api::otp-verification.otp-verification': ApiOtpVerificationOtpVerification;
       'api::package.package': ApiPackagePackage;
+      'api::partner.partner': ApiPartnerPartner;
       'api::payment-method.payment-method': ApiPaymentMethodPaymentMethod;
       'api::phone-numbers-list.phone-numbers-list': ApiPhoneNumbersListPhoneNumbersList;
       'api::platform-stat.platform-stat': ApiPlatformStatPlatformStat;

@@ -17,7 +17,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         select: ['id', 'username', "isOnline"],
         populate: {
           driverProfile: {
-            select: ['id', 'isOnline', 'subscriptionStatus']
+            select: ['id', 'isOnline', 'subscriptionStatus', 'partnerId']
           },
           riderProfile: {
             select: ['id']
@@ -121,10 +121,15 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       }
 
       // Emit WebSocket event
-      strapi.eventHub.emit('driver:status:changed', {
+      // strapi.eventHub.emit('driver:status:changed', {
+      //   driverId: userId,
+      //   status: newOnlineStatus ? 'online' : 'offline'
+      // });
+      socketService.emit('driver:status:changed', {
         driverId: userId,
-        status: newOnlineStatus ? 'online' : 'offline'
-      });
+        status: newOnlineStatus ? 'online' : 'offline',
+        partnerId: user.driverProfile?.partnerId || null,
+      })
 
       return ctx.send({
         success: true,
@@ -145,7 +150,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         where: { id: userId },
         select: ['id'],
         populate: {
-          driverProfile: { select: ['id'] },
+          driverProfile: { select: ['id', 'partnerId'] },
           riderProfile: { select: ['id'] },
           conductorProfile: { select: ['id'] },
         }
@@ -180,9 +185,14 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       }
 
       // ── WebSocket event ───────────────────────────────────────────────────
-      strapi.eventHub.emit('driver:status:changed', {
+      // strapi.eventHub.emit('driver:status:changed', {
+      //   driverId: userId,
+      //   status: 'offline',
+      // });
+      socketService.emit('driver:status:changed', {
         driverId: userId,
         status: 'offline',
+        partnerId: user.driverProfile?.partnerId || null,
       });
 
       return ctx.send({

@@ -218,6 +218,15 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
   catch (e) {
     console.log(e)
   }
+  if (driver.driverProfile.partnerId && newFloatBalance < 100) {
+    socketService.emit('partner:driver:low-float', {
+      partnerId: driver.driverProfile.partnerId || null,
+      driverId: Number(delivererId),
+      driverName: `${driver.firstName || ''} ${driver.lastName || ''}`.trim(),
+      floatBalance: parseFloat(newFloatBalance.toFixed(2)),
+      threshold: 100,
+    });
+  }
   return {
     updatedDelivery,
     driverEarnings,
@@ -621,6 +630,7 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         where: { id: delivererId },
         populate: {
           deliveryProfile: { populate: { taxi: { populate: { vehicle: true } }, motorbike: { populate: { vehicle: true } }, motorcycle: { populate: { vehicle: true } }, truck: { populate: { vehicle: true } } } },
+          driverProfile: { select: ['id', 'partnerId'] },  // ← ADD
         },
       })
 
@@ -647,6 +657,20 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         data: { isAvailable: false, currentDelivery: id },
       });
 
+      // socketService.emit('delivery:accepted', {
+      //   deliveryId: updatedDelivery.id,
+      //   delivererId,
+      //   deliverer: {
+      //     id: driver.id,
+      //     firstName: driver.firstName,
+      //     lastName: driver.lastName,
+      //     phoneNumber: driver.phoneNumber,
+      //     deliveryProfile: { averageRating: driver.deliveryProfile.averageRating },
+      //   },
+      //   vehicle: vehicleId ? { id: vehicleId } : null,
+      //   eta: 180,
+      //   distance: 1.5,
+      // });
       socketService.emit('delivery:accepted', {
         deliveryId: updatedDelivery.id,
         delivererId,
@@ -660,8 +684,8 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         vehicle: vehicleId ? { id: vehicleId } : null,
         eta: 180,
         distance: 1.5,
+        partnerId: driver.driverProfile?.partnerId || null,  // ← ADD
       });
-
       // Notify other requested drivers that this delivery was taken
       const otherDriverIds = requestedDrivers
         .filter((rd: any) => rd.driverId !== delivererId)
@@ -781,7 +805,10 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       // Update deliveryProfile — mark as en-route
       const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: delivererId },
-        populate: { deliveryProfile: { select: ['id'] } },
+        populate: {
+          deliveryProfile: { select: ['id'] },
+          driverProfile: { select: ['id', 'partnerId'] }
+        },
       });
 
       if (driver?.deliveryProfile) {
@@ -791,10 +818,16 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         });
       }
 
+      // socketService.emit('delivery:started', {
+      //   deliveryId: updated.id,
+      //   delivererId,
+      //   tripStartedAt: updated.tripStartedAt,
+      // });
       socketService.emit('delivery:started', {
         deliveryId: updated.id,
         delivererId,
         tripStartedAt: updated.tripStartedAt,
+        partnerId: driver?.driverProfile?.partnerId || null,  // ← ADD
       });
 
       return ctx.send(updated);
@@ -976,7 +1009,7 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       const { id } = ctx.params;
       const userId = ctx.state.user.id;
       const { reason, cancelledBy } = ctx.request.body;
-
+      let partnerId = null
       const delivery = await strapi.db.query('api::delivery.delivery').findOne({
         where: { id },
         populate: ['sender', 'deliverer'],
@@ -1000,9 +1033,13 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       if (delivery.deliverer) {
         const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
           where: { id: delivery.deliverer.id ?? delivery.deliverer },
-          populate: { deliveryProfile: { select: ['id', 'cancelledDeliveries'] } },
+          populate: {
+            deliveryProfile: { select: ['id', 'cancelledDeliveries'] },
+            driverProfile: { select: ['id', 'partnerId'] }
+          },
         });
         if (driver?.deliveryProfile) {
+          partnerId = driver.driverProfile.partnerId
           await strapi.db.query('delivery-profiles.delivery-profile').update({
             where: { id: driver.deliveryProfile.id },
             data: {
@@ -1028,7 +1065,8 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         cancelledBy,
         reason,
         cancellationFee: 0,
-      });
+        partnerId: partnerId || null,  // ← ADD
+      })
       const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({ where: { id: 1 } })
       const adminEmailMessage = "A delivery with id #" + delivery.id + " has been canceled by " + cancelledBy
 

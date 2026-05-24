@@ -59,17 +59,17 @@ export const SendEmailNotification = async (email: string, notificationBody: str
   const EMAILSERVICEFROMEMAIL = emailConfig?.config?.EMAILSERVICEFROMEMAIL
 
   const transporter = nodemailer.createTransport({
-    host: process.env.EMAILSERVICEHOST,
+    host: EMAILSERVICEHOST || process.env.EMAILSERVICEHOST,
     port: 465,
     secure: true, // true for 465, false for 587 (STARTTLS)
     auth: {
-      user: process.env.EMAILSERVICEUSERNAME,
-      pass: process.env.EMAILSERVICEPASSWORD
+      user: EMAILSERVICEUSERNAME || process.env.EMAILSERVICEUSERNAME,
+      pass: EMAILSERVICEPASSWORD || process.env.EMAILSERVICEPASSWORD
     }
   })
 
   transporter.sendMail({
-    from: process.env.EMAILSERVICEFROMEMAIL,
+    from: EMAILSERVICEFROMEMAIL || process.env.EMAILSERVICEFROMEMAIL,
     to: email,
     subject: 'Message from Okra Technologies',
     text: notificationBody

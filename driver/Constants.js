@@ -1,3 +1,4 @@
+//Okrarides\driver\Constants.js
 // Application-wide constants
 export const APP_NAME = 'OkraRides';
 export const APP_VERSION = '1.0.0';
@@ -145,7 +146,7 @@ export const SOCKET_EVENTS = {
   // Connection
   CONNECT: 'connect',
   DISCONNECT: 'disconnect',
-  
+
   // Driver Events
   DRIVER: {
     JOIN: 'driver:join',
@@ -160,7 +161,7 @@ export const SOCKET_EVENTS = {
     FORCED_OFFLINE: 'driver:forced:offline',
     ARRIVED: 'driver:arrived',
   },
-  
+
   // Rider Events
   RIDER: {
     JOIN: 'rider:join',
@@ -169,7 +170,7 @@ export const SOCKET_EVENTS = {
     LOCATION_UPDATE: 'rider:location:update',
     LOCATION_UPDATED: 'rider:location:updated',
   },
-  
+
   // Ride Lifecycle Events
   RIDE: {
     REQUEST_NEW: 'ride:request:new',
@@ -190,38 +191,38 @@ export const SOCKET_EVENTS = {
     DRIVER_ARRIVED: 'ride:driver:arrived',
     PAYMENT_REQUESTED: 'ride:payment:requested'
   },
-  
+
   // Subscription Events
   SUBSCRIPTION: {
     EXPIRING_WARNING: 'subscription:expiring:warning',
     EXPIRED: 'subscription:expired',
     ACTIVATED: 'subscription:activated',
   },
-  
+
   // Payment Events
   PAYMENT: {
     RECEIVED: 'payment:received',   // ← rider paid (cash OR okrapay confirmed)
     SUCCESS: 'payment:success',
     FAILED: 'payment:failed',
   },
-  
+
   // Withdrawal Events
   WITHDRAWAL: {
     PROCESSED: 'withdrawal:processed',
   },
-  
+
   // Rating Events
   RATING: {
     REQUEST: 'rating:request',
     SUBMITTED: 'rating:submitted',
   },
-  
+
   // Notification Events
   NOTIFICATION: {
     NEW: 'notification:new',
     BROADCAST: 'notification:broadcast',
   },
-  
+
   // SOS Events
   SOS: {
     TRIGGER: 'sos:trigger',
@@ -229,18 +230,18 @@ export const SOCKET_EVENTS = {
     ALERT: 'sos:alert',
     ACKNOWLEDGED: 'sos:acknowledged',
   },
-  
+
   // Bus Route Events
   BUS: {
     ROUTE_STARTED: 'bus:route:started',
     LOCATION_UPDATED: 'bus:location:updated',
   },
-  
+
   // System Events
   SYSTEM: {
     ANNOUNCEMENT: 'system:announcement',
   },
-  
+
   // Connection Events
   CONNECTION: {
     PING: 'ping',
@@ -275,13 +276,13 @@ export const API_ENDPOINTS = {
   REGISTER: '/auth/local/register',
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD: '/auth/reset-password',
-  
+
   // Driver
   TOGGLE_ONLINE: '/driver/toggle-online',
   UPDATE_LOCATION: '/driver/update-location',
   DRIVER_STATS: '/driver/stats',
   DRIVER_EARNINGS: '/driver/earnings',
-  
+
   // Rides
   ACCEPT_RIDE: '/rides/:id/accept',
   DECLINE_RIDE: '/rides/:id/decline',
@@ -289,7 +290,7 @@ export const API_ENDPOINTS = {
   COMPLETE_TRIP: '/rides/:id/complete',
   CANCEL_RIDE: '/rides/:id/cancel',
   CONFIRM_ARRIVAL: '/rides/:id/confirm-arrival',
-  
+
   // Subscriptions
   SUBSCRIPTION_PLANS: '/subscriptions/plans',
   START_TRIAL: '/subscriptions/start-trial',
@@ -297,16 +298,16 @@ export const API_ENDPOINTS = {
   RENEW: '/subscriptions/renew',
   CANCEL_SUBSCRIPTION: '/subscriptions/cancel',
   MY_SUBSCRIPTION: '/subscriptions/me',
-  
+
   // Vehicles
   VEHICLES: '/driver/vehicles',
   ADD_VEHICLE: '/driver/vehicles',
   UPDATE_VEHICLE: '/driver/vehicles/:id',
-  
+
   // Documents
   UPLOAD_DOCUMENT: '/driver/docs/upload',
   VERIFICATION_STATUS: '/driver/verification/status',
-  
+
   // Earnings & Finance
   EARNINGS_BREAKDOWN: '/driver/earnings/breakdown',
   REQUEST_WITHDRAWAL: '/driver/withdrawal/request',

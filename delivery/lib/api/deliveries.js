@@ -1,4 +1,4 @@
-// PATH: driver/lib/api/deliveries.js
+// PATH: delivery/lib/api/deliveries.js
 import { apiClient } from './client';
 
 class DeliveryAPI {

@@ -265,6 +265,16 @@ async function handleCompleteTrip(
   catch (e) {
     console.log(e)
   }
+  // ── Low-float partner alert ─────────────────────────────────────────────
+  if (driver.driverProfile.partnerId && newFloatBalance < 100) {
+    socketService.emit('partner:driver:low-float', {
+      partnerId: driver.driverProfile.partnerId || null,
+      driverId: Number(driverId),
+      driverName: `${driver.firstName || ''} ${driver.lastName || ''}`.trim(),
+      floatBalance: parseFloat(newFloatBalance.toFixed(2)),
+      threshold: 100,
+    });
+  }
   return {
     updatedRide,
     driverEarnings,
@@ -1809,6 +1819,7 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
       socketService.emit('ride:accepted', {
         rideId: updatedRide.id,
         driverId,
+        partnerId: driver.driverProfile.partnerId || null,
         driver: {
           id: driver.id,
           firstName: driver.firstName,
@@ -1984,7 +1995,7 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
         where: { id: driverId },
         populate: {
           driverProfile: {
-            select: ['id']
+            select: ['id', 'partnerId']
           }
         }
       });
@@ -1998,8 +2009,14 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
         }
       });
 
-      socketService.emitTripStarted(updatedRide);
+      // socketService.emitTripStarted({ ...updatedRide, partnerId: driver?.driverProfile?.partnerId || null, });
 
+      socketService.emit('ride:trip:started', {
+        rideId: updatedRide.id,
+        driverId,
+        tripStartedAt: updatedRide.tripStartedAt,
+        partnerId: driver?.driverProfile?.partnerId || null,  // ← ADD
+      })
       return ctx.send(updatedRide);
     } catch (error) {
       strapi.log.error('Start trip error:', error);
@@ -2246,6 +2263,7 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
       const { id } = ctx.params;
       const userId = ctx.state.user.id;
       const { reason, cancelledBy } = ctx.request.body;
+      let partnerId = null
 
       const ride = await strapi.db.query('api::ride.ride').findOne({
         where: { id },
@@ -2292,11 +2310,11 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
           where: { id: ride.driver.id },
           populate: {
             driverProfile: {
-              select: ['id', 'cancelledRides']
+              select: ['id', 'cancelledRides', 'partnerId']
             }
           }
         });
-
+        partnerId = driver.driverProfile.partnerId
         await strapi.db.query('driver-profiles.driver-profile').update({
           where: { id: driver.driverProfile.id },
           data: {
@@ -2308,7 +2326,14 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
         });
       }
 
-      socketService.emitRideCancelled(updatedRide, cancelledBy, reason, cancellationFee);
+      //  socketService.emitRideCancelled({ ...updatedRide, partnerId: ride.driver?.driverProfile?.partnerId || null, }, cancelledBy, reason, cancellationFee);
+      socketService.emit('ride:cancelled', {
+        rideId: updatedRide.id,
+        cancelledBy,
+        reason,
+        cancellationFee,
+        partnerId: partnerId || null,  // ← ADD
+      })
       const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({ where: { id: 1 } })
       const adminEmailMessage = "A ride with id #" + ride.id + " has been canceled by " + cancelledBy
 

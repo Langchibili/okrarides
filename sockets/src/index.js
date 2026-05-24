@@ -114,6 +114,7 @@ const connections = {
   conductors: new Map(),  // conductorId -> socket.id
   delivery: new Map(),    // deliveryPersonId -> socket.id
   admins: new Map(),      // adminId -> socket.id
+  partners: new Map(),    // partnerId > socket.id
   sockets: new Map()      // socket.id -> { type, id, metadata }
 };
 
@@ -354,6 +355,13 @@ io.on("connection", (socket) => {
       del.status = 'accepted';
       activeRides.set(`del:${deliveryId}`, del);
       emitToUser('rider', del.senderId, 'delivery:accepted', data);
+      if (data.partnerId) {
+        emitToUser('partner', data.partnerId, 'delivery:accepted', {
+          deliveryId: data.deliveryId,
+          delivererId: data.delivererId,
+          timestamp: Date.now(),
+        });
+      }
     }
   });
 
@@ -400,6 +408,14 @@ io.on("connection", (socket) => {
       del.completedAt = Date.now();
       emitToUser('rider', del.senderId, 'delivery:completed', data);
       emitToUser('driver', delivererId, 'delivery:completed', data);
+      if (data.partnerId) {
+        emitToUser('partner', data.partnerId, 'delivery:completed', {
+          deliveryId: data.deliveryId,
+          delivererId: data.delivererId,
+          finalFare: data.finalFare,
+          tripCompletedAt: data.tripCompletedAt,
+        });
+      }
       setTimeout(() => activeRides.delete(`del:${deliveryId}`), 300000);
     }
   });
@@ -411,6 +427,13 @@ io.on("connection", (socket) => {
       del.status = 'cancelled';
       if (del.senderId) emitToUser('rider', del.senderId, 'delivery:cancelled', data);
       if (del.delivererId) emitToUser('driver', del.delivererId, 'delivery:cancelled', data);
+      if (data.partnerId) {
+        emitToUser('partner', data.partnerId, 'delivery:cancelled', {
+          deliveryId: data.deliveryId,
+          cancelledBy: data.cancelledBy,
+          reason: data.reason,
+        });
+      }
       setTimeout(() => activeRides.delete(`del:${deliveryId}`), 60000);
     }
   });
@@ -505,6 +528,14 @@ io.on("connection", (socket) => {
     // Notify rider
     emitToUser('rider', ride.riderId, 'ride:accepted', { rideId, driverId });
 
+    // notify partner dashboard if partnerId provided
+    if (data.partnerId) {
+      emitToUser('partner', data.partnerId, 'ride:accepted', {
+        rideId: data.rideId,
+        driverId: data.driverId,
+        timestamp: Date.now(),
+      });
+    }
     // Notify other drivers that ride was taken
     emitToRoom(`ride:${rideId}:pending`, 'ride:taken', { rideId, driverId });
 
@@ -553,6 +584,13 @@ io.on("connection", (socket) => {
 
       emitToUser('rider', ride.riderId, 'ride:trip:started', { rideId, driverId });
       emitToUser('driver', driverId, 'ride:trip:started', { rideId, riderId: ride.riderId });
+      if (data.partnerId) {
+        emitToUser('partner', data.partnerId, 'ride:trip:started', {
+          rideId: data.rideId,
+          driverId: data.driverId,
+          tripStartedAt: data.tripStartedAt,
+        });
+      }
     }
 
     console.log(`Trip started for ride ${rideId}`);
@@ -581,6 +619,17 @@ io.on("connection", (socket) => {
         distance,
         duration
       });
+
+      if (data.partnerId) {
+        emitToUser('partner', data.partnerId, 'ride:trip:completed', {
+          rideId: data.rideId,
+          driverId: data.driverId,
+          finalFare: data.finalFare,
+          distance: data.distance,
+          duration: data.duration,
+          tripCompletedAt: data.tripCompletedAt,
+        });
+      }
 
       // Clean up after a delay
       setTimeout(() => {
@@ -666,6 +715,15 @@ io.on("connection", (socket) => {
           cancelledBy,
           reason,
           cancellationFee
+        });
+      }
+
+      if (data.partnerId) {
+        emitToUser('partner', data.partnerId, 'ride:cancelled', {
+          rideId: data.rideId,
+          cancelledBy: data.cancelledBy,
+          reason: data.reason,
+          cancellationFee: data.cancellationFee,
         });
       }
 
@@ -758,6 +816,37 @@ io.on("connection", (socket) => {
     console.log(`Driver ${driverId} is now offline`);
 
     socket.emit('driver:offline:success', { driverId });
+  });
+
+
+  // ==================== PARTNER JOINS ====================
+
+  socket.on('partner:join', ({ partnerId, metadata }) => {
+    if (!partnerId) {
+      socket.emit('error', { message: 'partnerId is required' });
+      return;
+    }
+
+    // Replace any existing session for this partner
+    const existingSocketId = connections.partners.get(partnerId);
+    if (existingSocketId && existingSocketId !== socket.id) {
+      const existingSocket = io.sockets.sockets.get(existingSocketId);
+      if (existingSocket) {
+        existingSocket.emit('partner:session-replaced', {
+          message: 'A new dashboard session has started',
+        });
+        existingSocket.disconnect(true);
+      }
+    }
+
+    connections.partners.set(partnerId, socket.id);
+    connections.sockets.set(socket.id, { type: 'partner', id: partnerId, metadata });
+
+    socket.join(`partner:${partnerId}`);
+
+    console.log(`Partner ${partnerId} joined`, { socketId: socket.id });
+
+    socket.emit('partner:connected', { partnerId, socketId: socket.id });
   });
 
   // From Strapi: Driver forced offline (subscription expired, etc.)
@@ -1021,6 +1110,61 @@ io.on("connection", (socket) => {
     });
   });
 
+  // ==================== PARTNER FLEET EVENTS ====================
+
+  // From Strapi: partner wallet balance changed (top-up or float distribution)
+  socket.on('partner:float:updated', (data) => {
+    const { partnerId, newPartnerBalance, driverId, action, amount, partnerProfileId } = data;
+
+    if (!partnerId) return;
+
+    emitToUser('partner', partnerId, 'partner:float:updated', {
+      newPartnerBalance,
+      driverId: driverId || null,
+      action,
+      amount,
+      partnerProfileId,
+    });
+
+    console.log(`Partner ${partnerId} float updated — action: ${action}, amount: ${amount}`);
+  });
+
+  // From Strapi: a fleet driver's float has dropped below the alert threshold
+  socket.on('partner:driver:low-float', (data) => {
+    const { partnerId, driverId, driverName, floatBalance, threshold } = data;
+
+    if (!partnerId) return;
+
+    emitToUser('partner', partnerId, 'partner:driver:low-float', {
+      driverId,
+      driverName,
+      floatBalance,
+      threshold,
+      timestamp: Date.now(),
+    });
+
+    console.log(
+      `Low-float alert → partner ${partnerId}: driver ${driverName} (${driverId}) at ${floatBalance}`,
+    );
+  });
+
+  // From Strapi: a fleet driver's online/offline status changed
+  // Strapi must include partnerId in the driver:status:changed payload
+  socket.on('driver:status:changed', (data) => {
+    const { driverId, status, partnerId } = data;
+
+    // Route to the owning partner dashboard if partnerId is supplied
+    if (partnerId) {
+      emitToUser('partner', partnerId, 'driver:status:changed', {
+        driverId,
+        status,
+        timestamp: Date.now(),
+      });
+    }
+
+    console.log(`Driver ${driverId} status → ${status}${partnerId ? ` (partner ${partnerId})` : ''}`);
+  });
+
   // ==================== ADMIN OPERATIONS ====================
 
   // From Strapi: System announcement
@@ -1116,6 +1260,7 @@ httpServer.on('request', (req, res) => {
         conductors: connections.conductors.size,
         delivery: connections.delivery.size,
         admins: connections.admins.size,
+        partners: connections.partners.size,
         total: connections.sockets.size
       },
       activeRides: activeRides.size,
@@ -1131,6 +1276,7 @@ httpServer.on('request', (req, res) => {
         conductors: connections.conductors.size,
         delivery: connections.delivery.size,
         admins: connections.admins.size,
+        partners: connections.partners.size,
         total: connections.sockets.size
       },
       rides: {

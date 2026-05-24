@@ -1,4 +1,4 @@
-// PATH: driver/lib/api/deliveryOnboarding.js
+// PATH: delivery/lib/api/deliveryOnboarding.js
 import { apiClient } from './client';
 
 export const deliveryOnboardingAPI = {

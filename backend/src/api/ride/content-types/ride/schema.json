@@ -238,7 +238,8 @@
       "enum": [
         "rider",
         "driver",
-        "system"
+        "system",
+        "partner"
       ]
     },
     "cancellationReason": {

@@ -348,6 +348,10 @@
       "type": "decimal",
       "default": 0,
       "description": "Total float credited via affiliate promotions (for reference/auditing)"
+    },
+    "partnerId": {
+      "type": "integer",
+      "description": "ID of the PartnerProfile component record this driver belongs to. Set when a partner registers a driver or when a driver is claimed by a partner."
     }
   }
 }

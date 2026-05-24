@@ -1,4 +1,4 @@
-// PATH: driver/lib/hooks/useDeliveryStats.js
+// PATH: delivery/lib/hooks/useDeliveryStats.js
 import { useState, useCallback } from 'react';
 import { apiClient } from '@/lib/api/client';
 
@@ -26,10 +26,10 @@ const DEFAULT_STATS = {
 };
 
 export function useDeliveryStats() {
-  const [stats, setStats]   = useState(DEFAULT_STATS);
+  const [stats, setStats] = useState(DEFAULT_STATS);
   const [period, setPeriod] = useState('today');
   const [loading, setLoading] = useState(false);
-  const [error, setError]   = useState(null);
+  const [error, setError] = useState(null);
 
   const fetchStats = useCallback(async (requestedPeriod = 'today') => {
     setLoading(true);
@@ -38,7 +38,7 @@ export function useDeliveryStats() {
       const response = await apiClient.get(`/delivery-driver/stats?period=${requestedPeriod}`);
       const data = response?.data || response;
       let summary = data?.stats || DEFAULT_STATS.summary
-      if(data){
+      if (data) {
         data.summary = summary
       }
       setStats(data ?? DEFAULT_STATS);

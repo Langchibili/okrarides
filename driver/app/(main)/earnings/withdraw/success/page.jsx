@@ -1,3 +1,4 @@
+//C:\Users\langson\Projects\Okra\Okrarides\driver\app\(main)\earnings\withdraw\success\page.jsx
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -80,4 +81,4 @@ export default function WithdrawalSuccessPage() {
     </Box>
   );
 }
-
+

@@ -2,21 +2,22 @@
  * Strapi Bootstrap + Cron Registration
  * PATH: src/index.ts
  *
- * All cron tasks are registered here via strapi.cron.add() so they are
- * guaranteed to fire (no dependency on cron-tasks.ts config file).
+ * ⚠️  ALL CRON TASKS ARE TEMPORARILY DISABLED ⚠️
+ * Re-enable by uncommenting the jobsToRegister loop and startup calls below.
  *
- * Schedule overview:
+ * Schedule overview (currently disabled):
  *   OkraPay collection poller          every 20 seconds
- *   Platform stats snapshot            every 15 minutes
+ *   Platform stats snapshot            every 10 minutes
  *   Subscription expiry checker        every 6 hours  + immediate on startup
- *   SMS: expired / no subscription     daily at 09:00 UTC
- *   SMS: zero float / inactive driver  daily at 09:30 UTC
+ *   SMS: expired / no subscription     daily at 07:00 UTC (09:00 CAT)
+ *   SMS: zero float / inactive driver  daily at 07:30 UTC (09:30 CAT)
+ *   Frontend restart                   every hour on the hour
  */
 
 import socketService from './services/socketService';
 import { pollPendingCollections } from './services/collection-poller';
 import { recalculatePlatformStats } from './services/platform-stats';
-import { SendSmsNotification, SendEmailNotification } from './services/messages';
+import { SendSmsNotification } from './services/messages';
 import { handleUserCreation, handleUserUpdate } from "./pluginExtensionsFiles/userLifecycleMethods"
 
 // =============================================================================
@@ -27,8 +28,6 @@ import { handleUserCreation, handleUserUpdate } from "./pluginExtensionsFiles/us
  * Returns true when the string could be an international phone number.
  * Strips spaces, dashes, parentheses and a leading + then checks that
  * only digits remain and the length is in the valid ITU range (7–15).
- * Examples that pass : "260971234567", "+260971234567", "0971234567"
- * Examples that fail : "john_doe", "user123", "abc"
  */
 const isPhoneNumber = (str: string): boolean => {
   if (!str) return false;
@@ -51,12 +50,6 @@ const greeting = (user: any): string => {
 
 // =============================================================================
 // CRON TASK 1 — Subscription Expiry Checker
-// Runs every 6 hours + immediately on bootstrap.
-// • Marks overdue active/trial/cancelled subscriptions as 'expired'
-// • Syncs driver profile (isActive, isOnline, isAvailable → false)
-// • Emits socket events so the driver app reacts in real-time
-// • Warns drivers whose subscription expires within the next 7 days
-//   (only on milestone days: 7, 3, 1)
 // =============================================================================
 async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
   try {
@@ -93,7 +86,6 @@ async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
         data: { subscriptionStatus: 'expired' },
       });
 
-      // Sync the driver profile component
       const user = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: driverId },
         select: ['id'],
@@ -112,7 +104,6 @@ async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
         });
       }
 
-      // Force the driver app offline via socket
       socketService.emitSubscriptionExpired(
         driverId,
         sub.expiresAt,
@@ -152,7 +143,6 @@ async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
         (new Date(sub.expiresAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      // Only emit on milestone days to avoid spamming on every 6-hour cycle
       if ([7, 3, 1].includes(daysRemaining)) {
         socketService.emitSubscriptionExpiring(driverId, { ...sub, daysRemaining });
         strapi.log.info(
@@ -167,11 +157,6 @@ async function runSubscriptionExpiryCheck(strapi: any): Promise<void> {
 
 // =============================================================================
 // CRON TASK 2 — sendMessagesToUsersWithExpiredSubscriptions
-// Runs daily at 09:00 UTC.
-// Guard: only executes when paymentSystemType === 'subscription_based'.
-// Targets:
-//   A) Drivers whose most-recent subscription is in 'expired' status
-//   B) Drivers who have a driverProfile but ZERO subscription records at all
 // =============================================================================
 async function sendMessagesToUsersWithExpiredSubscriptions(strapi: any): Promise<void> {
   try {
@@ -188,10 +173,8 @@ async function sendMessagesToUsersWithExpiredSubscriptions(strapi: any): Promise
       `${greeting(user)}, your Okrarides subscription has expired, to continue receiving ` +
       `ride orders from our many customers and earning with Okra, please subscribe using the app`;
 
-    // Track who has already been messaged to avoid duplicates
     const notifiedIds = new Set<number>();
 
-    // ── A. Drivers with at least one 'expired' subscription ─────────────────
     const expiredSubs = await strapi.db
       .query('api::driver-subscription.driver-subscription')
       .findMany({
@@ -218,8 +201,6 @@ async function sendMessagesToUsersWithExpiredSubscriptions(strapi: any): Promise
       strapi.log.info(`[sms-expired-sub] Sent expired-sub SMS to driver ${user.id}`);
     }
 
-    // ── B. Drivers with NO subscription record at all ────────────────────────
-    // Collect every driver user ID that has any subscription record
     const allSubRecords = await strapi.db
       .query('api::driver-subscription.driver-subscription')
       .findMany({
@@ -231,21 +212,20 @@ async function sendMessagesToUsersWithExpiredSubscriptions(strapi: any): Promise
       allSubRecords.map((s: any) => s.driver?.id).filter(Boolean)
     );
 
-    // All users who have a driver profile
     const allDriverUsers = await strapi.db
       .query('plugin::users-permissions.user')
       .findMany({
         where: {
-          driverProfile: { isActive: { $notNull: true } }, // component exists
+          driverProfile: { isActive: { $notNull: true } },
         },
         select: ['id', 'firstName', 'lastName', 'username', 'phoneNumber'],
         populate: { driverProfile: { select: ['id'] } },
       });
 
     for (const user of allDriverUsers) {
-      if (!user.driverProfile) continue;               // no driver profile component
-      if (driversWithAnySub.has(user.id)) continue;    // already has a sub record
-      if (notifiedIds.has(user.id)) continue;           // already messaged above
+      if (!user.driverProfile) continue;
+      if (driversWithAnySub.has(user.id)) continue;
+      if (notifiedIds.has(user.id)) continue;
 
       const phone = resolvePhone(user);
       if (!phone) {
@@ -266,14 +246,6 @@ async function sendMessagesToUsersWithExpiredSubscriptions(strapi: any): Promise
 
 // =============================================================================
 // CRON TASK 3 — sendMessagesToUsersWithZeroFloat
-// Runs daily at 09:30 UTC.
-// Guard: only executes when paymentSystemType === 'float_based'.
-//
-// Two sub-cases for active drivers:
-//   A) totalRides < 1  AND  floatBalance <= 0
-//      → "you have no float in your account, try to buy from the app"
-//   B) totalRides >= 1 AND last completed ride was > 2 days ago (any float)
-//      → "you haven't had orders for a while, we hope you are okay"
 // =============================================================================
 async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
   try {
@@ -288,7 +260,6 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
 
     const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
 
-    // All active drivers
     const activeDrivers = await strapi.db
       .query('plugin::users-permissions.user')
       .findMany({
@@ -315,7 +286,6 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
       const floatBalance = parseFloat(profile.floatBalance) || 0;
       const greet = greeting(user);
 
-      // ── Case A: never completed a ride AND has no float ──────────────────
       if (totalRides < 1 && floatBalance <= 0) {
         const msg =
           `${greet}, we have noticed that you have no float in your Okrarides account, ` +
@@ -323,10 +293,9 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
 
         SendSmsNotification(phone, msg);
         strapi.log.info(`[sms-zero-float] Sent no-float SMS to new driver ${user.id}`);
-        continue; // move to next driver — case B does not apply
+        continue;
       }
 
-      // ── Case B: has completed rides but last one was > 2 days ago ────────
       if (totalRides >= 1) {
         const lastCompletedRide = await strapi.db.query('api::ride.ride').findOne({
           where: {
@@ -358,7 +327,7 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
 }
 
 // =============================================================================
-// STRAPI BOOTSTRAP — register all cron tasks
+// STRAPI BOOTSTRAP
 // =============================================================================
 export default {
   register({ strapi }: { strapi: any }) { },
@@ -367,6 +336,7 @@ export default {
     // Connect socket service
     socketService.connect();
     console.log('✅ Socket Service initialized');
+
     // ── User lifecycle hooks ──────────────────────────────────────────────────
     strapi.db.lifecycles.subscribe({
       models: ['plugin::users-permissions.user'],
@@ -392,78 +362,72 @@ export default {
       },
     });
 
+    // ── CRON TASKS — DISABLED ─────────────────────────────────────────────────
+    // All jobs are commented out while investigating the high-CPU issue.
+    // To re-enable, uncomment the jobsToRegister array, the registration loop,
+    // and the two startup calls at the bottom.
+    //
+    // const jobsToRegister = [
+    //   {
+    //     name: 'pollCollections',
+    //     rule: '*/20 * * * * *',
+    //     task: async () => { await pollPendingCollections(); }
+    //   },
+    //   {
+    //     name: 'platformStats',
+    //     rule: '*/10 * * * *',
+    //     task: async () => { await recalculatePlatformStats(); }
+    //   },
+    //   {
+    //     name: 'expiryChecker',
+    //     rule: '0 */6 * * *',
+    //     task: async () => { await runSubscriptionExpiryCheck(strapi); }
+    //   },
+    //   {
+    //     name: 'smsExpired',
+    //     rule: '0 7 * * *', // 09:00 AM CAT
+    //     task: async () => { await sendMessagesToUsersWithExpiredSubscriptions(strapi); }
+    //   },
+    //   {
+    //     name: 'smsZeroFloat',
+    //     rule: '30 7 * * *', // 09:30 AM CAT
+    //     task: async () => { await sendMessagesToUsersWithZeroFloat(strapi); }
+    //   },
+    //   {
+    //     name: 'restartFrontend',
+    //     rule: '0 * * * *', // every hour on the hour
+    //     task: async () => {
+    //       const { exec } = await import('child_process');
+    //       exec('pm2 restart frontendapp', (error, stdout, stderr) => {
+    //         if (error) {
+    //           strapi.log.error(`[restart-frontend] Failed: ${error.message}`);
+    //           return;
+    //         }
+    //         strapi.log.info(`[restart-frontend] ${stdout.trim()}`);
+    //         if (stderr) strapi.log.warn(`[restart-frontend] stderr: ${stderr.trim()}`);
+    //       });
+    //     }
+    //   },
+    // ];
+    //
+    // for (const job of jobsToRegister) {
+    //   strapi.cron.remove(job.name);
+    //   strapi.cron.add({
+    //     [job.name]: {
+    //       task: job.task,
+    //       options: { rule: job.rule, tz: 'UTC' }
+    //     }
+    //   });
+    // }
+    //
+    // runSubscriptionExpiryCheck(strapi).then(() => {
+    //   console.log('[bootstrap] Initial subscription expiry check complete');
+    // });
+    // sendMessagesToUsersWithZeroFloat(strapi).then(() => {
+    //   console.log('[bootstrap] Initial low float drivers check complete');
+    // });
 
-    // Define your jobs in an array for easy management
-    const jobsToRegister = [
-      {
-        name: 'pollCollections',
-        rule: '*/20 * * * * *',
-        task: async () => { await pollPendingCollections(); }
-      },
-      {
-        name: 'platformStats',
-        rule: '*/10 * * * *',
-        task: async () => { await recalculatePlatformStats(); }
-      },
-      {
-        name: 'expiryChecker',
-        rule: '0 */6 * * *',
-        task: async () => { await runSubscriptionExpiryCheck(strapi); }
-      },
-      {
-        name: 'smsExpired',
-        rule: '0 7 * * *', // 09:30 AM CAT
-        task: async () => { await sendMessagesToUsersWithExpiredSubscriptions(strapi); }
-      },
-      {
-        name: 'smsZeroFloat',
-        rule: '30 7 * * *', // 09:30 AM CAT
-        task: async () => { await sendMessagesToUsersWithZeroFloat(strapi); }
-      },
-      {
-        name: 'restartFrontend',
-        rule: '0 * * * *', // every hour on the hour
-        task: async () => {
-          const { exec } = await import('child_process');
-          exec('pm2 restart frontendapp', (error, stdout, stderr) => {
-            if (error) {
-              strapi.log.error(`[restart-frontend] Failed: ${error.message}`);
-              return;
-            }
-            strapi.log.info(`[restart-frontend] ${stdout.trim()}`);
-            if (stderr) strapi.log.warn(`[restart-frontend] stderr: ${stderr.trim()}`);
-          });
-        }
-      },
-    ];
-
-    // Loop through and register safely
-    for (const job of jobsToRegister) {
-      // 1. Remove existing job with this name to prevent duplicates on restart
-      strapi.cron.remove(job.name);
-
-      // 2. Add the job fresh
-      strapi.cron.add({
-        [job.name]: {
-          task: job.task,
-          options: {
-            rule: job.rule,
-            tz: 'UTC'
-          }
-        }
-      });
-    }
-
-    // Run the expiry check immediately on startup so stale subs are resolved
-    // before the first scheduled 6-hour tick.
-
-    runSubscriptionExpiryCheck(strapi).then(() => {
-      console.log('[bootstrap] Initial subscription expiry check complete');
-    })
-    sendMessagesToUsersWithZeroFloat(strapi).then(() => {
-      console.log('[bootstrap] Initial low float drivers check complete');
-    });
-
-    console.log('[bootstrap] All cron tasks registered ✅');
+    console.log('[bootstrap] Cron tasks are currently DISABLED ⚠️');
+    console.log('[bootstrap] Bootstrap complete ✅');
   },
 };

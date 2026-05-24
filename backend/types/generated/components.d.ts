@@ -8,9 +8,7 @@ export interface AffiliateAffiliateProfile extends Struct.ComponentSchema {
   };
   attributes: {
     activeReferrals: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
-    affiliateCode: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    affiliateCode: Schema.Attribute.String & Schema.Attribute.Unique;
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     pendingEarnings: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     pointsBalance: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
@@ -285,6 +283,7 @@ export interface DriverProfilesDriverProfile extends Struct.ComponentSchema {
     nationalIdNumber: Schema.Attribute.String & Schema.Attribute.Unique;
     negativeBalanceLimit: Schema.Attribute.Decimal &
       Schema.Attribute.DefaultTo<0>;
+    partnerId: Schema.Attribute.Integer;
     paymentPhoneNumbers: Schema.Attribute.JSON;
     pendingWithdrawal: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     preferredNavigationApp: Schema.Attribute.Enumeration<
@@ -392,6 +391,28 @@ export interface PackagesRecipientDetails extends Struct.ComponentSchema {
   };
 }
 
+export interface PartnerProfilePartnerProfile extends Struct.ComponentSchema {
+  collectionName: 'components_partner_profile_partner_profiles';
+  info: {
+    displayName: 'Partner Profile';
+    icon: 'building';
+  };
+  attributes: {
+    approvedAt: Schema.Attribute.DateTime;
+    businessEmail: Schema.Attribute.Email;
+    businessName: Schema.Attribute.String;
+    businessPhone: Schema.Attribute.String;
+    floatBalance: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    notes: Schema.Attribute.Text;
+    totalDrivers: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    verificationNotes: Schema.Attribute.Text;
+    verificationStatus: Schema.Attribute.Enumeration<
+      ['not_started', 'pending', 'approved', 'rejected', 'suspended']
+    > &
+      Schema.Attribute.DefaultTo<'not_started'>;
+  };
+}
+
 export interface RiderProfilesRiderProfile extends Struct.ComponentSchema {
   collectionName: 'components_rider_profiles_rider_profiles';
   info: {
@@ -470,6 +491,7 @@ declare module '@strapi/strapi' {
       'driver-profiles.motorbike-rider': DriverProfilesMotorbikeRider;
       'driver-profiles.taxi-driver': DriverProfilesTaxiDriver;
       'packages.recipient-details': PackagesRecipientDetails;
+      'partner-profile.partner-profile': PartnerProfilePartnerProfile;
       'rider-profiles.rider-profile': RiderProfilesRiderProfile;
       'support.ticket-response': SupportTicketResponse;
       'translations.translation-item': TranslationsTranslationItem;

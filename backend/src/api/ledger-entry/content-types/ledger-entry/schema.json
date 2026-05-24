@@ -45,7 +45,9 @@
         "float_deduction",
         "withdrawal",
         "adjustment",
-        "refund"
+        "refund",
+        "float_topup-partner",
+        "float_debit-partner"
       ]
     },
     "amount": {

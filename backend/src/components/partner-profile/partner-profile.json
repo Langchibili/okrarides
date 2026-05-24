@@ -1,0 +1,47 @@
+{
+  "collectionName": "components_partner_profile_partner_profiles",
+  "info": {
+    "displayName": "Partner Profile",
+    "icon": "building"
+  },
+  "options": {},
+  "attributes": {
+    "verificationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected",
+        "suspended"
+      ],
+      "default": "not_started"
+    },
+    "verificationNotes": {
+      "type": "text"
+    },
+    "approvedAt": {
+      "type": "datetime"
+    },
+    "businessName": {
+      "type": "string"
+    },
+    "businessPhone": {
+      "type": "string"
+    },
+    "businessEmail": {
+      "type": "email"
+    },
+    "floatBalance": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalDrivers": {
+      "type": "integer",
+      "default": 0
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}

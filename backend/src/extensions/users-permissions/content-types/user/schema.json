@@ -118,8 +118,7 @@
     "affiliateProfile": {
       "type": "component",
       "component": "affiliate.affiliate-profile",
-      "repeatable": false,
-      "required": true
+      "repeatable": false
     },
     "referredBy": {
       "type": "relation",
@@ -225,6 +224,23 @@
     "initialDelivererFloatToppedUp": {
       "type": "boolean",
       "default": false
+    },
+    "users": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "partner"
+    },
+    "partner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "users"
+    },
+    "partnerProfile": {
+      "type": "component",
+      "component": "partner-profile.partner-profile",
+      "repeatable": false
     }
   }
 }

@@ -8,7 +8,6 @@
   "attributes": {
     "affiliateCode": {
       "type": "string",
-      "required": true,
       "unique": true
     },
     "qrCode": {

@@ -17,9 +17,9 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         where: { id: userId },
         select: ['id', 'username', 'isOnline'],
         populate: {
-          deliveryProfile:  { select: ['id', 'isOnline', 'activeVehicleType'] },
-          driverProfile:    { select: ['id'] },
-          riderProfile:     { select: ['id'] },
+          deliveryProfile: { select: ['id', 'isOnline', 'activeVehicleType'] },
+          driverProfile: { select: ['id', 'partnerId'] },
+          riderProfile: { select: ['id'] },
           conductorProfile: { select: ['id'] },
         },
       });
@@ -33,12 +33,12 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       await strapi.db.query('plugin::users-permissions.user').update({
         where: { id: userId },
         data: {
-          isOnline:              newOnlineStatus,
-          activeProfile:         newOnlineStatus ? 'delivery' : 'none',
+          isOnline: newOnlineStatus,
+          activeProfile: newOnlineStatus ? 'delivery' : 'none',
           profileActivityStatus: {
-            rider:     false,
-            driver:    false,
-            delivery:  newOnlineStatus,
+            rider: false,
+            driver: false,
+            delivery: newOnlineStatus,
             conductor: false,
           },
           lastSeen: new Date(),
@@ -48,9 +48,9 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       await strapi.db.query('delivery-profiles.delivery-profile').update({
         where: { id: user.deliveryProfile.id },
         data: {
-          isOnline:    newOnlineStatus,
+          isOnline: newOnlineStatus,
           isAvailable: newOnlineStatus,
-          isActive:    true,
+          isActive: true,
         },
       });
 
@@ -91,15 +91,16 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         }
       }
 
-      strapi.eventHub.emit('delivery-driver:status:changed', {
+      socketService.emit('driver:status:changed', {
         driverId: userId,
-        status:   newOnlineStatus ? 'online' : 'offline',
+        status: newOnlineStatus ? 'online' : 'offline',
+        partnerId: user.driverProfile?.partnerId || null,
       });
 
       return ctx.send({
-        success:           true,
-        isOnline:          newOnlineStatus,
-        message:           `Delivery driver is now ${newOnlineStatus ? 'online' : 'offline'}`,
+        success: true,
+        isOnline: newOnlineStatus,
+        message: `Delivery driver is now ${newOnlineStatus ? 'online' : 'offline'}`,
         locationRequested: newOnlineStatus,
       });
     } catch (error) {
@@ -109,67 +110,69 @@ export default factories.createCoreController('plugin::users-permissions.user', 
   },
 
   async goOffline(ctx) {
-  try {
-    const userId = ctx.state.user.id;
+    try {
+      const userId = ctx.state.user.id;
 
-    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-      where: { id: userId },
-      select: ['id'],
-      populate: {
-        riderProfile:    { select: ['id'] },
-        deliveryProfile: { select: ['id'] },
-        conductorProfile:{ select: ['id'] },
-      }
-    });
-
-    if (!user?.deliveryProfile) {
-      return ctx.badRequest('Driver Delivery profile not found');
-    }
-
-    // ── User record ──────────────────────────────────────────────────────
-    await strapi.db.query('plugin::users-permissions.user').update({
-      where: { id: userId },
-      data: {
-        isOnline: true
-      }
-    });
-
-
-    // ── Delivery profile → offline ────────────────────────────────────────
-    if (user.deliveryProfile) {
-      await strapi.db.query('delivery-profiles.delivery-profile').update({
-        where: { id: user.deliveryProfile.id },
-        data: { isOnline: false, isAvailable: false, isActive: false }
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: userId },
+        select: ['id'],
+        populate: {
+          riderProfile: { select: ['id'] },
+          deliveryProfile: { select: ['id'] },
+          conductorProfile: { select: ['id'] },
+          driverProfile: { select: ['id', 'partnerId'] }
+        }
       });
-    }
 
+      if (!user?.deliveryProfile) {
+        return ctx.badRequest('Driver Delivery profile not found');
+      }
 
-    // ── Conductor profile → offline ───────────────────────────────────────
-    if (user.conductorProfile) {
-      await strapi.db.query('conductor-profiles.conductor-profile').update({
-        where: { id: user.conductorProfile.id },
-        data: { isOnline: false, isAvailable: false, isActive: false }
+      // ── User record ──────────────────────────────────────────────────────
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: userId },
+        data: {
+          isOnline: true
+        }
       });
+
+
+      // ── Delivery profile → offline ────────────────────────────────────────
+      if (user.deliveryProfile) {
+        await strapi.db.query('delivery-profiles.delivery-profile').update({
+          where: { id: user.deliveryProfile.id },
+          data: { isOnline: false, isAvailable: false, isActive: false }
+        });
+      }
+
+
+      // ── Conductor profile → offline ───────────────────────────────────────
+      if (user.conductorProfile) {
+        await strapi.db.query('conductor-profiles.conductor-profile').update({
+          where: { id: user.conductorProfile.id },
+          data: { isOnline: false, isAvailable: false, isActive: false }
+        });
+      }
+
+      // ── WebSocket event ───────────────────────────────────────────────────
+      socketService.emit('driver:status:changed', {
+        driverId: userId,
+        status: 'offline',
+        partnerId: user.driverProfile?.partnerId || null,
+      });
+
+      return ctx.send({
+        success: true,
+        isOnline: false,
+        activeProfile: 'rider',
+        message: 'Driver is now offline. Switched to rider mode.',
+      });
+
+    } catch (error) {
+      strapi.log.error('Go offline error:', error);
+      return ctx.internalServerError('Failed to go offline');
     }
-
-    // ── WebSocket event ───────────────────────────────────────────────────
-    strapi.eventHub.emit('driver:status:changed', {
-      driverId: userId,
-      status:   'offline',
-    });
-
-    return ctx.send({
-      success:       true,
-      isOnline:      false,
-      activeProfile: 'rider',
-      message:       'Driver is now offline. Switched to rider mode.',
-    });
-
-  } catch (error) {
-    strapi.log.error('Go offline error:', error);
-    return ctx.internalServerError('Failed to go offline');
-  }
-},
+  },
 
   // ─── Save delivery vehicle details ────────────────────────────────────────
   // Sub-component UIDs:
@@ -228,7 +231,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         return ctx.badRequest('Delivery profile could not be loaded.');
       }
 
-      const subComponent      = (deliveryProfile as any)[vehicleType];
+      const subComponent = (deliveryProfile as any)[vehicleType];
       const existingVehicleId = subComponent?.vehicle?.id ?? subComponent?.vehicle ?? null;
 
       // ── 3. Create or update the Vehicle record ──────────────────────────
@@ -241,30 +244,30 @@ export default factories.createCoreController('plugin::users-permissions.user', 
             numberPlate: (numberPlate ?? '').toUpperCase(),
             make,
             model,
-            year:                parseInt(year) || new Date().getFullYear(),
+            year: parseInt(year) || new Date().getFullYear(),
             color,
-            seatingCapacity:     parseInt(seatingCapacity) || 2,
+            seatingCapacity: parseInt(seatingCapacity) || 2,
             insuranceExpiryDate: insuranceExpiryDate || null,
           },
         });
       } else {
         // Normalise: Vehicle collection uses 'motorbike' not 'motorcycle' for motorbike type
         const vehicleCollectionType = vehicleType === 'motorbike' ? 'motorbike'
-          : vehicleType === 'taxi'  ? 'taxi'
-          : vehicleType === 'truck' ? 'truck'
-          : 'motorcycle';
+          : vehicleType === 'taxi' ? 'taxi'
+            : vehicleType === 'truck' ? 'truck'
+              : 'motorcycle';
 
         vehicle = await strapi.db.query('api::vehicle.vehicle').create({
           data: {
-            vehicleType:         vehicleCollectionType,
+            vehicleType: vehicleCollectionType,
             numberPlate: (numberPlate ?? '').toUpperCase(),
             make,
             model,
-            year:                parseInt(year) || new Date().getFullYear(),
+            year: parseInt(year) || new Date().getFullYear(),
             color,
-            seatingCapacity:     parseInt(seatingCapacity) || 2,
+            seatingCapacity: parseInt(seatingCapacity) || 2,
             insuranceExpiryDate: insuranceExpiryDate || null,
-            verificationStatus:  'pending',
+            verificationStatus: 'pending',
             assignedDriver: userId
           },
         });
@@ -279,7 +282,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         await strapi.db.query(`delivery-vehicles.${vehicleType}`).update({
           where: { id: subComponent.id },
           data: {
-            vehicle:  vehicle.id,
+            vehicle: vehicle.id,
             isActive: true,
           },
         });
@@ -294,33 +297,33 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         });
       }
 
-      const checkIfVehicleExistsAndUserHasInitialFloatToppedUp = async ()=>{
-        const vehicleNumberPlate =  vehicle?.numberPlate.toLowerCase()
+      const checkIfVehicleExistsAndUserHasInitialFloatToppedUp = async () => {
+        const vehicleNumberPlate = vehicle?.numberPlate.toLowerCase()
         const capitalize = (text: String) => text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : '';
 
-        if(!vehicle){ 
-           return false
+        if (!vehicle) {
+          return false
         }
         let existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
           where: { numberPlate: vehicleNumberPlate },
           populate: { assignedDriver: true }
         })
-        if(!existingVehicle){ // try checking toLowerCase
+        if (!existingVehicle) { // try checking toLowerCase
           existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
             where: { numberPlate: capitalize(vehicleNumberPlate) },
             populate: { assignedDriver: true }
           })
         }
-        if(!existingVehicle){ // try checking toUpperCase
+        if (!existingVehicle) { // try checking toUpperCase
           existingVehicle = await strapi.db.query('api::vehicle.vehicle').findOne({
             where: { numberPlate: vehicleNumberPlate.toUpperCase() },
             populate: { assignedDriver: true }
           })
         }
-        
-        if(existingVehicle?.assignedDriver){
-          if(existingVehicle?.assignedDriver?.initialFloatToppedUp){ // means an account exists which already has float topped up
-             return true
+
+        if (existingVehicle?.assignedDriver) {
+          if (existingVehicle?.assignedDriver?.initialFloatToppedUp) { // means an account exists which already has float topped up
+            return true
           }
         }
         return false
@@ -331,31 +334,31 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         where: { id: (deliveryProfile as any).id },
         data: { activeVehicleType: vehicleType },
       });
-     
-      if(checkIfVehicleExistsAndUserHasInitialFloatToppedUp){ // to avoid a user getting free float topups twice
+
+      if (checkIfVehicleExistsAndUserHasInitialFloatToppedUp) { // to avoid a user getting free float topups twice
         await strapi.db.query('plugin::users-permissions.user').update({
           where: { id: userId },
-           data: {
+          data: {
             initialFloatToppedUp: true
-           }
+          }
         })
       }
-      
+
       // ── 5. Return ───────────────────────────────────────────────────────
       return ctx.send({
-        success:    true,
+        success: true,
         hasVehicle: true,
         vehicle: {
-          id:                  vehicle.id,
-          vehicleType:         vehicle.vehicleType,
-          numberPlate:         vehicle.numberPlate,
-          make:                vehicle.make,
-          model:               vehicle.model,
-          year:                vehicle.year,
-          color:               vehicle.color,
-          seatingCapacity:     vehicle.seatingCapacity,
+          id: vehicle.id,
+          vehicleType: vehicle.vehicleType,
+          numberPlate: vehicle.numberPlate,
+          make: vehicle.make,
+          model: vehicle.model,
+          year: vehicle.year,
+          color: vehicle.color,
+          seatingCapacity: vehicle.seatingCapacity,
           insuranceExpiryDate: vehicle.insuranceExpiryDate,
-          verificationStatus:  vehicle.verificationStatus,
+          verificationStatus: vehicle.verificationStatus,
         },
       });
 
@@ -377,7 +380,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
 
       await strapi.db.query('plugin::users-permissions.user').update({
         where: { id: userId },
-        data:  { currentLocation: location, lastSeen: new Date() },
+        data: { currentLocation: location, lastSeen: new Date() },
       });
 
       strapi.eventHub.emit('delivery-driver:location:update', { driverId: userId, location });
@@ -406,9 +409,9 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       let startDate = new Date();
       switch (period) {
         case 'today': startDate.setHours(0, 0, 0, 0); break;
-        case 'week':  startDate.setDate(now.getDate() - 7); break;
+        case 'week': startDate.setDate(now.getDate() - 7); break;
         case 'month': startDate.setMonth(now.getMonth() - 1); break;
-        case 'year':  startDate.setFullYear(now.getFullYear() - 1); break;
+        case 'year': startDate.setFullYear(now.getFullYear() - 1); break;
       }
 
       const deliveries = await strapi.db.query('api::delivery.delivery').findMany({
@@ -417,26 +420,26 @@ export default factories.createCoreController('plugin::users-permissions.user', 
 
       const completed = deliveries.filter((d) => d.rideStatus === 'completed');
       const cancelled = deliveries.filter((d) => d.rideStatus === 'cancelled');
-      const earnings  = completed.reduce((s, d) => s + (d.driverEarnings || 0), 0);
-      const distance  = completed.reduce((s, d) => s + (d.actualDistance  || 0), 0);
-      const duration  = completed.reduce((s, d) => s + (d.actualDuration  || 0), 0);
+      const earnings = completed.reduce((s, d) => s + (d.driverEarnings || 0), 0);
+      const distance = completed.reduce((s, d) => s + (d.actualDistance || 0), 0);
+      const duration = completed.reduce((s, d) => s + (d.actualDuration || 0), 0);
 
       return ctx.send({
         period,
         stats: {
-          totalDeliveries:     deliveries.length,
+          totalDeliveries: deliveries.length,
           completedDeliveries: completed.length,
           cancelledDeliveries: cancelled.length,
-          earnings:            parseFloat(earnings.toFixed(2)),
-          totalDistance:       parseFloat(distance.toFixed(2)),
-          totalDuration:       duration,
-          averageRating:       user.deliveryProfile.averageRating || 0,
+          earnings: parseFloat(earnings.toFixed(2)),
+          totalDistance: parseFloat(distance.toFixed(2)),
+          totalDuration: duration,
+          averageRating: user.deliveryProfile.averageRating || 0,
         },
         allTime: {
-          totalDeliveries:     user.deliveryProfile.totalDeliveries     || 0,
+          totalDeliveries: user.deliveryProfile.totalDeliveries || 0,
           completedDeliveries: user.deliveryProfile.completedDeliveries || 0,
-          totalEarnings:       user.deliveryProfile.totalEarnings       || 0,
-          currentBalance:      user.deliveryProfile.currentBalance      || 0,
+          totalEarnings: user.deliveryProfile.totalEarnings || 0,
+          currentBalance: user.deliveryProfile.currentBalance || 0,
         },
       });
     } catch (error) {
@@ -452,50 +455,50 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       const { period = 'week', startDate, endDate } = ctx.query;
 
       let start = new Date();
-      let end   = new Date();
+      let end = new Date();
 
       if (startDate && endDate) {
         start = new Date(startDate as string);
-        end   = new Date(endDate   as string);
+        end = new Date(endDate as string);
       } else {
         switch (period) {
           case 'today': start.setHours(0, 0, 0, 0); break;
-          case 'week':  start.setDate(start.getDate() - 7); break;
+          case 'week': start.setDate(start.getDate() - 7); break;
           case 'month': start.setMonth(start.getMonth() - 1); break;
-          case 'year':  start.setFullYear(start.getFullYear() - 1); break;
+          case 'year': start.setFullYear(start.getFullYear() - 1); break;
         }
       }
 
       const deliveries = await strapi.db.query('api::delivery.delivery').findMany({
         where: {
-          deliverer:       userId,
-          rideStatus:      'completed',
+          deliverer: userId,
+          rideStatus: 'completed',
           tripCompletedAt: { $gte: start, $lte: end },
         },
       });
 
-      const totalEarnings     = deliveries.reduce((s, d) => s + (d.driverEarnings || 0), 0);
-      const totalFares        = deliveries.reduce((s, d) => s + (d.totalFare      || 0), 0);
-      const totalCommission   = deliveries.reduce((s, d) => s + (d.commission     || 0), 0);
-      const cashDeliveries    = deliveries.filter((d) => d.paymentMethod === 'cash');
+      const totalEarnings = deliveries.reduce((s, d) => s + (d.driverEarnings || 0), 0);
+      const totalFares = deliveries.reduce((s, d) => s + (d.totalFare || 0), 0);
+      const totalCommission = deliveries.reduce((s, d) => s + (d.commission || 0), 0);
+      const cashDeliveries = deliveries.filter((d) => d.paymentMethod === 'cash');
       const okrapayDeliveries = deliveries.filter((d) => d.paymentMethod === 'okrapay');
 
       return ctx.send({
         period: { start, end },
         summary: {
-          totalEarnings:       parseFloat(totalEarnings.toFixed(2)),
-          totalFares:          parseFloat(totalFares.toFixed(2)),
-          totalCommission:     parseFloat(totalCommission.toFixed(2)),
+          totalEarnings: parseFloat(totalEarnings.toFixed(2)),
+          totalFares: parseFloat(totalFares.toFixed(2)),
+          totalCommission: parseFloat(totalCommission.toFixed(2)),
           deliveriesCompleted: deliveries.length,
-          cashEarnings:        cashDeliveries.reduce((s, d) => s + (d.driverEarnings || 0), 0),
-          okrapayEarnings:     okrapayDeliveries.reduce((s, d) => s + (d.driverEarnings || 0), 0),
+          cashEarnings: cashDeliveries.reduce((s, d) => s + (d.driverEarnings || 0), 0),
+          okrapayEarnings: okrapayDeliveries.reduce((s, d) => s + (d.driverEarnings || 0), 0),
         },
         deliveries: deliveries.map((d) => ({
-          rideCode:      d.rideCode,
-          date:          d.tripCompletedAt,
-          fare:          d.totalFare,
-          commission:    d.commission,
-          earnings:      d.driverEarnings,
+          rideCode: d.rideCode,
+          date: d.tripCompletedAt,
+          fare: d.totalFare,
+          commission: d.commission,
+          earnings: d.driverEarnings,
           paymentMethod: d.paymentMethod,
         })),
       });
@@ -514,15 +517,15 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       const now = new Date();
       let startDate = new Date();
       switch (period) {
-        case 'week':  startDate.setDate(now.getDate() - 7); break;
+        case 'week': startDate.setDate(now.getDate() - 7); break;
         case 'month': startDate.setMonth(now.getMonth() - 1); break;
-        case 'year':  startDate.setFullYear(now.getFullYear() - 1); break;
+        case 'year': startDate.setFullYear(now.getFullYear() - 1); break;
       }
 
       const deliveries = await strapi.db.query('api::delivery.delivery').findMany({
         where: {
-          deliverer:       userId,
-          rideStatus:      'completed',
+          deliverer: userId,
+          rideStatus: 'completed',
           tripCompletedAt: { $gte: startDate },
         },
       });
@@ -531,17 +534,17 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       deliveries.forEach((d) => {
         const date = new Date(d.tripCompletedAt).toISOString().split('T')[0];
         if (!dailyBreakdown[date]) dailyBreakdown[date] = { earnings: 0, deliveries: 0, commission: 0 };
-        dailyBreakdown[date].earnings   += d.driverEarnings || 0;
+        dailyBreakdown[date].earnings += d.driverEarnings || 0;
         dailyBreakdown[date].deliveries += 1;
-        dailyBreakdown[date].commission += d.commission     || 0;
+        dailyBreakdown[date].commission += d.commission || 0;
       });
 
       return ctx.send({
         period,
         dailyBreakdown,
         total: {
-          earnings:   deliveries.reduce((s, d) => s + (d.driverEarnings || 0), 0),
-          commission: deliveries.reduce((s, d) => s + (d.commission     || 0), 0),
+          earnings: deliveries.reduce((s, d) => s + (d.driverEarnings || 0), 0),
+          commission: deliveries.reduce((s, d) => s + (d.commission || 0), 0),
           deliveries: deliveries.length,
         },
       });
@@ -571,22 +574,22 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       // Load all sub-components to get their ids for direct updates
       const deliveryProfile = await strapi.db.query('delivery-profiles.delivery-profile').findOne({
         where: { id: user.deliveryProfile.id },
-         populate: { 
-            taxi: {
-                populate: true // Populate all relations inside taxiDriver
-            },
-            motorbike: {
-                populate: true // Populate all relations inside busDriver
-            },
-            motorcycle: {
-                populate: true // Populate all relations inside motorbikeRider
-            },
-            truck: {
-                populate: true // Populate all relations inside motorbikeRider
-            }
+        populate: {
+          taxi: {
+            populate: true // Populate all relations inside taxiDriver
+          },
+          motorbike: {
+            populate: true // Populate all relations inside busDriver
+          },
+          motorcycle: {
+            populate: true // Populate all relations inside motorbikeRider
+          },
+          truck: {
+            populate: true // Populate all relations inside motorbikeRider
+          }
         }
       })
-      
+
       const allTypes = ['taxi', 'motorbike', 'motorcycle', 'truck'];
 
       // Activate the chosen sub-component directly
@@ -594,18 +597,18 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       if (chosen?.id) {
         await strapi.db.query(`delivery-vehicles.${vehicleType}`).update({
           where: { id: chosen.id },
-          data:  { isActive: true },
+          data: { isActive: true },
         })
       }
-      else{
-       const vehicleTypeEntry = await strapi.db.query(`delivery-vehicles.${vehicleType}`).create({
-          data:  { isActive: true }
+      else {
+        const vehicleTypeEntry = await strapi.db.query(`delivery-vehicles.${vehicleType}`).create({
+          data: { isActive: true }
         })
         await strapi.db.query('delivery-profiles.delivery-profile').update({
-           where: { id: user.deliveryProfile.id },
-           data:  {  
+          where: { id: user.deliveryProfile.id },
+          data: {
             [vehicleType]: vehicleTypeEntry
-           },
+          },
         })
       }
 
@@ -615,7 +618,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         if (other?.id) {
           await strapi.db.query(`delivery-vehicles.${t}`).update({
             where: { id: other.id },
-            data:  { isActive: false },
+            data: { isActive: false },
           });
         }
       }
@@ -623,12 +626,12 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       // Update activeVehicleType on the delivery profile
       await strapi.db.query('delivery-profiles.delivery-profile').update({
         where: { id: user.deliveryProfile.id },
-        data:  { activeVehicleType: vehicleType },
+        data: { activeVehicleType: vehicleType },
       });
 
       return ctx.send({
-        success:  true,
-        message:  'Delivery vehicle type saved',
+        success: true,
+        message: 'Delivery vehicle type saved',
         nextStep: 'vehicle-details',
       });
     } catch (error) {
@@ -665,23 +668,23 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       })
 
       const vehicleCollectionType = (() => {
-        if (vehicleType === 'taxi')      return 'taxi';
-        if (vehicleType === 'truck')     return 'truck';
+        if (vehicleType === 'taxi') return 'taxi';
+        if (vehicleType === 'truck') return 'truck';
         if (vehicleType === 'motorbike') return 'motorbike';
         return 'motorcycle';
       })();
       let deliveryClasses = await strapi.db.query('api::ride-class.ride-class').findMany()
-      if(vehicleType === 'motorbike' || vehicleType === 'motorcycle' || vehicleType === 'motorbike'){
-        const allowedClasses = ['standard','midsize']
-        deliveryClasses = deliveryClasses.filter((deliclass)=> allowedClasses.includes(deliclass.name))
+      if (vehicleType === 'motorbike' || vehicleType === 'motorcycle' || vehicleType === 'motorbike') {
+        const allowedClasses = ['standard', 'midsize']
+        deliveryClasses = deliveryClasses.filter((deliclass) => allowedClasses.includes(deliclass.name))
       }
-      if(vehicleType === 'taxi'){
-        const allowedClasses = ['standard','midsize','big']
-        deliveryClasses = deliveryClasses.filter((deliclass)=> allowedClasses.includes(deliclass.name))
+      if (vehicleType === 'taxi') {
+        const allowedClasses = ['standard', 'midsize', 'big']
+        deliveryClasses = deliveryClasses.filter((deliclass) => allowedClasses.includes(deliclass.name))
       }
-      if(vehicleType === 'truck'){
-        const allowedClasses = ['big','large']
-        deliveryClasses = deliveryClasses.filter((deliclass)=> allowedClasses.includes(deliclass.name))
+      if (vehicleType === 'truck') {
+        const allowedClasses = ['big', 'large']
+        deliveryClasses = deliveryClasses.filter((deliclass) => allowedClasses.includes(deliclass.name))
       }
       const newVehicle = await strapi.db.query('api::vehicle.vehicle').create({
         data: {
@@ -690,11 +693,11 @@ export default factories.createCoreController('plugin::users-permissions.user', 
           year,
           numberPlate,
           color,
-          vehicleType:         vehicleCollectionType,
-          seatingCapacity:     seatingCapacity || null,
+          vehicleType: vehicleCollectionType,
+          seatingCapacity: seatingCapacity || null,
           insuranceExpiryDate: insuranceExpiryDate || null,
-          isActive:            true,
-          deliveryClasses: {connect: deliveryClasses.map(rc => rc.id)}
+          isActive: true,
+          deliveryClasses: { connect: deliveryClasses.map(rc => rc.id) }
         },
       });
 
@@ -705,7 +708,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         await strapi.db.query(`delivery-vehicles.${vehicleType}`).update({
           where: { id: subComponent.id },
           data: {
-            vehicle:  newVehicle.id,
+            vehicle: newVehicle.id,
             isActive: true,
             ...(maxPackageWeight != null ? { maxPackageWeight } : {}),
           },
@@ -716,7 +719,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
           where: { id: user.deliveryProfile.id },
           data: {
             [vehicleType]: {
-              vehicle:  newVehicle.id,
+              vehicle: newVehicle.id,
               isActive: true,
               ...(maxPackageWeight != null ? { maxPackageWeight } : {}),
             },
@@ -726,14 +729,14 @@ export default factories.createCoreController('plugin::users-permissions.user', 
 
       await strapi.db.query('delivery-profiles.delivery-profile').update({
         where: { id: user.deliveryProfile.id },
-        data:  { activeVehicleType: vehicleType, acceptedDeliveryClasses: {connect: deliveryClasses.map(rc => rc.id)}  },
+        data: { activeVehicleType: vehicleType, acceptedDeliveryClasses: { connect: deliveryClasses.map(rc => rc.id) } },
       });
 
       return ctx.send({
-        success:  true,
-        message:  'Delivery vehicle details saved',
+        success: true,
+        message: 'Delivery vehicle details saved',
         nextStep: 'review',
-        vehicle:  newVehicle,
+        vehicle: newVehicle,
       });
     } catch (error) {
       strapi.log.error('[DeliveryDriver] saveDeliveryVehicleDetails error:', error);
@@ -750,9 +753,9 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         where: { id: userId },
         populate: { driverProfile: true, deliveryProfile: true },
       })
-      
 
-      if (!user?.driverProfile)   return ctx.badRequest('Driver profile is incomplete');
+
+      if (!user?.driverProfile) return ctx.badRequest('Driver profile is incomplete');
       if (!user?.deliveryProfile) return ctx.badRequest('Delivery profile not found');
       if (user.driverProfile.verificationStatus === 'pending') {
         return ctx.badRequest('Verification request already sent');
@@ -760,10 +763,10 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       const deliveryProfile = await strapi.db.query('delivery-profiles.delivery-profile').findOne({
         where: { id: user.deliveryProfile.id },
         populate: {
-          taxi:       { populate: { vehicle: true } },
-          motorbike:  { populate: { vehicle: true } },
+          taxi: { populate: { vehicle: true } },
+          motorbike: { populate: { vehicle: true } },
           motorcycle: { populate: { vehicle: true } },
-          truck:      { populate: { vehicle: true } },
+          truck: { populate: { vehicle: true } },
         },
       });
 
@@ -772,26 +775,26 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         return ctx.badRequest('Please complete delivery vehicle setup before submitting');
       }
       const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
-     
-      const initialDelivererFloat = ()=>{
-        if(user.initialFloatToppedUp){ // you have already been given the float top up
+
+      const initialDelivererFloat = () => {
+        if (user.initialFloatToppedUp) { // you have already been given the float top up
           return user.driverProfile?.floatBalance
         } // initialFloatToppedUp instead of initialDelivererFloatToppedUp because a user can act clever and create a delivery account just to use the free float in a driver account
         return settings?.initialDelivererFloat || 0
-      } 
+      }
       await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: user.driverProfile.id },
-        data:  { 
-          verificationStatus: settings?.autoApproveDeliverers? 'approved':'pending', 
+        data: {
+          verificationStatus: settings?.autoApproveDeliverers ? 'approved' : 'pending',
           floatBalance: initialDelivererFloat(), // add initial float to driver account based on how much float we are creating for free on account creation
         },
       })
 
       await strapi.db.query('delivery-profiles.delivery-profile').update({
         where: { id: user.deliveryProfile.id },
-        data:  { verificationStatus: settings?.autoApproveDeliverers? 'approved':'pending' },
+        data: { verificationStatus: settings?.autoApproveDeliverers ? 'approved' : 'pending' },
       })
-       await strapi.db.query('plugin::users-permissions.user').findOne({
+      await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: userId },
         populate: { initialFloatToppedUp: true }
       })
@@ -800,23 +803,23 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         const emailList = await strapi.db.query('api::email-addresses-list.email-addresses-list').findOne({
           where: { id: 1 },
         });
-        const adminEmailMessage = settings?.autoApproveDeliverers? 'A delivery driver has been outo approved on OkraRides. User ID: '+userId : 'A delivery driver is looking for verification on OkraRides. User ID: '+userId
-        (emailList?.adminEmailAddresses || []).forEach((email: string) => {
-          const { SendEmailNotification } = require('../../../services/messages');
-          SendEmailNotification(
-            email,
-            adminEmailMessage
-          )
-        });
+        const adminEmailMessage = settings?.autoApproveDeliverers ? 'A delivery driver has been outo approved on OkraRides. User ID: ' + userId : 'A delivery driver is looking for verification on OkraRides. User ID: ' + userId
+          (emailList?.adminEmailAddresses || []).forEach((email: string) => {
+            const { SendEmailNotification } = require('../../../services/messages');
+            SendEmailNotification(
+              email,
+              adminEmailMessage
+            )
+          });
       } catch (e) {
         strapi.log.warn('[DeliveryDriver] Admin email notification failed:', e);
       }
 
       socketService.emitNotification(userId, 'delivery', {
-        type:  'account_update',
+        type: 'account_update',
         title: 'Verification Submitted',
-        body:  'Your application has been submitted for review. We will notify you once verification is complete.',
-        data:  { verificationStatus: 'pending' },
+        body: 'Your application has been submitted for review. We will notify you once verification is complete.',
+        data: { verificationStatus: 'pending' },
       });
 
       return ctx.send({ success: true, message: 'Application submitted successfully' });
@@ -837,29 +840,29 @@ export default factories.createCoreController('plugin::users-permissions.user', 
           driverProfile: true,
           deliveryProfile: {
             populate: {
-              taxi:       true,
-              motorbike:  true,
+              taxi: true,
+              motorbike: true,
               motorcycle: true,
-              truck:      true,
+              truck: true,
             },
           },
         },
       });
 
-      const dp  = (user?.driverProfile  || {}) as any;
+      const dp = (user?.driverProfile || {}) as any;
       const dlp = (user?.deliveryProfile || {}) as any;
       const activeType = dlp.activeVehicleType;
       const hasVehicle = activeType && activeType !== 'none' && dlp[activeType]?.vehicle;
 
       return ctx.send({
-        isDriverProfileCreated:   !!user?.driverProfile,
+        isDriverProfileCreated: !!user?.driverProfile,
         isDeliveryProfileCreated: !!user?.deliveryProfile,
         onboardingStatus: dp.verificationStatus || dlp.verificationStatus || 'not_started',
-        currentStep:      dp.onboardingStep || 'license',
+        currentStep: dp.onboardingStep || 'license',
         steps: {
-          license:         !!dp.driverLicenseNumber,
-          nationalId:      !!dp.nationalIdNumber,
-          address:         !!dp.proofOfAddress,
+          license: !!dp.driverLicenseNumber,
+          nationalId: !!dp.nationalIdNumber,
+          address: !!dp.proofOfAddress,
           deliveryVehicle: !!hasVehicle,
         },
       });
@@ -884,21 +887,21 @@ export default factories.createCoreController('plugin::users-permissions.user', 
       const deliveryProfile = await strapi.db.query('delivery-profiles.delivery-profile').findOne({
         where: { id: user.deliveryProfile.id },
         populate: {
-          taxi:       { populate: { vehicle: true } },
-          motorbike:  { populate: { vehicle: true } },
+          taxi: { populate: { vehicle: true } },
+          motorbike: { populate: { vehicle: true } },
           motorcycle: { populate: { vehicle: true } },
-          truck:      { populate: { vehicle: true } },
+          truck: { populate: { vehicle: true } },
         },
       });
 
       const activeType = (deliveryProfile as any)?.activeVehicleType;
-      const vehicle    = activeType && activeType !== 'none'
+      const vehicle = activeType && activeType !== 'none'
         ? (deliveryProfile as any)[activeType]?.vehicle
         : null;
 
       return ctx.send({
-        success:           true,
-        hasVehicle:        !!vehicle,
+        success: true,
+        hasVehicle: !!vehicle,
         activeVehicleType: activeType,
         vehicle,
       });
@@ -917,14 +920,14 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         where: { id: userId },
         populate: {
           driverProfile: { select: ['id', 'paymentPhoneNumbers'] },
-          country:       { select: ['id', 'phoneCode', 'acceptedMobileMoneyPayments'] },
+          country: { select: ['id', 'phoneCode', 'acceptedMobileMoneyPayments'] },
         },
       });
 
       if (!user?.driverProfile) return ctx.badRequest('Driver profile not found');
 
       return ctx.send({
-        paymentPhoneNumbers:         user.driverProfile.paymentPhoneNumbers || [],
+        paymentPhoneNumbers: user.driverProfile.paymentPhoneNumbers || [],
         acceptedMobileMoneyPayments: user.country?.acceptedMobileMoneyPayments || [],
       });
     } catch (error) {
@@ -946,7 +949,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         where: { id: userId },
         populate: {
           driverProfile: { select: ['id', 'paymentPhoneNumbers'] },
-          country:       { select: ['id', 'phoneCode', 'acceptedMobileMoneyPayments'] },
+          country: { select: ['id', 'phoneCode', 'acceptedMobileMoneyPayments'] },
         },
       });
 
@@ -976,18 +979,18 @@ export default factories.createCoreController('plugin::users-permissions.user', 
 
       const normalised = paymentPhoneNumbers.map((e: any) => ({
         mobileNumber: e.mobileNumber.replace(/\s/g, ''),
-        mobileType:   e.mobileType.toLowerCase(),
-        name:         e.name.trim(),
+        mobileType: e.mobileType.toLowerCase(),
+        name: e.name.trim(),
       }));
 
       await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: user.driverProfile.id },
-        data:  { paymentPhoneNumbers: normalised },
+        data: { paymentPhoneNumbers: normalised },
       });
 
       return ctx.send({
-        success:             true,
-        message:             'Payment phone numbers updated successfully',
+        success: true,
+        message: 'Payment phone numbers updated successfully',
         paymentPhoneNumbers: normalised,
       });
     } catch (error) {

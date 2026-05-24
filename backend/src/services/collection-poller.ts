@@ -19,19 +19,19 @@ import socketService from './socketService';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface OkrapayRecord {
-  id:               number;
-  paymentId:        string;
-  reference:        string;
-  purpose:          string;
-  direction:        string;
-  amount:           number;
-  paymentStatus:    string;
-  gatewayName:      string;
+  id: number;
+  paymentId: string;
+  reference: string;
+  purpose: string;
+  direction: string;
+  amount: number;
+  paymentStatus: string;
+  gatewayName: string;
   gatewayReference: string;
-  relatedEntityId:  string | null;
-  user:             number | { id: number };
-  metadata:         Record<string, unknown> | null;
-  initiatedAt:      Date;
+  relatedEntityId: string | null;
+  user: number | { id: number };
+  metadata: Record<string, unknown> | null;
+  initiatedAt: Date;
 }
 
 // ─── Admin settings ───────────────────────────────────────────────────────────
@@ -48,10 +48,10 @@ function resolveUserId(record: OkrapayRecord): number {
 
 function purposeToEntityType(purpose: string): string {
   const map: Record<string, string> = {
-    floatadd:    'float_topup',
-    subpay:      'driver_subscription',
-    ridepay:     'ride',
-    withdraw:    'withdrawal',
+    floatadd: 'float_topup',
+    subpay: 'driver_subscription',
+    ridepay: 'ride',
+    withdraw: 'withdrawal',
     walletTopup: 'wallet_topup',
   };
   return map[purpose] || '';
@@ -60,17 +60,137 @@ function purposeToEntityType(purpose: string): string {
 function calculateExpiryDate(from: Date, durationType: string, durationValue: number): Date {
   const d = new Date(from);
   switch (durationType) {
-    case 'daily':   d.setDate(d.getDate() + durationValue); break;
-    case 'weekly':  d.setDate(d.getDate() + 7 * durationValue); break;
+    case 'daily': d.setDate(d.getDate() + durationValue); break;
+    case 'weekly': d.setDate(d.getDate() + 7 * durationValue); break;
     case 'monthly': d.setMonth(d.getMonth() + durationValue); break;
-    case 'yearly':  d.setFullYear(d.getFullYear() + durationValue); break;
-    default:        d.setMonth(d.getMonth() + 1);
+    case 'yearly': d.setFullYear(d.getFullYear() + durationValue); break;
+    default: d.setMonth(d.getMonth() + 1);
   }
   return d;
 }
 
 // ─── Domain handlers ──────────────────────────────────────────────────────────
+// old one with driver only
+// async function handleFloatTopupSuccess(
+//   record: OkrapayRecord,
+//   userId: number,
+//   lencoData: Record<string, unknown>,
+// ): Promise<void> {
+//   try {
+//     const relatedId = record.relatedEntityId;
 
+//     const topup = await strapi.db.query('api::float-topup.float-topup').findOne({
+//       where: { id: relatedId },
+//     });
+
+//     if (!topup) {
+//       strapi.log.error(`[Poller:floatadd] Float topup ${relatedId} not found`);
+//       return;
+//     }
+//     if (topup.floatStatus === 'completed') {
+//       strapi.log.warn(`[Poller:floatadd] Topup ${relatedId} already completed — skipping`);
+//       return;
+//     }
+
+//     const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+//       where: { id: userId },
+//       select: ['id', 'email', 'firstName', 'lastName'],
+//       populate: { driverProfile: { select: ['id'] } },
+//     });
+
+//     if (!user?.driverProfile?.id) {
+//       strapi.log.error(`[Poller:floatadd] Driver profile not found for user ${userId}`);
+//       return;
+//     }
+
+//     const driverProfile = await strapi.db.query('driver-profiles.driver-profile').findOne({
+//       where: { id: user.driverProfile.id },
+//       select: ['id', 'floatBalance'],
+//     });
+
+//     const currentFloat = parseFloat(driverProfile?.floatBalance || '0');
+//     const topupAmount  = parseFloat(topup.amount);
+//     const newFloat     = currentFloat + topupAmount;
+
+//     await strapi.db.query('api::float-topup.float-topup').update({
+//       where: { id: relatedId },
+//       data: {
+//         floatStatus:        'completed',
+//         floatBalanceBefore: currentFloat,
+//         floatBalanceAfter:  newFloat,
+//         completedAt:        new Date(),
+//         gatewayReference:   record.gatewayReference,
+//         gatewayResponse:    lencoData,
+//       },
+//     });
+
+//     const currentWithdrawable = parseFloat(driverProfile?.withdrawableFloatBalance || '0');
+//     const newWithdrawable = currentWithdrawable + topupAmount;
+
+//     await strapi.db.query('driver-profiles.driver-profile').update({
+//       where: { id: user.driverProfile.id },
+//       data:  {
+//         floatBalance:             newFloat,
+//         withdrawableFloatBalance: newWithdrawable,
+//       },
+//     });
+
+//     await strapi.db.query('api::ledger-entry.ledger-entry').create({
+//       data: {
+//         entryId:       `LED-FT-${Date.now()}`,
+//         driver:        userId,
+//         type:          'float_topup',
+//         amount:        topupAmount,
+//         source:        'okrapay',
+//         ledgerStatus:  'settled',
+//         balanceBefore: currentFloat,
+//         balanceAfter:  newFloat,
+//         description:   `Float top-up via OkraPay — ref ${record.reference}`,
+//         metadata:      { okrapayId: record.id },
+//       },
+//     });
+
+//     socketService.emitPaymentSuccess(
+//       userId, 'driver', topupAmount, record.paymentId, 'float_topup',
+//     );
+
+//     try {
+//       const settings = await getAdminSettings();
+//       const adminEmails: string[] = Array.isArray(settings.adminSupportEmails)
+//         ? settings.adminSupportEmails
+//         : [];
+
+//       const driverName = [user.firstName, user.lastName].filter(Boolean).join(' ')
+//         || user.email
+//         || `User #${userId}`;
+
+//       const emailBody =
+//         `Float Top-Up Notification\n\n` +
+//         `Driver: ${driverName}\n` +
+//         `Email: ${user.email || 'N/A'}\n` +
+//         `Amount: ${topupAmount} (top-up)\n` +
+//         `Balance before: ${currentFloat}\n` +
+//         `Balance after:  ${newFloat}\n` +
+//         `Reference: ${record.reference}\n` +
+//         `Timestamp: ${new Date().toISOString()}\n`;
+
+//       adminEmails.forEach(email => {
+//         try { SendEmailNotification(email, emailBody); } catch { /* non-fatal */ }
+//       });
+//     } catch (emailErr) {
+//       strapi.log.warn('[Poller:floatadd] Failed to send admin email:', emailErr);
+//     }
+
+//     strapi.log.info(
+//       `[Poller:floatadd] +${topupAmount} → user ${userId}, new float ${newFloat}`,
+//     );
+//   } catch (err) {
+//     strapi.log.error('[Poller:floatadd]', err);
+//   }
+// }
+// PATH: src/services/collection-poller.ts
+// ACTION: Replace the body of handleFloatTopupSuccess with this full version.
+// new one with partner included
 async function handleFloatTopupSuccess(
   record: OkrapayRecord,
   userId: number,
@@ -78,7 +198,6 @@ async function handleFloatTopupSuccess(
 ): Promise<void> {
   try {
     const relatedId = record.relatedEntityId;
-
     const topup = await strapi.db.query('api::float-topup.float-topup').findOne({
       where: { id: relatedId },
     });
@@ -92,6 +211,83 @@ async function handleFloatTopupSuccess(
       return;
     }
 
+    // ── PARTNER TOP-UP PATH ──────────────────────────────────────────────────
+    if (topup.partner) {
+      const partnerUserId = topup.partner;
+      const partnerUser = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: partnerUserId },
+        select: ['id', 'email', 'firstName', 'lastName'],
+        populate: {
+          partnerProfile: { select: ['id', 'floatBalance', 'businessName'] },
+        },
+      });
+
+      if (!partnerUser?.partnerProfile) {
+        strapi.log.error(
+          `[Poller:floatadd:partner] Partner profile not found for user ${partnerUserId}`,
+        );
+        return;
+      }
+
+      const currentBalance = parseFloat(partnerUser.partnerProfile.floatBalance) || 0;
+      const topupAmount = parseFloat(topup.amount);
+      const newBalance = currentBalance + topupAmount;
+
+      await strapi.db.query('api::float-topup.float-topup').update({
+        where: { id: relatedId },
+        data: {
+          floatStatus: 'completed',
+          floatBalanceBefore: currentBalance,
+          floatBalanceAfter: newBalance,
+          completedAt: new Date(),
+          gatewayReference: record.gatewayReference,
+          gatewayResponse: lencoData,
+        },
+      });
+
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: partnerUserId },
+        data: {
+          partnerProfile: {
+            id: partnerUser.partnerProfile.id,
+            floatBalance: newBalance,
+          },
+        },
+      });
+
+      await strapi.db.query('api::ledger-entry.ledger-entry').create({
+        data: {
+          entryId: `LED-FT-PARTNER-${Date.now()}`,
+          type: 'float_topup-partner',
+          amount: topupAmount,
+          source: 'okrapay',
+          ledgerStatus: 'settled',
+          balanceBefore: currentBalance,
+          balanceAfter: newBalance,
+          description: `Partner float top-up via OkraPay — ref ${record.reference}`,
+          metadata: { okrapayId: record.id, partnerUserId },
+        },
+      });
+
+      socketService.emit('partner:float:updated', {
+        partnerId: partnerUserId,
+        partnerProfileId: partnerUser.partnerProfile.id,
+        newPartnerBalance: parseFloat(newBalance.toFixed(2)),
+        action: 'TOPUP',
+        amount: topupAmount,
+      });
+
+      socketService.emitPaymentSuccess(
+        partnerUserId, 'partner', topupAmount, record.paymentId, 'float_topup-partner',
+      );
+
+      strapi.log.info(
+        `[Poller:floatadd:partner] +K${topupAmount} → partner ${partnerUserId}, new balance K${newBalance}`,
+      );
+      return;
+    }
+
+    // ── ORIGINAL DRIVER TOP-UP PATH (unchanged) ──────────────────────────────
     const user = await strapi.db.query('plugin::users-permissions.user').findOne({
       where: { id: userId },
       select: ['id', 'email', 'firstName', 'lastName'],
@@ -105,48 +301,44 @@ async function handleFloatTopupSuccess(
 
     const driverProfile = await strapi.db.query('driver-profiles.driver-profile').findOne({
       where: { id: user.driverProfile.id },
-      select: ['id', 'floatBalance'],
+      select: ['id', 'floatBalance', 'withdrawableFloatBalance'],
     });
 
     const currentFloat = parseFloat(driverProfile?.floatBalance || '0');
-    const topupAmount  = parseFloat(topup.amount);
-    const newFloat     = currentFloat + topupAmount;
+    const topupAmount = parseFloat(topup.amount);
+    const newFloat = currentFloat + topupAmount;
+    const currentWithdrawable = parseFloat(driverProfile?.withdrawableFloatBalance || '0');
+    const newWithdrawable = currentWithdrawable + topupAmount;
 
     await strapi.db.query('api::float-topup.float-topup').update({
       where: { id: relatedId },
       data: {
-        floatStatus:        'completed',
+        floatStatus: 'completed',
         floatBalanceBefore: currentFloat,
-        floatBalanceAfter:  newFloat,
-        completedAt:        new Date(),
-        gatewayReference:   record.gatewayReference,
-        gatewayResponse:    lencoData,
+        floatBalanceAfter: newFloat,
+        completedAt: new Date(),
+        gatewayReference: record.gatewayReference,
+        gatewayResponse: lencoData,
       },
     });
 
-    const currentWithdrawable = parseFloat(driverProfile?.withdrawableFloatBalance || '0');
-    const newWithdrawable = currentWithdrawable + topupAmount;
-
     await strapi.db.query('driver-profiles.driver-profile').update({
       where: { id: user.driverProfile.id },
-      data:  {
-        floatBalance:             newFloat,
-        withdrawableFloatBalance: newWithdrawable,
-      },
+      data: { floatBalance: newFloat, withdrawableFloatBalance: newWithdrawable },
     });
 
     await strapi.db.query('api::ledger-entry.ledger-entry').create({
       data: {
-        entryId:       `LED-FT-${Date.now()}`,
-        driver:        userId,
-        type:          'float_topup',
-        amount:        topupAmount,
-        source:        'okrapay',
-        ledgerStatus:  'settled',
+        entryId: `LED-FT-${Date.now()}`,
+        driver: userId,
+        type: 'float_topup',
+        amount: topupAmount,
+        source: 'okrapay',
+        ledgerStatus: 'settled',
         balanceBefore: currentFloat,
-        balanceAfter:  newFloat,
-        description:   `Float top-up via OkraPay — ref ${record.reference}`,
-        metadata:      { okrapayId: record.id },
+        balanceAfter: newFloat,
+        description: `Float top-up via OkraPay — ref ${record.reference}`,
+        metadata: { okrapayId: record.id },
       },
     });
 
@@ -154,36 +346,7 @@ async function handleFloatTopupSuccess(
       userId, 'driver', topupAmount, record.paymentId, 'float_topup',
     );
 
-    try {
-      const settings = await getAdminSettings();
-      const adminEmails: string[] = Array.isArray(settings.adminSupportEmails)
-        ? settings.adminSupportEmails
-        : [];
-
-      const driverName = [user.firstName, user.lastName].filter(Boolean).join(' ')
-        || user.email
-        || `User #${userId}`;
-
-      const emailBody =
-        `Float Top-Up Notification\n\n` +
-        `Driver: ${driverName}\n` +
-        `Email: ${user.email || 'N/A'}\n` +
-        `Amount: ${topupAmount} (top-up)\n` +
-        `Balance before: ${currentFloat}\n` +
-        `Balance after:  ${newFloat}\n` +
-        `Reference: ${record.reference}\n` +
-        `Timestamp: ${new Date().toISOString()}\n`;
-
-      adminEmails.forEach(email => {
-        try { SendEmailNotification(email, emailBody); } catch { /* non-fatal */ }
-      });
-    } catch (emailErr) {
-      strapi.log.warn('[Poller:floatadd] Failed to send admin email:', emailErr);
-    }
-
-    strapi.log.info(
-      `[Poller:floatadd] +${topupAmount} → user ${userId}, new float ${newFloat}`,
-    );
+    strapi.log.info(`[Poller:floatadd] +${topupAmount} → user ${userId}, new float ${newFloat}`);
   } catch (err) {
     strapi.log.error('[Poller:floatadd]', err);
   }
@@ -202,8 +365,8 @@ async function handleSubscriptionPaymentSuccess(
 ): Promise<void> {
   try {
     const relatedId = record.relatedEntityId;
-    const meta      = record.metadata || {};
-    const action    = (meta as any).subscriptionAction || 'subscribe';
+    const meta = record.metadata || {};
+    const action = (meta as any).subscriptionAction || 'subscribe';
 
     const user = await strapi.db.query('plugin::users-permissions.user').findOne({
       where: { id: userId },
@@ -228,10 +391,10 @@ async function handleSubscriptionPaymentSuccess(
       }
 
       const plan = subscription.subscriptionPlan;
-      const now  = new Date();
+      const now = new Date();
       const base =
         ['active', 'trial'].includes(subscription.subscriptionStatus) &&
-        new Date(subscription.expiresAt) > now
+          new Date(subscription.expiresAt) > now
           ? new Date(subscription.expiresAt)
           : now;
 
@@ -240,14 +403,14 @@ async function handleSubscriptionPaymentSuccess(
       await strapi.db.query('api::driver-subscription.driver-subscription').update({
         where: { id: subscription.id },
         data: {
-          subscriptionStatus:        'active',
-          expiresAt:                 newExpiresAt,
-          lastPaymentDate:           now,
-          lastPaymentAmount:         plan.price,
-          lastPaymentTransactionId:  transactionId,
-          nextPaymentDue:            newExpiresAt,
-          autoRenew:                 true,
-          renewalCount:              (subscription.renewalCount || 0) + 1,
+          subscriptionStatus: 'active',
+          expiresAt: newExpiresAt,
+          lastPaymentDate: now,
+          lastPaymentAmount: plan.price,
+          lastPaymentTransactionId: transactionId,
+          nextPaymentDue: newExpiresAt,
+          autoRenew: true,
+          renewalCount: (subscription.renewalCount || 0) + 1,
         },
       });
 
@@ -263,7 +426,7 @@ async function handleSubscriptionPaymentSuccess(
     } else {
       // ── New subscription: relatedId is the PENDING subscription ID ──────────
       const pendingSubscription = await strapi.db.query('api::driver-subscription.driver-subscription').findOne({
-        where:    { id: relatedId },
+        where: { id: relatedId },
         populate: { subscriptionPlan: true },
       });
 
@@ -301,21 +464,21 @@ async function handleSubscriptionPaymentSuccess(
         });
       }
 
-      const now       = new Date();
+      const now = new Date();
       const expiresAt = calculateExpiryDate(now, plan.durationType, plan.durationValue || 1);
 
       // Activate the pending subscription
       await strapi.db.query('api::driver-subscription.driver-subscription').update({
         where: { id: pendingSubscription.id },
         data: {
-          subscriptionStatus:        'active',
-          startedAt:                 now,
+          subscriptionStatus: 'active',
+          startedAt: now,
           expiresAt,
-          lastPaymentDate:           now,
-          lastPaymentAmount:         plan.price,
-          lastPaymentTransactionId:  transactionId,
-          nextPaymentDue:            expiresAt,
-          autoRenew:                 true,
+          lastPaymentDate: now,
+          lastPaymentAmount: plan.price,
+          lastPaymentTransactionId: transactionId,
+          nextPaymentDue: expiresAt,
+          autoRenew: true,
         },
       });
 
@@ -327,8 +490,8 @@ async function handleSubscriptionPaymentSuccess(
       await strapi.db.query('driver-profiles.driver-profile').update({
         where: { id: dpRecord.id },
         data: {
-          subscriptionStatus:  'active',
-          subscriptionPlan:    plan.id,
+          subscriptionStatus: 'active',
+          subscriptionPlan: plan.id,
           currentSubscription: pendingSubscription.id,
         },
       });
@@ -342,14 +505,14 @@ async function handleSubscriptionPaymentSuccess(
     await strapi.db.query('api::transaction.transaction').create({
       data: {
         transactionId,
-        user:              userId,
-        type:              'subscription_payment',
-        amount:            record.amount,
+        user: userId,
+        type: 'subscription_payment',
+        amount: record.amount,
         transactionStatus: 'completed',
-        paymentMethod:     'okrapay',
-        gatewayReference:  record.gatewayReference,
-        gatewayResponse:   lencoData,
-        processedAt:       new Date(),
+        paymentMethod: 'okrapay',
+        gatewayReference: record.gatewayReference,
+        gatewayResponse: lencoData,
+        processedAt: new Date(),
       },
     });
 
@@ -383,16 +546,16 @@ async function handleRidePaymentSuccess(
 
     await strapi.db.query('api::transaction.transaction').create({
       data: {
-        transactionId:     `TXN-RIDE-${Date.now()}`,
-        user:              riderId,
-        type:              'ride_payment',
-        amount:            record.amount,
+        transactionId: `TXN-RIDE-${Date.now()}`,
+        user: riderId,
+        type: 'ride_payment',
+        amount: record.amount,
         transactionStatus: 'completed',
-        paymentMethod:     'okrapay',
-        ride:              parseInt(rideId),
-        gatewayReference:  record.gatewayReference,
-        gatewayResponse:   lencoData,
-        processedAt:       new Date(),
+        paymentMethod: 'okrapay',
+        ride: parseInt(rideId),
+        gatewayReference: record.gatewayReference,
+        gatewayResponse: lencoData,
+        processedAt: new Date(),
       },
     });
 
@@ -422,8 +585,8 @@ async function handleWalletTopupSuccess(
     });
 
     const currentBalance = parseFloat(riderProfile?.walletBalance || '0');
-    const topupAmount    = parseFloat(String(record.amount));
-    const newBalance     = currentBalance + topupAmount;
+    const topupAmount = parseFloat(String(record.amount));
+    const newBalance = currentBalance + topupAmount;
 
     await strapi.db.query('rider-profiles.rider-profile').update({
       where: { id: user.riderProfile.id },
@@ -432,15 +595,15 @@ async function handleWalletTopupSuccess(
 
     await strapi.db.query('api::transaction.transaction').create({
       data: {
-        transactionId:     `TXN-WALLET-${Date.now()}`,
-        user:              userId,
-        type:              'float_topup',
-        amount:            topupAmount,
+        transactionId: `TXN-WALLET-${Date.now()}`,
+        user: userId,
+        type: 'float_topup',
+        amount: topupAmount,
         transactionStatus: 'completed',
-        paymentMethod:     'okrapay',
-        gatewayReference:  record.gatewayReference,
-        gatewayResponse:   lencoData,
-        processedAt:       new Date(),
+        paymentMethod: 'okrapay',
+        gatewayReference: record.gatewayReference,
+        gatewayResponse: lencoData,
+        processedAt: new Date(),
       },
     });
 
@@ -458,7 +621,7 @@ async function handleCollectionFailed(
   lencoData: Record<string, unknown>,
 ): Promise<void> {
   const reason = (lencoData as any).reasonForFailure || 'Payment failed';
-  const role   = record.purpose === 'ridepay' ? 'rider' : 'driver';
+  const role = record.purpose === 'ridepay' ? 'rider' : 'driver';
   socketService.emitPaymentFailed(userId, role, record.amount, reason, record.paymentId);
 }
 async function handleAffiliatePayoutSuccess(
@@ -565,9 +728,9 @@ async function dispatchSuccess(
  */
 export async function pollPendingCollections(): Promise<void> {
   try {
-    const settings    = await getAdminSettings();
+    const settings = await getAdminSettings();
     const gatewayName = String(settings.externalPaymentGateway || 'lencopay');
-    const gateway     = getPaymentGateway(gatewayName) as any;
+    const gateway = getPaymentGateway(gatewayName) as any;
 
     if (typeof gateway.getCollectionStatus !== 'function') {
       strapi.log.warn('[Poller] Gateway does not support getCollectionStatus — skipping poll');
@@ -578,7 +741,7 @@ export async function pollPendingCollections(): Promise<void> {
       .query('api::okrapay.okrapay')
       .findMany({
         where: {
-          direction:     'collection',
+          direction: 'collection',
           paymentStatus: { $in: ['pending', 'processing'] },
         },
         filters: {
@@ -620,11 +783,11 @@ async function pollSingleRecord(record: OkrapayRecord, gateway: any): Promise<vo
       await strapi.db.query('api::okrapay.okrapay').update({
         where: { id: record.id },
         data: {
-          paymentStatus:    'completed',
+          paymentStatus: 'completed',
           gatewayReference: (lencoData as any).id || record.gatewayReference,
-          gatewayResponse:  lencoData,
-          paymentMethod:    resolvePaymentMethod(lencoData as any),
-          completedAt:      new Date(),
+          gatewayResponse: lencoData,
+          paymentMethod: resolvePaymentMethod(lencoData as any),
+          completedAt: new Date(),
         },
       });
 
@@ -644,11 +807,11 @@ async function pollSingleRecord(record: OkrapayRecord, gateway: any): Promise<vo
       await strapi.db.query('api::okrapay.okrapay').update({
         where: { id: record.id },
         data: {
-          paymentStatus:    'failed',
+          paymentStatus: 'failed',
           gatewayReference: (lencoData as any).id || record.gatewayReference,
-          gatewayResponse:  lencoData,
-          failedAt:         new Date(),
-          failureReason:    (lencoData as any).reasonForFailure || 'Payment failed',
+          gatewayResponse: lencoData,
+          failedAt: new Date(),
+          failureReason: (lencoData as any).reasonForFailure || 'Payment failed',
         },
       });
 
@@ -661,7 +824,7 @@ async function pollSingleRecord(record: OkrapayRecord, gateway: any): Promise<vo
 
 function resolvePaymentMethod(data: Record<string, unknown>): string {
   if ((data as any).mobileMoneyDetails) return 'mobile_money';
-  if ((data as any).cardDetails)        return 'card';
+  if ((data as any).cardDetails) return 'card';
   if ((data as any).bankAccountDetails) return 'bank_transfer';
   return 'mobile_money';
 }
