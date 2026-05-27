@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-05-24T03:02:27.837Z"
+    "x-generation-date": "2026-05-27T04:27:33.227Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -11625,6 +11625,87 @@
         }
       }
     },
+    "/delivery-driver/assign-vehicle": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryDriverResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Delivery-driver"
+        ],
+        "parameters": [],
+        "operationId": "post/delivery-driver/assign-vehicle",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeliveryDriverRequest"
+              }
+            }
+          }
+        }
+      }
+    },
     "/device-trackings": {
       "get": {
         "responses": {
@@ -13665,6 +13746,87 @@
         ],
         "parameters": [],
         "operationId": "put/driver/payment-phone-numbers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DriverRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/driver/assign-vehicle": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DriverResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Driver"
+        ],
+        "parameters": [],
+        "operationId": "post/driver/assign-vehicle",
         "requestBody": {
           "required": true,
           "content": {
@@ -41999,6 +42161,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -54219,6 +54402,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -56488,6 +56692,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -63930,6 +64155,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -70714,6 +70960,27 @@
                         "partnerProfile": {
                           "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
                         },
+                        "vehicles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "documentId": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -76531,6 +76798,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -79466,6 +79754,27 @@
                     },
                     "partnerProfile": {
                       "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+                    },
+                    "vehicles": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "documentId": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     },
                     "createdAt": {
                       "type": "string",
@@ -83628,6 +83937,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -87850,6 +88180,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -91994,6 +92345,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -94403,6 +94775,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -96644,6 +97037,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -98927,6 +99341,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -101501,6 +101936,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -107040,6 +107496,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -109549,6 +110026,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -112094,6 +112592,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -115701,6 +116220,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -119184,6 +119724,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -123643,6 +124204,27 @@
                 "partnerProfile": {
                   "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
                 },
+                "vehicles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -125919,6 +126501,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -128372,6 +128975,27 @@
                   },
                   "partnerProfile": {
                     "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+                  },
+                  "vehicles": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    }
                   },
                   "createdAt": {
                     "type": "string",
@@ -133213,6 +133837,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -136414,6 +137059,27 @@
                     },
                     "partnerProfile": {
                       "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+                    },
+                    "vehicles": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "documentId": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     },
                     "createdAt": {
                       "type": "string",
@@ -141398,6 +142064,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -143891,6 +144578,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -149205,6 +149913,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -156988,6 +157717,27 @@
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
               },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -159826,6 +160576,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",
@@ -164924,6 +165695,27 @@
               },
               "partnerProfile": {
                 "$ref": "#/components/schemas/PartnerProfilePartnerProfileComponent"
+              },
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                }
               },
               "createdAt": {
                 "type": "string",

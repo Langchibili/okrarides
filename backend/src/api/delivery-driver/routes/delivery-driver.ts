@@ -187,5 +187,11 @@ export default {
       handler: 'delivery-driver.savePaymentPhoneNumbers',
       config:  { policies: [], middlewares: [] },
     },
+    {
+      method:  'POST',
+      path:    '/delivery-driver/assign-vehicle',
+      handler: 'delivery-driver.assignVehicle',
+      config:  { policies: [], middlewares: [] },
+    },
   ],
 };

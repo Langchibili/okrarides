@@ -241,6 +241,11 @@
       "type": "component",
       "component": "partner-profile.partner-profile",
       "repeatable": false
+    },
+    "vehicles": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::vehicle.vehicle"
     }
   }
 }
