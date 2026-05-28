@@ -2028,12 +2028,17 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         await strapi.db.query(`delivery-vehicles.${vehicleType}`).update({
           where: { id: chosenSub.id },
           data: { vehicle: vehicleId, isActive: true },
-        });
+        })
       } else {
-        await strapi.db.query('delivery-profiles.delivery-profile').update({
-          where: { id: deliveryProfile.id },
-          data: { [vehicleType]: { vehicle: vehicleId, isActive: true } },
-        });
+        const newVehicleRecord = await strapi.db.query(`delivery-vehicles.${vehicleType}`).create({
+          data: { vehicle: vehicleId, isActive: true },
+        })
+        if (newVehicleRecord?.id) {
+          await strapi.db.query('delivery-profiles.delivery-profile').update({
+            where: { id: deliveryProfile.id },
+            data: { [vehicleType]: { id: newVehicleRecord.id } },
+          });
+        }
       }
 
       // ── 5. Deactivate all other sub-components ────────────────────────────

@@ -784,15 +784,12 @@ export default factories.createCoreController(
 
                 try {
                     // 1. Update partner float
-                    await strapi.db.query('plugin::users-permissions.user').update({
-                        where: { id: partnerUser.id },
+                    await strapi.db.query('partner-profile.partner-profile').update({
+                        where: { id: Number(partnerUser.partnerProfile.id) },
                         data: {
-                            partnerProfile: {
-                                id: partnerUser.partnerProfile.id,
-                                floatBalance: newPartnerFloat,
-                            },
+                            floatBalance: newPartnerFloat
                         },
-                    });
+                    })
                     partnerUpdateDone = true;
 
                     // 2. Update driver float
@@ -1106,11 +1103,24 @@ export default factories.createCoreController(
                         partner: partnerUser.id,   // marks this as a partner top-up
                         driver: null,
                     },
-                });
+                })
+
+                const partnerAccount = await strapi.db.query('plugin::users-permissions.user').findOne({
+                    where: { id: partnerUser.id },
+                    populate: { partnerProfile: true }
+                })
+
+                const newPartnerFloatBalance = parseFloat(partnerAccount?.partnerProfile?.floatBalance) - numAmount
+                await strapi.db.query('partner-profile.partner-profile').update({
+                    where: { id: Number(partnerAccount?.partnerUser?.id) },
+                    data: {
+                        floatBalance: newPartnerFloatBalance
+                    },
+                })
 
                 strapi.log.info(
                     `[Partner:initiateFloatTopup] Created topup ${topup.id} for partner ${partnerUser.id}, K${numAmount}`
-                );
+                )
 
                 return ctx.send({
                     success: true,
