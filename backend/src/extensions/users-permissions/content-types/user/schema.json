@@ -242,6 +242,12 @@
       "component": "partner-profile.partner-profile",
       "repeatable": false
     },
+    "ledgerEntries": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ledger-entry.ledger-entry",
+      "mappedBy": "driver"
+    },
     "vehicles": {
       "type": "relation",
       "relation": "oneToMany",

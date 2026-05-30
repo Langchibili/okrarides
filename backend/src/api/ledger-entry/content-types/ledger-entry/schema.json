@@ -27,7 +27,8 @@
     "driver": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user"
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "ledgerEntries"
     },
     "ride": {
       "type": "relation",
@@ -39,6 +40,8 @@
       "required": true,
       "enum": [
         "fare",
+        "fare_cash",
+        "fare_subscription",
         "commission",
         "payout",
         "float_topup",
@@ -62,7 +65,8 @@
         "okrapay",
         "mobile_money",
         "bank_transfer",
-        "system"
+        "system",
+        "partner"
       ]
     },
     "ledgerStatus": {

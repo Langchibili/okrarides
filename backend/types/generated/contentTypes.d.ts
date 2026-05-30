@@ -2490,12 +2490,14 @@ export interface ApiLedgerEntryLedgerEntry extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     ride: Schema.Attribute.Relation<'manyToOne', 'api::ride.ride'>;
     source: Schema.Attribute.Enumeration<
-      ['cash', 'okrapay', 'mobile_money', 'bank_transfer', 'system']
+      ['cash', 'okrapay', 'mobile_money', 'bank_transfer', 'system', 'partner']
     > &
       Schema.Attribute.Required;
     type: Schema.Attribute.Enumeration<
       [
         'fare',
+        'fare_cash',
+        'fare_subscription',
         'commission',
         'payout',
         'float_topup',
@@ -4808,6 +4810,10 @@ export interface PluginUsersPermissionsUser
     isOnline: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     lastName: Schema.Attribute.String;
     lastSeen: Schema.Attribute.DateTime;
+    ledgerEntries: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::ledger-entry.ledger-entry'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',

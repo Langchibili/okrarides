@@ -23,9 +23,9 @@ import { motion } from 'framer-motion';
 const NAV = [
   { label: 'Dashboard', icon: <DashboardIcon />, href: '/dashboard' },
   { label: 'Drivers', icon: <DriversIcon />, href: '/drivers' },
+  { label: 'Rides & Deliveries', icon: <RidesIcon />, href: '/rides' },
   { label: 'Vehicles', icon: <VehiclesIcon />, href: '/vehicles' },
   { label: 'Float / Wallet', icon: <FloatIcon />, href: '/float' },
-  { label: 'Rides', icon: <RidesIcon />, href: '/rides' },
   { label: 'Support', icon: <SupportIcon />, href: '/support' },
 ];
 
