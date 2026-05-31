@@ -264,17 +264,19 @@
       "target": "plugin::users-permissions.user"
     },
     "appliedAffiliatePromoCode": {
-      "type": "string",
-      "description": "Affiliate code whose promotion was discounted on this ride/delivery"
+      "type": "string"
     },
     "appliedAffiliatePromotionId": {
-      "type": "integer",
-      "description": "ID of the affiliate_promotion record that was applied"
+      "type": "integer"
     },
     "affiliatePromoDiscount": {
       "type": "decimal",
-      "default": 0,
-      "description": "Amount deducted from fare via an affiliate promotion"
+      "default": 0
+    },
+    "partner": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
     }
   }
 }

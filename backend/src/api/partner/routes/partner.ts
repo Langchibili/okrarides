@@ -40,6 +40,22 @@ export default {
             config: { policies: [], middlewares: [] },
         },
         {
+            // Cancel a ride or delivery on behalf of the driver
+            method: 'GET',
+            path: '/partner/drivers/:id/deliveries',
+            handler: 'partner.getDriverDeliveries',
+            config: { policies: [], middlewares: [] },
+        },
+
+        // ── Support ──────────────────────────────────────────────────────────────
+        {
+            // Send a support message to Okra admin
+            method: 'GET',
+            path: '/partner/drivers/:id/rides',
+            handler: 'partner.getDriverRides',
+            config: { policies: [], middlewares: [] },
+        },
+        {
             // Credit or debit a specific driver's float
             method: 'PUT',
             path: '/partner/drivers/:id/float',
@@ -94,6 +110,12 @@ export default {
             handler: 'partner.getFleetLocations',
             config: { policies: [], middlewares: [] },
         },
+        {
+            method: 'GET',
+            path: '/partner/fleet/all',
+            handler: 'partner.getPartnerAllFleetItems',
+            config: { policies: [] }
+        },
 
         // ── Rides & deliveries ───────────────────────────────────────────────────
         {
@@ -103,6 +125,19 @@ export default {
             handler: 'partner.getFleetRides',
             config: { policies: [], middlewares: [] },
         },
+        {
+            method: 'GET',
+            path: '/partner/rides',
+            handler: 'partner.getPartnerRides',
+            config: { policies: [] }
+        },
+        {
+            method: 'GET',
+            path: '/partner/deliveries',
+            handler: 'partner.getPartnerDeliveries',
+            config: { policies: [] }
+        },
+
         {
             // Single ride or delivery detail
             method: 'GET',
@@ -125,6 +160,6 @@ export default {
             path: '/partner/support',
             handler: 'partner.contactSupport',
             config: { policies: [], middlewares: [] },
-        },
+        }
     ],
 };

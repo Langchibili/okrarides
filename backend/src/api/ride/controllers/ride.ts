@@ -88,7 +88,7 @@ async function handleCompleteTrip(
     populate: {
       driverProfile: {
         populate: { currentSubscription: true },
-      },
+      }
     },
   });
 
@@ -155,7 +155,7 @@ async function handleCompleteTrip(
       driverEarnings,
       commissionDeducted: !isSubscriptionRide,
       wasSubscriptionRide: isSubscriptionRide,
-      paymentStatus: 'completed',
+      paymentStatus: 'completed'
     },
   });
 
@@ -1796,8 +1796,11 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
         where: { id: driverId },
         populate: {
           driverProfile: {
-            populate: { assignedVehicle: true }
-          }
+            populate: {
+              assignedVehicle: true
+            }
+          },
+          partner: { select: ['id'] }
         }
       });
 
@@ -1811,7 +1814,8 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
           rideStatus: 'accepted',
           driver: driverId,
           vehicle: driver.driverProfile.assignedVehicle?.id || null,
-          acceptedAt: new Date()
+          acceptedAt: new Date(),
+          partner: driver?.partner?.id || null
         },
         populate: true
       });

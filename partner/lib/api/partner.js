@@ -53,6 +53,18 @@ export const getFleetRides = (params) => {
   return apiClient.get(`/partner/rides?${q.toString()}`);
 };
 
+// lib/api/partner.js
+export async function getPartnerFleetItems({ type, status, driverId, page, pageSize = 20 }) {
+  const params = new URLSearchParams();
+  if (type && type !== 'all') params.append('type', type);
+  if (status) params.append('status', status);
+  if (driverId) params.append('driverId', driverId);
+  params.append('page', page);
+  params.append('pageSize', pageSize);
+  const res = await apiClient.get(`/partner/fleet/all?${params.toString()}`);
+  return res; // { data: [], meta: { pagination: {...} } }
+}
+
 export const getRide = (id, isDelivery = false) =>
   apiClient.get(`/partner/rides/${id}${isDelivery ? '?isDelivery=true' : ''}`);
 

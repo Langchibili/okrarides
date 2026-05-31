@@ -44,6 +44,8 @@ export default factories.createCoreController(
                         $in: [
                             'float_topup-partner',
                             'float_debit-partner',
+                            'float_deduction',
+                            'float_topup'
                         ],
                     },
                 };
@@ -68,7 +70,11 @@ export default factories.createCoreController(
                 ]);
                 const response = await Promise.all([
                     strapi.db.query('api::ledger-entry.ledger-entry').findMany({
-                        where: { id: Number(userId) },
+                        where: {
+                            driver: {
+                                id: Number(userId)
+                            }
+                        },
                         populate: {
                             driver: true,
                             ride: true,
@@ -85,7 +91,6 @@ export default factories.createCoreController(
                     }),
                 ]);
 
-                console.log('here', response)
                 const sanitizedEntries = await this.sanitizeOutput(
                     entries,
                     ctx

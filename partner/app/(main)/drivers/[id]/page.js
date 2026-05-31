@@ -648,19 +648,9 @@ export default function DriverDetailPage() {
   const loadFloatHistory = useCallback(async (page = 1, append = false) => {
     setFloatLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.append('filters[driver][id][$eq]', id);
-      params.append('filters[type][$in][0]', 'float_topup-partner');
-      params.append('filters[type][$in][1]', 'float_debit-partner');
-      params.append('sort[0]', 'createdAt:desc');
-      params.append('pagination[page]', String(page));
-      params.append('pagination[pageSize]', String(FLOAT_PAGE_SIZE));
-      const test = await apiClient.get(
+      const res = await apiClient.get(
         `/ledger-entries/partner-floats/${id}?page=${page}&pageSize=15`
       );
-      console.log('test', test)
-      const res = await apiClient.get(`/ledger-entries?${params.toString()}`);
-      console.log('res', res)
       const entries = normList(res?.data ?? []);
       const total = res?.meta?.pagination?.total ?? 0;
 
@@ -674,30 +664,22 @@ export default function DriverDetailPage() {
       setFloatLoading(false);
     }
   }, [id]);
-
-  // ── Driver rides ──────────────────────────────────────────────────────────
+  // Updated frontend code to use partner endpoints
   const loadDriverRides = useCallback(async (page = 1, append = false, statusFilter = '') => {
     setRidesLoading(true);
     try {
       const params = new URLSearchParams();
-      params.append('filters[driver][id][$eq]', id);
-      if (statusFilter) params.append('filters[rideStatus][$eq]', statusFilter);
-      params.append('sort[0]', 'createdAt:desc');
-      params.append('pagination[page]', String(page));
-      params.append('pagination[pageSize]', String(PAGE_SIZE));
-      params.append('fields[0]', 'rideCode');
-      params.append('fields[1]', 'rideStatus');
-      params.append('fields[2]', 'totalFare');
-      params.append('fields[3]', 'paymentMethod');
-      params.append('fields[4]', 'createdAt');
-      params.append('fields[5]', 'rideType');
-      params.append('populate[rider][fields][0]', 'firstName');
-      params.append('populate[rider][fields][1]', 'lastName');
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
+      params.append('page', String(page));
+      params.append('pageSize', String(PAGE_SIZE));
+      if (statusFilter) params.append('status', statusFilter);
 
-      const res = await apiClient.get(`/rides?${params.toString()}`);
-      const entries = normList(res?.data ?? []);
-      const total = res?.meta?.pagination?.total ?? 0;
+      // Use the partner endpoint instead of direct rides endpoint
+      const res = await apiClient.get(`/partner/drivers/${id}/rides?${params.toString()}`);
 
+      // Handle the response format
+      const entries = res?.data?.data || res?.data || [];
+      const total = res?.data?.meta?.pagination?.total ?? res?.meta?.pagination?.total ?? 0;
       if (append) setDriverRides(prev => [...prev, ...entries]);
       else setDriverRides(entries);
       setRidesHasMore(page * PAGE_SIZE < total);
@@ -709,27 +691,20 @@ export default function DriverDetailPage() {
     }
   }, [id]);
 
-  // ── Driver deliveries ─────────────────────────────────────────────────────
   const loadDriverDeliveries = useCallback(async (page = 1, append = false, statusFilter = '') => {
     setDeliveriesLoading(true);
     try {
       const params = new URLSearchParams();
-      params.append('filters[deliverer][id][$eq]', id);
-      if (statusFilter) params.append('filters[rideStatus][$eq]', statusFilter);
-      params.append('sort[0]', 'createdAt:desc');
-      params.append('pagination[page]', String(page));
-      params.append('pagination[pageSize]', String(PAGE_SIZE));
-      params.append('fields[0]', 'rideCode');
-      params.append('fields[1]', 'rideStatus');
-      params.append('fields[2]', 'totalFare');
-      params.append('fields[3]', 'paymentMethod');
-      params.append('fields[4]', 'createdAt');
-      params.append('populate[sender][fields][0]', 'firstName');
-      params.append('populate[sender][fields][1]', 'lastName');
+      params.append('page', String(page));
+      params.append('pageSize', String(PAGE_SIZE));
+      if (statusFilter && statusFilter !== 'all') params.append('status', statusFilter);
 
-      const res = await apiClient.get(`/deliveries?${params.toString()}`);
-      const entries = normList(res?.data ?? []);
-      const total = res?.meta?.pagination?.total ?? 0;
+      // Use the partner endpoint instead of direct deliveries endpoint
+      const res = await apiClient.get(`/partner/drivers/${id}/deliveries?${params.toString()}`);
+
+      // Handle the response format
+      const entries = res?.data?.data || res?.data || [];
+      const total = res?.data?.meta?.pagination?.total ?? res?.meta?.pagination?.total ?? 0;
 
       if (append) setDeliveries(prev => [...prev, ...entries]);
       else setDeliveries(entries);
@@ -741,7 +716,6 @@ export default function DriverDetailPage() {
       setDeliveriesLoading(false);
     }
   }, [id]);
-
   // Tab-triggered loads
   useEffect(() => {
     if (tab === 2) loadFloatHistory(1, false);
@@ -1043,7 +1017,7 @@ export default function DriverDetailPage() {
               </Select>
             </FormControl>
             <Button size="small" variant="outlined" sx={{ borderRadius: 2, fontWeight: 700, ml: 'auto' }}
-              onClick={() => router.push(`/partner/rides?driverId=${id}`)}>
+              onClick={() => router.push(`/rides?driverId=${id}`)}>
               View All in Rides Page →
             </Button>
           </Box>
@@ -1067,7 +1041,7 @@ export default function DriverDetailPage() {
                   <TableRow><TableCell colSpan={6} align="center" sx={{ color: 'rgba(255,255,255,0.4)' }}>No rides found</TableCell></TableRow>
                 ) : (
                   driverRides.map((r) => (
-                    <TableRow key={r.id} hover sx={{ cursor: 'pointer' }} onClick={() => router.push(`/partner/rides/${r.id}`)}>
+                    <TableRow key={r.id} hover sx={{ cursor: 'pointer' }} onClick={() => router.push(`/rides/${r.id}`)}>
                       <TableCell>
                         <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: '0.8rem', color: '#F59E0B', letterSpacing: 1 }}>
                           {r.rideCode}
@@ -1136,7 +1110,7 @@ export default function DriverDetailPage() {
                   <TableRow><TableCell colSpan={6} align="center" sx={{ color: 'rgba(255,255,255,0.4)' }}>No deliveries found</TableCell></TableRow>
                 ) : (
                   deliveries.map((d) => (
-                    <TableRow key={d.id} hover sx={{ cursor: 'pointer' }} onClick={() => router.push(`/partner/rides/${d.id}?isDelivery=true`)}>
+                    <TableRow key={d.id} hover sx={{ cursor: 'pointer' }} onClick={() => router.push(`/rides/${d.id}?isDelivery=true`)}>
                       <TableCell>
                         <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: '0.8rem', color: '#8B5CF6', letterSpacing: 1 }}>
                           {d.rideCode}

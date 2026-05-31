@@ -1681,6 +1681,10 @@ export interface ApiDeliveryDelivery extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     notes: Schema.Attribute.Text;
     package: Schema.Attribute.Relation<'oneToOne', 'api::package.package'>;
+    partner: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
     passengerCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
     paymentMethod: Schema.Attribute.Enumeration<['cash', 'okrapay']> &
       Schema.Attribute.Required;
@@ -3351,6 +3355,10 @@ export interface ApiRideRide extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     notes: Schema.Attribute.Text;
     package: Schema.Attribute.Relation<'oneToOne', 'api::package.package'>;
+    partner: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
     passengerCount: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<1>;
     paymentMethod: Schema.Attribute.Enumeration<['cash', 'okrapay']> &
       Schema.Attribute.Required;

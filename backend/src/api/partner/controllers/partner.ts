@@ -1479,6 +1479,384 @@ export default factories.createCoreController(
                 return ctx.internalServerError(err.message || 'Failed to cancel ride');
             }
         },
+        // =========================================================================
+        // GET /partner/drivers/:id/rides
+        // =========================================================================
+        async getDriverRides(ctx: any) {
+            try {
+                const partnerUser = await requireApprovedPartner(ctx);
+                if (!partnerUser) return;
+
+                const { id } = ctx.params;
+                const {
+                    page = 1,
+                    pageSize = 20,
+                    status,
+                    sortBy = 'createdAt:desc'
+                } = ctx.query as any;
+
+                // Optional: verify driver belongs to partner (can be kept for early error)
+                const driver = await getOwnedDriver(id, partnerUser.id);
+                if (!driver) return ctx.forbidden('Driver is not in your fleet');
+
+                // Build where clause with BOTH driver and partner filters
+                const whereClause: any = {
+                    driver: Number(id),
+                    partner: partnerUser.id   // <-- critical addition
+                };
+                if (status && status !== 'all' && status !== '') {
+                    whereClause.rideStatus = status;
+                }
+
+                const [sortField, sortOrder] = String(sortBy).split(':');
+                const orderDirection = sortOrder === 'desc' ? 'desc' : 'asc';
+                const pageNum = Number(page);
+                const pageSizeNum = Number(pageSize);
+                const offset = (pageNum - 1) * pageSizeNum;
+
+                const total = await strapi.db.query('api::ride.ride').count({ where: whereClause });
+
+                const rides = await strapi.db.query('api::ride.ride').findMany({
+                    where: whereClause,
+                    select: [
+                        'id', 'rideCode', 'rideStatus', 'totalFare', 'paymentMethod', 'paymentStatus',
+                        'createdAt', 'tripCompletedAt', 'rideType', 'passengerCount',
+                        'driverEarnings', 'commission', 'actualDistance', 'estimatedDistance'
+                    ],
+                    populate: {
+                        rider: { select: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+                        rideClass: { select: ['id', 'name'] },
+                        vehicle: { select: ['id', 'numberPlate', 'make', 'model', 'color'] }
+                    },
+                    orderBy: { [sortField]: orderDirection },
+                    offset,
+                    limit: pageSizeNum
+                });
+
+                const formatted = rides.map((ride: any) => ({
+                    id: ride.id,
+                    rideCode: ride.rideCode,
+                    rideStatus: ride.rideStatus,
+                    totalFare: parseFloat(ride.totalFare) || 0,
+                    paymentMethod: ride.paymentMethod,
+                    paymentStatus: ride.paymentStatus,
+                    createdAt: ride.createdAt,
+                    rideType: ride.rideType || 'taxi',
+                    passengerCount: ride.passengerCount,
+                    rider: ride.rider ? {
+                        firstName: ride.rider.firstName,
+                        lastName: ride.rider.lastName
+                    } : null,
+                    driverEarnings: parseFloat(ride.driverEarnings) || 0,
+                    commission: parseFloat(ride.commission) || 0,
+                    actualDistance: parseFloat(ride.actualDistance) || 0,
+                    estimatedDistance: parseFloat(ride.estimatedDistance) || 0,
+                }));
+
+                return ctx.send({
+                    data: formatted,
+                    meta: {
+                        pagination: {
+                            page: pageNum,
+                            pageSize: pageSizeNum,
+                            pageCount: Math.ceil(total / pageSizeNum),
+                            total
+                        }
+                    }
+                });
+            } catch (err) {
+                strapi.log.error('[Partner:getDriverRides]', err);
+                return ctx.internalServerError('Failed to fetch driver rides');
+            }
+        },
+
+        // =========================================================================
+        // GET /partner/drivers/:id/deliveries
+        // =========================================================================
+        async getDriverDeliveries(ctx: any) {
+            try {
+                const partnerUser = await requireApprovedPartner(ctx);
+                if (!partnerUser) return;
+
+                const { id } = ctx.params;
+                const {
+                    page = 1,
+                    pageSize = 20,
+                    status,
+                    sortBy = 'createdAt:desc'
+                } = ctx.query as any;
+
+                const driver = await getOwnedDriver(id, partnerUser.id);
+                if (!driver) return ctx.forbidden('Driver is not in your fleet');
+
+                const whereClause: any = {
+                    deliverer: Number(id),
+                    partner: partnerUser.id   // <-- critical addition
+                };
+                if (status && status !== 'all' && status !== '') {
+                    whereClause.rideStatus = status;
+                }
+
+                const [sortField, sortOrder] = String(sortBy).split(':');
+                const orderDirection = sortOrder === 'desc' ? 'desc' : 'asc';
+                const pageNum = Number(page);
+                const pageSizeNum = Number(pageSize);
+                const offset = (pageNum - 1) * pageSizeNum;
+
+                const total = await strapi.db.query('api::delivery.delivery').count({ where: whereClause });
+
+                const deliveries = await strapi.db.query('api::delivery.delivery').findMany({
+                    where: whereClause,
+                    select: [
+                        'id', 'rideCode', 'rideStatus', 'totalFare', 'paymentMethod', 'paymentStatus',
+                        'createdAt', 'tripCompletedAt', 'rideType',
+                        'driverEarnings', 'commission', 'actualDistance', 'estimatedDistance'
+                    ],
+                    populate: {
+                        sender: { select: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+                        package: { select: ['id', 'packageName', 'packageSize', 'packageStatus'] },
+                        vehicle: { select: ['id', 'numberPlate', 'make', 'model', 'color'] }
+                    },
+                    orderBy: { [sortField]: orderDirection },
+                    offset,
+                    limit: pageSizeNum
+                });
+
+                const formatted = deliveries.map((delivery: any) => ({
+                    id: delivery.id,
+                    rideCode: delivery.rideCode,
+                    rideStatus: delivery.rideStatus,
+                    totalFare: parseFloat(delivery.totalFare) || 0,
+                    paymentMethod: delivery.paymentMethod,
+                    paymentStatus: delivery.paymentStatus,
+                    createdAt: delivery.createdAt,
+                    rideType: delivery.rideType || 'delivery',
+                    sender: delivery.sender ? {
+                        firstName: delivery.sender.firstName,
+                        lastName: delivery.sender.lastName
+                    } : null,
+                    driverEarnings: parseFloat(delivery.driverEarnings) || 0,
+                    commission: parseFloat(delivery.commission) || 0,
+                    actualDistance: parseFloat(delivery.actualDistance) || 0,
+                    estimatedDistance: parseFloat(delivery.estimatedDistance) || 0,
+                    package: delivery.package
+                }));
+
+                return ctx.send({
+                    data: formatted,
+                    meta: {
+                        pagination: {
+                            page: pageNum,
+                            pageSize: pageSizeNum,
+                            pageCount: Math.ceil(total / pageSizeNum),
+                            total
+                        }
+                    }
+                });
+            } catch (err) {
+                strapi.log.error('[Partner:getDriverDeliveries]', err);
+                return ctx.internalServerError('Failed to fetch driver deliveries');
+            }
+        },
+        // GET /partner/rides?page=1&pageSize=20&status=pending
+        async getPartnerRides(ctx: any) {
+            try {
+                const partnerUser = await requireApprovedPartner(ctx);
+                if (!partnerUser) return;
+
+                const {
+                    page = 1,
+                    pageSize = 20,
+                    status,
+                    sortBy = 'createdAt:desc'
+                } = ctx.query as any;
+
+                const whereClause: any = { partner: partnerUser.id };
+                if (status && status !== 'all' && status !== '') {
+                    whereClause.rideStatus = status;
+                }
+
+                const [sortField, sortOrder] = String(sortBy).split(':');
+                const orderDirection = sortOrder === 'desc' ? 'desc' : 'asc';
+                const pageNum = Number(page);
+                const pageSizeNum = Number(pageSize);
+                const offset = (pageNum - 1) * pageSizeNum;
+
+                const total = await strapi.db.query('api::ride.ride').count({ where: whereClause });
+
+                const rides = await strapi.db.query('api::ride.ride').findMany({
+                    where: whereClause,
+                    select: [
+                        'id', 'rideCode', 'rideStatus', 'totalFare', 'paymentMethod', 'paymentStatus',
+                        'createdAt', 'tripCompletedAt', 'rideType', 'passengerCount',
+                        'driverEarnings', 'commission', 'actualDistance', 'estimatedDistance'
+                    ],
+                    populate: {
+                        driver: { select: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+                        rider: { select: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+                        rideClass: { select: ['id', 'name'] },
+                        vehicle: { select: ['id', 'numberPlate', 'make', 'model', 'color'] }
+                    },
+                    orderBy: { [sortField]: orderDirection },
+                    offset,
+                    limit: pageSizeNum
+                });
+
+                return ctx.send({
+                    data: rides,
+                    meta: {
+                        pagination: {
+                            page: pageNum,
+                            pageSize: pageSizeNum,
+                            pageCount: Math.ceil(total / pageSizeNum),
+                            total
+                        }
+                    }
+                });
+            } catch (err) {
+                strapi.log.error('[Partner:getPartnerRides]', err);
+                return ctx.internalServerError('Failed to fetch partner rides');
+            }
+        },// GET /partner/deliveries?page=1&pageSize=20&status=completed
+        async getPartnerDeliveries(ctx: any) {
+            try {
+                const partnerUser = await requireApprovedPartner(ctx);
+                if (!partnerUser) return;
+
+                const {
+                    page = 1,
+                    pageSize = 20,
+                    status,
+                    sortBy = 'createdAt:desc'
+                } = ctx.query as any;
+
+                const whereClause: any = { partner: partnerUser.id };
+                if (status && status !== 'all' && status !== '') {
+                    whereClause.rideStatus = status;
+                }
+
+                const [sortField, sortOrder] = String(sortBy).split(':');
+                const orderDirection = sortOrder === 'desc' ? 'desc' : 'asc';
+                const pageNum = Number(page);
+                const pageSizeNum = Number(pageSize);
+                const offset = (pageNum - 1) * pageSizeNum;
+
+                const total = await strapi.db.query('api::delivery.delivery').count({ where: whereClause });
+
+                const deliveries = await strapi.db.query('api::delivery.delivery').findMany({
+                    where: whereClause,
+                    select: [
+                        'id', 'rideCode', 'rideStatus', 'totalFare', 'paymentMethod', 'paymentStatus',
+                        'createdAt', 'tripCompletedAt', 'rideType',
+                        'driverEarnings', 'commission', 'actualDistance', 'estimatedDistance'
+                    ],
+                    populate: {
+                        deliverer: { select: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+                        sender: { select: ['id', 'firstName', 'lastName', 'phoneNumber'] },
+                        package: { select: ['id', 'packageName', 'packageSize', 'packageStatus'] },
+                        vehicle: { select: ['id', 'numberPlate', 'make', 'model', 'color'] }
+                    },
+                    orderBy: { [sortField]: orderDirection },
+                    offset,
+                    limit: pageSizeNum
+                });
+
+                return ctx.send({
+                    data: deliveries,
+                    meta: {
+                        pagination: {
+                            page: pageNum,
+                            pageSize: pageSizeNum,
+                            pageCount: Math.ceil(total / pageSizeNum),
+                            total
+                        }
+                    }
+                });
+            } catch (err) {
+                strapi.log.error('[Partner:getPartnerDeliveries]', err);
+                return ctx.internalServerError('Failed to fetch partner deliveries');
+            }
+        },
+        // GET /partner/fleet/all?page=1&pageSize=20&type=all&status=pending
+        async getPartnerAllFleetItems(ctx: any) {
+            try {
+                const partnerUser = await requireApprovedPartner(ctx);
+                if (!partnerUser) return;
+
+                const {
+                    page = 1,
+                    pageSize = 20,
+                    type,      // 'rides' | 'deliveries' | 'all'
+                    status,
+                } = ctx.query as any;
+
+                const rideWhere: any = { partner: partnerUser.id };
+                const deliveryWhere: any = { partner: partnerUser.id };
+                if (status && status !== 'all' && status !== '') {
+                    rideWhere.rideStatus = status;
+                    deliveryWhere.rideStatus = status;
+                }
+
+                const includeRides = !type || type === 'all' || type === 'rides';
+                const includeDeliveries = !type || type === 'all' || type === 'deliveries';
+
+                const [rides, deliveries] = await Promise.all([
+                    includeRides
+                        ? strapi.db.query('api::ride.ride').findMany({
+                            where: rideWhere,
+                            select: [
+                                'id', 'rideCode', 'rideStatus', 'totalFare', 'paymentMethod',
+                                'createdAt', 'rideType', 'passengerCount', 'driverEarnings'
+                            ],
+                            populate: {
+                                driver: { select: ['id', 'firstName', 'lastName'] },
+                                rider: { select: ['id', 'firstName', 'lastName'] },
+                            },
+                            orderBy: { createdAt: 'desc' },
+                        })
+                        : Promise.resolve([]),
+                    includeDeliveries
+                        ? strapi.db.query('api::delivery.delivery').findMany({
+                            where: deliveryWhere,
+                            select: [
+                                'id', 'rideCode', 'rideStatus', 'totalFare', 'paymentMethod',
+                                'createdAt', 'rideType', 'driverEarnings'
+                            ],
+                            populate: {
+                                deliverer: { select: ['id', 'firstName', 'lastName'] },
+                                sender: { select: ['id', 'firstName', 'lastName'] },
+                            },
+                            orderBy: { createdAt: 'desc' },
+                        })
+                        : Promise.resolve([]),
+                ]);
+
+                const merged = [
+                    ...rides.map(r => ({ ...r, recordType: 'ride' })),
+                    ...deliveries.map(d => ({ ...d, recordType: 'delivery' })),
+                ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+                const total = merged.length;
+                const pageNum = Number(page);
+                const pageSizeNum = Number(pageSize);
+                const paged = merged.slice((pageNum - 1) * pageSizeNum, pageNum * pageSizeNum);
+
+                return ctx.send({
+                    data: paged,
+                    meta: {
+                        pagination: {
+                            page: pageNum,
+                            pageSize: pageSizeNum,
+                            pageCount: Math.ceil(total / pageSizeNum),
+                            total,
+                        },
+                    },
+                });
+            } catch (err) {
+                strapi.log.error('[Partner:getPartnerAllFleetItems]', err);
+                return ctx.internalServerError('Failed to fetch fleet items');
+            }
+        },
 
         // =========================================================================
         // POST /partner/drivers/:id/report

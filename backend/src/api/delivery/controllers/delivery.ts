@@ -109,7 +109,7 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
       driverEarnings,
       commissionDeducted: !isSubscriptionDelivery,
       wasSubscriptionRide: isSubscriptionDelivery,
-      paymentStatus: 'completed',
+      paymentStatus: 'completed'
     },
   });
 
@@ -631,6 +631,7 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         populate: {
           deliveryProfile: { populate: { taxi: { populate: { vehicle: true } }, motorbike: { populate: { vehicle: true } }, motorcycle: { populate: { vehicle: true } }, truck: { populate: { vehicle: true } } } },
           driverProfile: { select: ['id', 'partnerId'] },  // ← ADD
+          partner: { select: ['id'] }
         },
       })
 
@@ -647,6 +648,7 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
           deliverer: delivererId,
           vehicle: vehicleId || null,
           acceptedAt: new Date(),
+          partner: driver?.partner?.id || null
         },
         populate: true,
       });

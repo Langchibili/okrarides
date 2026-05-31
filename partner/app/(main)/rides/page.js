@@ -7,7 +7,7 @@ import {
   FormControl, InputLabel, Alert, CircularProgress, Tabs, Tab,
 } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getFleetRides } from '@/lib/api/partner';
+import { getFleetRides, getPartnerFleetItems } from '@/lib/api/partner';
 import { formatDateTime, formatCurrency } from '@/lib/utils/format';
 import { RIDE_STATUS_COLORS, RIDE_STATUS_LABELS } from '@/constants';
 import { usePartner } from '@/lib/hooks/usePartner';
@@ -29,17 +29,36 @@ export default function RidesPage() {
 
   const driverIdFilter = searchParams.get('driverId');
 
+  // const load = useCallback(async () => {
+  //   setLoading(true);
+  //   setError(null);
+  //   try {
+  //     const res = await getFleetRides({
+  //       type,
+  //       status: status || undefined,
+  //       driverId: driverIdFilter ? parseInt(driverIdFilter) : undefined,
+  //       page,
+  //     });
+  //     setRides(res?.data ?? [])
+  //     setMeta(res?.meta?.pagination ?? null);
+  //   } catch (e) {
+  //     setError(e.message || 'Failed to load rides');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [type, status, page, driverIdFilter]);
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getFleetRides({
+      const res = await getPartnerFleetItems({
         type,
         status: status || undefined,
         driverId: driverIdFilter ? parseInt(driverIdFilter) : undefined,
         page,
+        pageSize: 20, // or your PAGE_SIZE constant
       });
-      setRides(res?.data ?? []);
+      setRides(res?.data ?? res ?? []);
       setMeta(res?.meta?.pagination ?? null);
     } catch (e) {
       setError(e.message || 'Failed to load rides');

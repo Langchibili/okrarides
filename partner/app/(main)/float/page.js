@@ -1,29 +1,31 @@
-// PATH: appfloat/page.js
+// PATH: app/partner/float/page.js
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
-  Box, Typography, Paper, Grid, Button, TextField, Chip, Alert,
+  Box, Typography, Paper, Button, TextField, Chip, Alert,
   CircularProgress, Avatar, Snackbar, Skeleton,
 } from '@mui/material';
-import { initiatePartnerFloatTopup, getDrivers, modifyDriverFloat, getDashboard } from '@/lib/api/partner';
-import { getFloatColor, getPartnerFloatColor, formatDateTime } from '@/lib/utils/format';
+import { getDrivers, modifyDriverFloat } from '@/lib/api/partner';
+import { getFloatColor, formatDateTime } from '@/lib/utils/format';
 import { usePartner } from '@/lib/hooks/usePartner';
 import { usePartnerSocketContext } from '@/lib/socket/PartnerSocketProvider';
 import FloatModal from '@/components/partner/FloatModal';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
-import MetricCard from '@/components/partner/MetricCard';
+import OkraPayModal from '@/components/OkraPay/OkraPayModal';
 
 const QUICK_AMOUNTS = [100, 500, 1000, 2000];
 
 export default function FloatPage() {
-  const { dashboard, currency, currencyCode, phoneCode, acceptedMM, refreshDashboard, loading: partnerLoading } = usePartner();
+  const {
+    dashboard, currency, currencyCode, phoneCode, acceptedMM,
+    refreshDashboard, loading: partnerLoading,
+  } = usePartner();
   const { partnerFloatBalance: socketBalance } = usePartnerSocketContext();
   const { settings } = useAdminSettings();
 
   const [buyAmount, setBuyAmount] = useState('');
-  const [initiating, setInitiating] = useState(false);
   const [buyError, setBuyError] = useState(null);
-  const [topupId, setTopupId] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const [drivers, setDrivers] = useState([]);
   const [driversLoading, setDriversLoading] = useState(true);
@@ -52,27 +54,28 @@ export default function FloatPage() {
 
   useEffect(() => { loadDrivers(); }, [loadDrivers]);
 
-  const handleInitiateTopup = async () => {
+  // ── Validate and open OkraPay modal — no pre-call needed ──────────────────
+  const handleBuyFloat = () => {
     setBuyError(null);
     if (numBuyAmount < minTopup) { setBuyError(`Minimum top-up is ${currency}${minTopup}`); return; }
     if (numBuyAmount > maxTopup) { setBuyError(`Maximum top-up is ${currency}${maxTopup}`); return; }
-    setInitiating(true);
-    try {
-      const res = await initiatePartnerFloatTopup(numBuyAmount);
-      setTopupId(res.id);
-      // OkraPayModal would open here with purpose='floatadd' and relatedEntityId=res.id
-      // Showing informational message since OkraPayModal is driver-app specific
-      setToast({ msg: `Float top-up initiated. TopupID: ${res.topupId}. Complete via OkraPay modal.`, severity: 'info' });
-      setBuyAmount('');
-    } catch (e) {
-      setBuyError(e.message || 'Failed to initiate top-up');
-    } finally {
-      setInitiating(false);
-    }
+    setModalOpen(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setModalOpen(false);
+    setBuyAmount('');
+    refreshDashboard();
+    setToast({ msg: 'Float top-up successful! Your balance will update shortly.', severity: 'success' });
+  };
+
+  const handlePaymentError = (err) => {
+    setModalOpen(false);
+    setBuyError(err?.message || 'Payment failed — please try again.');
   };
 
   const handleQuickCredit = async (driverId, amount) => {
-    setQuickLoading((prev) => ({ ...prev, [driverId]: true }));
+    setQuickLoading(prev => ({ ...prev, [driverId]: true }));
     try {
       await modifyDriverFloat(driverId, 'CREDIT', amount);
       setToast({ msg: `${currency}${amount} sent successfully!`, severity: 'success' });
@@ -81,7 +84,7 @@ export default function FloatPage() {
     } catch (e) {
       setToast({ msg: e.message || 'Failed to send float', severity: 'error' });
     } finally {
-      setQuickLoading((prev) => ({ ...prev, [driverId]: false }));
+      setQuickLoading(prev => ({ ...prev, [driverId]: false }));
     }
   };
 
@@ -102,7 +105,7 @@ export default function FloatPage() {
       <Paper sx={{
         mb: 3, p: 3.5, borderRadius: 3,
         background: `linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)`,
-        border: 'none', position: 'relative', overflow: 'hidden',
+        position: 'relative', overflow: 'hidden',
       }}>
         <Box sx={{ position: 'absolute', top: -50, right: -50, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,0.04)' }} />
         <Box sx={{ position: 'absolute', bottom: -30, left: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.03)' }} />
@@ -121,9 +124,17 @@ export default function FloatPage() {
         </Typography>
       </Paper>
 
-      <Grid container spacing={3}>
-        {/* Buy float section */}
-        <Grid item xs={12} md={5}>
+      {/* Main two-column layout */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' },
+        gap: 3,
+        alignItems: 'start',
+        '& > *': { minWidth: 0 },
+      }}>
+
+        {/* Left: Buy float + Recent activity */}
+        <Box>
           <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
             <Typography sx={{ fontWeight: 800, color: '#fff', mb: 2 }}>Buy Float</Typography>
             <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', mb: 2.5 }}>
@@ -136,7 +147,7 @@ export default function FloatPage() {
                   key={v}
                   label={`${currency}${v.toLocaleString()}`}
                   size="small"
-                  onClick={() => setBuyAmount(String(v))}
+                  onClick={() => { setBuyAmount(String(v)); setBuyError(null); }}
                   variant={buyAmount === String(v) ? 'filled' : 'outlined'}
                   color={buyAmount === String(v) ? 'success' : 'default'}
                   sx={{ cursor: 'pointer', fontWeight: 700 }}
@@ -150,24 +161,29 @@ export default function FloatPage() {
               type="number"
               value={buyAmount}
               onChange={(e) => { setBuyAmount(e.target.value); setBuyError(null); }}
-              InputProps={{ startAdornment: <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>{currency}</Typography> }}
+              InputProps={{
+                startAdornment: (
+                  <Typography sx={{ mr: 0.5, color: 'text.secondary' }}>{currency}</Typography>
+                ),
+              }}
               sx={{ mb: 2 }}
             />
 
-            {buyError && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{buyError}</Alert>}
+            {buyError && (
+              <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{buyError}</Alert>
+            )}
 
             <Button
               fullWidth
               variant="contained"
-              onClick={handleInitiateTopup}
-              disabled={numBuyAmount <= 0 || initiating}
+              onClick={handleBuyFloat}
+              disabled={numBuyAmount <= 0}
               sx={{ height: 52, borderRadius: 2.5, fontWeight: 700, fontSize: '0.95rem' }}
             >
-              {initiating ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : `Buy Float — ${currency}${numBuyAmount.toFixed(2)}`}
+              {`Buy Float — ${currency}${numBuyAmount.toFixed(2)}`}
             </Button>
           </Paper>
 
-          {/* Recent float activity */}
           {floatHistory.length > 0 && (
             <Paper sx={{ p: 3, borderRadius: 3 }}>
               <Typography sx={{ fontWeight: 800, color: '#fff', mb: 2 }}>Recent Activity</Typography>
@@ -192,10 +208,10 @@ export default function FloatPage() {
               })}
             </Paper>
           )}
-        </Grid>
+        </Box>
 
-        {/* Distribute float section */}
-        <Grid item xs={12} md={7}>
+        {/* Right: Distribute float */}
+        <Box>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography sx={{ fontWeight: 800, color: '#fff', mb: 0.5 }}>Distribute Float</Typography>
             <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', mb: 2.5 }}>
@@ -210,10 +226,7 @@ export default function FloatPage() {
               <Typography sx={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', py: 4 }}>No drivers found</Typography>
             ) : (
               drivers.map((driver) => (
-                <Paper
-                  key={driver.id}
-                  sx={{ p: 2, borderRadius: 2.5, mb: 1.5, display: 'flex', alignItems: 'center', gap: 2, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
-                >
+                <Paper key={driver.id} sx={{ p: 2, borderRadius: 2.5, mb: 1.5, display: 'flex', alignItems: 'center', gap: 2, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <Avatar sx={{ bgcolor: '#059669', width: 36, height: 36, fontSize: '0.85rem', fontWeight: 700 }}>
                     {driver.firstName?.[0]}
                   </Avatar>
@@ -225,37 +238,27 @@ export default function FloatPage() {
                       {currency}{Number(driver.floatBalance).toFixed(2)}
                     </Typography>
                   </Box>
-                  {/* Quick amount chips */}
                   <Box sx={{ display: 'flex', gap: 0.75, flexShrink: 0 }}>
                     {[50, 100, 200].map((v) => (
-                      <Chip
-                        key={v}
-                        label={`${currency}${v}`}
-                        size="small"
-                        variant="outlined"
+                      <Chip key={v} label={`${currency}${v}`} size="small" variant="outlined"
                         disabled={quickLoading[driver.id]}
                         onClick={() => handleQuickCredit(driver.id, v)}
-                        sx={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.65rem' }}
-                      />
+                        sx={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.65rem' }} />
                     ))}
                   </Box>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => setFloatModal(driver)}
+                  <Button size="small" variant="outlined" onClick={() => setFloatModal(driver)}
                     disabled={quickLoading[driver.id]}
-                    sx={{ borderRadius: 2, fontWeight: 700, flexShrink: 0, fontSize: '0.75rem' }}
-                  >
+                    sx={{ borderRadius: 2, fontWeight: 700, flexShrink: 0, fontSize: '0.75rem' }}>
                     {quickLoading[driver.id] ? <CircularProgress size={14} /> : 'Custom'}
                   </Button>
                 </Paper>
               ))
             )}
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
-      {/* Float modal for custom amounts */}
+      {/* FloatModal for distributing to drivers */}
       {floatModal && (
         <FloatModal
           open={!!floatModal}
@@ -264,20 +267,30 @@ export default function FloatPage() {
           partnerFloatBalance={displayBalance}
           defaultAction="CREDIT"
           currency={currency}
-          onSuccess={() => { setFloatModal(null); refreshDashboard(); loadDrivers(); setToast({ msg: 'Float sent!', severity: 'success' }); }}
+          onSuccess={() => {
+            setFloatModal(null);
+            refreshDashboard();
+            loadDrivers();
+            setToast({ msg: 'Float sent!', severity: 'success' });
+          }}
         />
       )}
 
-      {/* Toast */}
-      <Snackbar
-        open={!!toast}
-        autoHideDuration={4000}
-        onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity={toast?.severity} onClose={() => setToast(null)} sx={{ borderRadius: 2.5 }}>
-          {toast?.msg}
-        </Alert>
+      {/* OkraPay modal — no relatedEntityId needed; modal creates the intent inline */}
+      <OkraPayModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        amount={numBuyAmount}
+        purpose="floatadd"
+        currency={currencyCode ?? 'ZMW'}
+        phoneCode={phoneCode ?? '260'}
+        acceptedMobileMoneyPayments={acceptedMM}
+        onSuccess={handlePaymentSuccess}
+        onError={handlePaymentError}
+      />
+
+      <Snackbar open={!!toast} autoHideDuration={4000} onClose={() => setToast(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity={toast?.severity} onClose={() => setToast(null)} sx={{ borderRadius: 2.5 }}>{toast?.msg}</Alert>
       </Snackbar>
     </Box>
   );
