@@ -48,7 +48,7 @@ export default function FloatTopupPage() {
   // user.country is populated by useAuth — no extra API call needed.
   const userCountry = user?.country;
   const phoneCode = String(userCountry?.phoneCode || '260').replace(/\D/g, '');
-  const currency = (userCountry?.currency?.code || savedCurrencyCode()).toUpperCase();
+  const currency = savedCurrencyCode().toUpperCase();
   const acceptedMM = Array.isArray(userCountry?.acceptedMobileMoneyPayments)
     ? userCountry.acceptedMobileMoneyPayments
     : null;
