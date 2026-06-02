@@ -70,6 +70,11 @@
       "relation": "manyToMany",
       "target": "api::vehicle.vehicle",
       "inversedBy": "rideClasses"
+    },
+    "countries": {
+      "type": "component",
+      "component": "countries.countries",
+      "repeatable": true
     }
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 /**
  * OkraPayModal — updated
- * PATH: shared/components/OkraPayModal.jsx
+ * PATH: omponents/OkraPayModal.jsx
  *
  * Changes vs previous version:
  *  1. Auto-detect operator from phone prefix:
@@ -23,41 +23,41 @@ import {
   InputLabel, Divider, Chip, LinearProgress, Fade,
 } from '@mui/material';
 import {
-  Close          as CloseIcon,
-  Phone          as PhoneIcon,
-  CreditCard     as CardIcon,
+  Close as CloseIcon,
+  Phone as PhoneIcon,
+  CreditCard as CardIcon,
   AccountBalance as BankIcon,
-  CheckCircle    as CheckIcon,
-  ErrorOutline   as ErrorIcon,
-  Lock           as LockIcon,
+  CheckCircle as CheckIcon,
+  ErrorOutline as ErrorIcon,
+  Lock as LockIcon,
   AccountBalanceWallet as WalletIcon,
   Visibility, VisibilityOff,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '@/lib/api/client';
-import { formatCurrency } from '@/Functions';
+import { formatCurrency, savedCurrencyCode, savedPhoneCode } from '@/Functions';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
 const POLL_INTERVAL_MS = 3_000;
-const POLL_TIMEOUT_MS  = 5 * 60 * 1_000; // 5 min
+const POLL_TIMEOUT_MS = 5 * 60 * 1_000; // 5 min
 
 const INSUFFICIENT_FUNDS_REASON =
   'Insufficient funds or wallet withdrawal limit exceeded';
 
 const ZM_OPERATORS = [
-  { value: 'mtn',    label: 'MTN',    color: '#FFCC00' },
+  { value: 'mtn', label: 'MTN', color: '#FFCC00' },
   { value: 'airtel', label: 'Airtel', color: '#EE0000' },
   { value: 'zamtel', label: 'Zamtel', color: '#228B22' },
 ];
 
 const ZM_BANKS = [
-  { id: 'zanaco',     name: 'Zanaco'             },
-  { id: 'stanchart',  name: 'Standard Chartered' },
-  { id: 'absa',       name: 'ABSA'               },
-  { id: 'fnbzambia',  name: 'FNB Zambia'         },
-  { id: 'investrust', name: 'Investrust Bank'    },
-  { id: 'atlas',      name: 'Atlas Mara'         },
+  { id: 'zanaco', name: 'Zanaco' },
+  { id: 'stanchart', name: 'Standard Chartered' },
+  { id: 'absa', name: 'ABSA' },
+  { id: 'fnbzambia', name: 'FNB Zambia' },
+  { id: 'investrust', name: 'Investrust Bank' },
+  { id: 'atlas', name: 'Atlas Mara' },
 ];
 
 // ─── Phone helpers ─────────────────────────────────────────────────────────────
@@ -73,7 +73,7 @@ const ZM_BANKS = [
 function detectOperator(phone) {
   const digits = phone.replace(/\D/g, '');
   // Normalise: strip leading 260 (Zambia) if present
-  const local  = digits.startsWith('260') ? digits.slice(3) : digits;
+  const local = digits.startsWith('260') ? digits.slice(3) : digits;
 
   if (/^(097|97|077|77)/.test(local)) return 'airtel';
   if (/^(096|96|076|76)/.test(local)) return 'mtn';
@@ -96,8 +96,8 @@ function detectOperator(phone) {
  *   "260971234567"  → "260971234567"  (idempotent)
  */
 function normalisePhone(phone, phoneCode) {
-  const code   = String(phoneCode).replace(/\D/g, '');  // e.g. "260"
-  let   digits = String(phone).replace(/\D/g, '');
+  const code = String(phoneCode).replace(/\D/g, '');  // e.g. "260"
+  let digits = String(phone).replace(/\D/g, '');
 
   // Remove already-present country code
   if (digits.startsWith(code)) digits = digits.slice(code.length);
@@ -114,7 +114,7 @@ function normalisePhone(phone, phoneCode) {
 // ─── Card formatters ───────────────────────────────────────────────────────────
 
 const fmtCard = v => v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
-const fmtExp  = v => {
+const fmtExp = v => {
   const d = v.replace(/\D/g, '').slice(0, 4);
   return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
 };
@@ -127,23 +127,23 @@ export default function OkraPayModal({
   open,
   onClose,
   amount,                     // number — read-only display
-  purpose       = 'ridepay',  // 'ridepay'|'floatadd'|'subpay'|'walletTopup'|'withdraw'
+  purpose = 'ridepay',  // 'ridepay'|'floatadd'|'subpay'|'walletTopup'|'withdraw'
   relatedEntityId,
-  currency      = 'ZMW',      // resolved from user's country.currency.code on parent
+  currency = savedCurrencyCode(),      // resolved from user's country.currency.code on parent
   /** Dial code WITHOUT +, from user's country.phoneCode.  e.g. "260" */
-  phoneCode     = '260',
+  phoneCode = savedPhoneCode(),
   /**
    * user.country.acceptedMobileMoneyPayments — e.g. ["mtn", "airtel", "zamtel"]
    * Falls back to all three if not provided.
    */
   acceptedMobileMoneyPayments = null,
-  onSuccess     = () => {},
-  onError       = () => {},
+  onSuccess = () => { },
+  onError = () => { },
 }) {
   const isWithdraw = purpose === 'withdraw';
 
   // ── UI state ──────────────────────────────────────────────────────────────
-  const [tab,      setTab]      = useState(0);
+  const [tab, setTab] = useState(0);
   /**
    * Phase machine:
    *   'form'         → user filling in fields
@@ -154,34 +154,34 @@ export default function OkraPayModal({
    *   'insufficient' → Lenco: "Insufficient funds or wallet withdrawal limit exceeded"
    *   'error'        → any other failure
    */
-  const [phase,    setPhase]    = useState('form');
+  const [phase, setPhase] = useState('form');
   const [errorMsg, setErrorMsg] = useState('');
 
   // ── Mobile Money form ─────────────────────────────────────────────────────
-  const [mmPhone,    setMmPhone]    = useState('');
+  const [mmPhone, setMmPhone] = useState('');
   const [mmOperator, setMmOperator] = useState('');
 
   // ── Card form ─────────────────────────────────────────────────────────────
-  const [cardNum,     setCardNum]     = useState('');
-  const [expiry,      setExpiry]      = useState('');
-  const [cvv,         setCvv]         = useState('');
-  const [showCvv,     setShowCvv]     = useState(false);
-  const [cardFirst,   setCardFirst]   = useState('');
-  const [cardLast,    setCardLast]    = useState('');
-  const [billStreet,  setBillStreet]  = useState('');
-  const [billCity,    setBillCity]    = useState('');
-  const [billPostal,  setBillPostal]  = useState('');
+  const [cardNum, setCardNum] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [showCvv, setShowCvv] = useState(false);
+  const [cardFirst, setCardFirst] = useState('');
+  const [cardLast, setCardLast] = useState('');
+  const [billStreet, setBillStreet] = useState('');
+  const [billCity, setBillCity] = useState('');
+  const [billPostal, setBillPostal] = useState('');
   const [billCountry, setBillCountry] = useState('ZM');
 
   // ── Bank withdrawal form ──────────────────────────────────────────────────
-  const [bankAccNum,  setBankAccNum]  = useState('');
-  const [bankId,      setBankId]      = useState('');
+  const [bankAccNum, setBankAccNum] = useState('');
+  const [bankId, setBankId] = useState('');
   const [bankAccName, setBankAccName] = useState('');
 
   // ── Polling ────────────────────────────────────────────────────────────────
-  const pollRef  = useRef(null);
-  const tmoRef   = useRef(null);
-  const mounted  = useRef(true);
+  const pollRef = useRef(null);
+  const tmoRef = useRef(null);
+  const mounted = useRef(true);
 
   useEffect(() => {
     mounted.current = true;
@@ -224,7 +224,7 @@ export default function OkraPayModal({
     pollRef.current = setInterval(async () => {
       if (!mounted.current) return;
       try {
-        const res    = await apiClient.get(`/okrapay/status/${ref}`);
+        const res = await apiClient.get(`/okrapay/status/${ref}`);
         const status = res?.paymentStatus;
 
         if (status === 'completed') {
@@ -330,16 +330,16 @@ export default function OkraPayModal({
         paymentType: 'card',
         customer: { firstName: cardFirst, lastName: cardLast },
         card: {
-          number:      cardNum.replace(/\s/g, ''),
+          number: cardNum.replace(/\s/g, ''),
           expiryMonth: expMonth?.trim(),
-          expiryYear:  `20${expYearShort?.trim()}`,
+          expiryYear: `20${expYearShort?.trim()}`,
           cvv,
         },
         billing: {
           streetAddress: billStreet,
-          city:          billCity,
-          postalCode:    billPostal,
-          country:       billCountry,
+          city: billCity,
+          postalCode: billPostal,
+          country: billCountry,
         },
         redirectUrl: `${window.location.origin}/payment/callback`,
       });
@@ -349,9 +349,9 @@ export default function OkraPayModal({
         return;
       }
 
-      const d           = res?.data;
+      const d = res?.data;
       const lencoStatus = d?.lencoStatus;
-      const ref         = d?.reference;
+      const ref = d?.reference;
 
       if (lencoStatus === 'successful') {
         setPhase('success');
@@ -383,9 +383,9 @@ export default function OkraPayModal({
 
       const res = await apiClient.post('/okrapay/request-withdrawal', {
         amount,
-        method:      'mobile_money',
+        method: 'mobile_money',
         phone,
-        operator:    mmOperator,
+        operator: mmOperator,
         accountName: phone,  // display fallback
       });
 
@@ -404,10 +404,10 @@ export default function OkraPayModal({
     try {
       const res = await apiClient.post('/okrapay/request-withdrawal', {
         amount,
-        method:        'bank_account',
+        method: 'bank_account',
         accountNumber: bankAccNum,
         bankId,
-        accountName:   bankAccName,
+        accountName: bankAccName,
       });
 
       const ref = res?.data?.reference;
@@ -584,16 +584,16 @@ export default function OkraPayModal({
 
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
         <TextField label="First Name" value={cardFirst} onChange={e => setCardFirst(e.target.value)} fullWidth />
-        <TextField label="Last Name"  value={cardLast}  onChange={e => setCardLast(e.target.value)}  fullWidth />
+        <TextField label="Last Name" value={cardLast} onChange={e => setCardLast(e.target.value)} fullWidth />
       </Box>
 
       <Divider sx={{ my: 0.5 }}>
         <Typography variant="caption" color="text.secondary">Billing Address</Typography>
       </Divider>
 
-      <TextField label="Street Address" value={billStreet}  onChange={e => setBillStreet(e.target.value)}  fullWidth />
+      <TextField label="Street Address" value={billStreet} onChange={e => setBillStreet(e.target.value)} fullWidth />
       <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 2 }}>
-        <TextField label="City"        value={billCity}   onChange={e => setBillCity(e.target.value)}   fullWidth />
+        <TextField label="City" value={billCity} onChange={e => setBillCity(e.target.value)} fullWidth />
         <TextField label="Postal Code" value={billPostal} onChange={e => setBillPostal(e.target.value)} fullWidth />
       </Box>
 

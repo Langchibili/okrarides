@@ -9,12 +9,12 @@ import {
   List, ListItem, ListItemText, Divider, CircularProgress,
 } from '@mui/material';
 import {
-  ArrowBack            as BackIcon,
+  ArrowBack as BackIcon,
   AccountBalanceWallet as WalletIcon,
-  Lock                 as LockIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { formatCurrency } from '@/Functions';
+import { formatCurrency, savedCurrencyCode, savedCurrencySymbol } from '@/Functions';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
 import OkraPayModal from '@/components/OkraPay/OkraPayModal';
@@ -37,14 +37,14 @@ export default function WithdrawPage() {
   const { user, loading: userLoading } = useAuth();
 
   const {
-    loading:              settingsLoading,
+    loading: settingsLoading,
     isWithdrawFromFloat,
     minimumWithdrawAmount,
   } = useAdminSettings();
 
-  const [amount,    setAmount]    = useState('');
+  const [amount, setAmount] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [error,     setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   // ── Balance resolution from user.driverProfile ─────────────────────────────
   const dp = user?.driverProfile ?? {};
@@ -52,11 +52,11 @@ export default function WithdrawPage() {
   const withdrawableFloatBalance =
     Number(dp.WithdrawablefloatBalance ?? dp.withdrawableFloatBalance) || 0;
 
-  const currentBalance    = Number(dp.currentBalance)    || 0;
+  const currentBalance = Number(dp.currentBalance) || 0;
   const pendingWithdrawal = Number(dp.pendingWithdrawal) || 0;
-  const totalFloat        = Number(dp.floatBalance)      || 0;
+  const totalFloat = Number(dp.floatBalance) || 0;
 
-  const availablePool    = isWithdrawFromFloat ? withdrawableFloatBalance : currentBalance;
+  const availablePool = isWithdrawFromFloat ? withdrawableFloatBalance : currentBalance;
   const availableBalance = Math.max(0, availablePool - pendingWithdrawal);
 
   const promoFloat = isWithdrawFromFloat
@@ -64,27 +64,27 @@ export default function WithdrawPage() {
     : 0;
 
   // ── Country / phone / currency from user.country ───────────────────────────
-  const country    = user?.country ?? {};
-  const phoneCode  = String(country.phoneCode  || '260').replace(/\D/g, '');
-  const currency   = 'ZMW';
+  const country = user?.country ?? {};
+  const phoneCode = String(country.phoneCode || '260').replace(/\D/g, '');
+  const currency = savedCurrencyCode();
   const acceptedMM = Array.isArray(country.acceptedMobileMoneyPayments)
     ? country.acceptedMobileMoneyPayments
     : null;
 
   // ── Labels ─────────────────────────────────────────────────────────────────
   const balanceLabel = isWithdrawFromFloat ? 'Withdrawable Float' : 'Available Earnings';
-  const poolNote     = isWithdrawFromFloat
+  const poolNote = isWithdrawFromFloat
     ? 'Float you personally topped up — promo credit excluded'
     : 'Ride earnings accumulated on the platform';
 
   // ── Amount validation ──────────────────────────────────────────────────────
-  const numAmount     = parseFloat(amount) || 0;
+  const numAmount = parseFloat(amount) || 0;
   const settingsReady = !settingsLoading && minimumWithdrawAmount != null;
-  const isBelowMin    = numAmount > 0 && settingsReady && numAmount < minimumWithdrawAmount;
-  const isOverMax     = numAmount > availableBalance;
-  const isFormValid   = settingsReady && numAmount >= minimumWithdrawAmount && numAmount <= availableBalance;
+  const isBelowMin = numAmount > 0 && settingsReady && numAmount < minimumWithdrawAmount;
+  const isOverMax = numAmount > availableBalance;
+  const isFormValid = settingsReady && numAmount >= minimumWithdrawAmount && numAmount <= availableBalance;
 
-  const hasNothing   = availableBalance <= 0;
+  const hasNothing = availableBalance <= 0;
   const hasTooLittle = availableBalance > 0 && settingsReady && availableBalance < minimumWithdrawAmount;
 
   const quickAmounts = settingsReady
@@ -250,7 +250,7 @@ export default function WithdrawPage() {
                 value={amount}
                 onChange={e => { setAmount(e.target.value); setError(null); }}
                 InputProps={{
-                  startAdornment: <InputAdornment position="start">K</InputAdornment>,
+                  startAdornment: <InputAdornment position="start">{savedCurrencySymbol()}</InputAdornment>,
                   endAdornment: (
                     <InputAdornment position="end">
                       <Button
@@ -268,8 +268,8 @@ export default function WithdrawPage() {
                   isBelowMin
                     ? `Minimum is ${formatCurrency(minimumWithdrawAmount)}`
                     : isOverMax
-                    ? `Max available is ${formatCurrency(availableBalance)}`
-                    : `Min: ${formatCurrency(minimumWithdrawAmount)} · Max: ${formatCurrency(availableBalance)}`
+                      ? `Max available is ${formatCurrency(availableBalance)}`
+                      : `Min: ${formatCurrency(minimumWithdrawAmount)} · Max: ${formatCurrency(availableBalance)}`
                 }
                 sx={{ mb: quickAmounts.length > 0 ? 2 : 0 }}
               />
@@ -317,7 +317,7 @@ export default function WithdrawPage() {
                   </ListItem>
                   <ListItem sx={{ px: 0 }}>
                     <ListItemText primary="Processing Fee" />
-                    <Typography color="text.secondary">K 0.00</Typography>
+                    <Typography color="text.secondary">{savedCurrencySymbol()} 0.00</Typography>
                   </ListItem>
                   <Divider sx={{ my: 1 }} />
                   <ListItem sx={{ px: 0 }}>

@@ -35,25 +35,32 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { apiClient } from '@/lib/api/client';
 import useAdminSettings from '@/lib/hooks/useAdminSettings';
-import { getImageUrl } from '@/Functions';
+import { getImageUrl, savedCurrencyCode, savedPhoneCode } from '@/Functions';
 
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const POLL_INTERVAL_MS = 3_000;
-const POLL_TIMEOUT_MS  = 5 * 60 * 1_000;
-const LANDING_BASE     = process.env.NEXT_PUBLIC_FRONTEND_URL || '';
-const API_URL          = process.env.NEXT_PUBLIC_API_URL     || 'http://localhost:1343';
+const POLL_TIMEOUT_MS = 5 * 60 * 1_000;
+const LANDING_BASE = process.env.NEXT_PUBLIC_FRONTEND_URL || '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1343';
 
 const ZM_OPERATORS = [
-  { value: 'mtn',    label: 'MTN',    color: '#FFCC00' },
+  { value: 'mtn', label: 'MTN', color: '#FFCC00' },
   { value: 'airtel', label: 'Airtel', color: '#EE0000' },
   { value: 'zamtel', label: 'Zamtel', color: '#228B22' },
 ];
 
 function detectOperator(phone) {
-  const local = phone.replace(/\D/g, '').replace(/^260/, '').replace(/^0+/, '');
+  const countryCode = String(savedPhoneCode());
+
+  const local = phone
+    .replace(/\D/g, '')
+    .replace(new RegExp(`^${countryCode}`), '')
+    .replace(/^0+/, '');
+
   if (/^(97|77)/.test(local)) return 'airtel';
   if (/^(96|76)/.test(local)) return 'mtn';
+
   return null;
 }
 
@@ -65,7 +72,14 @@ function normalisePhone(phone, phoneCode) {
   return `${code}${digits.slice(-9)}`;
 }
 
-function fmtCurrency(amount, symbol = 'K') {
+function fmtCurrency(amount, symbolInput = 'K') {
+  let symbol = symbolInput
+  if (typeof window !== 'undefined') {
+    const savedCurrencySymbol = localStorage.getItem('savedCurrencySymbol')
+    if (savedCurrencySymbol) {
+      symbol = savedCurrencySymbol || 'K'
+    }
+  }
   const n = parseFloat(amount) || 0;
   return `${symbol}${n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
 }
@@ -89,7 +103,7 @@ const hideScrollbar = {
 
 // ── Stat Tile ────────────────────────────────────────────────────────────────
 function StatTile({ label, value, sub, accent, icon }) {
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   return (
     <Paper elevation={0} sx={{
@@ -146,20 +160,20 @@ function QRPanel({ qrUrl, affiliateCode }) {
   const handleDownload = async () => {
     if (!qrUrl) return;
     try {
-      const res  = await fetch(qrUrl);
+      const res = await fetch(qrUrl);
       const blob = await res.blob();
       const href = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = href;
+      const a = document.createElement('a');
+      a.href = href;
       a.download = `okra-affiliate-${affiliateCode}.png`;
       a.click();
       URL.revokeObjectURL(href);
     } catch {
       // Fallback: direct link (browser may navigate instead of downloading)
-      const a    = document.createElement('a');
-      a.href     = qrUrl;
+      const a = document.createElement('a');
+      a.href = qrUrl;
       a.download = `okra-affiliate-${affiliateCode}.png`;
-      a.target   = '_blank';
+      a.target = '_blank';
       a.click();
     }
   };
@@ -254,15 +268,15 @@ function QRPanel({ qrUrl, affiliateCode }) {
 
 // ── Withdrawal bottom sheet ──────────────────────────────────────────────────
 function WithdrawOverlay({ open, amount, currency, phoneCode, acceptedMM, onClose, onSuccess, onError }) {
-  const [phase,    setPhase]    = useState('form');
-  const [phone,    setPhone]    = useState('');
+  const [phase, setPhase] = useState('form');
+  const [phone, setPhone] = useState('');
   const [operator, setOperator] = useState('');
-  const [errMsg,   setErrMsg]   = useState('');
+  const [errMsg, setErrMsg] = useState('');
   const pollRef = useRef(null);
-  const tmoRef  = useRef(null);
+  const tmoRef = useRef(null);
   const mounted = useRef(true);
-  const theme   = useTheme();
-  const isDark  = theme.palette.mode === 'dark';
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   useEffect(() => {
     mounted.current = true;
@@ -330,10 +344,10 @@ function WithdrawOverlay({ open, amount, currency, phoneCode, acceptedMM, onClos
   const allowedOps = Array.isArray(acceptedMM) && acceptedMM.length
     ? ZM_OPERATORS.filter(o => acceptedMM.map(v => v.toLowerCase()).includes(o.value))
     : ZM_OPERATORS;
-  const opLabel        = allowedOps.find(o => o.value === operator)?.label || '';
-  const opColor        = allowedOps.find(o => o.value === operator)?.color;
+  const opLabel = allowedOps.find(o => o.value === operator)?.label || '';
+  const opColor = allowedOps.find(o => o.value === operator)?.color;
   const formattedPhone = phone.replace(/\D/g, '').length >= 9 ? normalisePhone(phone, phoneCode) : null;
-  const canSubmit      = phase === 'form' && phone.replace(/\D/g, '').length >= 9 && !!operator;
+  const canSubmit = phase === 'form' && phone.replace(/\D/g, '').length >= 9 && !!operator;
 
   if (!open) return null;
 
@@ -466,19 +480,19 @@ function WithdrawOverlay({ open, amount, currency, phoneCode, acceptedMM, onClos
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 export default function AffiliateDashboard() {
-  const router  = useRouter();
-  const theme   = useTheme();
-  const isDark  = theme.palette.mode === 'dark';
+  const router = useRouter();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { user, loading: authLoading } = useAuth();
 
-  const [data,         setData]         = useState(null);
-  const [txs,          setTxs]          = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [tab,          setTab]          = useState(0);
-  const [copied,       setCopied]       = useState(false);
-  const [withdrawAmt,  setWithdrawAmt]  = useState('');
+  const [data, setData] = useState(null);
+  const [txs, setTxs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [withdrawAmt, setWithdrawAmt] = useState('');
   const [showWithdraw, setShowWithdraw] = useState(false);
-  const [withdrawErr,  setWithdrawErr]  = useState('');
+  const [withdrawErr, setWithdrawErr] = useState('');
   const { isAffiliateSystemEnabled } = useAdminSettings();
 
   // ── Fetch dashboard data ─────────────────────────────────────────────────
@@ -492,7 +506,7 @@ export default function AffiliateDashboard() {
           apiClient.get('/affiliate/transactions?pageSize=20'),
         ]);
         const res = await apiClient.get('/affiliate/dashboard')
-        console.log('res',res)
+        console.log('res', res)
         setData(dash?.data);
         setTxs(txRes?.data || []);
       } catch (err) {
@@ -507,7 +521,7 @@ export default function AffiliateDashboard() {
   // affiliateProfile.qrCode is a Strapi media entity populated by the dashboard
   // endpoint. It has a `url` field which may be relative (/uploads/...) or
   // absolute (https://cdn...). resolveMediaUrl() handles both cases.
-  
+
   const qrUrl = process.env.NEXT_PUBLIC_UPLOAD_PUBLIC_API_URL + getImageUrl(data?.profile?.qrCode)
   // ── Copy affiliate code ──────────────────────────────────────────────────
   const handleCopy = () => {
@@ -522,7 +536,7 @@ export default function AffiliateDashboard() {
   // ── Share affiliate link ──────────────────────────────────────────────────
   const handleShare = async () => {
     const code = data?.profile?.affiliateCode;
-    const url  = `${LANDING_BASE}?ref=${code}`;
+    const url = `${LANDING_BASE}?ref=${code}`;
     if (navigator.share) {
       await navigator.share({ title: 'Join Okra!', text: `Use my code ${code} to sign up.`, url });
     } else {
@@ -535,7 +549,7 @@ export default function AffiliateDashboard() {
   // ── Withdrawal handlers ──────────────────────────────────────────────────
   const handleWithdrawSuccess = () => {
     setShowWithdraw(false);
-    apiClient.get('/affiliate/dashboard').then(d => setData(d?.data)).catch(() => {});
+    apiClient.get('/affiliate/dashboard').then(d => setData(d?.data)).catch(() => { });
   };
 
   // ── Loading state ────────────────────────────────────────────────────────
@@ -574,12 +588,12 @@ export default function AffiliateDashboard() {
   }
 
   // ── Derived values ───────────────────────────────────────────────────────
-  const profile    = data?.profile ?? {};
-  const rate       = data?.conversionRate ?? { ratePerPoint: 0.1, currencySymbol: 'K', currencyCode: 'ZMW', affiliatePoints: 1, currencyAmount: 0.1 };
-  const minRedeem  = data?.minimumPointsForRedemption ?? 100;
-  const minWithdr  = data?.minimumWithdrawAmount      ?? 10;
-  const sym        = rate.currencySymbol;
-  const cashValue  = (profile.pointsBalance ?? 0) * rate.ratePerPoint;
+  const profile = data?.profile ?? {};
+  const rate = data?.conversionRate ?? { ratePerPoint: 0.1, currencySymbol: 'K', currencyCode: savedCurrencyCode(), affiliatePoints: 1, currencyAmount: 0.1 };
+  const minRedeem = data?.minimumPointsForRedemption ?? 100;
+  const minWithdr = data?.minimumWithdrawAmount ?? 10;
+  const sym = rate.currencySymbol;
+  const cashValue = (profile.pointsBalance ?? 0) * rate.ratePerPoint;
   const canWithdraw = (profile.withdrawableBalance ?? 0) >= minWithdr && !profile.blocked;
   const numWithdraw = parseFloat(withdrawAmt) || 0;
   const withdrawValid = numWithdraw >= minWithdr && numWithdraw <= (profile.withdrawableBalance ?? 0);
@@ -610,7 +624,7 @@ export default function AffiliateDashboard() {
         overflowY: 'auto',
         pb: 10,
         ...hideScrollbar,
-        }}>
+      }}>
         {/* Blocked banner */}
         <AnimatePresence>
           {profile.blocked && (
@@ -681,10 +695,10 @@ export default function AffiliateDashboard() {
         {/* Stat tiles */}
         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, p: 2, pt: 1.5 }}>
           {[
-            { label: 'Points Balance',     value: (profile.pointsBalance ?? 0).toLocaleString(), sub: `≈ ${fmtCurrency(cashValue, sym)}`,                              accent: '#10B981', icon: '⭐' },
-            { label: 'Withdrawable',        value: fmtCurrency(profile.withdrawableBalance, sym), sub: `${rate.affiliatePoints} pts = ${fmtCurrency(rate.currencyAmount, sym)}`, accent: '#3B82F6', icon: '💰' },
-            { label: 'Total Points Earned', value: (profile.totalPoints ?? 0).toLocaleString(),   sub: 'All time',                                                       accent: '#8B5CF6', icon: '🏆' },
-            { label: 'Total Earnings',      value: fmtCurrency(profile.totalEarnings, sym),       sub: 'All time',                                                       accent: '#F59E0B', icon: '📈' },
+            { label: 'Points Balance', value: (profile.pointsBalance ?? 0).toLocaleString(), sub: `≈ ${fmtCurrency(cashValue, sym)}`, accent: '#10B981', icon: '⭐' },
+            { label: 'Withdrawable', value: fmtCurrency(profile.withdrawableBalance, sym), sub: `${rate.affiliatePoints} pts = ${fmtCurrency(rate.currencyAmount, sym)}`, accent: '#3B82F6', icon: '💰' },
+            { label: 'Total Points Earned', value: (profile.totalPoints ?? 0).toLocaleString(), sub: 'All time', accent: '#8B5CF6', icon: '🏆' },
+            { label: 'Total Earnings', value: fmtCurrency(profile.totalEarnings, sym), sub: 'All time', accent: '#F59E0B', icon: '📈' },
           ].map((t, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 + i * 0.05 }}>
               <StatTile {...t} />
@@ -713,9 +727,9 @@ export default function AffiliateDashboard() {
 
         {/* Tabs */}
         <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth" sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tab label="QR Code"  />
+          <Tab label="QR Code" />
           <Tab label="Withdraw" />
-          <Tab label="History"  />
+          <Tab label="History" />
         </Tabs>
 
         {/* ── QR Tab ──────────────────────────────────────────────────────── */}
@@ -768,7 +782,7 @@ export default function AffiliateDashboard() {
                     helperText={
                       withdrawErr
                       || (numWithdraw > 0 && numWithdraw < minWithdr ? `Minimum is ${fmtCurrency(minWithdr, sym)}`
-                          : numWithdraw > (profile.withdrawableBalance ?? 0) ? `Max is ${fmtCurrency(profile.withdrawableBalance, sym)}`
+                        : numWithdraw > (profile.withdrawableBalance ?? 0) ? `Max is ${fmtCurrency(profile.withdrawableBalance, sym)}`
                           : `Min: ${fmtCurrency(minWithdr, sym)} · Max: ${fmtCurrency(profile.withdrawableBalance, sym)}`)
                     }
                     sx={{ mb: 1.5 }}
@@ -827,7 +841,7 @@ export default function AffiliateDashboard() {
             open={showWithdraw}
             amount={numWithdraw}
             currency={{ symbol: sym, code: rate.currencyCode }}
-            phoneCode={data?.user?.country?.phoneCode ?? '260'}
+            phoneCode={data?.user?.country?.phoneCode ?? savedPhoneCode()}
             acceptedMM={data?.user?.country?.acceptedMobileMoneyPayments ?? null}
             onClose={() => setShowWithdraw(false)}
             onSuccess={handleWithdrawSuccess}

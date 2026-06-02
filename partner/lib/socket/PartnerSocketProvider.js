@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { savedCurrencySymbol } from '../utils/format';
 
 const PartnerSocketContext = createContext(null);
 
@@ -65,7 +66,7 @@ export function PartnerSocketProvider({ children, fleetDriverIds, onReconnect })
       socket.on(event, (data) => {
         const id = Number(data.driverId ?? data.delivererId);
         if (!fleetSet.current.has(id)) return;
-        const finalFare = data.finalFare ? ` — K${Number(data.finalFare).toFixed(2)}` : '';
+        const finalFare = data.finalFare ? ` — ${savedCurrencySymbol()}${Number(data.finalFare).toFixed(2)}` : '';
         pushTicker({ id: `${Date.now()}-${id}`, timestamp: Date.now(), driverId: id, driverName: `Driver #${id}`, message: `${message}${finalFare}`, type });
       });
     });
@@ -79,7 +80,7 @@ export function PartnerSocketProvider({ children, fleetDriverIds, onReconnect })
       socket.on(event, (data) => {
         const id = Number(data.delivererId);
         if (!fleetSet.current.has(id)) return;
-        const finalFare = data.finalFare ? ` — K${Number(data.finalFare).toFixed(2)}` : '';
+        const finalFare = data.finalFare ? ` — ${savedCurrencySymbol()}${Number(data.finalFare).toFixed(2)}` : '';
         pushTicker({ id: `${Date.now()}-${id}`, timestamp: Date.now(), driverId: id, driverName: `Driver #${id}`, message: `${message}${finalFare}`, type });
       });
     });

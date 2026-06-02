@@ -17,7 +17,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
 import { getDrivers } from '@/lib/api/partner';
-import { getPhoneDigits, getFloatColor } from '@/lib/utils/format';
+import { getPhoneDigits, getFloatColor, savedCurrencySymbol } from '@/lib/utils/format';
 import { STATUS_CHIP_COLOR } from '@/constants';
 import FloatModal from '@/components/partner/FloatModal';
 import { usePartner } from '@/lib/hooks/usePartner';
@@ -558,7 +558,7 @@ export default function DriversPage() {
                       <TableCell>{renderStatusChip(d.status)}</TableCell>
                       <TableCell>
                         <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.875rem', fontWeight: 700, color: getFloatColor(d.floatBalance) }}>
-                          K{Number(d.floatBalance).toFixed(2)}
+                          {savedCurrencySymbol()}{Number(d.floatBalance).toFixed(2)}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -640,7 +640,7 @@ export default function DriversPage() {
                         </Typography>
                       </Box>
                       <Typography sx={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: getFloatColor(d.floatBalance), fontSize: '0.9rem' }}>
-                        K{Number(d.floatBalance).toFixed(2)}
+                        {savedCurrencySymbol()}{Number(d.floatBalance).toFixed(2)}
                       </Typography>
                     </Box>
 

@@ -8,7 +8,7 @@ import {
   IconButton, InputAdornment, Alert, Chip,
 } from '@mui/material';
 import { ArrowBack as BackIcon, Add as AddIcon } from '@mui/icons-material';
-import { formatCurrency } from '@/Functions';
+import { formatCurrency, savedCurrencyCode, savedCurrencySymbol } from '@/Functions';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
 import OkraPayModal from '@/components/OkraPay/OkraPayModal';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -37,19 +37,19 @@ export default function FloatTopupPage() {
     maximumFloatTopup,
   } = useAdminSettings();
 
-  const [amount,    setAmount]    = useState('');
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState(null);
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [topupId,   setTopupId]   = useState(null);
+  const [topupId, setTopupId] = useState(null);
   const { user } = useAuth();
 
   // ── Derive country / currency / operators from the already-loaded user ──────
   // user.country is populated by useAuth — no extra API call needed.
   const userCountry = user?.country;
-  const phoneCode   = String(userCountry?.phoneCode  || '260').replace(/\D/g, '');
-  const currency    = (userCountry?.currency?.code   || 'ZMW').toUpperCase();
-  const acceptedMM  = Array.isArray(userCountry?.acceptedMobileMoneyPayments)
+  const phoneCode = String(userCountry?.phoneCode || '260').replace(/\D/g, '');
+  const currency = (userCountry?.currency?.code || savedCurrencyCode()).toUpperCase();
+  const acceptedMM = Array.isArray(userCountry?.acceptedMobileMoneyPayments)
     ? userCountry.acceptedMobileMoneyPayments
     : null;
 
@@ -59,7 +59,7 @@ export default function FloatTopupPage() {
   const maxTopup = maximumFloatTopup || 1000;
 
   const okrapayAvailable = isOkrapayEnabled && allowFloatTopUpWithOkraPay;
-  const numAmount        = parseFloat(amount) || 0;
+  const numAmount = parseFloat(amount) || 0;
 
   const handleQuickAmount = value => setAmount(value.toString());
 
@@ -82,7 +82,7 @@ export default function FloatTopupPage() {
       // to OkraPay as relatedEntityId.
       const paymentMethod = okrapayAvailable ? 'okrapay' : 'cash';
       const res = await createFloatTopupIntent(numAmount, user, paymentMethod);
-      const id  = res?.data?.id ?? res?.id;
+      const id = res?.data?.id ?? res?.id;
 
       if (!id) throw new Error('Could not create top-up record');
 
@@ -107,20 +107,20 @@ export default function FloatTopupPage() {
   };
 
   return (
-    <Box sx={{ minHeight:'100vh', bgcolor:'background.default', pb:10 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 10 }}>
       <AppBar position="static" elevation={0}>
         <Toolbar>
           <IconButton edge="start" color="inherit" onClick={() => router.back()}>
             <BackIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ flex:1 }}>Top Up Float</Typography>
+          <Typography variant="h6" sx={{ flex: 1 }}>Top Up Float</Typography>
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ p:3 }}>
+      <Box sx={{ p: 3 }}>
         {/* ── Amount ──────────────────────────────────────────────────────── */}
-        <Paper elevation={2} sx={{ p:3, borderRadius:3, mb:3 }}>
-          <Typography variant="h6" fontWeight={600} sx={{ mb:2 }}>Enter Amount</Typography>
+        <Paper elevation={2} sx={{ p: 3, borderRadius: 3, mb: 3 }}>
+          <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>Enter Amount</Typography>
           <TextField
             fullWidth
             label="Top-up Amount"
@@ -128,25 +128,25 @@ export default function FloatTopupPage() {
             value={amount}
             onChange={e => { setAmount(e.target.value); setError(null); }}
             InputProps={{
-              startAdornment:<InputAdornment position="start">K</InputAdornment>,
+              startAdornment: <InputAdornment position="start">{savedCurrencySymbol()}</InputAdornment>,
             }}
             helperText={`Min: ${formatCurrency(minTopup)} · Max: ${formatCurrency(maxTopup)}`}
-            sx={{ mb:2 }}
+            sx={{ mb: 2 }}
           />
 
-          <Typography variant="body2" color="text.secondary" sx={{ mb:1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             Quick amounts:
           </Typography>
-          <Box sx={{ display:'flex', gap:1, flexWrap:'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             {quickAmounts.map(v => (
               <Chip
                 key={v}
                 label={formatCurrency(v)}
                 onClick={() => { handleQuickAmount(v); setError(null); }}
                 sx={{
-                  cursor:'pointer', fontWeight:600,
+                  cursor: 'pointer', fontWeight: 600,
                   bgcolor: amount === v.toString() ? 'primary.main' : undefined,
-                  color:   amount === v.toString() ? '#fff'          : undefined,
+                  color: amount === v.toString() ? '#fff' : undefined,
                 }}
               />
             ))}
@@ -155,19 +155,19 @@ export default function FloatTopupPage() {
 
         {/* ── Info ────────────────────────────────────────────────────────── */}
         {!okrapayAvailable && (
-          <Alert severity="info" sx={{ mb:3 }}>
+          <Alert severity="info" sx={{ mb: 3 }}>
             Online payment is currently unavailable. Please contact support.
           </Alert>
         )}
 
-        <Alert severity="info" sx={{ mb:3 }}>
+        <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="body2">
             The amount will be added to your float balance after successful payment.
             Commission from cash rides will be deducted from your float.
           </Typography>
         </Alert>
 
-        {error && <Alert severity="error" sx={{ mb:3 }}>{error}</Alert>}
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
         {/* ── CTA ─────────────────────────────────────────────────────────── */}
         <Button
@@ -177,7 +177,7 @@ export default function FloatTopupPage() {
           disabled={loading || !numAmount || !okrapayAvailable}
           onClick={handleOpenPayment}
           startIcon={loading ? <span /> : <AddIcon />}
-          sx={{ height:56, borderRadius:3, fontWeight:700 }}
+          sx={{ height: 56, borderRadius: 3, fontWeight: 700 }}
         >
           {loading ? 'Preparing…' : `Top Up ${formatCurrency(numAmount || 0)}`}
         </Button>

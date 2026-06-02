@@ -1,5 +1,6 @@
 // PATH: rider/lib/api/wallet.js
 
+import { savedCurrencyCode } from '@/Functions';
 import { apiClient } from './client';
 
 export const walletAPI = {
@@ -8,7 +9,7 @@ export const walletAPI = {
     const response = await apiClient.get('/users/me?populate=riderProfile');
     return {
       balance: response.riderProfile?.walletBalance || 0,
-      currency: 'ZMW',
+      currency: savedCurrencyCode(),
     };
   },
 
@@ -17,7 +18,7 @@ export const walletAPI = {
     const { page = 1, limit = 20, type, transactionStatus } = params;
 
     const filterParts = [];
-    if (type)              filterParts.push(`filters[type][$eq]=${encodeURIComponent(type)}`);
+    if (type) filterParts.push(`filters[type][$eq]=${encodeURIComponent(type)}`);
     if (transactionStatus) filterParts.push(`filters[transactionStatus][$eq]=${encodeURIComponent(transactionStatus)}`);
 
     const query = [
@@ -53,9 +54,9 @@ export const walletAPI = {
 
     // 2. Initiate OkraPay payment
     const paymentResponse = await apiClient.post('/okrapay/initiate', {
-      purpose:         'walletTopup',
+      purpose: 'walletTopup',
       amount,
-      currency:        'ZMW',
+      currency: savedCurrencyCode(),
       relatedEntityId: topupId,
     });
 
@@ -65,9 +66,9 @@ export const walletAPI = {
 
     return {
       ...topupResponse.data,
-      paymentId:     paymentResponse.data?.paymentId,
-      reference:     paymentResponse.data?.reference,
-      paymentUrl:    paymentResponse.data?.paymentUrl,
+      paymentId: paymentResponse.data?.paymentId,
+      reference: paymentResponse.data?.reference,
+      paymentUrl: paymentResponse.data?.paymentUrl,
       gatewayConfig: paymentResponse.data?.gatewayConfig,
     };
   },
@@ -83,9 +84,9 @@ export const walletAPI = {
   //
   async payForRide(rideId, fareAmount) {
     const response = await apiClient.post('/okrapay/initiate', {
-      purpose:         'ridepay',
-      amount:          fareAmount,
-      currency:        'ZMW',
+      purpose: 'ridepay',
+      amount: fareAmount,
+      currency: savedCurrencyCode(),
       relatedEntityId: rideId,   // ride id — backend derives rider from ride record
     });
 
@@ -130,10 +131,10 @@ export const walletAPI = {
 
     const response = await apiClient.post('/okrapay/request-withdrawal', {
       amount,
-      method:        method        || 'mobile_money',
-      provider:      provider      || accountDetails?.provider,
+      method: method || 'mobile_money',
+      provider: provider || accountDetails?.provider,
       accountNumber: data.accountNumber || accountDetails?.accountNumber,
-      accountName:   accountName   || accountDetails?.accountName,
+      accountName: accountName || accountDetails?.accountName,
     });
 
     return response.data || response;

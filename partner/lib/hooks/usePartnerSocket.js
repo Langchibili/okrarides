@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './useAuth';
+import { savedCurrencySymbol } from '../utils/format';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3005';
 
@@ -76,7 +77,7 @@ export function usePartnerSocket(fleetDriverIds) {
 
     socket.on('ride:trip:completed', ({ rideId, driverId, finalFare }) => {
       if (!fleetIdsRef.current.has(Number(driverId))) return;
-      pushTicker(driverId, `Driver #${driverId}`, `completed a trip — K${Number(finalFare).toFixed(2)}`, 'trip_completed');
+      pushTicker(driverId, `Driver #${driverId}`, `completed a trip — ${savedCurrencySymbol()}${Number(finalFare).toFixed(2)}`, 'trip_completed');
     });
 
     socket.on('ride:cancelled', ({ rideId, driverId }) => {
@@ -91,7 +92,7 @@ export function usePartnerSocket(fleetDriverIds) {
 
     socket.on('delivery:completed', ({ deliveryId, delivererId, finalFare }) => {
       if (!fleetIdsRef.current.has(Number(delivererId))) return;
-      pushTicker(delivererId, `Driver #${delivererId}`, `completed a delivery — K${Number(finalFare).toFixed(2)}`, 'delivery_completed');
+      pushTicker(delivererId, `Driver #${delivererId}`, `completed a delivery — ${savedCurrencySymbol()}${Number(finalFare).toFixed(2)}`, 'delivery_completed');
     });
 
     socket.on('partner:float:updated', ({ newPartnerBalance }) => {

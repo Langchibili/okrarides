@@ -24,7 +24,7 @@ import { getPhoneDigits } from '@/Functions';
 export default function LoginPage() {
   const router = useRouter();
   const { loginWithOTP, isAuthenticated } = useAuth();
-  
+
   const [step, setStep] = useState(0); // 0: country selection, 1: phone input
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,21 +41,20 @@ export default function LoginPage() {
   const fetchCountries = async () => {
     try {
       setCountriesLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/countries?filters[isActive][$eq]=true&sort=name:asc`);
-      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/countries?filters[isActive][$eq]=true&populate=currency&sort=name:asc`);
+
       if (!response.ok) throw new Error('Failed to fetch countries');
-      
+
       const data = await response.json();
       setCountries(data.data);
-      
       // Set Zambia as default
-      const zambia = data.data.find(country => 
+      const zambia = data.data.find(country =>
         country.code === 'ZM' || country.name === 'Zambia'
       );
       if (zambia) {
         setSelectedCountry(zambia);
       } else if (data.data.length > 0) {
-        setSelectedCountry(data.data[0]);
+        setSelectedCountry(data.data[0])
       }
     } catch (err) {
       setError('Failed to load countries. Please refresh the page.');
@@ -77,67 +76,70 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     // Validate phone number
-    const phoneNumberDigitLenth =  (selectedCountry.phoneNumberDigitLenth || 9) 
-    const cleanPhone = getPhoneDigits(phoneNumber,phoneNumberDigitLenth)
+    const phoneNumberDigitLenth = (selectedCountry.phoneNumberDigitLenth || 9)
+    const cleanPhone = getPhoneDigits(phoneNumber, phoneNumberDigitLenth)
     if (cleanPhone.length < phoneNumberDigitLenth) {
       setError('Please enter a valid phone number')
       return
     }
-    
+
     const fullPhone = `${selectedCountry.phoneCode.replace('+', '')}${cleanPhone}`;
+
     if (typeof window !== 'undefined') {
-        localStorage.setItem('phoneNumberDigitLenth',phoneNumberDigitLenth)
-        localStorage.setItem('savedPhoneCode',selectedCountry.phoneCode.replace('+', ''))
-        localStorage.setItem('savedCountryName',selectedCountry.name)    
-     }
+      localStorage.setItem('savedCurrencyCode', selectedCountry?.currency?.code || 'ZMK')
+      localStorage.setItem('savedCurrencySymbol', selectedCountry?.currency?.symbol || 'K')
+      localStorage.setItem('phoneNumberDigitLenth', phoneNumberDigitLenth)
+      localStorage.setItem('savedPhoneCode', selectedCountry.phoneCode.replace('+', ''))
+      localStorage.setItem('savedCountryName', selectedCountry.name)
+    }
     try {
       try {
-              setLoading(true);
-              const res = await apiClient.post('/account-exist-check/check-user', {
-                username: fullPhone,
-              })
-      
-              if (res?.userExists) {
-                try{
-                 await loginWithOTP(fullPhone.replace(/\D/g, ''));
-                }
-                catch(err){
-                   console.error(err)
-                }
-                finally{
-                  // Navigate to OTP verification
-                  router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
-                }
-                return // this is to ensure no other code runs in the entire block
-              }
-              else{
-                 setExistsSnackbar(true)
-                 setTimeout(() => {
-                    router.push('/signup');
-                  }, 800)
-                  return // this is to ensure no other code runs in the entire block
-              }
-            } catch (err) {
-              // Non-blocking — if the check fails, just continue to registration
-               console.warn('Account existence check failed:', err);
-               router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
-            }
+        setLoading(true);
+        const res = await apiClient.post('/account-exist-check/check-user', {
+          username: fullPhone,
+        })
+
+        if (res?.userExists) {
+          try {
+            await loginWithOTP(fullPhone.replace(/\D/g, ''));
+          }
+          catch (err) {
+            console.error(err)
+          }
+          finally {
+            // Navigate to OTP verification
+            router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
+          }
+          return // this is to ensure no other code runs in the entire block
+        }
+        else {
+          setExistsSnackbar(true)
+          setTimeout(() => {
+            router.push('/signup');
+          }, 800)
+          return // this is to ensure no other code runs in the entire block
+        }
+      } catch (err) {
+        // Non-blocking — if the check fails, just continue to registration
+        console.warn('Account existence check failed:', err);
+        router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
+      }
     } catch (err) {
       console.warn(err)
-      if(err.message && err.message === "This attribute must be unique"){
-         router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
-         setError('OTP already sent');
-         return;
+      if (err.message && err.message === "This attribute must be unique") {
+        router.push(`/verify-phone?phone=${encodeURIComponent(fullPhone.replace(/\D/g, ''))}&purpose=login`);
+        setError('OTP already sent');
+        return;
       }
       setError(err.message || 'Failed to send OTP. Please try again.');
     } finally {
       setLoading(false);
     }
   }
-  
-  if(isAuthenticated()){
+
+  if (isAuthenticated()) {
     router.push('/')
   }
 
@@ -165,7 +167,7 @@ export default function LoginPage() {
           </Typography>
         </motion.div>
       </Box>
-      
+
       {/* Form */}
       <motion.div
         key={step}
@@ -179,7 +181,7 @@ export default function LoginPage() {
             <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
               Country
             </Typography>
-            
+
             {countriesLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                 <CircularProgress />
@@ -219,7 +221,7 @@ export default function LoginPage() {
               <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
                 Phone Number
               </Typography>
-              
+
               <TextField
                 fullWidth
                 type="tel"
@@ -246,7 +248,7 @@ export default function LoginPage() {
                 }}
               />
             </Box>
-            
+
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -257,7 +259,7 @@ export default function LoginPage() {
                 </Alert>
               </motion.div>
             )}
-            
+
             <Button
               fullWidth
               type="submit"
@@ -277,7 +279,7 @@ export default function LoginPage() {
                 'Continue'
               )}
             </Button>
-            
+
             <Button
               fullWidth
               variant="text"
@@ -292,7 +294,7 @@ export default function LoginPage() {
           </form>
         )}
       </motion.div>
-      
+
       {/* Error for country selection */}
       {step === 0 && error && (
         <motion.div
@@ -307,7 +309,7 @@ export default function LoginPage() {
 
       {/* Spacer */}
       <Box sx={{ flex: 0.5 }} />
-      
+
       {/* Actions for country selection */}
       {step === 0 && !countriesLoading && (
         <>
@@ -326,7 +328,7 @@ export default function LoginPage() {
           >
             Continue
           </Button>
-          
+
           <Button
             fullWidth
             variant="text"
@@ -359,7 +361,7 @@ export default function LoginPage() {
           ← Change Country
         </Button>
       )}
-      
+
       {/* Footer */}
       <Typography
         variant="caption"

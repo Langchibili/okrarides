@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { getDashboard } from '@/lib/api/partner';
+import { savedCurrencyCode, savedCurrencySymbol, savedPhoneCode } from '../utils/format';
 
 export function usePartner() {
   const { user } = useAuth();
@@ -11,9 +12,9 @@ export function usePartner() {
 
   const partnerProfile = user?.partnerProfile ?? null;
   const isApproved = partnerProfile?.verificationStatus === 'approved';
-  const currency = user?.country?.currency?.symbol ?? 'K';
-  const phoneCode = String(user?.country?.phoneCode ?? '260').replace(/\D/g, '');
-  const currencyCode = user?.country?.currency?.code ?? 'ZMW';
+  const currency = user?.country?.currency?.symbol ?? savedCurrencySymbol();
+  const phoneCode = String(user?.country?.phoneCode ?? savedPhoneCode()).replace(/\D/g, '');
+  const currencyCode = user?.country?.currency?.code ?? savedCurrencyCode();
   const acceptedMM = user?.country?.acceptedMobileMoneyPayments ?? null;
 
   const loadDashboard = useCallback(async () => {

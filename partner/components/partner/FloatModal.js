@@ -8,10 +8,11 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { modifyDriverFloat } from '@/lib/api/partner';
+import { savedCurrencySymbol } from '@/lib/utils/format';
 
 export default function FloatModal({
   open, onClose, driver, partnerFloatBalance,
-  defaultAction = 'CREDIT', onSuccess, currency = 'K',
+  defaultAction = 'CREDIT', onSuccess, currency = savedCurrencySymbol(),
 }) {
   const [action, setAction] = useState(defaultAction);
   const [amount, setAmount] = useState('');

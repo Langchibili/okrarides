@@ -1562,6 +1562,7 @@ export interface ApiDeliveryClassDeliveryClass
   attributes: {
     baseFare: Schema.Attribute.Decimal & Schema.Attribute.Required;
     commissionPercentage: Schema.Attribute.Decimal;
+    countries: Schema.Attribute.Component<'countries.countries', true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -3255,6 +3256,7 @@ export interface ApiRideClassRideClass extends Struct.CollectionTypeSchema {
   attributes: {
     baseFare: Schema.Attribute.Decimal & Schema.Attribute.Required;
     commissionPercentage: Schema.Attribute.Decimal;
+    countries: Schema.Attribute.Component<'countries.countries', true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

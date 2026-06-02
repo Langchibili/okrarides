@@ -54,6 +54,23 @@ export interface ConductorProfilesConductorProfile
   };
 }
 
+export interface CountriesCountries extends Struct.ComponentSchema {
+  collectionName: 'components_countries_countries';
+  info: {
+    displayName: 'countries';
+    icon: 'earth';
+  };
+  attributes: {
+    baseFare: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    commissionPercentage: Schema.Attribute.Decimal;
+    country: Schema.Attribute.Relation<'oneToOne', 'api::country.country'>;
+    isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    minimumFare: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    perKmRate: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    perMinuteRate: Schema.Attribute.Decimal & Schema.Attribute.Required;
+  };
+}
+
 export interface DeliveryProfilesDeliveryProfile
   extends Struct.ComponentSchema {
   collectionName: 'components_delivery_profiles_delivery_profiles';
@@ -481,6 +498,7 @@ declare module '@strapi/strapi' {
     export interface ComponentSchemas {
       'affiliate.affiliate-profile': AffiliateAffiliateProfile;
       'conductor-profiles.conductor-profile': ConductorProfilesConductorProfile;
+      'countries.countries': CountriesCountries;
       'delivery-profiles.delivery-profile': DeliveryProfilesDeliveryProfile;
       'delivery-vehicles.motorbike': DeliveryVehiclesMotorbike;
       'delivery-vehicles.motorcycle': DeliveryVehiclesMotorcycle;

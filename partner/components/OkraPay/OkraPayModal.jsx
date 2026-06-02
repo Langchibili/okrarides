@@ -37,6 +37,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '@/lib/api/client';
 import { formatCurrency } from '@/Functions';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { savedCurrencyCode, savedPhoneCode } from '@/lib/utils/format';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
@@ -130,9 +131,9 @@ export default function OkraPayModal({
   amount,                     // number — read-only display
   purpose = 'ridepay',  // 'ridepay'|'floatadd'|'subpay'|'walletTopup'|'withdraw'
   relatedEntityId,
-  currency = 'ZMW',      // resolved from user's country.currency.code on parent
+  currency = savedCurrencyCode(),      // resolved from user's country.currency.code on parent
   /** Dial code WITHOUT +, from user's country.phoneCode.  e.g. "260" */
-  phoneCode = '260',
+  phoneCode = savedPhoneCode(),
   /**
    * user.country.acceptedMobileMoneyPayments — e.g. ["mtn", "airtel", "zamtel"]
    * Falls back to all three if not provided.

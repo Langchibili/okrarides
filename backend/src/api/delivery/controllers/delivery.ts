@@ -16,6 +16,11 @@ import socketService from '../../../services/socketService';
 import { processAffiliatePoints } from '../../../services/affiliateService';
 import { checkAndApplyDeliveryDiscount } from '../../../services/affiliatePromotionService';
 import { SendEmailNotification } from '../../../services/messages';
+import {
+  getUserCountryId,
+  resolveCountryPricing,
+  isClassVisibleForCountry,
+} from '../../../utils/country-pricing';
 
 // ─── Complete delivery helper ─────────────────────────────────────────────
 interface HandleCompleteDeliveryInput {
@@ -469,13 +474,101 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
     }
   },
 
+  // old implementation
   // ─── Estimate delivery fare ───────────────────────────────────────────────
+  // async estimate(ctx) {
+  //   try {
+  //     const {
+  //       pickupLocation,
+  //       dropoffLocation,
+  //       deliveryClassName,    // 'standard' | 'midsize' | 'big' | 'large'
+  //       isFragile = false,
+  //       weightKg = null,
+  //       vehicleTypePreference = null,
+  //     } = ctx.request.body;
+
+  //     if (!pickupLocation || !dropoffLocation) {
+  //       return ctx.badRequest('Pickup and dropoff locations are required');
+  //     }
+
+  //     // Distance / duration
+  //     const distance = calculateDistance(pickupLocation, dropoffLocation);
+  //     const duration = estimateDuration(distance);
+
+  //     // Load delivery classes — optionally filtered by name
+  //     const classWhere: any = { isActive: true };
+  //     if (deliveryClassName) classWhere.name = deliveryClassName;
+
+  //     const deliveryClasses = await strapi.db.query('api::delivery-class.delivery-class').findMany({
+  //       where: classWhere,
+  //       orderBy: { displayOrder: 'asc' },
+  //     });
+
+  //     if (!deliveryClasses.length) {
+  //       return ctx.badRequest('No matching delivery class found');
+  //     }
+
+  //     const estimates = deliveryClasses.map((dc: any) => {
+  //       const baseFare = dc.baseFare || 0;
+  //       const distanceFare = distance * (dc.perKmRate || 0);
+  //       const timeFare = duration * (dc.perMinuteRate || 0);
+  //       let subtotal = baseFare + distanceFare + timeFare;
+
+  //       // Fragile surcharge
+  //       const fragileSurcharge = isFragile ? (dc.extraChargeForFragileItem || 0) : 0;
+  //       subtotal += fragileSurcharge;
+
+  //       // Extra weight charge — only if weightKg provided and class defines a threshold
+  //       // (Strapi schema doesn't have a threshold field yet, so we apply per-extra-kg
+  //       // as a flat multiplier when weightKg > maxWeightKg)
+  //       let extraWeightCharge = 0;
+  //       if (weightKg && dc.maxWeightKg && weightKg > dc.maxWeightKg && dc.extraWeightCharge) {
+  //         const extraKg = weightKg - dc.maxWeightKg;
+  //         extraWeightCharge = extraKg * dc.extraWeightCharge;
+  //         subtotal += extraWeightCharge;
+  //       }
+
+  //       // Ensure minimum fare
+  //       const totalFare = Math.max(subtotal, dc.minimumFare || 0);
+
+  //       return {
+  //         deliveryClassId: dc.id,
+  //         deliveryClassName: dc.name,
+  //         name: dc.name,
+  //         description: dc.description,
+  //         maxWeightKg: dc.maxWeightKg,
+  //         baseFare: parseFloat(baseFare.toFixed(2)),
+  //         distanceFare: parseFloat(distanceFare.toFixed(2)),
+  //         timeFare: parseFloat(timeFare.toFixed(2)),
+  //         fragileSurcharge: parseFloat(fragileSurcharge.toFixed(2)),
+  //         extraWeightCharge: parseFloat(extraWeightCharge.toFixed(2)),
+  //         subtotal: parseFloat(subtotal.toFixed(2)),
+  //         totalFare: parseFloat(totalFare.toFixed(2)),
+  //         estimatedDistance: parseFloat(distance.toFixed(2)),
+  //         estimatedDuration: duration,
+  //       };
+  //     });
+
+  //     return ctx.send({
+  //       estimates,
+  //       vehicleTypePreference,  // echoed back so the booking payload carries it
+  //       route: {
+  //         distance: `${distance.toFixed(1)} km`,
+  //         duration: `${duration} min`,
+  //       },
+  //     });
+  //   } catch (error) {
+  //     strapi.log.error('[Delivery] estimate error:', error);
+  //     return ctx.internalServerError('Failed to calculate delivery estimate');
+  //   }
+  // },
+  // new implementation, with country based pricing
   async estimate(ctx) {
     try {
       const {
         pickupLocation,
         dropoffLocation,
-        deliveryClassName,    // 'standard' | 'midsize' | 'big' | 'large'
+        deliveryClassName,
         isFragile = false,
         weightKg = null,
         vehicleTypePreference = null,
@@ -485,45 +578,62 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         return ctx.badRequest('Pickup and dropoff locations are required');
       }
 
-      // Distance / duration
+      // ── Resolve the caller's country ────────────────────────────────────
+      const userCountryId = await getUserCountryId(strapi, ctx.state.user?.id);
+
       const distance = calculateDistance(pickupLocation, dropoffLocation);
       const duration = estimateDuration(distance);
 
-      // Load delivery classes — optionally filtered by name
-      const classWhere: any = { isActive: true };
+      // ── Fetch all classes (active or not) ───────────────────────────────
+      const classWhere: any = {};
       if (deliveryClassName) classWhere.name = deliveryClassName;
 
-      const deliveryClasses = await strapi.db.query('api::delivery-class.delivery-class').findMany({
-        where: classWhere,
-        orderBy: { displayOrder: 'asc' },
-      });
+      const allDeliveryClasses = await strapi.db
+        .query('api::delivery-class.delivery-class')
+        .findMany({
+          where: classWhere,
+          orderBy: { displayOrder: 'asc' },
+          populate: {
+            countries: { populate: { country: true } },
+          },
+        });
+
+      // ── Apply country-aware visibility rule ─────────────────────────────
+      const deliveryClasses = allDeliveryClasses.filter((dc: any) =>
+        isClassVisibleForCountry(dc, userCountryId),
+      );
 
       if (!deliveryClasses.length) {
         return ctx.badRequest('No matching delivery class found');
       }
 
+      // ── Build estimates ──────────────────────────────────────────────────
       const estimates = deliveryClasses.map((dc: any) => {
-        const baseFare = dc.baseFare || 0;
-        const distanceFare = distance * (dc.perKmRate || 0);
-        const timeFare = duration * (dc.perMinuteRate || 0);
+        // Country-specific prices take precedence; fall back to class defaults.
+        const cp = resolveCountryPricing(dc.countries, userCountryId);
+
+        const baseFare = cp?.baseFare ?? dc.baseFare ?? 0;
+        const perKmRate = cp?.perKmRate ?? dc.perKmRate ?? 0;
+        const perMinuteRate = cp?.perMinuteRate ?? dc.perMinuteRate ?? 0;
+        const minimumFare = cp?.minimumFare ?? dc.minimumFare ?? 0;
+
+        const distanceFare = distance * perKmRate;
+        const timeFare = duration * perMinuteRate;
         let subtotal = baseFare + distanceFare + timeFare;
 
-        // Fragile surcharge
-        const fragileSurcharge = isFragile ? (dc.extraChargeForFragileItem || 0) : 0;
+        // Fragile surcharge — class-level only (not in the countries component)
+        const fragileSurcharge = isFragile ? (dc.extraChargeForFragileItem ?? 0) : 0;
         subtotal += fragileSurcharge;
 
-        // Extra weight charge — only if weightKg provided and class defines a threshold
-        // (Strapi schema doesn't have a threshold field yet, so we apply per-extra-kg
-        // as a flat multiplier when weightKg > maxWeightKg)
+        // Extra weight charge — class-level only
         let extraWeightCharge = 0;
         if (weightKg && dc.maxWeightKg && weightKg > dc.maxWeightKg && dc.extraWeightCharge) {
-          const extraKg = weightKg - dc.maxWeightKg;
-          extraWeightCharge = extraKg * dc.extraWeightCharge;
+          extraWeightCharge = (weightKg - dc.maxWeightKg) * dc.extraWeightCharge;
           subtotal += extraWeightCharge;
         }
 
-        // Ensure minimum fare
-        const totalFare = Math.max(subtotal, dc.minimumFare || 0);
+        // Enforce the (country-specific) minimum fare
+        const totalFare = Math.max(subtotal, minimumFare);
 
         return {
           deliveryClassId: dc.id,
@@ -545,7 +655,7 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
 
       return ctx.send({
         estimates,
-        vehicleTypePreference,  // echoed back so the booking payload carries it
+        vehicleTypePreference,
         route: {
           distance: `${distance.toFixed(1)} km`,
           duration: `${duration} min`,
@@ -556,7 +666,6 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
       return ctx.internalServerError('Failed to calculate delivery estimate');
     }
   },
-
   // ─── Get active delivery (sender or deliverer) ────────────────────────────
   async getActiveDelivery(ctx) {
     try {

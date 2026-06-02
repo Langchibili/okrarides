@@ -26,7 +26,7 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useWallet } from '@/lib/hooks/useWallet';
-import { formatCurrency, formatDate } from '@/Functions';
+import { formatCurrency, formatDate, savedCurrencyCode } from '@/Functions';
 import { Button, Spinner, EmptyState } from '@/components/ui';
 
 export default function WalletPage() {
@@ -138,7 +138,7 @@ export default function WalletPage() {
               {loading ? '...' : formatCurrency(balance)}
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.8 }}>
-              Zambian Kwacha (ZMW)
+              Zambian Kwacha ({savedCurrencyCode()})
             </Typography>
           </Paper>
         </motion.div>
@@ -294,4 +294,4 @@ export default function WalletPage() {
     </Box>
   );
 }
-
+

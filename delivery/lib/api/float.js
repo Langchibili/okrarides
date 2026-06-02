@@ -1,5 +1,6 @@
 // PATH: driver/lib/api/float.js
 
+import { savedCurrencyCode } from '@/Functions';
 import { apiClient } from './client';
 
 /**
@@ -16,7 +17,7 @@ import { apiClient } from './client';
  *                            the currency relation is resolved server-side)
  * @returns {Promise<{ data: { id: number, attributes: object } }>}
  */
-export async function createFloatTopupIntent(amount, driver = null, paymentMethod="okrapay", currency = 'ZMW') {
+export async function createFloatTopupIntent(amount, driver = null, paymentMethod = "okrapay", currency = savedCurrencyCode()) {
   const topupId = `FT-${Date.now()}`;
 
   const res = await apiClient.post('/float-topups', {
@@ -25,8 +26,8 @@ export async function createFloatTopupIntent(amount, driver = null, paymentMetho
       amount,
       driver: driver?.id,
       paymentMethod: paymentMethod,
-      floatStatus:   'pending',
-      requestedAt:   new Date().toISOString(),
+      floatStatus: 'pending',
+      requestedAt: new Date().toISOString(),
     },
   });
 

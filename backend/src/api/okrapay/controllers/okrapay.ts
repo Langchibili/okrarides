@@ -302,13 +302,10 @@ async function handleFloatTopupSuccess(
       });
 
       // Credit partner float balance
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: partnerUserId },
+      await strapi.db.query('partner-profile.partner-profile').update({
+        where: { id: partnerUser.partnerProfile.id },
         data: {
-          partnerProfile: {
-            id: partnerUser.partnerProfile.id,
-            floatBalance: newBalance,
-          },
+          floatBalance: newBalance
         },
       });
 

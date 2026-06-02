@@ -2,6 +2,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Box, Typography } from '@mui/material';
+import { savedCurrencySymbol } from '@/lib/utils/format';
 
 const STATUS_COLOR = {
   ONLINE: '#10B981',
@@ -88,7 +89,7 @@ export default function FleetMap({ pins = [], height = 400, initialZoom = 13 }) 
         const popupContent = `<div style="font-family:sans-serif;min-width:180px;">
           <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px;">${pin.driverName}</div>
           <div style="color:${color};font-size:0.75rem;font-weight:600;margin-bottom:6px;">${pin.status}</div>
-          <div style="font-size:0.8rem;color:#555;margin-bottom:6px;">Float: <strong>K${Number(pin.floatBalance).toFixed(2)}</strong></div>
+          <div style="font-size:0.8rem;color:#555;margin-bottom:6px;">Float: <strong>${savedCurrencySymbol()}${Number(pin.floatBalance).toFixed(2)}</strong></div>
           <div style="display:flex;gap:8px;">
             <a href="tel:${pin.phoneDigits}" style="padding:4px 10px;border-radius:6px;background:#059669;color:white;text-decoration:none;font-size:0.75rem;font-weight:700;">📞 Call</a>
             <a href="https://wa.me/${pin.phoneDigits}" target="_blank" style="padding:4px 10px;border-radius:6px;background:#25D366;color:white;text-decoration:none;font-size:0.75rem;font-weight:700;">💬 WhatsApp</a>

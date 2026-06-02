@@ -29,7 +29,6 @@ const looksLikeEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
 export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated, loading: authLoading } = useAuth();
-
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
@@ -39,7 +38,7 @@ export default function LoginPage() {
   // Redirect already-authenticated users
   useEffect(() => {
     if (!authLoading && isAuthenticated()) {
-      router.replace('/dashboard');
+      window.location = '/dashboard'
     }
   }, [authLoading, isAuthenticated, router]);
 
@@ -61,7 +60,7 @@ export default function LoginPage() {
     try {
       setLoading(true);
       await login(identifier.trim(), password);
-      router.replace('/dashboard');
+      window.location = '/dashboard'
     } catch (err) {
       // Strapi returns user-friendly messages in err.message
       const msg = err?.message || '';

@@ -223,7 +223,7 @@ export const uploadDocument = async (documentType, file, onProgress) => {
     const formData = new FormData();
     formData.append('files', file);
     formData.append('documentType', documentType);
-    
+
     const response = await apiClient.upload('/driver/documents/upload', formData, onProgress);
     return response;
   } catch (error) {
@@ -284,28 +284,28 @@ export const getPerformanceMetrics = async (period = 'month') => {
 //==========================================
 // UTILITY FUNCTIONS
 //==========================================
-export const formatPhoneNumber = (phone,phoneNumberDigitLength = 9) => {
+export const formatPhoneNumber = (phone, phoneNumberDigitLength = 9) => {
   const cleaned = phone?.replace(/\D/g, '');
   let phoneCode = null
-  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
-  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
-  const savedPhoneCode = typeof window !== 'undefined'? localStorage.getItem('savedPhoneCode') : "260"
-  if(savedphoneNumberDigitLength){
-    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null" ? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined' ? localStorage.getItem('phoneNumberDigitLength') : 9
+  const savedPhoneCode = typeof window !== 'undefined' ? localStorage.getItem('savedPhoneCode') : "260"
+  if (savedphoneNumberDigitLength) {
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null" ? 9 : (savedphoneNumberDigitLength || 9)
   }
-  if(savedPhoneCode){
-     phoneCode = savedPhoneCode === null || savedPhoneCode === "null"? "260" : (savedPhoneCode || "260")
+  if (savedPhoneCode) {
+    phoneCode = savedPhoneCode === null || savedPhoneCode === "null" ? "260" : (savedPhoneCode || "260")
   }
   if (cleaned?.length === numberLength) {
-     return `${savedPhoneCode}${getPhoneDigits(cleaned)}`;
+    return `${savedPhoneCode}${getPhoneDigits(cleaned)}`;
   }
   return phone;
 }
-export const validatePhoneNumber = (phone,phoneNumberDigitLength=9) => {
-  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
-  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
-  if(savedphoneNumberDigitLength){
-    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+export const validatePhoneNumber = (phone, phoneNumberDigitLength = 9) => {
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null" ? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined' ? localStorage.getItem('phoneNumberDigitLength') : 9
+  if (savedphoneNumberDigitLength) {
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null" ? 9 : (savedphoneNumberDigitLength || 9)
   }
   const cleaned = phone.replace(/\D/g, '')
   return cleaned.length === numberLength && /^[123456789]/.test(cleaned)
@@ -313,17 +313,17 @@ export const validatePhoneNumber = (phone,phoneNumberDigitLength=9) => {
 
 export const getPhoneDigits = (phoneNumber, phoneNumberDigitLength = 9) => {
   if (!phoneNumber) return '';
-  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null"? 9 : (phoneNumberDigitLength || 9)
-  const savedphoneNumberDigitLength = typeof window !== 'undefined'? localStorage.getItem('phoneNumberDigitLength') : 9
-  if(savedphoneNumberDigitLength){
-    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null"? 9 : (savedphoneNumberDigitLength || 9)
+  let numberLength = phoneNumberDigitLength === null || phoneNumberDigitLength === "null" ? 9 : (phoneNumberDigitLength || 9)
+  const savedphoneNumberDigitLength = typeof window !== 'undefined' ? localStorage.getItem('phoneNumberDigitLength') : 9
+  if (savedphoneNumberDigitLength) {
+    numberLength = savedphoneNumberDigitLength === null || savedphoneNumberDigitLength === "null" ? 9 : (savedphoneNumberDigitLength || 9)
   }
   const digits = String(phoneNumber).replace(/\D/g, '');
   return digits.slice(-numberLength)
 }
-export const getSavedPhoneCode = ()=>{
-  const savedPhoneCode = typeof window !== 'undefined'? localStorage.getItem('savedPhoneCode') : "260"
-  return savedPhoneCode === null || savedPhoneCode === "null"? "260" : (savedPhoneCode || "260")
+export const getSavedPhoneCode = () => {
+  const savedPhoneCode = typeof window !== 'undefined' ? localStorage.getItem('savedPhoneCode') : "260"
+  return savedPhoneCode === null || savedPhoneCode === "null" ? "260" : (savedPhoneCode || "260")
 }
 export const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Radius of Earth in kilometers
@@ -341,18 +341,51 @@ const toRad = (value) => {
   return (value * Math.PI) / 180;
 };
 
-export const formatCurrency = (amount, currency = 'ZMW') => {
-  return new Intl.NumberFormat('en-ZM', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
-  }).format(amount);
-};
+export const formatCurrency = (amount, currencySymbol = 'K') => {
+  let symbol = currencySymbol
+  if (typeof window !== 'undefined') {
+    const savedCurrencySymbol = localStorage.getItem('savedCurrencySymbol')
+    if (savedCurrencySymbol) {
+      symbol = savedCurrencySymbol || 'K'
+    }
+  }
+  return `${symbol}${Number(amount).toFixed(2)}`;
+}
+
+export const savedCurrencySymbol = () => {
+  if (typeof window !== 'undefined') {
+    const savedCurrencySymbol = localStorage.getItem('savedCurrencySymbol')
+    if (savedCurrencySymbol) {
+      return savedCurrencySymbol || 'K'
+    }
+    return 'K'
+  }
+}
+
+export const savedCurrencyCode = () => {
+  if (typeof window !== 'undefined') {
+    const savedCurrencyCode = localStorage.getItem('savedCurrencyCode')
+    if (savedCurrencyCode) {
+      return savedCurrencyCode || 'ZMW'
+    }
+    return 'ZMW'
+  }
+}
+
+export const savedPhoneCode = () => {
+  if (typeof window !== 'undefined') {
+    const savedPhoneCode = localStorage.getItem('savedPhoneCode')
+    if (savedPhoneCode) {
+      return savedPhoneCode || '260'
+    }
+    return '260'
+  }
+}
 
 export const formatDuration = (seconds) => {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
-  
+
   if (hours > 0) {
     return `${hours}h ${minutes}m`;
   }
@@ -388,7 +421,7 @@ export const getRelativeTime = (date) => {
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
-  
+
   if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
   if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
   if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;

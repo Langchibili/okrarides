@@ -14,6 +14,11 @@ import {
   applyCodeManually,
 } from '../../../services/affiliatePromotionService';
 import { SendEmailNotification } from '../../../services/messages';
+import {
+  getUserCountryId,
+  resolveCountryPricing,
+  isClassVisibleForCountry,
+} from '../../../utils/country-pricing';
 
 const { emitRatingSubmitted } = require('../../../utils/socketUtils');
 
@@ -798,8 +803,105 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
   },
 
   // ============================================
-  // CUSTOM METHOD 1: Estimate Fare
+  // CUSTOM METHOD 1: Estimate Fare - old implementation
   // ============================================
+  // async estimate(ctx) {
+  //   try {
+  //     const {
+  //       pickupLocation,
+  //       dropoffLocation,
+  //       rideType = 'taxi',
+  //       rideTypes = ['taxi'],
+  //       passengerCount = 1,
+  //     }: EstimateRequest = ctx.request.body;
+
+  //     if (!pickupLocation || !dropoffLocation) {
+  //       return ctx.badRequest('Pickup and dropoff locations are required');
+  //     }
+
+  //     const distance = calculateDistance(pickupLocation, dropoffLocation);
+  //     const duration = estimateDuration(distance);
+
+  //     const rideClasses = await strapi.db.query('api::ride-class.ride-class').findMany({
+  //       where: {
+  //         isActive: true,
+  //         $or: rideTypes.map(type => ({
+  //           taxiType: {
+  //             name: {
+  //               $containsi: type,
+  //             },
+  //           },
+  //         })),
+  //       },
+  //       populate: {
+  //         taxiType: true,
+  //       },
+  //     });
+
+  //     if (!rideClasses || rideClasses.length === 0) {
+  //       return ctx.badRequest('No active ride classes found');
+  //     }
+
+  //     const surgePricing = await strapi.db.query('api::surge-pricing.surge-pricing').findOne({
+  //       where: {
+  //         isActive: true,
+  //         startTime: { $lte: new Date() },
+  //         endTime: { $gte: new Date() },
+  //       },
+  //     });
+
+  //     const surgeMultiplier = surgePricing?.multiplier || 1;
+
+  //     const estimates = rideClasses.map((rideClass: any) => {
+  //       const baseFare = rideClass.baseFare;
+  //       const distanceFare = distance * rideClass.perKmRate;
+  //       const timeFare = duration * rideClass.perMinuteRate;
+  //       const subtotal = baseFare + distanceFare + timeFare;
+  //       const surgeFare = subtotal * (surgeMultiplier - 1);
+  //       const totalFare = subtotal + surgeFare;
+
+  //       const availableDrivers = Math.floor(Math.random() * 10) + 1;
+
+  //       return {
+  //         rideClassId: rideClass.id,
+  //         rideClassName: rideClass.name,
+  //         rideClassDescription: rideClass.description,
+  //         taxiType: rideClass.taxiType?.name,
+  //         baseFare: parseFloat(baseFare.toFixed(2)),
+  //         distanceFare: parseFloat(distanceFare.toFixed(2)),
+  //         timeFare: parseFloat(timeFare.toFixed(2)),
+  //         surgeFare: parseFloat(surgeFare.toFixed(2)),
+  //         subtotal: parseFloat(subtotal.toFixed(2)),
+  //         totalFare: parseFloat(totalFare.toFixed(2)),
+  //         estimatedDistance: parseFloat(distance.toFixed(2)),
+  //         estimatedDuration: duration,
+  //         availableDrivers,
+  //         surgeActive: surgeMultiplier > 1,
+  //         surgeMultiplier,
+  //       };
+  //     });
+
+  //     estimates.sort((a, b) => a.totalFare - b.totalFare);
+
+  //     return ctx.send({
+  //       estimates,
+  //       route: {
+  //         distance: `${distance.toFixed(1)} km`,
+  //         duration: `${duration} min`,
+  //         polyline: '',
+  //       },
+  //       surgePricing: surgeMultiplier > 1 ? {
+  //         active: true,
+  //         multiplier: surgeMultiplier,
+  //         reason: surgePricing?.reason,
+  //       } : null,
+  //     });
+  //   } catch (error) {
+  //     strapi.log.error('Estimate error:', error);
+  //     return ctx.internalServerError('Failed to calculate fare estimate');
+  //   }
+  // },
+  // new implementation with country price settings
   async estimate(ctx) {
     try {
       const {
@@ -814,46 +916,66 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
         return ctx.badRequest('Pickup and dropoff locations are required');
       }
 
+      // ── Resolve the caller's country ────────────────────────────────────
+      const userCountryId = await getUserCountryId(strapi, ctx.state.user?.id);
+
       const distance = calculateDistance(pickupLocation, dropoffLocation);
       const duration = estimateDuration(distance);
 
-      const rideClasses = await strapi.db.query('api::ride-class.ride-class').findMany({
-        where: {
-          isActive: true,
-          $or: rideTypes.map(type => ({
-            taxiType: {
-              name: {
-                $containsi: type,
-              },
-            },
-          })),
-        },
-        populate: {
-          taxiType: true,
-        },
-      });
+      // ── Fetch all type-matching classes (active or not) ─────────────────
+      // Filtering by isActive happens in JS so we can apply the country rule.
+      const allRideClasses = await strapi.db
+        .query('api::ride-class.ride-class')
+        .findMany({
+          where: {
+            $or: rideTypes.map(type => ({
+              taxiType: { name: { $containsi: type } },
+            })),
+          },
+          populate: {
+            taxiType: true,
+            countries: { populate: { country: true } },
+          },
+        });
 
-      if (!rideClasses || rideClasses.length === 0) {
+      // ── Apply country-aware visibility rule ─────────────────────────────
+      const rideClasses = allRideClasses.filter((rc: any) =>
+        isClassVisibleForCountry(rc, userCountryId),
+      );
+
+      if (!rideClasses.length) {
         return ctx.badRequest('No active ride classes found');
       }
 
-      const surgePricing = await strapi.db.query('api::surge-pricing.surge-pricing').findOne({
-        where: {
-          isActive: true,
-          startTime: { $lte: new Date() },
-          endTime: { $gte: new Date() },
-        },
-      });
+      // ── Surge pricing ────────────────────────────────────────────────────
+      const surgePricing = await strapi.db
+        .query('api::surge-pricing.surge-pricing')
+        .findOne({
+          where: {
+            isActive: true,
+            startTime: { $lte: new Date() },
+            endTime: { $gte: new Date() },
+          },
+        });
 
-      const surgeMultiplier = surgePricing?.multiplier || 1;
+      const surgeMultiplier = surgePricing?.multiplier ?? 1;
 
+      // ── Build estimates ──────────────────────────────────────────────────
       const estimates = rideClasses.map((rideClass: any) => {
-        const baseFare = rideClass.baseFare;
-        const distanceFare = distance * rideClass.perKmRate;
-        const timeFare = duration * rideClass.perMinuteRate;
+        // Country-specific prices take precedence; fall back to class defaults.
+        const cp = resolveCountryPricing(rideClass.countries, userCountryId);
+
+        const baseFare = cp?.baseFare ?? rideClass.baseFare;
+        const perKmRate = cp?.perKmRate ?? rideClass.perKmRate;
+        const perMinuteRate = cp?.perMinuteRate ?? rideClass.perMinuteRate;
+        const minimumFare = cp?.minimumFare ?? rideClass.minimumFare ?? 0;
+
+        const distanceFare = distance * perKmRate;
+        const timeFare = duration * perMinuteRate;
         const subtotal = baseFare + distanceFare + timeFare;
         const surgeFare = subtotal * (surgeMultiplier - 1);
-        const totalFare = subtotal + surgeFare;
+        // Also enforce the (country-specific) minimum fare
+        const totalFare = Math.max(subtotal + surgeFare, minimumFare);
 
         const availableDrivers = Math.floor(Math.random() * 10) + 1;
 
@@ -885,11 +1007,10 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
           duration: `${duration} min`,
           polyline: '',
         },
-        surgePricing: surgeMultiplier > 1 ? {
-          active: true,
-          multiplier: surgeMultiplier,
-          reason: surgePricing?.reason,
-        } : null,
+        surgePricing:
+          surgeMultiplier > 1
+            ? { active: true, multiplier: surgeMultiplier, reason: surgePricing?.reason }
+            : null,
       });
     } catch (error) {
       strapi.log.error('Estimate error:', error);

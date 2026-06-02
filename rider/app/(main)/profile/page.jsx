@@ -38,7 +38,7 @@ import { motion } from 'framer-motion';
 import { ShimmerDiv, ShimmerText } from 'shimmer-effects-react';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useThemeMode } from '@/components/ThemeProvider';
-import { formatPhoneNumber } from '@/Functions';
+import { formatPhoneNumber, savedCurrencySymbol } from '@/Functions';
 import { BottomMarginDiv } from '@/components/Layout/BottomMarginDiv';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ const ICON_COLORS = {
 
 // ── add this component above ProfilePage ─────────────────────────────────────
 function LogoutModal({ open, onConfirm, onCancel }) {
-  const theme  = useTheme();
+  const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
   return (
@@ -132,8 +132,8 @@ function LogoutModal({ open, onConfirm, onCancel }) {
       }}>
         <motion.div
           initial={{ scale: 0.85, opacity: 0, y: 20 }}
-          animate={{ scale: 1,    opacity: 1, y: 0  }}
-          exit={{   scale: 0.85, opacity: 0, y: 20  }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.85, opacity: 0, y: 20 }}
           transition={{ type: 'spring', stiffness: 320, damping: 28 }}
         >
           <Paper elevation={24} sx={{
@@ -147,7 +147,7 @@ function LogoutModal({ open, onConfirm, onCancel }) {
           }}>
             <motion.div
               initial={{ rotate: -12, scale: 0.7 }}
-              animate={{ rotate: 0,   scale: 1   }}
+              animate={{ rotate: 0, scale: 1 }}
               transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.05 }}
             >
               <Box sx={{
@@ -215,7 +215,7 @@ export default function ProfilePage() {
   const stats = [
     { label: 'Trips', value: user?.riderProfile?.totalRides || 0, color: '#2196F3' },
     { label: 'Rating', value: user?.riderProfile?.averageRating?.toFixed(1) || '0.0', color: '#FFC107' },
-    { label: 'Spent', value: `K${user?.riderProfile?.totalSpent?.toFixed(0) || '0'}`, color: '#4CAF50' },
+    { label: 'Spent', value: `${savedCurrencySymbol()}${user?.riderProfile?.totalSpent?.toFixed(0) || '0'}`, color: '#4CAF50' },
   ];
 
   const menuSections = [
@@ -607,15 +607,15 @@ export default function ProfilePage() {
           >
             OkraRides v1.0.0
           </Typography>
-          <BottomMarginDiv mb="120px"/>
+          <BottomMarginDiv mb="120px" />
         </Box>
-        
+
       </Box>
-    <LogoutModal
-      open={showLogout}
-      onCancel={() => setShowLogout(false)}
-      onConfirm={() => { setShowLogout(false); logout(); }}
-    />
+      <LogoutModal
+        open={showLogout}
+        onCancel={() => setShowLogout(false)}
+        onConfirm={() => { setShowLogout(false); logout(); }}
+      />
     </Box>
   );
 }

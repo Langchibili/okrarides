@@ -118,7 +118,7 @@ export default function SignupPage() {
   useEffect(() => {
     resolveAffiliateCode().then((code) => {
       if (code) {
-        console.log('code',code)
+        console.log('code', code)
         setFormData((prev) => ({ ...prev, referralCode: code }));
         setCodeAutoFilled(true);
       }
@@ -128,20 +128,23 @@ export default function SignupPage() {
   const fetchCountries = async () => {
     try {
       setCountriesLoading(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/countries?filters[isActive][$eq]=true&sort=name:asc`
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/countries?filters[isActive][$eq]=true&populate=currency&sort=name:asc`);
+
       if (!response.ok) throw new Error('Failed to fetch countries');
+
       const data = await response.json();
       setCountries(data.data);
-
-      const zambia = data.data.find(
-        (country) => country.code === 'ZM' || country.name === 'Zambia'
+      // Set Zambia as default
+      const zambia = data.data.find(country =>
+        country.code === 'ZM' || country.name === 'Zambia'
       );
       if (zambia) {
         setSelectedCountry(zambia);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('savedCurrencySymbol', 'K')
+        }
       } else if (data.data.length > 0) {
-        setSelectedCountry(data.data[0]);
+        setSelectedCountry(data.data[0])
       }
     } catch (err) {
       setError('Failed to load countries. Please refresh the page.');
@@ -174,15 +177,17 @@ export default function SignupPage() {
     else if (activeStep === 1) {
       const cleanPhone = formData.phoneNumber.replace(/\D/g, '');
       const phoneNumberDigitLenth = selectedCountry.phoneNumberDigitLenth
-      if (!validatePhoneNumber(cleanPhone,phoneNumberDigitLenth)) {
+      if (!validatePhoneNumber(cleanPhone, phoneNumberDigitLenth)) {
         setError('Please enter a valid phone number');
         return;
       }
       if (typeof window !== 'undefined') {
-          localStorage.setItem('phoneNumberDigitLenth',phoneNumberDigitLenth)
-          localStorage.setItem('savedPhoneCode',selectedCountry.phoneCode.replace('+', ''))  
-       }
-      const phoneCode    = selectedCountry.phoneCode.replace('+', '');
+        localStorage.setItem('savedCurrencyCode', selectedCountry?.currency?.code || 'ZMK')
+        localStorage.setItem('savedCurrencySymbol', selectedCountry?.currency?.symbol || 'K')
+        localStorage.setItem('phoneNumberDigitLenth', phoneNumberDigitLenth)
+        localStorage.setItem('savedPhoneCode', selectedCountry.phoneCode.replace('+', ''))
+      }
+      const phoneCode = selectedCountry.phoneCode.replace('+', '');
       const fullUsername = `${phoneCode}${cleanPhone}`;
 
       try {
@@ -228,11 +233,11 @@ export default function SignupPage() {
         const fullPhone = `${selectedCountry.phoneCode}${formData.phoneNumber.replace(/\D/g, '')}`;
 
         await register({
-          phoneNumber:  fullPhone,
-          firstName:    formData.firstName.trim(),
-          lastName:     formData.lastName.trim(),
+          phoneNumber: fullPhone,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
           referralCode: formData.referralCode.trim() || null,
-          country:      selectedCountry,
+          country: selectedCountry,
         });
 
         // Clean up the stored ref so it isn't re-applied on the next registration
@@ -260,7 +265,7 @@ export default function SignupPage() {
     }
   };
 
-  if(isAuthenticated()){
+  if (isAuthenticated()) {
     router.push('/')
   }
   return (
@@ -447,9 +452,9 @@ export default function SignupPage() {
                   '& .MuiOutlinedInput-root': {
                     ...(codeAutoFilled && formData.referralCode
                       ? {
-                          '& fieldset': { borderColor: 'success.main', borderWidth: 2 },
-                          '&:hover fieldset': { borderColor: 'success.dark' },
-                        }
+                        '& fieldset': { borderColor: 'success.main', borderWidth: 2 },
+                        '&:hover fieldset': { borderColor: 'success.dark' },
+                      }
                       : {}),
                   },
                 }}

@@ -6,7 +6,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { useRide } from '@/lib/hooks/useRide';
-import { useReactNative }  from '@/lib/contexts/ReactNativeWrapper';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
+import { savedCurrencySymbol } from '@/Functions';
 
 export function RideRequestOverlay({ rideRequest, onAccept, onDecline }) {
   const [timeLeft, setTimeLeft] = useState(30); // 30 seconds to respond
@@ -34,8 +35,8 @@ export function RideRequestOverlay({ rideRequest, onAccept, onDecline }) {
 
     return () => clearInterval(timer);
   }, []);
-  
-  if(!isNative){
+
+  if (!isNative) {
     return null
   }
   return (
@@ -48,21 +49,21 @@ export function RideRequestOverlay({ rideRequest, onAccept, onDecline }) {
 
         <View style={styles.details}>
           <Text style={styles.distance}>{rideRequest.distance.toFixed(1)} km away</Text>
-          <Text style={styles.fare}>K{rideRequest.estimatedFare.toFixed(2)}</Text>
+          <Text style={styles.fare}>{savedCurrencySymbol()}{rideRequest.estimatedFare.toFixed(2)}</Text>
           <Text style={styles.location}>
             From: {rideRequest.pickupLocation.address}
           </Text>
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.button, styles.declineButton]}
             onPress={onDecline}
           >
             <Text style={styles.buttonText}>Decline</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.button, styles.acceptButton]}
             onPress={onAccept}
           >

@@ -71,6 +71,11 @@
     "extraChargeForFragileItem": {
       "type": "decimal",
       "default": 10
+    },
+    "countries": {
+      "type": "component",
+      "component": "countries.countries",
+      "repeatable": true
     }
   }
 }

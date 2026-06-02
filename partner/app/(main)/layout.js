@@ -46,6 +46,12 @@ function PartnerLayoutInner({ children }) {
     if (!user?.country) {
       setIsNotProperlySetUp(true)
     }
+    if (typeof window !== 'undefined' && user?.country) {
+      localStorage.setItem('savedCurrencyCode', user.country.currency?.code || 'ZMK')
+      localStorage.setItem('savedCurrencySymbol', user.country.currency?.symbol || 'K')
+      localStorage.setItem('savedPhoneCode', user?.country.phoneCode.replace('+', ''))
+      localStorage.setItem('savedCountryName', user?.country.name)
+    }
     if (pathname === "/") {
       router.push('/dashboard')
     }

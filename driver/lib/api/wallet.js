@@ -1,3 +1,4 @@
+import { savedCurrencyCode } from '@/Functions';
 import { apiClient } from './client';
 
 export const walletAPI = {
@@ -5,9 +6,9 @@ export const walletAPI = {
   async getBalance() {
     const response = await apiClient.get('/users/me?populate=driverProfile');
     return {
-      balance:   response.driverProfile?.floatBalance    || 0,
+      balance: response.driverProfile?.floatBalance || 0,
       withdrawable: response.driverProfile?.currentBalance || 0,
-      currency:  'ZMW',
+      currency: savedCurrencyCode(),
     };
   },
 
@@ -16,7 +17,7 @@ export const walletAPI = {
     const { page = 1, limit = 20, type, transactionStatus } = params;
 
     const filterParts = [];
-    if (type)              filterParts.push(`filters[type][$eq]=${encodeURIComponent(type)}`);
+    if (type) filterParts.push(`filters[type][$eq]=${encodeURIComponent(type)}`);
     if (transactionStatus) filterParts.push(`filters[transactionStatus][$eq]=${encodeURIComponent(transactionStatus)}`);
 
     const query = [
@@ -43,7 +44,7 @@ export const walletAPI = {
         amount,
         paymentMethod,
         floatStatus: 'pending',
-        purpose:     'float_topup',
+        purpose: 'float_topup',
       },
     });
 
@@ -52,9 +53,9 @@ export const walletAPI = {
 
     // 2. Initiate OkraPay gateway payment
     const paymentResponse = await apiClient.post('/okrapay/initiate', {
-      purpose:         'floatadd',
+      purpose: 'floatadd',
       amount,
-      currency:        'ZMW',
+      currency: savedCurrencyCode(),
       relatedEntityId: topupId,
     });
 
@@ -64,9 +65,9 @@ export const walletAPI = {
 
     return {
       ...topupResponse.data,
-      paymentId:     paymentResponse.data?.paymentId,
-      reference:     paymentResponse.data?.reference,
-      paymentUrl:    paymentResponse.data?.paymentUrl,
+      paymentId: paymentResponse.data?.paymentId,
+      reference: paymentResponse.data?.reference,
+      paymentUrl: paymentResponse.data?.paymentUrl,
       gatewayConfig: paymentResponse.data?.gatewayConfig,
     };
   },
@@ -101,10 +102,10 @@ export const walletAPI = {
 
     const response = await apiClient.post('/okrapay/request-withdrawal', {
       amount,
-      method:        method         || 'mobile_money',
-      provider:      provider       || accountDetails?.provider,
-      accountNumber: accountNumber  || accountDetails?.accountNumber,
-      accountName:   accountName    || accountDetails?.accountName,
+      method: method || 'mobile_money',
+      provider: provider || accountDetails?.provider,
+      accountNumber: accountNumber || accountDetails?.accountNumber,
+      accountName: accountName || accountDetails?.accountName,
     });
 
     return response.data || response;

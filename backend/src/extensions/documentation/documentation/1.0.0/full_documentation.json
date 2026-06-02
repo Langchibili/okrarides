@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-05-31T05:25:28.466Z"
+    "x-generation-date": "2026-06-02T00:06:21.184Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -43187,6 +43187,62 @@
           "tempBlockedDrivers": {}
         }
       },
+      "CountriesCountriesComponent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "country": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "documentId": {
+                "type": "string"
+              }
+            }
+          },
+          "baseFare": {
+            "type": "number",
+            "format": "float"
+          },
+          "perKmRate": {
+            "type": "number",
+            "format": "float"
+          },
+          "perMinuteRate": {
+            "type": "number",
+            "format": "float"
+          },
+          "minimumFare": {
+            "type": "number",
+            "format": "float"
+          },
+          "commissionPercentage": {
+            "type": "number",
+            "format": "float"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
       "DriverProfilesTaxiDriverComponent": {
         "type": "object",
         "properties": {
@@ -44710,6 +44766,12 @@
                         }
                       }
                     },
+                    "countries": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CountriesCountriesComponent"
+                      }
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -45043,6 +45105,12 @@
                       "type": "number",
                       "format": "float"
                     },
+                    "countries": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CountriesCountriesComponent"
+                      }
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -45328,203 +45396,6 @@
                             },
                             "documentId": {
                               "type": "string"
-                            },
-                            "name": {
-                              "type": "string"
-                            },
-                            "code": {
-                              "type": "string"
-                            },
-                            "phoneCode": {
-                              "type": "string"
-                            },
-                            "currency": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "oneOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "type": "number"
-                                    }
-                                  ]
-                                },
-                                "documentId": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "string"
-                                },
-                                "code": {
-                                  "type": "string"
-                                },
-                                "symbol": {
-                                  "type": "string"
-                                },
-                                "exchangeRate": {
-                                  "type": "number",
-                                  "format": "float"
-                                },
-                                "isActive": {
-                                  "type": "boolean"
-                                },
-                                "createdAt": {
-                                  "type": "string",
-                                  "format": "date-time"
-                                },
-                                "updatedAt": {
-                                  "type": "string",
-                                  "format": "date-time"
-                                },
-                                "publishedAt": {
-                                  "type": "string",
-                                  "format": "date-time"
-                                },
-                                "createdBy": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "oneOf": [
-                                        {
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
-                                    },
-                                    "documentId": {
-                                      "type": "string"
-                                    }
-                                  }
-                                },
-                                "updatedBy": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "oneOf": [
-                                        {
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
-                                    },
-                                    "documentId": {
-                                      "type": "string"
-                                    }
-                                  }
-                                },
-                                "locale": {
-                                  "type": "string"
-                                },
-                                "localizations": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "oneOf": [
-                                          {
-                                            "type": "string"
-                                          },
-                                          {
-                                            "type": "number"
-                                          }
-                                        ]
-                                      },
-                                      "documentId": {
-                                        "type": "string"
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                            "isActive": {
-                              "type": "boolean"
-                            },
-                            "acceptedMobileMoneyPayments": {},
-                            "phoneNumberRegex": {
-                              "type": "string"
-                            },
-                            "phoneNumberDigitLenth": {
-                              "type": "integer"
-                            },
-                            "createdAt": {
-                              "type": "string",
-                              "format": "date-time"
-                            },
-                            "updatedAt": {
-                              "type": "string",
-                              "format": "date-time"
-                            },
-                            "publishedAt": {
-                              "type": "string",
-                              "format": "date-time"
-                            },
-                            "createdBy": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "oneOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "type": "number"
-                                    }
-                                  ]
-                                },
-                                "documentId": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "updatedBy": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "oneOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "type": "number"
-                                    }
-                                  ]
-                                },
-                                "documentId": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "locale": {
-                              "type": "string"
-                            },
-                            "localizations": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "oneOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
-                                  },
-                                  "documentId": {
-                                    "type": "string"
-                                  }
-                                }
-                              }
                             }
                           }
                         },
@@ -73362,6 +73233,12 @@
                   }
                 }
               },
+              "countries": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CountriesCountriesComponent"
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -78948,6 +78825,12 @@
                 "type": "number",
                 "format": "float"
               },
+              "countries": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CountriesCountriesComponent"
+                }
+              },
               "locale": {
                 "type": "string"
               },
@@ -82559,6 +82442,12 @@
           "extraChargeForFragileItem": {
             "type": "number",
             "format": "float"
+          },
+          "countries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountriesCountriesComponent"
+            }
           },
           "createdAt": {
             "type": "string",
@@ -139030,6 +138919,12 @@
                   "example": "string or id"
                 }
               },
+              "countries": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CountriesCountriesComponent"
+                }
+              },
               "locale": {
                 "type": "string"
               },
@@ -142896,6 +142791,12 @@
                   }
                 }
               }
+            }
+          },
+          "countries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CountriesCountriesComponent"
             }
           },
           "createdAt": {

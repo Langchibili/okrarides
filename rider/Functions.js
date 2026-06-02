@@ -4,9 +4,47 @@ import { apiClient } from './lib/api/client';
 
 // ============= Formatting Utilities =============
 
-export const formatCurrency = (amount, currency = 'K') => {
-  return `${currency}${Number(amount).toFixed(2)}`;
+export const formatCurrency = (amount, currencySymbol = 'K') => {
+  let symbol = currencySymbol
+  if (typeof window !== 'undefined') {
+    const savedCurrencySymbol = localStorage.getItem('savedCurrencySymbol')
+    if (savedCurrencySymbol) {
+      symbol = savedCurrencySymbol || 'K'
+    }
+  }
+  return `${symbol}${Number(amount).toFixed(2)}`;
 }
+
+export const savedCurrencySymbol = () => {
+  if (typeof window !== 'undefined') {
+    const savedCurrencySymbol = localStorage.getItem('savedCurrencySymbol')
+    if (savedCurrencySymbol) {
+      return savedCurrencySymbol || 'K'
+    }
+    return 'K'
+  }
+}
+
+export const savedCurrencyCode = () => {
+  if (typeof window !== 'undefined') {
+    const savedCurrencyCode = localStorage.getItem('savedCurrencyCode')
+    if (savedCurrencyCode) {
+      return savedCurrencyCode || 'ZMW'
+    }
+    return 'ZMW'
+  }
+}
+export const savedPhoneCode = () => {
+  if (typeof window !== 'undefined') {
+    const savedPhoneCode = localStorage.getItem('savedPhoneCode')
+    if (savedPhoneCode) {
+      return savedPhoneCode || '260'
+    }
+    return '260'
+  }
+}
+
+
 export const isValidLocation = (input) => {
   // Regex: matches (number),(number) with optional whitespace
   const coordRegex = /^([-+]?\d{1,3}(?:\.\d+)?),\s*([-+]?\d{1,3}(?:\.\d+)?)$/;
