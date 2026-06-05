@@ -8,14 +8,14 @@
   "attributes": {
     "verificationStatus": {
       "type": "enumeration",
+      "default": "not_started",
       "enum": [
         "not_started",
         "pending",
         "approved",
         "rejected",
         "suspended"
-      ],
-      "default": "not_started"
+      ]
     },
     "verificationNotes": {
       "type": "text"
@@ -42,6 +42,19 @@
     },
     "notes": {
       "type": "text"
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "whatsappNumber": {
+      "type": "string"
+    },
+    "emailAddress": {
+      "type": "string"
     }
   }
 }

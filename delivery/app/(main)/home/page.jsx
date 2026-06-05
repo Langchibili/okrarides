@@ -2,9 +2,9 @@
 // PATH: app/(main)/home/page.jsx — UI POLISH ONLY
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter }                   from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Box, AppBar, Toolbar, Typography, Button, Alert, Paper, Chip } from '@mui/material';
-import { alpha, useTheme }             from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   LocalAtm as EarningsIcon, DirectionsCar as RidesIcon, Star as StarIcon,
   Speed as SpeedIcon, History as HistoryIcon, AccountBalanceWallet as WalletIcon,
@@ -12,22 +12,22 @@ import {
   Savings as SavingsIcon, LightMode as LightIcon, DarkMode as DarkIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { OnlineToggle }     from '@/components/Driver/OnlineToggle';
-import { EarningsCard }     from '@/components/Driver/EarningsCard';
-import { StatCard }         from '@/components/Driver/StatCard';
+import { OnlineToggle } from '@/components/Driver/OnlineToggle';
+import { EarningsCard } from '@/components/Driver/EarningsCard';
+import { StatCard } from '@/components/Driver/StatCard';
 import { HomePageSkeleton } from '@/components/Skeletons/HomePageSkeleton';
-import { useDeliveryDriver }    from '@/lib/hooks/useDeliveryDriver';
-import { useDelivery }          from '@/lib/hooks/useDelivery';
-import { useDeliveryStats }     from '@/lib/hooks/useDeliveryStats';
+import { useDeliveryDriver } from '@/lib/hooks/useDeliveryDriver';
+import { useDelivery } from '@/lib/hooks/useDelivery';
+import { useDeliveryStats } from '@/lib/hooks/useDeliveryStats';
 import { DeliveryRequestModal } from '@/components/Driver/DeliveryRequestModal';
-import { useReactNative }   from '@/lib/contexts/ReactNativeWrapper';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
-import { useThemeMode }     from '@/components/ThemeProvider';
-import { formatCurrency }   from '@/Functions';
+import { useThemeMode } from '@/components/ThemeProvider';
+import { formatCurrency } from '@/Functions';
 import { VERIFICATION_STATUS } from '@/Constants';
-import useAuthGuard         from '@/lib/hooks/useAuthGuard';
-import ClientOnly           from '@/components/ClientOnly';
-import { apiClient }        from '@/lib/api/client';
+import useAuthGuard from '@/lib/hooks/useAuthGuard';
+import ClientOnly from '@/components/ClientOnly';
+import { apiClient } from '@/lib/api/client';
 import useAuth from '@/lib/hooks/useAuth';
 
 
@@ -38,9 +38,9 @@ const GREEN_DIM = '#059669';
 function AppsIcon({ size = 20, color = GREEN }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <rect x="3"  y="3"  width="7" height="7" rx="2" fill={color} />
-      <rect x="14" y="3"  width="7" height="7" rx="2" fill={color} opacity="0.7" />
-      <rect x="3"  y="14" width="7" height="7" rx="2" fill={color} opacity="0.7" />
+      <rect x="3" y="3" width="7" height="7" rx="2" fill={color} />
+      <rect x="14" y="3" width="7" height="7" rx="2" fill={color} opacity="0.7" />
+      <rect x="3" y="14" width="7" height="7" rx="2" fill={color} opacity="0.7" />
       <rect x="14" y="14" width="7" height="7" rx="2" fill={color} opacity="0.5" />
     </svg>
   );
@@ -51,7 +51,7 @@ function HelpCircleIcon({ size = 20, color = GREEN }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" fill="none" />
       <path d="M9.5 9.5C9.5 8.12 10.62 7 12 7C13.38 7 14.5 8.12 14.5 9.5C14.5 10.88 12 12 12 13.5"
-            stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+        stroke={color} strokeWidth="1.8" strokeLinecap="round" />
       <circle cx="12" cy="16.5" r="0.9" fill={color} />
     </svg>
   );
@@ -66,14 +66,14 @@ function AnimatedHeaderButton({ label, icon, direction, onClick }) {
     return () => { mounted.current = false; clearTimeout(t); };
   }, []);
   const textV = {
-    enter:  { x: direction === 'left' ? 18 : -18, opacity: 0 },
+    enter: { x: direction === 'left' ? 18 : -18, opacity: 0 },
     center: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 340, damping: 28 } },
-    exit:   { x: direction === 'left' ? -22 : 22, opacity: 0, transition: { duration: 0.22 } },
+    exit: { x: direction === 'left' ? -22 : 22, opacity: 0, transition: { duration: 0.22 } },
   };
   const iconV = {
-    enter:  { x: direction === 'left' ? 18 : -18, opacity: 0 },
+    enter: { x: direction === 'left' ? 18 : -18, opacity: 0 },
     center: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 340, damping: 26 } },
-    exit:   { x: 0, opacity: 0, transition: { duration: 0.15 } },
+    exit: { x: 0, opacity: 0, transition: { duration: 0.15 } },
   }
   return (
     <Box onClick={onClick} sx={{
@@ -110,8 +110,8 @@ function AnimatedHeaderButton({ label, icon, direction, onClick }) {
   );
 }
 
-const PILL_W  = 74;
-const PILL_H  = 30;
+const PILL_W = 74;
+const PILL_H = 30;
 const THUMB_D = 22;
 const THUMB_PAD = 3;
 const THUMB_TRAVEL = PILL_W - THUMB_D - THUMB_PAD * 3;
@@ -167,11 +167,137 @@ function ThemeToggle({ isDark, onToggle }) {
     </Box>
   );
 }
+// ─── PartnerBanner ─────────────────────────────────────────────────────────────
+// Shows the driver's current partner company (or a CTA to select one).
+function PartnerBanner({ user, isDark }) {
+  const partner = user?.partner;
+  const hasPartner = !!partner;
+  const partnerProfile = partner?.partnerProfile || {};
+  const [imgError, setImgError] = useState(false);
 
+  if (hasPartner) {
+    // Linked partner — show logo/name + link to their page
+    const initials = partnerProfile.businessName
+      ? partnerProfile.businessName.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+      : '?';
+
+    return (
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }}>
+        <Link href={`/partners/${partner.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+          <Paper elevation={0} sx={{
+            p: 1.5, mb: 1.5, borderRadius: 2.5,
+            background: isDark
+              ? `linear-gradient(135deg, ${alpha(GREEN, 0.14)} 0%, ${alpha('#047857', 0.08)} 100%)`
+              : `linear-gradient(135deg, ${alpha(GREEN, 0.08)} 0%, ${alpha('#047857', 0.04)} 100%)`,
+            border: `1px solid ${alpha(GREEN, isDark ? 0.22 : 0.18)}`,
+            boxShadow: `0 2px 12px ${alpha(GREEN, 0.08)}`,
+            display: 'flex', alignItems: 'center', gap: 1.25,
+            cursor: 'pointer',
+            transition: 'border-color 0.2s, box-shadow 0.2s',
+            '&:hover': {
+              borderColor: alpha(GREEN, 0.45),
+              boxShadow: `0 4px 20px ${alpha(GREEN, 0.18)}`,
+            },
+          }}>
+            {/* Avatar */}
+            {partnerProfile.logo?.url && !imgError ? (
+              <Box component="img" src={partnerProfile.logo.url}
+                onError={() => setImgError(true)}
+                sx={{
+                  width: 32, height: 32, borderRadius: 1.5, objectFit: 'cover',
+                  border: `1px solid ${alpha(GREEN, 0.2)}`, flexShrink: 0
+                }} />
+            ) : (
+              <Box sx={{
+                width: 32, height: 32, borderRadius: 1.5, flexShrink: 0,
+                background: `linear-gradient(135deg, ${alpha(GREEN, 0.25)} 0%, ${alpha(GREEN_DIM, 0.15)} 100%)`,
+                border: `1px solid ${alpha(GREEN, 0.3)}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 800, color: GREEN, letterSpacing: '0.03em',
+              }}>
+                {initials}
+              </Box>
+            )}
+
+            {/* Info */}
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{
+                fontSize: 10, fontWeight: 700, color: isDark ? alpha(GREEN, 0.7) : GREEN_DIM,
+                textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1
+              }}>
+                Your Partner Company
+              </Typography>
+              <Typography sx={{
+                fontSize: 13, fontWeight: 700, color: isDark ? '#E2E8F0' : '#1E293B',
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3, mt: 0.25
+              }}>
+                {partnerProfile.businessName || 'Partner'}
+              </Typography>
+            </Box>
+
+            {/* Chevron */}
+            <Box sx={{ color: isDark ? alpha(GREEN, 0.5) : alpha(GREEN_DIM, 0.6), flexShrink: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </Box>
+          </Paper>
+        </Link>
+      </motion.div>
+    );
+  }
+
+  // No partner — CTA to select one
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }}>
+      <Link href="/partners" style={{ textDecoration: 'none', display: 'block' }}>
+        <Paper elevation={0} sx={{
+          p: 1.5, mb: 1.5, borderRadius: 2.5,
+          background: isDark
+            ? `linear-gradient(135deg, ${alpha('#F59E0B', 0.12)} 0%, ${alpha('#D97706', 0.07)} 100%)`
+            : `linear-gradient(135deg, ${alpha('#F59E0B', 0.08)} 0%, ${alpha('#D97706', 0.04)} 100%)`,
+          border: `1px solid ${alpha('#F59E0B', isDark ? 0.25 : 0.2)}`,
+          boxShadow: `0 2px 12px ${alpha('#F59E0B', 0.08)}`,
+          display: 'flex', alignItems: 'center', gap: 1.25,
+          cursor: 'pointer',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+          '&:hover': {
+            borderColor: alpha('#F59E0B', 0.5),
+            boxShadow: `0 4px 20px ${alpha('#F59E0B', 0.18)}`,
+          },
+        }}>
+          <Box sx={{
+            width: 32, height: 32, borderRadius: 1.5, flexShrink: 0,
+            background: `linear-gradient(135deg, ${alpha('#F59E0B', 0.25)} 0%, ${alpha('#D97706', 0.15)} 100%)`,
+            border: `1px solid ${alpha('#F59E0B', 0.3)}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <BusinessIcon sx={{ fontSize: 16, color: '#F59E0B' }} />
+          </Box>
+
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{
+              fontSize: 10, fontWeight: 700, color: '#D97706',
+              textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1
+            }}>
+              No Partner Linked
+            </Typography>
+            <Typography sx={{
+              fontSize: 13, fontWeight: 600,
+              color: isDark ? '#FCD34D' : '#92400E', lineHeight: 1.3, mt: 0.25
+            }}>
+              Tap here to select a partner company →
+            </Typography>
+          </Box>
+        </Paper>
+      </Link>
+    </motion.div>
+  );
+}
 export default function DriverHomePage() {
-  const router  = useRouter();
-  const theme   = useTheme();
-  const isDark  = theme.palette.mode === 'dark';
+  const router = useRouter();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const { toggleTheme: toggleColorMode } = useThemeMode();
 
   // ── Single hook calls — no duplicates ─────────────────────────────────────
@@ -188,11 +314,11 @@ export default function DriverHomePage() {
 
   const { isNegativeFloatAllowed, negativeFloatLimit, minimumFloatTopup, defaultCommissionPercentage, isFloatSystemEnabled, isSubscriptionSystemEnabled } = useAdminSettings();
   const { isAuthenticated } = useAuth()
-  const { user } = useAuthGuard({requireSubscription : true, requireVerification : true}) // on page running, this handles checks for if driver his verified, etc
+  const { user } = useAuthGuard({ requireSubscription: true, requireVerification: true }) // on page running, this handles checks for if driver his verified, etc
   const {
     incomingDelivery: incomingRide,
-    acceptDelivery:   acceptRide,
-    declineDelivery:  declineRide,
+    acceptDelivery: acceptRide,
+    declineDelivery: declineRide,
     currentDelivery
   } = useDelivery();
 
@@ -205,7 +331,7 @@ export default function DriverHomePage() {
 
   const { isNative, getCurrentLocation, reconnectDeviceSocket } = useReactNative();
   const [currentLocation, setCurrentLocation] = useState(null);
-  const [landingPageUrl,  setLandingPageUrl]  = useState(null);
+  const [landingPageUrl, setLandingPageUrl] = useState(null);
 
   // Redirect logic for active deliveries
   useEffect(() => {
@@ -216,15 +342,15 @@ export default function DriverHomePage() {
       }
     }
   }, [currentDelivery, router]);
-    
+
   useEffect(() => {
     fetchStats('today');
     requestLocationOnMount();
-    if(isNative){
-        reconnectDeviceSocket( user?.id, 'delivery', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
+    if (isNative) {
+      reconnectDeviceSocket(user?.id, 'delivery', process.env.NEXT_PUBLIC_DEVICE_SOCKET_URL)
     }
     apiClient.post('/driver/toggle-offline'); // the /driver/toggle-offline endpoint toggles the driver profile offline 
-   // this is because each time a user switches app, they must reconnect to the current app for all events
+    // this is because each time a user switches app, they must reconnect to the current app for all events
   }, [])
 
   useEffect(() => {
@@ -256,51 +382,51 @@ export default function DriverHomePage() {
     try {
       const result = await toggleOnline(!isOnline)
       if (!result.allowed) {
-        if (result.action === 'subscribe')   { if (window.confirm(result.message + '\n\nView plans?')) router.push('/subscription/plans'); }
+        if (result.action === 'subscribe') { if (window.confirm(result.message + '\n\nView plans?')) router.push('/subscription/plans'); }
         if (result.action === 'topup_float') { if (window.confirm(result.message + '\n\nTop up now?')) router.push('/float/topup'); }
       }
     } catch (e) { console.error('Error toggling online:', e); }
   }
 
-  const handleAcceptRide  = async (id) => { try { await acceptRide(id);  router.push(`/active-delivery/${id}`) } catch (e) { console.error(e) } }
+  const handleAcceptRide = async (id) => { try { await acceptRide(id); router.push(`/active-delivery/${id}`) } catch (e) { console.error(e) } }
   const handleDeclineRide = async (id) => { try { await declineRide(id, 'Driver declined') } catch (e) { console.error(e) } }
-  const subscriptionStatus    = driverProfile?.subscriptionStatus;
+  const subscriptionStatus = driverProfile?.subscriptionStatus;
   const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
   const isOnSubscriptionSystem = paymentSystemType === 'subscription_based' || (paymentSystemType === 'hybrid' && ['active', 'trial'].includes(subscriptionStatus));
   const isOnFloatSystem = paymentSystemType === 'float_based' || (paymentSystemType === 'hybrid' && !['active', 'trial'].includes(subscriptionStatus));
   const daysUntilExpiry = (() => {
-   if (typeof window === 'undefined') return null;
-   if (!subscriptionExpiresAt) return null;
-   const diff = new Date(subscriptionExpiresAt).getTime() - Date.now();
-   return Math.max(0, Math.floor(diff / 86400000));
+    if (typeof window === 'undefined') return null;
+    if (!subscriptionExpiresAt) return null;
+    const diff = new Date(subscriptionExpiresAt).getTime() - Date.now();
+    return Math.max(0, Math.floor(diff / 86400000));
   })();
-  const isSubscriptionExpired      = ['expired', 'cancelled'].includes(subscriptionStatus);
+  const isSubscriptionExpired = ['expired', 'cancelled'].includes(subscriptionStatus);
   const isSubscriptionExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 7;
   const isOnTrial = subscriptionStatus === 'trial';
-  const floatBalance    = driverProfile?.floatBalance || 0;
+  const floatBalance = driverProfile?.floatBalance || 0;
   const isFloatNegative = floatBalance <= 0;
   const isFloatAtLimit = (() => {
-  if (typeof window === 'undefined') return false;
-   return (
-     isFloatNegative &&
-     negativeFloatLimit > 0 &&
-     Math.abs(floatBalance) >= negativeFloatLimit
-   )
+    if (typeof window === 'undefined') return false;
+    return (
+      isFloatNegative &&
+      negativeFloatLimit > 0 &&
+      Math.abs(floatBalance) >= negativeFloatLimit
+    )
   })()
-  const isFloatLow      = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
-  console.log('needsVerification || needsVehicle',needsVerification , needsVehicle)
-  const showVerificationAlert         = needsVerification || needsVehicle;
+  const isFloatLow = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
+  console.log('needsVerification || needsVehicle', needsVerification, needsVehicle)
+  const showVerificationAlert = needsVerification || needsVehicle;
   const showSubscriptionRequiredAlert = !showVerificationAlert && paymentSystemType === 'subscription_based' && needsSubscription;
-  const showSubscriptionExpiryAlert   = !showVerificationAlert && isOnSubscriptionSystem && (isSubscriptionExpired || isSubscriptionExpiringSoon);
-  const showFloatBlockedAlert         = !showVerificationAlert && isOnFloatSystem && (isFloatAtLimit || (isFloatNegative && !isNegativeFloatAllowed));
-  const showFloatLowAlert             = !showVerificationAlert && isOnFloatSystem && isFloatLow;
-  const showFloatNegativeWarning      = !showVerificationAlert && isOnFloatSystem && isFloatNegative && !isFloatAtLimit && isNegativeFloatAllowed;
-  const showFloatWithdrawableNotice   = !showVerificationAlert && isOnSubscriptionSystem && floatBalance > 0;
+  const showSubscriptionExpiryAlert = !showVerificationAlert && isOnSubscriptionSystem && (isSubscriptionExpired || isSubscriptionExpiringSoon);
+  const showFloatBlockedAlert = !showVerificationAlert && isOnFloatSystem && (isFloatAtLimit || (isFloatNegative && !isNegativeFloatAllowed));
+  const showFloatLowAlert = !showVerificationAlert && isOnFloatSystem && isFloatLow;
+  const showFloatNegativeWarning = !showVerificationAlert && isOnFloatSystem && isFloatNegative && !isFloatAtLimit && isNegativeFloatAllowed;
+  const showFloatWithdrawableNotice = !showVerificationAlert && isOnSubscriptionSystem && floatBalance > 0;
 
   const alertVariants = {
     hidden: { opacity: 0, y: -12, height: 0 },
-    show:   { opacity: 1, y: 0,   height: 'auto', transition: { type: 'spring', stiffness: 300, damping: 28 } },
-    exit:   { opacity: 0, y: -8,  height: 0 },
+    show: { opacity: 1, y: 0, height: 'auto', transition: { type: 'spring', stiffness: 300, damping: 28 } },
+    exit: { opacity: 0, y: -8, height: 0 },
   };
 
   // ── Light-mode surface colors ──
@@ -310,11 +436,13 @@ export default function DriverHomePage() {
   const appBarBg = isDark
     ? `linear-gradient(135deg, #1E293B 0%, #0F172A 100%)`
     : `linear-gradient(135deg, #065F46 0%, #059669 100%)`;
-  
-    
-  if(!isAuthenticated()){
-    return <HomePageSkeleton/>
+
+
+  if (!isAuthenticated()) {
+    return <HomePageSkeleton />
   }
+
+
   return (
     <ClientOnly>
       <Box sx={{
@@ -357,7 +485,7 @@ export default function DriverHomePage() {
         {/* ── Scrollable body ─────────────────────────────────────────── */}
         <Box sx={{ flex: 1, overflowY: 'auto', p: 2, pb: 10, ...hideScrollbar, position: 'relative', zIndex: 1 }}>
           {/* Gate on BOTH profile and stats loading so summary/lifetime are never undefined */}
-          {loadingDriverProfile || statsLoading? (
+          {loadingDriverProfile || statsLoading ? (
             <HomePageSkeleton />
           ) : (
             <>
@@ -454,9 +582,9 @@ export default function DriverHomePage() {
                     <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 12, color: isOnSubscriptionSystem ? (isDark ? 'success.light' : 'success.dark') : (isDark ? 'info.light' : 'info.dark') }}>
                       💰{' '}
                       {paymentSystemType === 'subscription_based' ? '0% Commission — Subscription Plan'
-                        : paymentSystemType === 'float_based'     ? `Float — ${defaultCommissionPercentage}% Commission`
-                        : isOnSubscriptionSystem                  ? '0% Commission — Active Subscription'
-                        : `Hybrid — ${defaultCommissionPercentage}% Commission`}
+                        : paymentSystemType === 'float_based' ? `Float — ${defaultCommissionPercentage}% Commission`
+                          : isOnSubscriptionSystem ? '0% Commission — Active Subscription'
+                            : `Hybrid — ${defaultCommissionPercentage}% Commission`}
                     </Typography>
                     {isOnFloatSystem && (
                       <Chip label={`Float: ${formatCurrency(floatBalance)}`} size="small"
@@ -467,6 +595,10 @@ export default function DriverHomePage() {
                   </Paper>
                 </motion.div>
               )}
+
+              {/* ── Partner Banner ── shown just below the payment banner ── */}
+              <PartnerBanner user={user} isDark={isDark} />
+
 
               {/* ── Online Toggle ─────────────────────────────────── */}
               <OnlineToggle
@@ -480,10 +612,10 @@ export default function DriverHomePage() {
               {/* ── Stats Grid ────────────────────────────────────── */}
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: '1fr', gap: 1.5, mb: 1.5, '& > *': { minWidth: 0, minHeight: 0 } }}>
                 {[
-                  { el: <EarningsCard title="Today's Earnings" amount={summary.earnings || 0}              icon={<EarningsIcon />} color="earnings" onClick={() => router.push('/earnings')} />, delay: 0.08 },
-                  { el: <StatCard title="Deliveries Today"  value={summary.completedDeliveries || 0}            icon={<RidesIcon />}   color="primary" />, delay: 0.14 },
-                  { el: <StatCard title="Rating"            value={(lifetime.averageRating ?? 0).toFixed(1)} icon={<StarIcon />}   color="warning" />, delay: 0.20 },
-                  { el: <StatCard title="Acceptance"        value={`${summary.acceptanceRate ?? 0}%`}       icon={<SpeedIcon />}  color="info"    />, delay: 0.26 },
+                  { el: <EarningsCard title="Today's Earnings" amount={summary.earnings || 0} icon={<EarningsIcon />} color="earnings" onClick={() => router.push('/earnings')} />, delay: 0.08 },
+                  { el: <StatCard title="Deliveries Today" value={summary.completedDeliveries || 0} icon={<RidesIcon />} color="primary" />, delay: 0.14 },
+                  { el: <StatCard title="Rating" value={(lifetime.averageRating ?? 0).toFixed(1)} icon={<StarIcon />} color="warning" />, delay: 0.20 },
+                  { el: <StatCard title="Acceptance" value={`${summary.acceptanceRate ?? 0}%`} icon={<SpeedIcon />} color="info" />, delay: 0.26 },
                 ].map(({ el, delay }, i) => (
                   <motion.div key={i} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}
                     transition={{ type: 'spring', stiffness: 280, damping: 24, delay }} style={{ height: '100%' }}>
@@ -496,7 +628,7 @@ export default function DriverHomePage() {
               <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
                 {[
                   { label: 'Deliveries', icon: <HistoryIcon />, path: '/deliveries' },
-                  { label: 'Earnings',   icon: <WalletIcon />,  path: '/earnings' },
+                  { label: 'Earnings', icon: <WalletIcon />, path: '/earnings' },
                 ].map(({ label, icon, path }, i) => (
                   <motion.div key={label} style={{ flex: 1 }}
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.06 }}
@@ -547,7 +679,7 @@ export default function DriverHomePage() {
                       }}>
                       {isSubscriptionExpired ? 'Renew Plan'
                         : ['active', 'trial'].includes(subscriptionStatus) ? `Plan: ${daysUntilExpiry}d left`
-                        : 'View Plans'}
+                          : 'View Plans'}
                     </Button>
                   )}
                 </Box>
@@ -558,7 +690,7 @@ export default function DriverHomePage() {
 
         {/* ── Ride Request Modal ──────────────────────────────────────── */}
         <AnimatePresence>
-          {incomingRide && !isNative &&(
+          {incomingRide && !isNative && (
             <DeliveryRequestModal open={!!incomingRide} deliveryRequest={incomingRide}
               onAccept={handleAcceptRide} onDecline={handleDeclineRide} />
           )}

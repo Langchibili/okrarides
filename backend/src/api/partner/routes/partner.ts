@@ -152,7 +152,12 @@ export default {
             handler: 'partner.cancelRide',
             config: { policies: [], middlewares: [] },
         },
-
+        {
+            method: 'POST',
+            path: '/partner/drivers/:id/switch-partner',
+            handler: 'partner.switchDriverPartner',
+            config: { policies: [], middlewares: [] },
+        },
         // ── Support ──────────────────────────────────────────────────────────────
         {
             // Send a support message to Okra admin
@@ -160,6 +165,7 @@ export default {
             path: '/partner/support',
             handler: 'partner.contactSupport',
             config: { policies: [], middlewares: [] },
-        }
+        },
+
     ],
 };

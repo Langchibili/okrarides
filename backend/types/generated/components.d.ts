@@ -419,7 +419,9 @@ export interface PartnerProfilePartnerProfile extends Struct.ComponentSchema {
     businessEmail: Schema.Attribute.Email;
     businessName: Schema.Attribute.String;
     businessPhone: Schema.Attribute.String;
+    emailAddress: Schema.Attribute.String;
     floatBalance: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    logo: Schema.Attribute.Media<'images'>;
     notes: Schema.Attribute.Text;
     totalDrivers: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     verificationNotes: Schema.Attribute.Text;
@@ -427,6 +429,7 @@ export interface PartnerProfilePartnerProfile extends Struct.ComponentSchema {
       ['not_started', 'pending', 'approved', 'rejected', 'suspended']
     > &
       Schema.Attribute.DefaultTo<'not_started'>;
+    whatsappNumber: Schema.Attribute.String;
   };
 }
 

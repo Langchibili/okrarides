@@ -1917,6 +1917,125 @@ export default factories.createCoreController(
                 return ctx.internalServerError('Failed to submit report');
             }
         },
+        // =========================================================================
+        // POST /partner/drivers/:id/switch-partner
+        // =========================================================================
+        async switchDriverPartner(ctx: any) {
+            try {
+
+                const driverId = parseInt(ctx.params.id, 10);
+                const { newPartnerId } = ctx.request.body ?? {};
+                let { currentPartner } = ctx.request.body ?? {};
+
+
+                if (!driverId || !newPartnerId) {
+                    return ctx.badRequest('driverId (url param) and newPartnerId (body) are required');
+                }
+
+                if (newPartnerId === currentPartner.id) {
+                    return ctx.badRequest('Driver is already assigned to this partner');
+                }
+
+                // 2. Verify driver belongs to current partner
+                const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
+                    where: { id: driverId },
+                    populate: { driverProfile: true, country: true },
+                })
+
+                // 3. Fetch new partner & ensure they are approved
+                const newPartnerUser = await strapi.db.query('plugin::users-permissions.user').findOne({
+                    where: { id: newPartnerId },
+                    populate: { partnerProfile: true, country: true },
+                });
+                currentPartner = await strapi.db.query('plugin::users-permissions.user').findOne({
+                    where: { id: currentPartner?.id },
+                    populate: { partnerProfile: true, country: true },
+                });
+
+                if (!newPartnerUser?.partnerProfile) {
+                    return ctx.notFound('New partner not found');
+                }
+                if (newPartnerUser.partnerProfile.verificationStatus !== 'approved') {
+                    return ctx.badRequest('New partner account is not approved');
+                }
+
+                // 4. Atomic reassignment of the driver
+                await strapi.db.query('plugin::users-permissions.user').update({
+                    where: { id: driverId },
+                    data: { partner: newPartnerId },
+                });
+
+                // 5. Update totalDrivers counters on both partners
+                const oldPartnerProfile = currentPartner.partnerProfile;
+                const newPartnerProfile = newPartnerUser.partnerProfile;
+
+                const oldTotal = Math.max(0, (oldPartnerProfile.totalDrivers || 1) - 1);
+                const newTotal = (newPartnerProfile.totalDrivers || 0) + 1;
+
+                await strapi.db.query('partner-profile.partner-profile').update({
+                    where: { id: Number(oldPartnerProfile.id) },
+                    data: {
+                        totalDrivers: oldTotal
+                    }
+                })
+
+                await strapi.db.query('partner-profile.partner-profile').update({
+                    where: { id: Number(newPartnerId) },
+                    data: {
+                        totalDrivers: newTotal
+                    }
+                })
+
+                // 6. Send notifications to the new partner
+                const driverName = `${driver.firstName || ''} ${driver.lastName || ''}`.trim() || 'Driver';
+                const driverPhone = driver.phoneNumber || driver.username;
+
+                // Email
+                const newPartnerEmail = newPartnerProfile.businessEmail || newPartnerUser.email;
+                if (newPartnerEmail) {
+                    const emailBody = `
+Hello ${newPartnerProfile.businessName || 'Partner'},
+
+A driver has switched to your fleet on Okra Rides.
+
+Driver details:
+  Name:         ${driverName}
+  Phone number: ${driverPhone}
+
+They will appear in your fleet dashboard shortly.
+
+— The Okra Rides team
+            `.trim();
+
+                    SendEmailNotification(newPartnerEmail, emailBody);
+                }
+
+                // SMS (sent to the business phone number)
+                const newPartnerPhone = newPartnerProfile.businessPhone || newPartnerUser.phoneNumber;
+                if (newPartnerPhone) {
+                    const smsBody = `Hello ${newPartnerProfile.businessName || 'Partner'}, a new driver (${driverName}, ${driverPhone}) has joined your Okra Rides fleet. Check your dashboard.`;
+                    SendSmsNotification(newPartnerPhone, smsBody);
+                }
+
+                // 7. Respond
+                return ctx.send({
+                    success: true,
+                    message: `Driver switched to ${newPartnerProfile.businessName ?? 'new partner'} successfully`,
+                    driver: {
+                        id: driver.id,
+                        phoneNumber: driverPhone,
+                        name: driverName,
+                    },
+                    newPartner: {
+                        id: newPartnerId,
+                        businessName: newPartnerProfile.businessName,
+                    },
+                });
+            } catch (err: any) {
+                strapi.log.error('[Partner:switchDriverPartner]', err);
+                return ctx.internalServerError(err.message || 'Failed to switch driver partner');
+            }
+        },
 
         // =========================================================================
         // POST /partner/support
@@ -1966,3 +2085,4 @@ export default factories.createCoreController(
         },
     })
 );
+
