@@ -1932,7 +1932,7 @@ export default factories.createCoreController(
                     return ctx.badRequest('driverId (url param) and newPartnerId (body) are required');
                 }
 
-                if (newPartnerId === currentPartner.id) {
+                if (currentPartner && (newPartnerId === currentPartner.id)) {
                     return ctx.badRequest('Driver is already assigned to this partner');
                 }
 
@@ -1946,11 +1946,14 @@ export default factories.createCoreController(
                 const newPartnerUser = await strapi.db.query('plugin::users-permissions.user').findOne({
                     where: { id: newPartnerId },
                     populate: { partnerProfile: true, country: true },
-                });
-                currentPartner = await strapi.db.query('plugin::users-permissions.user').findOne({
-                    where: { id: currentPartner?.id },
-                    populate: { partnerProfile: true, country: true },
-                });
+                })
+
+                if (currentPartner) {
+                    currentPartner = await strapi.db.query('plugin::users-permissions.user').findOne({
+                        where: { id: currentPartner?.id },
+                        populate: { partnerProfile: true, country: true },
+                    })
+                }
 
                 if (!newPartnerUser?.partnerProfile) {
                     return ctx.notFound('New partner not found');
@@ -1966,18 +1969,19 @@ export default factories.createCoreController(
                 });
 
                 // 5. Update totalDrivers counters on both partners
-                const oldPartnerProfile = currentPartner.partnerProfile;
+                const oldPartnerProfile = currentPartner?.partnerProfile || null;
                 const newPartnerProfile = newPartnerUser.partnerProfile;
 
-                const oldTotal = Math.max(0, (oldPartnerProfile.totalDrivers || 1) - 1);
+                const oldTotal = Math.max(0, (oldPartnerProfile?.totalDrivers || 1) - 1);
                 const newTotal = (newPartnerProfile.totalDrivers || 0) + 1;
-
-                await strapi.db.query('partner-profile.partner-profile').update({
-                    where: { id: Number(oldPartnerProfile.id) },
-                    data: {
-                        totalDrivers: oldTotal
-                    }
-                })
+                if (oldPartnerProfile) {
+                    await strapi.db.query('partner-profile.partner-profile').update({
+                        where: { id: Number(oldPartnerProfile?.id) },
+                        data: {
+                            totalDrivers: oldTotal
+                        }
+                    })
+                }
 
                 await strapi.db.query('partner-profile.partner-profile').update({
                     where: { id: Number(newPartnerId) },

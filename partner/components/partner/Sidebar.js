@@ -303,6 +303,7 @@ export default function Sidebar() {
               onClick={() => setOpen(false)}
               size="small"
               sx={{
+                marginBottom: '20px',
                 position: 'absolute',
                 top: 10,
                 right: -44, // peek outside the sidebar into the backdrop area
