@@ -114,7 +114,7 @@ function MetricTile({ label, value, icon, highlight }) {
     );
 }
 
-// ─── ContactRow — mirrors HelpPage style ──────────────────────────────────────
+// ─── ContactRow ───────────────────────────────────────────────────────────────
 function ContactRow({ value, type, last }) {
     const [copied, setCopied] = useState(false);
     const color = type === 'phone' ? GREEN : '#3B82F6';
@@ -145,7 +145,6 @@ function ContactRow({ value, type, last }) {
             padding: '10px 0',
             borderBottom: last ? 'none' : '1px solid rgba(255,255,255,0.04)',
         }}>
-            {/* Icon tile */}
             <div style={{
                 width: 36, height: 36, borderRadius: 10, flexShrink: 0,
                 background: `rgba(${bgAlpha}, 0.12)`,
@@ -164,7 +163,6 @@ function ContactRow({ value, type, last }) {
                 )}
             </div>
 
-            {/* Value */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ margin: 0, fontSize: 11, color: '#475569', marginBottom: 1 }}>
                     {type === 'phone' ? 'Phone' : 'Email'}
@@ -174,9 +172,7 @@ function ContactRow({ value, type, last }) {
                 </p>
             </div>
 
-            {/* Action buttons */}
             <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                {/* Tap-to-call / Tap-to-email */}
                 <button onClick={handleAction} style={{
                     width: 32, height: 32, borderRadius: 8,
                     background: `rgba(${bgAlpha}, 0.12)`,
@@ -200,7 +196,6 @@ function ContactRow({ value, type, last }) {
                     )}
                 </button>
 
-                {/* Copy */}
                 <button onClick={handleCopy} style={{
                     width: 32, height: 32, borderRadius: 8,
                     background: copied ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
@@ -222,7 +217,6 @@ function ContactRow({ value, type, last }) {
                     )}
                 </button>
 
-                {/* WhatsApp (phone only) */}
                 {type === 'phone' && (
                     <button onClick={handleWhatsApp} style={{
                         width: 32, height: 32, borderRadius: 8,
@@ -246,15 +240,147 @@ function ContactRow({ value, type, last }) {
     );
 }
 
+// ─── ConfirmSwitchModal ────────────────────────────────────────────────────────
+// Shown first when user taps "Switch to this partner" on the detail page.
+// Requires explicit confirmation before executing the switch.
+function ConfirmSwitchModal({ partner, onConfirm, onClose, switching, error }) {
+    const profile = partner?.partnerProfile || {};
+    return (
+        <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)',
+            backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', zIndex: 1100, padding: '1rem',
+        }} onClick={(e) => e.target === e.currentTarget && !switching && onClose()}>
+            <div style={{
+                background: 'linear-gradient(160deg, #1E293B 0%, #0F172A 100%)',
+                borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: '0 24px 64px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)',
+                padding: '24px', width: '100%', maxWidth: 400,
+                display: 'flex', flexDirection: 'column', gap: 16,
+            }}>
+                {/* Icon + heading */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
+                    <div style={{
+                        width: 56, height: 56, borderRadius: 16,
+                        background: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.1) 100%)',
+                        border: '1px solid rgba(16,185,129,0.3)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: 17, color: '#F1F5F9', letterSpacing: '-0.01em' }}>
+                            Switch to this partner?
+                        </p>
+                        <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748B', lineHeight: 1.5 }}>
+                            You are about to join
+                        </p>
+                    </div>
+                </div>
+
+                {/* Partner preview */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 14px',
+                    background: 'rgba(16,185,129,0.07)',
+                    border: '1px solid rgba(16,185,129,0.18)',
+                    borderRadius: 12,
+                }}>
+                    <PartnerAvatar logo={profile.logo} businessName={profile.businessName} size={40} />
+                    <div style={{ minWidth: 0 }}>
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: '#E2E8F0' }}>
+                            {profile.businessName || 'This partner'}
+                        </p>
+                        {profile.businessPhone && (
+                            <p style={{ margin: 0, fontSize: 12, color: '#475569' }}>{profile.businessPhone}</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Info note */}
+                <p style={{
+                    margin: 0, fontSize: 12, color: '#475569', lineHeight: 1.6,
+                    padding: '8px 12px',
+                    background: 'rgba(255,255,255,0.03)',
+                    borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)',
+                }}>
+                    This will move you from your current company. The new partner will be notified via email and WhatsApp with your phone number.
+                </p>
+
+                {error && (
+                    <div style={{
+                        padding: '10px 14px', background: 'rgba(239,68,68,0.1)',
+                        border: '1px solid rgba(239,68,68,0.25)', borderRadius: 10,
+                        color: '#FCA5A5', fontSize: 13,
+                    }}>{error}</div>
+                )}
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                        onClick={onClose}
+                        disabled={switching}
+                        style={{
+                            flex: 1, padding: '11px', borderRadius: 12,
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            background: 'rgba(30,41,59,0.5)',
+                            color: switching ? '#334155' : '#94A3B8',
+                            fontSize: 13, fontWeight: 600, cursor: switching ? 'not-allowed' : 'pointer',
+                            fontFamily: 'inherit', transition: 'all 0.15s',
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={switching}
+                        style={{
+                            flex: 1, padding: '11px', borderRadius: 12, border: 'none',
+                            background: switching
+                                ? 'rgba(30,41,59,0.5)'
+                                : `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DIM} 100%)`,
+                            color: switching ? '#475569' : '#fff',
+                            fontSize: 13, fontWeight: 700, cursor: switching ? 'not-allowed' : 'pointer',
+                            fontFamily: 'inherit', transition: 'all 0.2s',
+                            boxShadow: switching ? 'none' : '0 4px 16px rgba(16,185,129,0.35)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                        }}
+                    >
+                        {switching ? (
+                            <>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                                Switching…
+                            </>
+                        ) : (
+                            <>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                    <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                                Yes, switch now
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // ─── SwitchPartnerModal ────────────────────────────────────────────────────────
 // The *logged-in driver* calls this to move themselves to a new partner.
+// (Kept for the existing flow where the driver picks from a list.)
 function SwitchPartnerModal({ currentPartnerId, onClose, onSuccess }) {
     const [partners, setPartners] = useState([]);
     const [selected, setSelected] = useState(null);
     const [loading, setLoading] = useState(true);
     const [switching, setSwitching] = useState(false);
     const [error, setError] = useState(null);
-    const { user } = useAuth()
+    const { user } = useAuth();
+
     useEffect(() => {
         (async () => {
             try {
@@ -278,7 +404,6 @@ function SwitchPartnerModal({ currentPartnerId, onClose, onSuccess }) {
         setSwitching(true);
         setError(null);
         try {
-            // Driver switches themselves: POST to /partner/switch with the new partner id
             await apiClient.post(`/partner/drivers/${user?.id}/switch-partner`, {
                 newPartnerId: selected.id,
                 currentPartner: user?.partner
@@ -304,7 +429,6 @@ function SwitchPartnerModal({ currentPartnerId, onClose, onSuccess }) {
                 padding: '24px', width: '100%', maxWidth: 460,
                 maxHeight: '80vh', display: 'flex', flexDirection: 'column', gap: 14,
             }}>
-                {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <p style={{ margin: 0, fontWeight: 700, fontSize: 16, color: '#F1F5F9', letterSpacing: '-0.01em' }}>
@@ -342,7 +466,6 @@ function SwitchPartnerModal({ currentPartnerId, onClose, onSuccess }) {
                     }}>{error}</div>
                 )}
 
-                {/* Partner list */}
                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {loading ? (
                         <p style={{ color: '#475569', fontSize: 13, textAlign: 'center', padding: '1.5rem 0' }}>
@@ -419,11 +542,17 @@ export default function PartnerDetailPage() {
     const router = useRouter();
     const params = useParams();
     const partnerId = params?.id;
+    const { user } = useAuth();
     const [partner, setPartner] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showSwitchModal, setShowSwitchModal] = useState(false);
-    // ── Snackbar state ──────────────────────────────────────────────────────────
+    // Confirmation modal for "Switch to this partner" (direct switch to current page's partner)
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [confirmSwitching, setConfirmSwitching] = useState(false);
+    const [confirmError, setConfirmError] = useState(null);
+
+    // ── Snackbar ───────────────────────────────────────────────────────────────
     const [snackbar, setSnackbar] = useState({ message: '', visible: false });
 
     useEffect(() => {
@@ -436,13 +565,11 @@ export default function PartnerDetailPage() {
         if (snackbar.visible) {
             const timer = setTimeout(() => {
                 setSnackbar({ visible: false, message: '' });
-                // Redirect after snackbar disappears
                 router.push('/');
-            }, 2000); // 👈 Change to 20000 if you want 20 seconds
+            }, 2000);
             return () => clearTimeout(timer);
         }
     }, [snackbar.visible, router]);
-    // ───────────────────────────────────────────────────────────────────────────
 
     useEffect(() => {
         if (!partnerId) return;
@@ -461,6 +588,28 @@ export default function PartnerDetailPage() {
             }
         })();
     }, [partnerId]);
+
+    // ── Direct switch: driver switches themselves to THIS partner ──────────────
+    async function handleConfirmSwitch() {
+        if (!user?.id || !partnerId) return;
+        setConfirmSwitching(true);
+        setConfirmError(null);
+        try {
+            await apiClient.post(`/partner/drivers/${user.id}/switch-partner`, {
+                newPartnerId: Number(partnerId),
+                currentPartner: user?.partner,
+            });
+            setShowConfirmModal(false);
+            setSnackbar({
+                message: `You have been moved to ${partner?.partnerProfile?.businessName ?? 'this partner'}. Notifications sent.`,
+                visible: true,
+            });
+        } catch (err) {
+            setConfirmError(err?.message || 'Failed to switch partner. Please try again.');
+        } finally {
+            setConfirmSwitching(false);
+        }
+    }
 
     if (loading) {
         return (
@@ -493,12 +642,10 @@ export default function PartnerDetailPage() {
     const status = STATUS_STYLES[profile.verificationStatus] || STATUS_STYLES.not_started;
     const fullName = [partner.firstName, partner.lastName].filter(Boolean).join(" ");
 
-    // Build contact lists
     const phones = [profile.businessPhone, profile.whatsappNumber, partner.phoneNumber].filter(Boolean);
     const emails = [profile.businessEmail, profile.emailAddress,
     partner.email?.startsWith('unset_') ? null : partner.email
     ].filter(Boolean);
-    // Deduplicate
     const uniquePhones = [...new Set(phones)];
     const uniqueEmails = [...new Set(emails)];
 
@@ -513,6 +660,10 @@ export default function PartnerDetailPage() {
                 @keyframes snackbarIn {
                     from { opacity: 0; transform: translateX(-50%) translateY(12px); }
                     to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+                }
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to   { transform: rotate(360deg); }
                 }
             `}</style>
 
@@ -565,6 +716,7 @@ export default function PartnerDetailPage() {
                                 background: `linear-gradient(90deg, transparent, ${GREEN}40, transparent)`,
                             }} />
 
+                            {/* Identity row */}
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
                                 <PartnerAvatar logo={profile.logo} businessName={profile.businessName} size={60} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -591,36 +743,60 @@ export default function PartnerDetailPage() {
                                 </div>
                             </div>
 
-                            {/* Metrics */}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                                <MetricTile label="Drivers" value={profile.totalDrivers ?? 0} highlight
-                                    icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" /></svg>}
-                                />
-                                <MetricTile label="Country" value={partner.country?.name ?? "—"}
+                            {/* Metrics — country + approved only (no drivers count) */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 14 }}>
+                                <MetricTile
+                                    label="Country"
+                                    value={partner.country?.name ?? "—"}
                                     icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" stroke="currentColor" strokeWidth="2" /><circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2" /></svg>}
                                 />
-                                <MetricTile label="Approved"
+                                <MetricTile
+                                    label="Approved"
                                     value={profile.approvedAt ? new Date(profile.approvedAt).toLocaleDateString('en', { day: 'numeric', month: 'short', year: '2-digit' }) : "—"}
                                     icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" /><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="2" /></svg>}
                                 />
                             </div>
 
-                            {/* Switch partner CTA */}
-                            <button onClick={() => setShowSwitchModal(true)} style={{
-                                marginTop: 14, width: '100%', padding: '11px',
-                                borderRadius: 12, border: `1px solid rgba(16,185,129,0.3)`,
-                                background: 'rgba(16,185,129,0.08)',
-                                color: GREEN, fontSize: 13, fontWeight: 700,
-                                cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                            }}
-                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.15)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.08)'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; }}
+                            {/* ── Switch to THIS partner CTA ── */}
+                            <button
+                                onClick={() => { setConfirmError(null); setShowConfirmModal(true); }}
+                                style={{
+                                    width: '100%', padding: '12px',
+                                    borderRadius: 12, border: 'none',
+                                    background: `linear-gradient(135deg, ${GREEN} 0%, ${GREEN_DIM} 100%)`,
+                                    color: '#fff', fontSize: 14, fontWeight: 700,
+                                    cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                                    boxShadow: '0 6px 20px rgba(16,185,129,0.35)',
+                                    letterSpacing: '0.01em',
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 28px rgba(16,185,129,0.5)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.35)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                             >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                                    <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                                Switch to a Different Partner
+                                Switch to {profile.businessName || 'this partner'}
+                            </button>
+
+                            {/* Secondary: browse all partners instead */}
+                            <button
+                                onClick={() => setShowSwitchModal(true)}
+                                style={{
+                                    marginTop: 8, width: '100%', padding: '10px',
+                                    borderRadius: 12, border: `1px solid rgba(16,185,129,0.25)`,
+                                    background: 'rgba(16,185,129,0.07)',
+                                    color: '#64748B', fontSize: 12, fontWeight: 600,
+                                    cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'inherit',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.color = GREEN; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.5)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.color = '#64748B'; e.currentTarget.style.borderColor = 'rgba(16,185,129,0.25)'; }}
+                            >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" /><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                                Browse all partners instead
                             </button>
                         </div>
                     </div>
@@ -672,7 +848,7 @@ export default function PartnerDetailPage() {
                     {profile.notes && (
                         <div className="detail-section" style={{ animationDelay: '130ms' }}>
                             <SectionCard title="About this Partner"
-                                icon={<svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /><polyline points="10 9 9 9 8 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                                icon={<svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><polyline points="14 2 14 8 20 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
                                 accent
                             >
                                 <p style={{ margin: 0, fontSize: 13, color: '#94A3B8', lineHeight: 1.7 }}>
@@ -682,7 +858,7 @@ export default function PartnerDetailPage() {
                         </div>
                     )}
 
-                    {/* ── Verification notes (admin-visible context) ── */}
+                    {/* ── Verification notes ── */}
                     {profile.verificationNotes && (
                         <div className="detail-section" style={{ animationDelay: '150ms' }}>
                             <SectionCard title="Verification Notes"
@@ -697,7 +873,18 @@ export default function PartnerDetailPage() {
                 </div>
             </div>
 
-            {/* ── Switch Modal ── */}
+            {/* ── Confirm switch modal (direct switch to THIS partner) ── */}
+            {showConfirmModal && (
+                <ConfirmSwitchModal
+                    partner={partner}
+                    onConfirm={handleConfirmSwitch}
+                    onClose={() => { if (!confirmSwitching) { setShowConfirmModal(false); setConfirmError(null); } }}
+                    switching={confirmSwitching}
+                    error={confirmError}
+                />
+            )}
+
+            {/* ── Browse all partners modal ── */}
             {showSwitchModal && (
                 <SwitchPartnerModal
                     currentPartnerId={partnerId}

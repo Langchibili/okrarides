@@ -247,6 +247,7 @@ export default function ProfilePage() {
     { icon: SettingsIcon, primary: 'Settings', secondary: 'Preferences, notifications', path: '/profile/settings', color: '#6B7280' },
     { icon: HelpIcon, primary: 'Help Center', secondary: 'FAQs, contact support', path: '/help', color: '#3B82F6' },
     { icon: InfoIcon, primary: 'About', secondary: 'FAQs, contact support', path: '/about', color: '#48a254' },
+    { icon: ProfileIcon, primary: 'Partners', secondary: 'Okra Partners', path: '/partners', color: '#2f843b' },
     { icon: DocumentIcon, primary: 'Legal', secondary: 'Terms, privacy policy', path: frontenUrl + '/terms.html', color: '#6B7280' },
   ];
 
