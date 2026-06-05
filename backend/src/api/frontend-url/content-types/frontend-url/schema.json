@@ -13,6 +13,9 @@
   "attributes": {
     "paths": {
       "type": "json"
+    },
+    "appLinks": {
+      "type": "json"
     }
   }
 }
