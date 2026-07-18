@@ -3264,6 +3264,8 @@ export interface ApiRideClassRideClass extends Struct.CollectionTypeSchema {
     description: Schema.Attribute.Text;
     displayOrder: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
     icon: Schema.Attribute.Media<'images'>;
+    icon_type: Schema.Attribute.Enumeration<['car', 'bike', 'truck']> &
+      Schema.Attribute.DefaultTo<'car'>;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<

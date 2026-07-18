@@ -33,6 +33,12 @@ const RIDE_CLASS_ICONS = {
   'okra-bus': '🚌', 'okra-premium': '✨',
 };
 
+const ICON_TYPE_MAP = {
+  car: '🚗',
+  bike: '🏍️',
+  truck: '🚚',
+};
+
 export function RideOptionsSheet({
   pickupLocation, dropoffLocation, routeInfo,
   fareEstimates, loadingEstimates, selectedRideClass,
@@ -155,7 +161,7 @@ export function RideOptionsSheet({
           <Box sx={{ mb: 2 }}>
             {fareEstimates.estimates.map((estimate, index) => {
               const isSelected = selectedRideClass?.rideClassId === estimate.rideClassId || selectedRideClass?.id === estimate.rideClassId;
-              const icon = RIDE_CLASS_ICONS[estimate.rideClassName?.toLowerCase().replace(/ /g, '-')] || '🚗';
+              const icon = ICON_TYPE_MAP[estimate.icon_type] || RIDE_CLASS_ICONS[estimate.rideClassName?.toLowerCase().replace(/ /g, '-')] || '🚗';
               return (
                 <motion.div key={estimate.rideClassId || index} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }}>
                   <Paper

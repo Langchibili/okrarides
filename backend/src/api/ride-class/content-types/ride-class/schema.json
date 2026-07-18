@@ -75,6 +75,15 @@
       "type": "component",
       "component": "countries.countries",
       "repeatable": true
+    },
+    "icon_type": {
+      "type": "enumeration",
+      "default": "car",
+      "enum": [
+        "car",
+        "bike",
+        "truck"
+      ]
     }
   }
 }
