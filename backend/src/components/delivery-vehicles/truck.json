@@ -1,0 +1,35 @@
+{
+  "collectionName": "components_delivery_vehicles_trucks",
+  "info": {
+    "displayName": "Delivery Truck",
+    "icon": "truck"
+  },
+  "options": {},
+  "attributes": {
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "vehicle": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::vehicle.vehicle"
+    },
+    "maxPackageWeight": {
+      "type": "decimal",
+      "default": 1000
+    },
+    "maxPackageVolume": {
+      "type": "decimal"
+    },
+    "truckType": {
+      "type": "enumeration",
+      "enum": [
+        "pickup",
+        "van",
+        "lorry"
+      ],
+      "default": "pickup"
+    }
+  }
+}

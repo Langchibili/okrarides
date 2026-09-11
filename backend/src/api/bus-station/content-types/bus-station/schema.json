@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "bus_stations",
+  "info": {
+    "singularName": "bus-station",
+    "pluralName": "bus-stations",
+    "displayName": "Bus Station",
+    "name": "busStation"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "stationCode": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "location": {
+      "type": "json",
+      "required": true
+    },
+    "address": {
+      "type": "text"
+    },
+    "geofenceZone": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::geofence-zone.geofence-zone"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

@@ -1,0 +1,946 @@
+'use client';
+// PATH: Okrarides/rider/components/Map/MapIframe.jsx
+
+import {
+  useEffect, useRef, useState, useCallback,
+  Suspense, lazy, Component, memo, useMemo,
+} from 'react';
+import { Box, CircularProgress, Typography } from '@mui/material';
+
+// ── Safe context read ─────────────────────────────────────────────────────────
+let useMapProviderHook = null;
+try {
+  if (typeof window !== 'undefined') {
+    const mod = require('../APIProviders/MapsProvider');
+    useMapProviderHook = mod.useMapProvider;
+  }
+} catch (e) {
+  console.warn('[MapIframe] Could not load MapsProvider:', e?.message);
+}
+
+function useSafeMapProvider() {
+  try { if (useMapProviderHook) return useMapProviderHook(); } catch { }
+  return null;
+}
+
+// ── Route-aware check (mirrors MapsProvider) ──────────────────────────────────
+function isTrackingRoute() {
+  if (typeof window === 'undefined') return false;
+  return window.location.pathname.endsWith('/tracking');
+}
+
+// ── Native display components ─────────────────────────────────────────────────
+const YandexMapDisplay = lazy(() => import('../APIProviders/MapDisplays/YandexMapDisplay'));
+const GoogleMapDisplay = lazy(() => import('../APIProviders/MapDisplays/GoogleMapDisplay'));
+const AppleMapDisplay = lazy(() => import('../APIProviders/MapDisplays/AppleMapDisplay'));
+const LocalMapDisplay = lazy(() => import('../APIProviders/MapDisplays/LocalMapDisplay'));
+const WazeMapModal = lazy(() => import('../APIProviders/MapDisplays/WazeMapModal'));
+
+const NATIVE_COMPONENTS = {
+  yandexmap: YandexMapDisplay,
+  googlemap: GoogleMapDisplay,
+  applemap: AppleMapDisplay,
+  localmap: LocalMapDisplay,
+};
+
+// ── Error boundary ────────────────────────────────────────────────────────────
+class NativeMapErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { crashed: false }; }
+  static getDerivedStateFromError() { return { crashed: true }; }
+  componentDidCatch(err) {
+    console.error('[MapIframe] native map crashed — falling back to iframe', err?.message);
+  }
+  render() {
+    if (this.state.crashed) return <IframeMap {...this.props.fallbackProps} />;
+    return this.props.children;
+  }
+}
+
+// ── generateIframeContent — module-scope so it is NEVER recreated ─────────────
+// This is intentionally outside any component/hook. The string is generated
+// once per set of stable initialisation values and never again.
+function generateIframeContent({ mapId, center, zoom, localMapServerUrl }) {
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #map { width: 100%; height: 100%; overflow: hidden; }
+    .maplibregl-ctrl-logo { display: none !important; }
+    .custom-marker { cursor: pointer; }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0   rgba(59,130,246,0.7); }
+      70%  { box-shadow: 0 0 0 12px rgba(59,130,246,0);   }
+      100% { box-shadow: 0 0 0 0   rgba(59,130,246,0);   }
+    }
+    .current-location-dot {
+      width: 18px; height: 18px;
+      background: #3b82f6; border: 3px solid white;
+      border-radius: 50%; animation: pulse 2s infinite;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+(function() {
+  const mapId = '${mapId}';
+  const LOCAL_SERVER = '${localMapServerUrl}';
+
+  let map, markers = {}, driverMarker = null, driverMarkerConfig = null;
+  let is3DMode = false, mapReady = false;
+
+  const OPENFREE_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+
+  function buildFallbackStyle() {
+    const tileUrl = LOCAL_SERVER
+      ? [LOCAL_SERVER + '/tiles/{z}/{x}/{y}.png']
+      : ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'];
+    return {
+      version: 8,
+      sources: { raster: { type: 'raster', tiles: tileUrl, tileSize: 256, attribution: '© OpenStreetMap' } },
+      layers:  [{ id: 'raster', type: 'raster', source: 'raster' }],
+    };
+  }
+
+  function sendMessage(type, data = {}) {
+    window.parent.postMessage({ type, mapId, ...data }, '*');
+  }
+
+  function createMarkerEl(type, custom) {
+    const configs = {
+      pickup:  { bg: '#22c55e', label: '📍', size: 36 },
+      dropoff: { bg: '#ef4444', label: '🎯', size: 36 },
+      driver:  { bg: '#1d4ed8', label: '🚗', size: 42 },
+      station: { bg: '#3b82f6', label: '🏢', size: 32 },
+      current: { bg: '#3b82f6', label: null,  size: 18, isPulse: true },
+      default: { bg: '#6366f1', label: '📌', size: 32 },
+    };
+    const cfg = custom ?? configs[type] ?? configs.default;
+    const el  = document.createElement('div');
+    el.className = 'custom-marker';
+    if (cfg.isPulse) {
+      el.innerHTML = '<div class="current-location-dot"></div>';
+    } else {
+      el.style.cssText = [
+        'display:flex','align-items:center','justify-content:center',
+        'border-radius:50%','border:3px solid white',
+        'box-shadow:0 3px 10px rgba(0,0,0,0.4)',
+        'cursor:pointer','user-select:none','transition:transform 0.15s ease',
+        \`background:\${cfg.bg}\`,\`width:\${cfg.size}px\`,\`height:\${cfg.size}px\`,
+        \`font-size:\${cfg.size * 0.45}px\`,
+      ].join(';');
+      el.textContent = cfg.label;
+      el.onmouseenter = () => (el.style.transform = 'scale(1.2)');
+      el.onmouseleave = () => (el.style.transform = 'scale(1)');
+    }
+    return el;
+  }
+
+  function renderRouteGeometry(coords, distanceText, durationText, distanceValue, durationValue) {
+    if (!coords || coords.length < 2) return;
+    const geojson = { type: 'Feature', geometry: { type: 'LineString', coordinates: coords } };
+
+    if (map.getSource('route')) {
+      map.getSource('route').setData(geojson);
+    } else {
+      map.addSource('route', { type: 'geojson', data: geojson });
+      map.addLayer({ id: 'route-casing', type: 'line', source: 'route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint:  { 'line-color': '#1e40af', 'line-width': 10, 'line-opacity': 0.4 } });
+      map.addLayer({ id: 'route-line', type: 'line', source: 'route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint:  { 'line-color': '#3b82f6', 'line-width': 5, 'line-opacity': 0.9 } });
+      const lngs = coords.map(c => c[0]), lats = coords.map(c => c[1]);
+      map.fitBounds(
+        [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+        { padding: { top: 80, bottom: 220, left: 80, right: 80 }, duration: 800 }
+      );
+    }
+
+    sendMessage('ROUTE_CALCULATED', {
+      distance:      distanceText  || 'N/A',
+      duration:      durationText  || 'N/A',
+      distanceValue: distanceValue || 0,
+      durationValue: durationValue || 0,
+    });
+  }
+
+  function clearRoute() {
+    if (map && map.getLayer('route-line'))   map.removeLayer('route-line');
+    if (map && map.getLayer('route-casing')) map.removeLayer('route-casing');
+    if (map && map.getSource('route'))       map.removeSource('route');
+  }
+
+  function placeCurrentLocationDot(lngLat) {
+    if (markers['current-location']) {
+      markers['current-location'].remove();
+      delete markers['current-location'];
+    }
+    const el = createMarkerEl('current');
+    markers['current-location'] = new maplibregl.Marker({ element: el })
+      .setLngLat(lngLat)
+      .addTo(map);
+  }
+
+  function readSavedGeoLoc() {
+    try {
+      if (localStorage.getItem('geo_loc_status') === 'success') {
+        const geo = JSON.parse(localStorage.getItem('geo_loc_data') || 'null');
+        if (geo && geo.lat != null && geo.lng != null) return geo;
+      }
+    } catch {}
+    return null;
+  }
+
+  async function getIPLocation() {
+    const saved = readSavedGeoLoc();
+    if (saved) return [saved.lng, saved.lat];
+    if (LOCAL_SERVER) {
+      try {
+        const r = await fetch(LOCAL_SERVER + '/api/ip-location');
+        if (r.ok) { const d = await r.json(); if (d.latitude && d.longitude) return [d.longitude, d.latitude]; }
+      } catch {}
+    }
+    try {
+      const r = await fetch('https://ipapi.co/json/');
+      if (r.ok) { const d = await r.json(); if (d.latitude && d.longitude) return [d.longitude, d.latitude]; }
+    } catch {}
+    return [${center.lng}, ${center.lat}];
+  }
+
+  async function nominatimSearch(query) {
+    try {
+      let extraParams = '';
+      const geo = readSavedGeoLoc();
+      if (geo) {
+        const delta = 0.5;
+        extraParams =
+          '&viewbox=' + (geo.lng - delta) + ',' + (geo.lat + delta) + ',' +
+          (geo.lng + delta) + ',' + (geo.lat - delta) + '&bounded=0';
+      }
+      const r = await fetch(
+        'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(query) +
+        '&format=json&limit=10&addressdetails=1' + extraParams,
+        { headers: { 'Accept-Language': 'en' } }
+      );
+      if (!r.ok) return [];
+      const data = await r.json();
+      const results = data.map(item => ({
+        place_id:       item.place_id?.toString(),
+        main_text:      item.name || item.display_name?.split(',')[0],
+        secondary_text: item.display_name,
+        lat:            parseFloat(item.lat),
+        lng:            parseFloat(item.lon),
+        address:        item.display_name,
+        name:           item.name || item.display_name?.split(',')[0],
+      }));
+      results.sort((a, b) => (/\\d/.test(a.main_text) ? 0 : 1) - (/\\d/.test(b.main_text) ? 0 : 1));
+      return results;
+    } catch { return []; }
+  }
+
+  async function initMap() {
+    const savedGeo    = readSavedGeoLoc();
+    const initialCenter = savedGeo ? [savedGeo.lng, savedGeo.lat] : await getIPLocation();
+
+    let mapStyle = OPENFREE_STYLE;
+    try {
+      const test = await fetch('https://tiles.openfreemap.org/styles/liberty', {
+        method: 'HEAD', signal: AbortSignal.timeout(4000),
+      });
+      if (!test.ok) throw new Error();
+    } catch { mapStyle = buildFallbackStyle(); }
+
+    map = new maplibregl.Map({
+      container: 'map', style: mapStyle, center: initialCenter,
+      zoom: ${zoom}, maxZoom: 22, minZoom: 2, pitch: 0, bearing: 0,
+      attributionControl: false,
+    });
+
+    map.on('error', () => {
+      if (!map._fallbackApplied) {
+        map._fallbackApplied = true;
+        try { map.setStyle(buildFallbackStyle()); } catch {}
+      }
+    });
+
+    map.on('load', async () => {
+      mapReady = true;
+      const geoOnLoad = readSavedGeoLoc();
+      if (geoOnLoad) placeCurrentLocationDot([geoOnLoad.lng, geoOnLoad.lat]);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          const loc = [pos.coords.longitude, pos.coords.latitude];
+          map.flyTo({ center: loc, zoom: 15, duration: 1200 });
+          placeCurrentLocationDot(loc);
+        }, () => {});
+      }
+      sendMessage('MAP_LOADED');
+    });
+
+    map.on('click', (e) => {
+      sendMessage('MAP_CLICKED', { location: { lat: e.lngLat.lat, lng: e.lngLat.lng } });
+    });
+  }
+
+  window.addEventListener('message', async (event) => {
+    const { type, mapId: rid, ...data } = event.data || {};
+    if (rid !== mapId) return;
+
+    switch (type) {
+      case 'UPDATE_MARKERS': {
+        Object.entries(markers).forEach(([id, m]) => {
+          if (id !== 'current-location') { m.remove(); delete markers[id]; }
+        });
+        (data.markers || []).forEach(md => {
+          if (!md.position) return;
+          const el = createMarkerEl(md.type || 'default', md.custom ?? null);
+          markers[md.id] = new maplibregl.Marker({ element: el })
+            .setLngLat([
+              md.position.lng || md.position.longitude,
+              md.position.lat || md.position.latitude,
+            ])
+            .addTo(map);
+        });
+        break;
+      }
+
+      case 'UPDATE_CURRENT_LOCATION': {
+        const loc = data.location; if (!loc) break;
+        const lngLat = [loc.lng ?? loc.longitude, loc.lat ?? loc.latitude];
+        if (lngLat[0] == null || lngLat[1] == null) break;
+        if (!mapReady) { setTimeout(() => placeCurrentLocationDot(lngLat), 600); break; }
+        placeCurrentLocationDot(lngLat);
+        break;
+      }
+
+      case 'CONFIGURE_DRIVER_MARKER': {
+        driverMarkerConfig = data.config ?? null;
+        if (driverMarker) {
+          const lngLat = driverMarker.getLngLat();
+          driverMarker.remove();
+          const el = createMarkerEl('driver', driverMarkerConfig);
+          driverMarker = new maplibregl.Marker({ element: el, rotationAlignment: 'map' })
+            .setLngLat(lngLat).addTo(map);
+        }
+        break;
+      }
+
+      case 'UPDATE_DRIVER_LOCATION': {
+        const loc = data.location; if (!loc) break;
+        const lngLat = [loc.lng || loc.longitude, loc.lat || loc.latitude];
+        if (driverMarker) {
+          driverMarker.setLngLat(lngLat);
+        } else {
+          const el = createMarkerEl('driver', driverMarkerConfig);
+          driverMarker = new maplibregl.Marker({ element: el, rotationAlignment: 'map' })
+            .setLngLat(lngLat).addTo(map);
+        }
+        if (loc.heading != null) {
+          driverMarker.getElement().style.transform = 'rotate(' + loc.heading + 'deg)';
+          if (is3DMode) map.rotateTo(loc.heading, { duration: 500 });
+        }
+        break;
+      }
+
+      case 'SET_ROUTE_GEOMETRY': {
+        if (!mapReady) {
+          setTimeout(() => renderRouteGeometry(data.geometry, data.distance, data.duration, data.distanceValue, data.durationValue), 500);
+          break;
+        }
+        renderRouteGeometry(data.geometry, data.distance, data.duration, data.distanceValue, data.durationValue);
+        break;
+      }
+
+      case 'CLEAR_ROUTE': clearRoute(); break;
+
+      case 'ANIMATE_TO_LOCATION': {
+        const loc = data.location; if (!loc || !map) break;
+        map.flyTo({ center: [loc.lng || loc.longitude, loc.lat || loc.latitude], zoom: data.zoom || map.getZoom(), duration: 800 });
+        break;
+      }
+      case 'SET_ZOOM':    if (map) map.setZoom(data.zoom); break;
+      case 'ZOOM_IN':     if (map) map.setZoom(map.getZoom() + 1); break;
+      case 'ZOOM_OUT':    if (map) map.setZoom(map.getZoom() - 1); break;
+      case 'ENABLE_3D_MODE':  is3DMode = true;  map.easeTo({ pitch: 60, bearing: data.bearing || 0, duration: 800 }); break;
+      case 'DISABLE_3D_MODE': is3DMode = false; map.easeTo({ pitch: 0,  bearing: 0, duration: 600 }); break;
+
+      case 'GET_CURRENT_LOCATION':
+        navigator.geolocation?.getCurrentPosition(
+          (pos) => {
+            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+            sendMessage('CURRENT_LOCATION_RESPONSE', { messageId: data.messageId, location: loc });
+            placeCurrentLocationDot([loc.lng, loc.lat]);
+          },
+          () => sendMessage('CURRENT_LOCATION_RESPONSE', { messageId: data.messageId, location: null })
+        );
+        break;
+
+      case 'SEARCH_LOCATION': {
+        const results = await nominatimSearch(data.query);
+        sendMessage('SEARCH_RESULTS', { messageId: data.messageId, results });
+        break;
+      }
+
+      case 'GET_PLACE_DETAILS': {
+        try {
+          const r = await fetch('https://nominatim.openstreetmap.org/lookup?osm_ids=N' + data.placeId + '&format=json');
+          if (r.ok) {
+            const d = await r.json();
+            if (d?.length > 0) {
+              const item = d[0];
+              sendMessage('PLACE_DETAILS', {
+                messageId: data.messageId,
+                location: { lat: parseFloat(item.lat), lng: parseFloat(item.lon), address: item.display_name, name: item.display_name?.split(',')[0], place_id: data.placeId },
+              });
+              break;
+            }
+          }
+        } catch {}
+        sendMessage('PLACE_DETAILS', { messageId: data.messageId, location: null });
+        break;
+      }
+      
+      case 'GET_MAP_CENTER': {
+        if (map) {
+          const c = map.getCenter();
+          sendMessage('MAP_CENTER_RESPONSE', { messageId: data.messageId, location: { lat: c.lat, lng: c.lng } });
+        } else {
+          sendMessage('MAP_CENTER_RESPONSE', { messageId: data.messageId, location: null });
+        }
+        break;
+      }
+    }
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMap);
+  } else {
+    initMap();
+  }
+})();
+</script>
+</body>
+</html>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN EXPORT
+// ─────────────────────────────────────────────────────────────────────────────
+export function MapIframe(props) {
+  const mapsProvider = useSafeMapProvider();
+  const ready = mapsProvider?.ready ?? true;
+  const prioritizedMap = (ready ? mapsProvider?.prioritizedMap : null) || 'openstreetmap';
+
+  const [wazeModalOpen, setWazeModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (ready && prioritizedMap === 'wazemap') setWazeModalOpen(true);
+  }, [ready, prioritizedMap]);
+
+  const NativeComponent = NATIVE_COMPONENTS[prioritizedMap];
+  const { height: _h = '100%', width: _w = '100%' } = props;
+  const wrapSx = { position: 'relative', width: _w, height: _h, overflow: 'hidden' };
+
+  if (!ready) return <Box sx={wrapSx}><MapLoading /></Box>;
+
+  if (prioritizedMap === 'wazemap') {
+    return (
+      <Box sx={wrapSx}>
+        <IframeMap {...props} />
+        {!wazeModalOpen && (
+          <Box sx={{ position: 'absolute', bottom: 16, right: 16, zIndex: 1300 }}>
+            <Box
+              component="button"
+              onClick={() => setWazeModalOpen(true)}
+              sx={{
+                display: 'flex', alignItems: 'center', gap: 1,
+                px: 2, py: 1, bgcolor: '#08b4e0', color: '#fff',
+                border: 'none', borderRadius: 3, fontWeight: 700, fontSize: 14,
+                cursor: 'pointer', boxShadow: '0 4px 16px rgba(8,180,224,0.45)',
+                '&:hover': { bgcolor: '#0696bc' },
+              }}
+            >🚗 Open Waze Map</Box>
+          </Box>
+        )}
+        <Suspense fallback={null}>
+          <WazeMapModal
+            open={wazeModalOpen}
+            onClose={() => setWazeModalOpen(false)}
+            onLocationSelected={(location, type) => {
+              props.onMapClick?.(location);
+              props.onWazeLocationSelected?.(location, type);
+            }}
+            initialCenter={props.center || { lat: -15.4167, lng: 28.2833 }}
+            pickupLocation={props.pickupLocation}
+            dropoffLocation={props.dropoffLocation}
+            countryCode={props.countryCode}
+          />
+        </Suspense>
+      </Box>
+    );
+  }
+
+  if (NativeComponent) {
+    return (
+      <Box sx={wrapSx}>
+        <NativeMapErrorBoundary fallbackProps={props}>
+          <Suspense fallback={<MapLoading />}>
+            <NativeMapWrapper NativeComponent={NativeComponent} prioritizedMap={prioritizedMap} {...props} />
+          </Suspense>
+        </NativeMapErrorBoundary>
+      </Box>
+    );
+  }
+
+  return <Box sx={wrapSx}><IframeMap {...props} /></Box>;
+}
+
+MapIframe.displayName = 'MapIframe';
+export default MapIframe;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NativeMapWrapper
+// ─────────────────────────────────────────────────────────────────────────────
+function NativeMapWrapper({
+  NativeComponent, prioritizedMap, center, zoom, markers,
+  pickupLocation, dropoffLocation, onRouteCalculated, onMapClick, onMapLoad,
+  showRoute, height, width,
+}) {
+  const mapsProvider = useSafeMapProvider();
+  const controlsRef = useRef(null);
+  const [route, setRoute] = useState(null);
+
+  // Use primitive deps to avoid re-running when object identity changes
+  const pickupLat = pickupLocation?.lat;
+  const pickupLng = pickupLocation?.lng;
+  const dropoffLat = dropoffLocation?.lat;
+  const dropoffLng = dropoffLocation?.lng;
+
+  useEffect(() => {
+    if (pickupLat == null || pickupLng == null || dropoffLat == null || dropoffLng == null) {
+      setRoute(null);
+      return;
+    }
+    let cancelled = false;
+    async function fetchRoute() {
+      if (!mapsProvider?.getRoute) return;
+      const result = await mapsProvider.getRoute(
+        { lat: pickupLat, lng: pickupLng },
+        { lat: dropoffLat, lng: dropoffLng },
+      );
+      if (cancelled) return;
+      if (result?.type === 'deeplink') {
+        onRouteCalculated?.({ distance: 'N/A', duration: 'N/A', distanceValue: 0, durationValue: 0, viaApp: prioritizedMap });
+      } else if (result?.geometry) {
+        setRoute(result.geometry);
+        onRouteCalculated?.({ distance: result.distance, duration: result.duration, distanceValue: result.distanceValue, durationValue: result.durationValue });
+      }
+    }
+    fetchRoute();
+    return () => { cancelled = true; };
+  }, [pickupLat, pickupLng, dropoffLat, dropoffLng]); // eslint-disable-line
+
+  const handleNativeMapLoad = useCallback((nativeControls) => {
+    controlsRef.current = nativeControls;
+    const controls = {
+      animateToLocation: (loc, z) => nativeControls?.animateToLocation?.(loc.lat ?? loc.latitude, loc.lng ?? loc.longitude, z),
+      setZoom: (z) => nativeControls?.setZoom?.(z),
+      zoomIn: () => nativeControls?.zoomIn?.(),
+      zoomOut: () => nativeControls?.zoomOut?.(),
+      enable3DMode: (b) => nativeControls?.enable3DMode?.(b),
+      disable3DMode: () => nativeControls?.disable3DMode?.(),
+      clearRoute: () => { setRoute(null); nativeControls?.clearRoute?.(); },
+      toggleTraffic: () => { },
+      configureDriverMarker: () => { },
+      updateDriverLocation: (loc) => nativeControls?.updateDriverLocation?.(loc.lat ?? loc.latitude, loc.lng ?? loc.longitude, loc.heading),
+      getCurrentLocation: (cb) => nativeControls?.getCurrentLocation?.(cb),
+      searchLocation: (query, cb) => {
+        if (mapsProvider?.searchPlaces) {
+          mapsProvider.searchPlaces(query).then(r => cb(r || [])).catch(() => cb([]));
+        } else cb([]);
+      },
+      getPlaceDetails: (placeId, cb) => {
+        if (mapsProvider?.getPlaceDetails) {
+          mapsProvider.getPlaceDetails(placeId).then(r => cb(r)).catch(() => cb(null));
+        } else cb(null);
+      },
+    };
+    onMapLoad?.(controls);
+  }, [onMapLoad, mapsProvider]);
+
+  return (
+    <div style={{ width: width || '100%', height: height || '100%', position: 'relative', minHeight: height === '100%' ? '400px' : undefined }}>
+      <NativeComponent
+        center={center} zoom={zoom} markers={markers}
+        pickupLocation={pickupLocation} dropoffLocation={dropoffLocation}
+        route={route} showRoute={!!(showRoute && route?.length)}
+        onMapClick={onMapClick} onMapLoad={handleNativeMapLoad}
+        height="100%" width="100%"
+      />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IframeMap
+// ─────────────────────────────────────────────────────────────────────────────
+const IframeMap = memo(({
+  center = { lat: -15.4167, lng: 28.2833 },
+  zoom = 13,
+  markers = [],
+  pickupLocation = null,
+  dropoffLocation = null,
+  onRouteCalculated,
+  onMapClick,
+  onMapLoad,
+  showRoute = false,
+  height = '100%',
+  width = '100%',
+}) => {
+  const iframeRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Stable IDs and config — never changes after mount
+  const mapId = useRef(`map-${Math.random().toString(36).substr(2, 9)}`).current;
+  const localMapServerUrl = process.env.NEXT_PUBLIC_LOCALLY_HOSTED_MAP_SERVER_URL || '';
+
+  // ── FIX: Only read getRoute from the provider; do NOT subscribe to the
+  //    full provider object. This means provider re-renders (e.g. from
+  //    logRequest's setProviders) do NOT re-render IframeMap.
+  const mapsProvider = useSafeMapProvider();
+  const getRouteRef = useRef(mapsProvider?.getRoute);
+  useEffect(() => { getRouteRef.current = mapsProvider?.getRoute; }, [mapsProvider?.getRoute]);
+
+  // ── srcDoc is memoised on mount-time values only. The iframe NEVER
+  //    reloads because center/zoom are only used for the initial view.
+  const srcDoc = useMemo(
+    () => generateIframeContent({ mapId, center, zoom, localMapServerUrl }),
+    [], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // ── iframeLoaded ref so sendToIframe is stable ────────────────────────
+  const iframeLoadedRef = useRef(false);
+  useEffect(() => { iframeLoadedRef.current = iframeLoaded; }, [iframeLoaded]);
+
+  const sendToIframe = useCallback((type, data = {}) => {
+    if (iframeRef.current && iframeLoadedRef.current) {
+      iframeRef.current.contentWindow?.postMessage({ type, mapId, ...data }, '*');
+    }
+  }, [mapId]);
+
+  // ── Map controls factory — stable reference ───────────────────────────
+  const createMapControls = useCallback(() => ({
+    animateToLocation: (location, z) => sendToIframe('ANIMATE_TO_LOCATION', { location, zoom: z }),
+    setZoom: (z) => sendToIframe('SET_ZOOM', { zoom: z }),
+    zoomIn: () => sendToIframe('ZOOM_IN'),
+    zoomOut: () => sendToIframe('ZOOM_OUT'),
+    toggleTraffic: () => sendToIframe('TOGGLE_TRAFFIC'),
+    clearRoute: () => sendToIframe('CLEAR_ROUTE'),
+    updateDriverLocation: (location) => sendToIframe('UPDATE_DRIVER_LOCATION', { location }),
+    enable3DMode: (bearing) => sendToIframe('ENABLE_3D_MODE', { bearing }),
+    disable3DMode: () => sendToIframe('DISABLE_3D_MODE'),
+    configureDriverMarker: (config) => sendToIframe('CONFIGURE_DRIVER_MARKER', { config }),
+    getCurrentLocation: (callback) => {
+      const messageId = Math.random().toString(36);
+      const handler = (event) => {
+        if (event.data.type === 'CURRENT_LOCATION_RESPONSE' && event.data.messageId === messageId) {
+          callback(event.data.location);
+          window.removeEventListener('message', handler);
+        }
+      };
+      window.addEventListener('message', handler);
+      sendToIframe('GET_CURRENT_LOCATION', { messageId });
+    },
+    searchLocation: (query, callback) => {
+      const messageId = Math.random().toString(36);
+      const handler = (event) => {
+        if (event.data.type === 'SEARCH_RESULTS' && event.data.messageId === messageId) {
+          callback(event.data.results);
+          window.removeEventListener('message', handler);
+        }
+      };
+      window.addEventListener('message', handler);
+      sendToIframe('SEARCH_LOCATION', { query, messageId });
+    },
+    getPlaceDetails: (placeId, callback) => {
+      const messageId = Math.random().toString(36);
+      const handler = (event) => {
+        if (event.data.type === 'PLACE_DETAILS' && event.data.messageId === messageId) {
+          callback(event.data.location);
+          window.removeEventListener('message', handler);
+        }
+      };
+      window.addEventListener('message', handler);
+      sendToIframe('GET_PLACE_DETAILS', { placeId, messageId });
+    },
+  }), [sendToIframe]);
+
+  // ── onMapLoad fires exactly once after the iframe is ready ────────────
+  const onMapLoadRef = useRef(onMapLoad);
+  useEffect(() => { onMapLoadRef.current = onMapLoad; }, [onMapLoad]);
+
+  useEffect(() => {
+    if (iframeLoaded) onMapLoadRef.current?.(createMapControls());
+  }, [iframeLoaded, createMapControls]);
+
+  // ── Marker sync ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!iframeLoaded) return;
+    const overriddenIds = new Set(markers.map(m => m.id));
+    const markerData = [];
+    if (pickupLocation && !overriddenIds.has('pickup')) markerData.push({ id: 'pickup', position: pickupLocation, type: 'pickup', title: 'Pickup' });
+    if (dropoffLocation && !overriddenIds.has('dropoff')) markerData.push({ id: 'dropoff', position: dropoffLocation, type: 'dropoff', title: 'Dropoff' });
+    markerData.push(...markers);
+    sendToIframe('UPDATE_MARKERS', { markers: markerData });
+  }, [markers, pickupLocation, dropoffLocation, iframeLoaded, sendToIframe]);
+
+  // ── Push saved geo-location dot once after iframe ready ───────────────
+  useEffect(() => {
+    if (!iframeLoaded) return;
+    try {
+      if (typeof window !== 'undefined' && localStorage.getItem('geo_loc_status') === 'success') {
+        const geo = JSON.parse(localStorage.getItem('geo_loc_data') || 'null');
+        if (geo?.lat != null && geo?.lng != null) {
+          sendToIframe('UPDATE_CURRENT_LOCATION', { location: { lat: geo.lat, lng: geo.lng } });
+        }
+      }
+    } catch { }
+  }, [iframeLoaded, sendToIframe]);
+
+  // ── Live GPS current-location pin ─────────────────────────────────────
+  useEffect(() => {
+    if (!iframeLoaded) return;
+    if (!pickupLocation?.isCurrentLocation) return;
+    const lat = pickupLocation.lat ?? pickupLocation.latitude;
+    const lng = pickupLocation.lng ?? pickupLocation.longitude;
+    if (lat == null || lng == null) return;
+    sendToIframe('UPDATE_CURRENT_LOCATION', { location: { lat, lng } });
+  }, [
+    pickupLocation?.lat,
+    pickupLocation?.lng,
+    pickupLocation?.isCurrentLocation,
+    iframeLoaded,
+    sendToIframe,
+  ]);
+
+  // ── Route calculation ─────────────────────────────────────────────────
+  // Uses primitive lat/lng deps + getRouteRef so this never fires because
+  // the provider object changed reference.
+  const pickupLat = pickupLocation?.lat;
+  const pickupLng = pickupLocation?.lng;
+  const dropoffLat = dropoffLocation?.lat;
+  const dropoffLng = dropoffLocation?.lng;
+
+  const onRouteCalculatedRef = useRef(onRouteCalculated);
+  useEffect(() => { onRouteCalculatedRef.current = onRouteCalculated; }, [onRouteCalculated]);
+
+  useEffect(() => {
+    if (!iframeLoaded) return;
+
+    if (pickupLat == null || pickupLng == null || dropoffLat == null || dropoffLng == null) {
+      sendToIframe('CLEAR_ROUTE');
+      return;
+    }
+
+    const origin = { lat: pickupLat, lng: pickupLng };
+    const destination = { lat: dropoffLat, lng: dropoffLng };
+    let cancelled = false;
+
+    async function fetchAndSendRoute() {
+      // Try MapsProvider first (via ref — never creates a new effect)
+      try {
+        if (getRouteRef.current) {
+          const result = await getRouteRef.current(origin, destination);
+          if (cancelled) return;
+          if (result?.type === 'deeplink') {
+            onRouteCalculatedRef.current?.({ distance: 'N/A', duration: 'N/A', distanceValue: 0, durationValue: 0 });
+            return;
+          }
+          if (result?.geometry?.length) {
+            sendToIframe('SET_ROUTE_GEOMETRY', {
+              geometry: result.geometry,
+              distance: result.distance,
+              duration: result.duration,
+              distanceValue: result.distanceValue ?? 0,
+              durationValue: result.durationValue ?? 0,
+            });
+            onRouteCalculatedRef.current?.({
+              distance: result.distance, duration: result.duration,
+              distanceValue: result.distanceValue ?? 0, durationValue: result.durationValue ?? 0,
+            });
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('[IframeMap] getRoute failed:', err?.message);
+      }
+
+      if (cancelled) return;
+
+      // Fallback: public OSRM
+      try {
+        const url =
+          `https://router.project-osrm.org/route/v1/driving/` +
+          `${origin.lng},${origin.lat};${destination.lng},${destination.lat}` +
+          `?overview=full&geometries=geojson`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          const route = data.routes?.[0];
+          if (route) {
+            const km = route.distance / 1000;
+            const min = route.duration / 60;
+            sendToIframe('SET_ROUTE_GEOMETRY', {
+              geometry: route.geometry?.coordinates || [],
+              distance: km >= 1 ? `${km.toFixed(1)} km` : `${Math.round(km * 1000)} m`,
+              duration: min >= 60 ? `${Math.floor(min / 60)}h ${Math.round(min % 60)}min` : `${Math.round(min)} min`,
+              distanceValue: route.distance,
+              durationValue: route.duration,
+            });
+            onRouteCalculatedRef.current?.({
+              distance: `${km.toFixed(1)} km`, duration: `${Math.round(min)} min`,
+              distanceValue: route.distance, durationValue: route.duration,
+            });
+            return;
+          }
+        }
+      } catch { }
+
+      if (cancelled) return;
+
+      // Absolute fallback: haversine straight-line
+      const R = 6371;
+      const dLat = (destination.lat - origin.lat) * Math.PI / 180;
+      const dLon = (destination.lng - origin.lng) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(origin.lat * Math.PI / 180) * Math.cos(destination.lat * Math.PI / 180) *
+        Math.sin(dLon / 2) ** 2;
+      const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      sendToIframe('SET_ROUTE_GEOMETRY', {
+        geometry: [[origin.lng, origin.lat], [destination.lng, destination.lat]],
+        distance: `${km.toFixed(1)} km`,
+        duration: 'N/A',
+        distanceValue: Math.round(km * 1000),
+        durationValue: 0,
+      });
+      onRouteCalculatedRef.current?.({
+        distance: `${km.toFixed(1)} km`, duration: 'N/A',
+        distanceValue: Math.round(km * 1000), durationValue: 0,
+      });
+    }
+
+    fetchAndSendRoute();
+    return () => { cancelled = true; };
+  }, [pickupLat, pickupLng, dropoffLat, dropoffLng, iframeLoaded, sendToIframe]);
+  // Note: getRouteRef and onRouteCalculatedRef are intentionally omitted —
+  // they are refs, not reactive values.
+
+  // ── Message listener ──────────────────────────────────────────────────
+  const onMapClickRef = useRef(onMapClick);
+  useEffect(() => { onMapClickRef.current = onMapClick; }, [onMapClick]);
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      const { type, mapId: rid, ...data } = event.data || {};
+      if (rid !== mapId) return;
+      switch (type) {
+        case 'MAP_LOADED':
+          setIframeLoaded(true);
+          setIsLoading(false);
+          break;
+        case 'ROUTE_CALCULATED':
+          onRouteCalculatedRef.current?.(data);
+          break;
+        case 'MAP_CLICKED':
+          onMapClickRef.current?.(data.location);
+          break;
+        case 'MAP_ERROR':
+          console.error('[IframeMap] iframe error:', data.error);
+          setError(data.error);
+          setIsLoading(false);
+          break;
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [mapId]);
+
+  if (error) {
+    return (
+      <Box sx={{ width, height, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'error.light', p: 3 }}>
+        <Typography color="error.dark">Error loading map: {error}</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ position: 'relative', width, height }}>
+      {isLoading && <MapLoading />}
+      <iframe
+        ref={iframeRef}
+        srcDoc={srcDoc}
+        style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+        title="Map"
+        allow="geolocation"
+      />
+    </Box>
+  );
+});
+
+IframeMap.displayName = 'IframeMap';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MapLoading
+// ─────────────────────────────────────────────────────────────────────────────
+function MapLoading() {
+  return (
+    <Box sx={{
+      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+      zIndex: 1, overflow: 'hidden', bgcolor: '#E8EEF4',
+    }}>
+      <Box sx={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(110deg, #E8EEF4 30%, #F2F6FA 50%, #E8EEF4 70%)',
+        backgroundSize: '200% 100%',
+        animation: 'mapShimmer 1.6s ease-in-out infinite',
+        '@keyframes mapShimmer': { '0%': { backgroundPosition: '200% 0' }, '100%': { backgroundPosition: '-200% 0' } },
+      }} />
+      <Box sx={{ position: 'absolute', inset: 0, opacity: 0.35 }}>
+        {[18, 38, 56, 72, 88].map((top, i) => (
+          <Box key={`h${i}`} sx={{ position: 'absolute', left: 0, right: 0, top: `${top}%`, height: i % 2 === 0 ? 3 : 2, bgcolor: '#D0DAE4', borderRadius: 1 }} />
+        ))}
+        {[15, 32, 50, 68, 82].map((left, i) => (
+          <Box key={`v${i}`} sx={{ position: 'absolute', top: 0, bottom: 0, left: `${left}%`, width: i % 2 === 0 ? 3 : 2, bgcolor: '#D0DAE4', borderRadius: 1 }} />
+        ))}
+      </Box>
+      <Box sx={{
+        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5,
+      }}>
+        <Box sx={{
+          width: 52, height: 52, borderRadius: '50%',
+          bgcolor: 'rgba(255,255,255,0.9)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+        }}>
+          <CircularProgress size={28} thickness={3.5} sx={{ color: '#3b82f6' }} />
+        </Box>
+        <Box sx={{ px: 2, py: 0.75, borderRadius: 99, bgcolor: 'rgba(255,255,255,0.9)', boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748B', fontSize: 11, letterSpacing: 0.3 }}>
+            Loading map…
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+}

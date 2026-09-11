@@ -1,0 +1,93 @@
+{
+  "kind": "collectionType",
+  "collectionName": "float_topups",
+  "info": {
+    "singularName": "float-topup",
+    "pluralName": "float-topups",
+    "displayName": "Float Topup",
+    "name": "floatTopup"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "topupId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "amount": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::currency.currency"
+    },
+    "paymentMethod": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "okrapay",
+        "mobile_money",
+        "bank_transfer",
+        "cash"
+      ]
+    },
+    "floatStatus": {
+      "type": "enumeration",
+      "default": "pending",
+      "enum": [
+        "pending",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "gatewayReference": {
+      "type": "string"
+    },
+    "gatewayResponse": {
+      "type": "json"
+    },
+    "floatBalanceBefore": {
+      "type": "decimal"
+    },
+    "floatBalanceAfter": {
+      "type": "decimal"
+    },
+    "requestedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "completedAt": {
+      "type": "datetime"
+    },
+    "processedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "partner": {
+      "type": "integer",
+      "description": "User ID of the partner who initiated this top-up. Null for driver self-topups. When set, credits partnerProfile.floatBalance instead of driverProfile.floatBalance."
+    }
+  }
+}

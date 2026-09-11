@@ -1,0 +1,47 @@
+{
+  "collectionName": "components_driver_profiles_bus_drivers",
+  "info": {
+    "displayName": "Bus Driver",
+    "icon": "bus"
+  },
+  "options": {},
+  "attributes": {
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "verificationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "not_started"
+    },
+    "bus": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::vehicle.vehicle"
+    },
+    "assignedRoutes": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::bus-route.bus-route"
+    },
+    "conductor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "totalTrips": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalEarnings": {
+      "type": "decimal",
+      "default": 0
+    }
+  }
+}

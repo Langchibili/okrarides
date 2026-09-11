@@ -1,0 +1,69 @@
+{
+  "collectionName": "components_rider_profiles_rider_profiles",
+  "info": {
+    "displayName": "Rider Profile",
+    "icon": "user"
+  },
+  "options": {},
+  "attributes": {
+    "totalRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "completedRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "cancelledRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalSpent": {
+      "type": "decimal",
+      "default": 0
+    },
+    "averageRating": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalRatings": {
+      "type": "integer",
+      "default": 0
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "paymentMethods": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::payment-method.payment-method"
+    },
+    "defaultPaymentMethod": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::payment-method.payment-method"
+    },
+    "savedLocations": {
+      "type": "json"
+    },
+    "affiliateCodes": {
+      "type": "json",
+      "default": {},
+      "description": "Tracks every affiliate code the user has used and per-promotion consumption. Shape: { [affiliateCode]: { usage: number, appliedAt: string, referrerId: number, promotions: { [promotionId]: { action, percentageAmount, amount, usageLimit, usageCount, lastUsedAt } } } }"
+    },
+    "ridePreferences": {
+      "type": "json"
+    },
+    "blocked": {
+      "type": "boolean",
+      "default": false
+    },
+    "blockedDrivers": {
+      "type": "json"
+    },
+    "tempBlockedDrivers": {
+      "type": "json"
+    }
+  }
+}

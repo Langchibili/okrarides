@@ -1,0 +1,7 @@
+/**
+ * frontend-url router
+ */
+
+import { factories } from '@strapi/strapi';
+
+export default factories.createCoreRouter('api::frontend-url.frontend-url');

@@ -1,0 +1,70 @@
+{
+  "kind": "collectionType",
+  "collectionName": "audit_logs",
+  "info": {
+    "singularName": "audit-log",
+    "pluralName": "audit-logs",
+    "displayName": "Audit Log",
+    "name": "auditLog"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "action": {
+      "type": "string",
+      "required": true
+    },
+    "actor": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "actorType": {
+      "type": "enumeration",
+      "enum": [
+        "user",
+        "admin",
+        "system"
+      ],
+      "default": "user"
+    },
+    "targetEntity": {
+      "type": "string"
+    },
+    "targetId": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "enumeration",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "low"
+    },
+    "ipAddress": {
+      "type": "string"
+    },
+    "userAgent": {
+      "type": "text"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "timestamp": {
+      "type": "datetime",
+      "required": true
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

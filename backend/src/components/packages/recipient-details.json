@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_packages_recipient_details",
+  "info": {
+    "displayName": "Recipient Details",
+    "icon": "user"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "phoneNumber": {
+      "type": "string",
+      "required": true
+    },
+    "alternatePhoneNumber": {
+      "type": "string"
+    },
+    "address": {
+      "type": "text",
+      "required": true
+    },
+    "location": {
+      "type": "json",
+      "required": true
+    }
+  }
+}

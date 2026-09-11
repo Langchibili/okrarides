@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_delivery_vehicles_motorcycles",
+  "info": {
+    "displayName": "Delivery Motorcycle",
+    "icon": "motorcycle"
+  },
+  "options": {},
+  "attributes": {
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "vehicle": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::vehicle.vehicle"
+    },
+    "maxPackageWeight": {
+      "type": "decimal",
+      "default": 30
+    },
+    "hasDeliveryBox": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

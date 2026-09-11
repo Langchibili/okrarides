@@ -1,0 +1,78 @@
+{
+  "kind": "singleType",
+  "collectionName": "api_providers_priority_maps",
+  "info": {
+    "singularName": "api-providers-priority-map",
+    "pluralName": "api-providers-priority-maps",
+    "displayName": "apiProvidersPriorityMap"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "mapsProviders": {
+      "type": "json"
+    },
+    "prioritizedMap": {
+      "type": "enumeration",
+      "default": "applemap",
+      "enum": [
+        "geoapify",
+        "waze",
+        "openstreet",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    },
+    "priotizedAutocompleteApi": {
+      "type": "enumeration",
+      "default": "geoapify",
+      "enum": [
+        "geoapify",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    },
+    "priotizedRouteDrawer": {
+      "type": "enumeration",
+      "default": "google",
+      "enum": [
+        "geoapify",
+        "openstreet",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    },
+    "priotizedDistanceCalculator": {
+      "type": "enumeration",
+      "default": "google",
+      "enum": [
+        "geoapify",
+        "openstreet",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    },
+    "priotizedEtaCalculator": {
+      "type": "enumeration",
+      "default": "google",
+      "enum": [
+        "geoapify",
+        "openstreet",
+        "local",
+        "yandex",
+        "google",
+        "apple"
+      ]
+    }
+  }
+}

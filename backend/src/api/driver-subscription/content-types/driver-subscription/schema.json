@@ -1,0 +1,102 @@
+{
+  "kind": "collectionType",
+  "collectionName": "driver_subscriptions",
+  "info": {
+    "singularName": "driver-subscription",
+    "pluralName": "driver-subscriptions",
+    "displayName": "Driver Subscription",
+    "name": "driverSubscription"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "subscriptionId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "subscriptionPlan": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::subscription-plan.subscription-plan"
+    },
+    "subscriptionStatus": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "trial",
+        "active",
+        "expired",
+        "cancelled",
+        "suspended"
+      ]
+    },
+    "startedAt": {
+      "type": "datetime"
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "cancelledAt": {
+      "type": "datetime"
+    },
+    "suspendedAt": {
+      "type": "datetime"
+    },
+    "isFreeTrial": {
+      "type": "boolean",
+      "default": false
+    },
+    "trialEndsAt": {
+      "type": "datetime"
+    },
+    "lastPaymentDate": {
+      "type": "datetime"
+    },
+    "lastPaymentAmount": {
+      "type": "decimal"
+    },
+    "lastPaymentTransactionId": {
+      "type": "string"
+    },
+    "nextPaymentDue": {
+      "type": "datetime"
+    },
+    "autoRenew": {
+      "type": "boolean",
+      "default": true
+    },
+    "ridesThisPeriod": {
+      "type": "integer",
+      "default": 0
+    },
+    "ridesToday": {
+      "type": "integer",
+      "default": 0
+    },
+    "previousSubscriptions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::driver-subscription.driver-subscription"
+    },
+    "renewalCount": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

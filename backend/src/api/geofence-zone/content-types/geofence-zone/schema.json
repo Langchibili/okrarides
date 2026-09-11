@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "geofence_zones",
+  "info": {
+    "singularName": "geofence-zone",
+    "pluralName": "geofence-zones",
+    "displayName": "Geofence Zone",
+    "name": "geofenceZone"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "country": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::country.country",
+      "required": true
+    },
+    "coordinates": {
+      "type": "json",
+      "required": true
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "surgeMultiplier": {
+      "type": "decimal",
+      "default": 1
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

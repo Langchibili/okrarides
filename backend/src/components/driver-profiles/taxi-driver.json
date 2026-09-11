@@ -1,0 +1,37 @@
+{
+  "collectionName": "components_driver_profiles_taxi_drivers",
+  "info": {
+    "displayName": "Taxi Driver",
+    "icon": "taxi"
+  },
+  "options": {},
+  "attributes": {
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "verificationStatus": {
+      "type": "enumeration",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "not_started"
+    },
+    "vehicle": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::vehicle.vehicle"
+    },
+    "totalRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalEarnings": {
+      "type": "decimal",
+      "default": 0
+    }
+  }
+}

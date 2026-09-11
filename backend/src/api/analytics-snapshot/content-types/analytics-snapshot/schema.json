@@ -1,0 +1,101 @@
+{
+  "kind": "collectionType",
+  "collectionName": "analytics_snapshots",
+  "info": {
+    "singularName": "analytics-snapshot",
+    "pluralName": "analytics-snapshots",
+    "displayName": "Analytics Snapshot",
+    "name": "analyticsSnapshot"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "snapshotDate": {
+      "type": "date",
+      "required": true,
+      "unique": true
+    },
+    "snapshotType": {
+      "type": "enumeration",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly",
+        "yearly"
+      ],
+      "required": true
+    },
+    "totalRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "completedRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "cancelledRides": {
+      "type": "integer",
+      "default": 0
+    },
+    "totalRevenue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalCommission": {
+      "type": "decimal",
+      "default": 0
+    },
+    "subscriptionRevenue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "activeDrivers": {
+      "type": "integer",
+      "default": 0
+    },
+    "activeRiders": {
+      "type": "integer",
+      "default": 0
+    },
+    "newSignups": {
+      "type": "integer",
+      "default": 0
+    },
+    "activeSubscriptions": {
+      "type": "integer",
+      "default": 0
+    },
+    "trialSubscriptions": {
+      "type": "integer",
+      "default": 0
+    },
+    "averageRideValue": {
+      "type": "decimal",
+      "default": 0
+    },
+    "averageRating": {
+      "type": "decimal",
+      "default": 0
+    },
+    "peakHours": {
+      "type": "json",
+      "default": []
+    },
+    "topRoutes": {
+      "type": "json",
+      "default": []
+    },
+    "metadata": {
+      "type": "json"
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

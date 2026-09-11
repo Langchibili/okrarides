@@ -1,0 +1,36 @@
+{
+  "collectionName": "components_support_ticket_responses",
+  "info": {
+    "displayName": "Ticket Response",
+    "icon": "comment"
+  },
+  "options": {},
+  "attributes": {
+    "respondedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "message": {
+      "type": "text",
+      "required": true
+    },
+    "isInternal": {
+      "type": "boolean",
+      "default": false
+    },
+    "attachments": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "timestamp": {
+      "type": "datetime",
+      "required": true
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "affiliates",
+  "info": {
+    "singularName": "affiliate",
+    "pluralName": "affiliates",
+    "displayName": "Affiliate"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "aboutRoute": {
+      "type": "string"
+    }
+  }
+}

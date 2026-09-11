@@ -1,0 +1,187 @@
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-19T08:18:46.836Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-19T08:18:46.840Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-19T08:18:46.840Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-19T08:18:46.841Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-19T08:18:46.841Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-19T08:18:46.863Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-19T13:13:28.086Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-19T13:13:31.205Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-20T16:47:33.552Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-20T16:47:35.192Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-20T23:51:21.482Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-20T23:51:23.664Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-21T14:55:33.479Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-21T14:55:33.483Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-21T14:55:33.483Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-21T14:55:33.484Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-21T14:55:33.484Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-21T14:55:33.492Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-21T14:55:34.606Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-21T14:55:36.410Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-21T14:55:38.640Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-21T14:55:43.654Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-21T14:55:48.669Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-21T14:55:53.688Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-21T14:55:58.691Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-21T14:56:03.724Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-22T23:14:48.483Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-22T23:14:48.486Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-22T23:14:48.486Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-22T23:14:48.487Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-22T23:14:48.487Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-22T23:14:48.495Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-22T23:14:49.850Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-22T23:14:51.196Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-22T23:14:56.201Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-22T23:15:01.206Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-22T23:15:06.225Z"}
+{"level":"info","message":"📱 New device connection: nxq_77QbnbT9BfisAAAB","timestamp":"2026-01-23T00:11:51.595Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T00:11:51.698Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T00:11:51.803Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-23T01:10:04.824Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-23T01:10:05.744Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-23T01:10:07.550Z"}
+{"level":"error","message":"❌ Connection error to main server:","timestamp":"2026-01-23T01:10:10.313Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T01:10:15.343Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:10:39.185Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-23T01:10:39.187Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:10:39.475Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:10:40.054Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:10:40.288Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:10:40.429Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:01.222Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:01.733Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:01.768Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:01.808Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:01.853Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:01.892Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:01.933Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:01.973Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:02.013Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:11:02.053Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-23T01:11:08.732Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-23T01:11:08.738Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-23T01:11:08.739Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-23T01:11:08.740Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-23T01:11:08.741Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T01:11:08.770Z"}
+{"level":"info","message":"📱 New device connection: riHfnkQSoK3C5I9nAAAB","timestamp":"2026-01-23T01:11:09.206Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:11:09.237Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:11:09.295Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:20:07.351Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-23T01:20:07.356Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:20:07.501Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:20:07.651Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:20:14.623Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-23T01:22:13.579Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-23T01:22:13.586Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-23T01:22:13.588Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-23T01:22:13.589Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-23T01:22:13.590Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T01:22:13.614Z"}
+{"level":"info","message":"📱 New device connection: _1zMS7UH8OCAq1XEAAAB","timestamp":"2026-01-23T01:22:30.151Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:22:30.169Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:22:30.251Z"}
+{"level":"info","message":"📱 Device disconnected: _1zMS7UH8OCAq1XEAAAB, reason: transport close","timestamp":"2026-01-23T01:23:45.061Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T01:23:45.062Z"}
+{"level":"info","message":"📱 New device connection: 1XG1KzAtuY5iw9voAAAD","timestamp":"2026-01-23T01:24:02.284Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:24:02.421Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:24:02.449Z"}
+{"level":"info","message":"📱 Device disconnected: 1XG1KzAtuY5iw9voAAAD, reason: client namespace disconnect","timestamp":"2026-01-23T01:24:02.750Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T01:24:02.750Z"}
+{"level":"info","message":"📱 New device connection: mbbUM7U_LadCjPHmAAAF","timestamp":"2026-01-23T01:24:02.885Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:24:02.944Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:24:02.961Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:24:03.042Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:24:03.057Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-23T01:27:26.717Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-23T01:27:26.723Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-23T01:27:26.724Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-23T01:27:26.725Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-23T01:27:26.726Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T01:27:26.749Z"}
+{"level":"info","message":"📱 New device connection: 16Zchdn_s_qJjB6uAAAB","timestamp":"2026-01-23T01:27:48.312Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:27:48.322Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:27:48.363Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-23T01:34:47.762Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-23T01:34:47.769Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-23T01:34:47.770Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-23T01:34:47.771Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-23T01:34:47.772Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T01:34:47.810Z"}
+{"level":"info","message":"📱 New device connection: 3GwUmPbvi9DzIf2bAAAB","timestamp":"2026-01-23T01:34:51.824Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:34:51.841Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:34:51.899Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:45:23.010Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-23T01:45:23.012Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-23T01:45:36.953Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-23T01:45:36.959Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-23T01:45:36.960Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-23T01:45:36.961Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-23T01:45:36.962Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T01:45:36.990Z"}
+{"level":"info","message":"📱 New device connection: FmIl0gLAuZt7CSbpAAAB","timestamp":"2026-01-23T01:50:07.448Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:50:07.463Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:50:07.528Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:52:58.077Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-23T01:52:58.078Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T01:52:58.987Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-23T01:53:21.218Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-23T01:53:21.223Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-23T01:53:21.224Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-23T01:53:21.225Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-23T01:53:21.225Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T01:53:21.244Z"}
+{"level":"info","message":"📱 New device connection: KKJzQ0-vUjA0v5WjAAAB","timestamp":"2026-01-23T01:53:33.668Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T01:53:33.680Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T01:53:33.705Z"}
+{"level":"info","message":"📱 Device disconnected: KKJzQ0-vUjA0v5WjAAAB, reason: transport close","timestamp":"2026-01-23T02:00:13.284Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T02:00:13.285Z"}
+{"level":"info","message":"📱 New device connection: 9Jck_9LC0jk0FViRAAAD","timestamp":"2026-01-23T02:00:57.702Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T02:00:57.751Z"}
+{"level":"error","message":"Error saving device to backend:","timestamp":"2026-01-23T02:00:57.784Z"}
+{"level":"info","message":"📱 Device disconnected: 9Jck_9LC0jk0FViRAAAD, reason: transport close","timestamp":"2026-01-23T02:07:21.669Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T02:07:21.670Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-23T02:07:40.806Z"}
+{"level":"info","message":"🚀 Device Socket Server started","timestamp":"2026-01-23T02:07:49.562Z"}
+{"level":"info","message":"📡 Listening on port 3008","timestamp":"2026-01-23T02:07:49.567Z"}
+{"level":"info","message":"🌍 Environment: local","timestamp":"2026-01-23T02:07:49.567Z"}
+{"level":"info","message":"🔓 CORS: Allow ALL origins (for native devices)","timestamp":"2026-01-23T02:07:49.568Z"}
+{"level":"info","message":"🔗 Main Socket Server: http://localhost:3005","timestamp":"2026-01-23T02:07:49.568Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T02:07:49.585Z"}
+{"level":"info","message":"📱 New device connection: pn9NqYtKkSZSJGcdAAAB","timestamp":"2026-01-23T02:08:33.685Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T02:08:34.002Z"}
+{"level":"info","message":"📱 Device disconnected: pn9NqYtKkSZSJGcdAAAB, reason: client namespace disconnect","timestamp":"2026-01-23T02:08:34.060Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T02:08:34.062Z"}
+{"level":"info","message":"📱 New device connection: MIjh135M34Uu9YRjAAAD","timestamp":"2026-01-23T02:08:34.435Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T02:08:34.462Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 54 (driver)","timestamp":"2026-01-23T02:08:34.826Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-23T06:44:42.569Z"}
+{"level":"info","message":"📱 Device disconnected: MIjh135M34Uu9YRjAAAD, reason: transport close","timestamp":"2026-01-23T06:44:43.300Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T06:44:43.353Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T06:44:43.978Z"}
+{"level":"info","message":"📱 New device connection: mEJkUua_52j8RtmhAAAG","timestamp":"2026-01-23T12:08:41.398Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 51 (driver)","timestamp":"2026-01-23T12:08:41.474Z"}
+{"level":"info","message":"📱 Device disconnected: mEJkUua_52j8RtmhAAAG, reason: client namespace disconnect","timestamp":"2026-01-23T12:11:08.303Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T12:11:08.304Z"}
+{"level":"info","message":"📱 New device connection: PJu1iHk4IG9jcbyOAAAI","timestamp":"2026-01-23T12:11:08.346Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 51 (driver)","timestamp":"2026-01-23T12:11:08.360Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 51 (driver)","timestamp":"2026-01-23T12:11:08.534Z"}
+{"level":"info","message":"📱 Device disconnected: PJu1iHk4IG9jcbyOAAAI, reason: client namespace disconnect","timestamp":"2026-01-23T12:11:08.548Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T12:11:08.552Z"}
+{"level":"info","message":"📱 New device connection: -B5mE0cB1Lb7-PpwAAAK","timestamp":"2026-01-23T12:11:08.569Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 51 (driver)","timestamp":"2026-01-23T12:11:08.586Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 51 (driver)","timestamp":"2026-01-23T12:11:08.635Z"}
+{"level":"info","message":"📱 Device disconnected: -B5mE0cB1Lb7-PpwAAAK, reason: transport close","timestamp":"2026-01-23T13:02:26.285Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T13:02:26.286Z"}
+{"level":"info","message":"📱 New device connection: iLM9Yh53Y_FHyG8BAAAM","timestamp":"2026-01-23T13:05:04.058Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 51 (driver)","timestamp":"2026-01-23T13:05:04.071Z"}
+{"level":"info","message":"📱 Device disconnected: iLM9Yh53Y_FHyG8BAAAM, reason: transport close","timestamp":"2026-01-23T14:01:32.074Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T14:01:32.075Z"}
+{"level":"info","message":"📱 New device connection: ShsEE5TEibbxWPKHAAAO","timestamp":"2026-01-23T20:36:28.920Z"}
+{"level":"info","message":"✅ Device efe635fc3a8bcbb9 registered for user 51 (driver)","timestamp":"2026-01-23T20:36:28.937Z"}
+{"level":"info","message":"📱 Device disconnected: ShsEE5TEibbxWPKHAAAO, reason: transport close","timestamp":"2026-01-23T23:46:54.544Z"}
+{"level":"info","message":"Cleaned up device efe635fc3a8bcbb9","timestamp":"2026-01-23T23:46:54.588Z"}
+{"level":"warn","message":"❌ Device server disconnected from main socket server:","timestamp":"2026-01-23T23:46:54.650Z"}
+{"level":"info","message":"✅ Device server connected to main socket server","timestamp":"2026-01-23T23:46:55.279Z"}
+{"level":"info","message":"SIGINT received, closing server gracefully...","timestamp":"2026-01-25T03:23:46.262Z"}

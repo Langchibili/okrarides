@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Privacy Policy – Okra Rides</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #0a0f1e;
+    --paper: #f5f3ee;
+    --accent: #e8520a;
+    --accent2: #f0a500;
+    --muted: #6b7280;
+    --border: #ddd8ce;
+    --card: #ffffff;
+    --hero-bg: #0a0f1e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.75; }
+
+  /* NAV — :not(.toc) prevents styles bleeding into the contents nav */
+  nav:not(.toc) { position: sticky; top: 0; z-index: 100; background: var(--hero-bg); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: #fff; }
+  .nav-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: #fff; letter-spacing: -0.3px; }
+  .nav-badge { background: rgba(232,82,10,0.15); border: 1px solid rgba(232,82,10,0.3); color: var(--accent); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+
+  .hero { background: var(--hero-bg); padding: 72px 2rem 80px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(232,82,10,0.12) 0%, transparent 70%), radial-gradient(ellipse 40% 60% at 10% 80%, rgba(240,165,0,0.08) 0%, transparent 60%); pointer-events: none; }
+  .hero-inner { max-width: 760px; margin: 0 auto; position: relative; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(232,82,10,0.12); border: 1px solid rgba(232,82,10,0.25); color: var(--accent); font-size: 12px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 20px; }
+  .hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(36px, 6vw, 58px); color: #fff; line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 18px; }
+  .hero h1 span { color: var(--accent); }
+  .hero-meta { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 28px; }
+  .hero-meta-item { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.5); font-size: 13px; }
+
+  .page-wrap { max-width: 760px; margin: 0 auto; padding: 64px 2rem 96px; }
+
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 52px; }
+  .toc-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .toc ol { padding-left: 18px; }
+  .toc li { margin-bottom: 8px; }
+  .toc a { color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+  .toc a:hover { color: var(--accent); }
+
+  .policy-section { margin-bottom: 52px; }
+  .section-number { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .policy-section h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: var(--ink); line-height: 1.2; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
+  .policy-section p { color: #374151; margin-bottom: 14px; font-size: 15px; }
+  .policy-section p:last-child { margin-bottom: 0; }
+  .policy-section ul { padding-left: 0; list-style: none; margin-bottom: 14px; }
+  .policy-section ul li { padding: 6px 0 6px 24px; position: relative; font-size: 15px; color: #374151; }
+  .policy-section ul li::before { content: ''; position: absolute; left: 0; top: 14px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+  .highlight-box { background: linear-gradient(135deg, rgba(232,82,10,0.06), rgba(240,165,0,0.04)); border: 1px solid rgba(232,82,10,0.2); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0; font-size: 14px; color: #374151; }
+
+  .contact-card { background: var(--hero-bg); border-radius: 16px; padding: 36px 40px; margin-top: 52px; position: relative; overflow: hidden; }
+  .contact-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(232,82,10,0.2), transparent 70%); pointer-events: none; }
+  .contact-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: #fff; margin-bottom: 6px; }
+  .contact-card > p { color: rgba(255,255,255,0.55); font-size: 14px; margin-bottom: 24px; }
+  .contact-items { display: flex; flex-direction: column; gap: 12px; }
+  .contact-item { display: flex; align-items: center; gap: 12px; }
+  .contact-icon { width: 36px; height: 36px; flex-shrink: 0; background: rgba(232,82,10,0.15); border: 1px solid rgba(232,82,10,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); }
+  .contact-item a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 14px; }
+  .contact-item a:hover { color: var(--accent); }
+  .contact-item span { color: rgba(255,255,255,0.55); font-size: 14px; }
+
+  footer { background: var(--hero-bg); border-top: 1px solid rgba(255,255,255,0.06); text-align: center; padding: 32px 2rem; color: rgba(255,255,255,0.3); font-size: 13px; }
+  footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 0 0 52px; }
+
+  @media (max-width: 600px) {
+    .hero { padding: 52px 1.25rem 60px; }
+    .page-wrap { padding: 48px 1.25rem 72px; }
+    .toc { padding: 20px; }
+    .contact-card { padding: 28px 24px; }
+    .hero-meta { flex-direction: column; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="nav-logo">O</div>
+    <span class="nav-name">Okra Rides</span>
+  </a>
+  <span class="nav-badge">Privacy Policy</span>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+      Legal Document
+    </div>
+    <h1>Privacy<br/><span>Policy</span></h1>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Effective: January 1, 2025
+      </div>
+      <div class="hero-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Okra Technologies, Lusaka, Zambia
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#s1">Information We Collect</a></li>
+      <li><a href="#s2">How We Use Your Information</a></li>
+      <li><a href="#s3">Information Sharing</a></li>
+      <li><a href="#s4">Data Retention</a></li>
+      <li><a href="#s5">Your Rights</a></li>
+      <li><a href="#s6">Location Data</a></li>
+      <li><a href="#s7">Security</a></li>
+      <li><a href="#s8">Children's Privacy</a></li>
+      <li><a href="#s9">Changes to This Policy</a></li>
+      <li><a href="#s10">Contact Us</a></li>
+    </ol>
+  </nav>
+
+  <div class="policy-section">
+    <p>Okra Technologies ("we", "our", or "us") operates the Okra Rides mobile application (the "App"), a ride-hailing and delivery platform serving users in Zambia and beyond. This Privacy Policy explains how we collect, use, share, and protect your personal information when you use our App and related services.</p>
+    <p>By using Okra Rides, you agree to the collection and use of information as described in this policy. If you do not agree, please discontinue use of our App.</p>
+  </div>
+
+  <hr/>
+
+  <div id="s1" class="policy-section">
+    <div class="section-number">Section 01</div>
+    <h2>Information We Collect</h2>
+    <p>We collect information you provide directly to us and information generated as you use our platform.</p>
+    <p><strong>Information you provide:</strong></p>
+    <ul>
+      <li>Name, phone number, and email address when you register</li>
+      <li>Payment information (processed securely; we do not store full card details)</li>
+      <li>Profile photo (optional)</li>
+      <li>Ratings and feedback you submit</li>
+      <li>Communications with our support team</li>
+    </ul>
+    <p><strong>Information generated automatically:</strong></p>
+    <ul>
+      <li>Precise GPS location when the App is in use (required for ride and delivery matching)</li>
+      <li>Device identifiers, operating system, and app version</li>
+      <li>Trip history, routes, timestamps, and fare data</li>
+      <li>Usage patterns and in-app interactions</li>
+      <li>Network connection type and IP address</li>
+    </ul>
+  </div>
+
+  <div id="s2" class="policy-section">
+    <div class="section-number">Section 02</div>
+    <h2>How We Use Your Information</h2>
+    <p>Your information is used to operate, improve, and personalise our services:</p>
+    <ul>
+      <li>Match riders with available drivers and process delivery requests</li>
+      <li>Calculate fares and process payments</li>
+      <li>Send trip confirmations, receipts, and service notifications</li>
+      <li>Provide customer support and resolve disputes</li>
+      <li>Improve safety through driver and rider verification</li>
+      <li>Detect and prevent fraud, abuse, and unsafe behaviour</li>
+      <li>Comply with applicable laws and regulations in Zambia</li>
+      <li>Conduct analytics to improve App performance and user experience</li>
+    </ul>
+  </div>
+
+  <div id="s3" class="policy-section">
+    <div class="section-number">Section 03</div>
+    <h2>Information Sharing</h2>
+    <p>We do not sell your personal information. We share information only in the following limited circumstances:</p>
+    <ul>
+      <li><strong>Between users:</strong> Riders see a driver's name, photo, vehicle details, and rating. Drivers see a rider's name, pickup and drop-off location, and rating.</li>
+      <li><strong>Service providers:</strong> Trusted third parties who process payments, send SMS/push notifications, or provide cloud infrastructure, bound by strict confidentiality obligations.</li>
+      <li><strong>Legal requirements:</strong> When required by Zambian law, court order, or to protect the rights and safety of Okra Technologies, our users, or the public.</li>
+      <li><strong>Business transfers:</strong> In the event of a merger, acquisition, or sale of assets, user data may be transferred with appropriate notice given.</li>
+    </ul>
+    <div class="highlight-box">
+      We never share your precise real-time location with third parties outside of the service-delivery process described above.
+    </div>
+  </div>
+
+  <div id="s4" class="policy-section">
+    <div class="section-number">Section 04</div>
+    <h2>Data Retention</h2>
+    <p>We retain your personal data for as long as your account is active or as needed to provide services. Trip records and transaction data are retained for a minimum of five (5) years to comply with financial record-keeping requirements under Zambian law.</p>
+    <p>When you request account deletion, we will delete or anonymise your personal information within 30 days, except where retention is required by law. For full details, please review our <a href="data-deletion-policy.html" style="color:var(--accent);">Data Deletion Policy</a>.</p>
+  </div>
+
+  <div id="s5" class="policy-section">
+    <div class="section-number">Section 05</div>
+    <h2>Your Rights</h2>
+    <p>As an Okra Rides user, you have the right to:</p>
+    <ul>
+      <li><strong>Access:</strong> Request a copy of the personal data we hold about you</li>
+      <li><strong>Correction:</strong> Request correction of inaccurate or incomplete data</li>
+      <li><strong>Deletion:</strong> Request deletion of your account and personal data</li>
+      <li><strong>Portability:</strong> Request your data in a structured, machine-readable format</li>
+      <li><strong>Objection:</strong> Object to processing based on legitimate interests</li>
+    </ul>
+    <p>To exercise these rights, use the in-app Help Centre at <strong>/help</strong>, email us at <a href="mailto:info@okrarides.com" style="color:var(--accent);">info@okrarides.com</a>, or visit our offices in person.</p>
+  </div>
+
+  <div id="s6" class="policy-section">
+    <div class="section-number">Section 06</div>
+    <h2>Location Data</h2>
+    <p>Okra Rides requires access to your device's location to function. For riders, location is used to show available drivers and track your trip. For drivers, location is continuously shared while you are online to enable ride matching and to share your position with your rider.</p>
+    <p>You can disable location access in your device settings, but doing so will prevent the App from functioning. We do not track your location when the App is closed and you are not on an active trip.</p>
+  </div>
+
+  <div id="s7" class="policy-section">
+    <div class="section-number">Section 07</div>
+    <h2>Security</h2>
+    <p>We implement industry-standard technical and organisational measures to protect your personal data against unauthorised access, alteration, disclosure, or destruction. These include encrypted data transmission (TLS), access controls, and regular security reviews.</p>
+    <p>No method of electronic transmission or storage is 100% secure. While we strive to protect your information, we cannot guarantee absolute security. If you believe your account has been compromised, contact us immediately at <a href="mailto:info@okrarides.com" style="color:var(--accent);">info@okrarides.com</a>.</p>
+  </div>
+
+  <div id="s8" class="policy-section">
+    <div class="section-number">Section 08</div>
+    <h2>Children's Privacy</h2>
+    <p>Okra Rides is not intended for use by persons under the age of 18. We do not knowingly collect personal information from minors. If we become aware that a user under 18 has provided personal data, we will take steps to delete that information promptly. If you believe a minor has registered, please contact us at <a href="mailto:info@okrarides.com" style="color:var(--accent);">info@okrarides.com</a>.</p>
+  </div>
+
+  <div id="s9" class="policy-section">
+    <div class="section-number">Section 09</div>
+    <h2>Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. When we make material changes, we will notify you via the App or by email before the changes take effect. The "Effective Date" at the top of this page indicates when the policy was last updated. Continued use of the App after changes constitutes acceptance of the revised policy.</p>
+  </div>
+
+  <div id="s10" class="policy-section">
+    <div class="section-number">Section 10</div>
+    <h2>Contact Us</h2>
+    <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your personal data, please reach out through any of the channels below.</p>
+  </div>
+
+  <div class="contact-card">
+    <h3>Get in Touch</h3>
+    <p>Our team is available to help with any privacy-related enquiries.</p>
+    <div class="contact-items">
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <a href="mailto:info@okrarides.com">info@okrarides.com</a>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .98h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        </div>
+        <a href="tel:+260770031114">+260 770 031 114</a>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <span>Garden View Properties, Lagos Road, Lusaka, Zambia</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>&copy; 2025 Okra Technologies. All rights reserved. &nbsp;&middot;&nbsp; <a href="terms.html">Terms &amp; Conditions</a> &nbsp;&middot;&nbsp; <a href="account-deletion-policy.html">Account Deletion</a> &nbsp;&middot;&nbsp; <a href="data-deletion-policy.html">Data Deletion</a></p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Account Deletion Policy – Okra Rides</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #0a0f1e;
+    --paper: #f5f3ee;
+    --accent: #e8520a;
+    --green: #16a34a;
+    --muted: #6b7280;
+    --border: #ddd8ce;
+    --card: #ffffff;
+    --hero-bg: #0a0f1e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.75; }
+
+  /* NAV — :not(.toc) prevents styles bleeding into the contents nav */
+  nav:not(.toc) { position: sticky; top: 0; z-index: 100; background: var(--hero-bg); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: #fff; }
+  .nav-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: #fff; letter-spacing: -0.3px; }
+  .nav-badge { background: rgba(232,82,10,0.12); border: 1px solid rgba(232,82,10,0.3); color: var(--accent); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+
+  .hero { background: var(--hero-bg); padding: 72px 2rem 80px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(232,82,10,0.1) 0%, transparent 70%), radial-gradient(ellipse 30% 50% at 5% 70%, rgba(255,255,255,0.03) 0%, transparent 60%); pointer-events: none; }
+  .hero-inner { max-width: 760px; margin: 0 auto; position: relative; }
+  .hero-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(232,82,10,0.12); border: 1px solid rgba(232,82,10,0.25); color: var(--accent); font-size: 12px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 20px; }
+  .hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(36px, 6vw, 58px); color: #fff; line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 18px; }
+  .hero h1 span { color: var(--accent); }
+  .hero-meta { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 28px; }
+  .hero-meta-item { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.5); font-size: 13px; }
+
+  .page-wrap { max-width: 760px; margin: 0 auto; padding: 64px 2rem 96px; }
+
+  .policy-section { margin-bottom: 52px; }
+  .section-number { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .policy-section h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: var(--ink); line-height: 1.2; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
+  .policy-section p { color: #374151; margin-bottom: 14px; font-size: 15px; }
+  .policy-section p:last-child { margin-bottom: 0; }
+  .policy-section ul { padding-left: 0; list-style: none; margin-bottom: 14px; }
+  .policy-section ul li { padding: 6px 0 6px 24px; position: relative; font-size: 15px; color: #374151; }
+  .policy-section ul li::before { content: ''; position: absolute; left: 0; top: 14px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+  /* METHOD CARDS */
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+  @media (max-width: 560px) { .method-grid { grid-template-columns: 1fr; } }
+  .method-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; transition: border-color 0.2s, box-shadow 0.2s; }
+  .method-card:hover { border-color: var(--accent); box-shadow: 0 4px 20px rgba(232,82,10,0.08); }
+  .method-icon { width: 44px; height: 44px; border-radius: 10px; background: rgba(232,82,10,0.08); border: 1px solid rgba(232,82,10,0.15); display: flex; align-items: center; justify-content: center; color: var(--accent); margin-bottom: 16px; }
+  .method-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .method-card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .method-card a { color: var(--accent); text-decoration: none; font-weight: 500; }
+
+  /* STEPS */
+  .step-list { display: flex; flex-direction: column; gap: 0; margin: 24px 0; }
+  .step { display: flex; gap: 20px; position: relative; padding-bottom: 28px; }
+  .step:last-child { padding-bottom: 0; }
+  .step-line { position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: var(--border); }
+  .step:last-child .step-line { display: none; }
+  .step-num { flex-shrink: 0; width: 40px; height: 40px; background: var(--hero-bg); border: 2px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--accent); position: relative; z-index: 1; }
+  .step-body { padding-top: 8px; }
+  .step-body strong { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; display: block; margin-bottom: 4px; }
+  .step-body p { font-size: 14px; color: var(--muted); }
+
+  /* RETENTION TABLE */
+  .timeline-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+  .timeline-table th { text-align: left; padding: 10px 14px; background: var(--hero-bg); color: rgba(255,255,255,0.7); font-family: 'Syne', sans-serif; font-size: 12px; letter-spacing: 0.5px; }
+  .timeline-table th:first-child { border-radius: 8px 0 0 0; }
+  .timeline-table th:last-child { border-radius: 0 8px 0 0; }
+  .timeline-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: #374151; }
+  .timeline-table tr:last-child td { border-bottom: none; }
+  .timeline-table tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+
+  .highlight-box { background: linear-gradient(135deg, rgba(232,82,10,0.06), rgba(240,165,0,0.04)); border: 1px solid rgba(232,82,10,0.2); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0; font-size: 14px; color: #374151; }
+  .green-box { background: rgba(22,163,74,0.05); border: 1px solid rgba(22,163,74,0.2); border-left: 3px solid var(--green); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0; font-size: 14px; color: #374151; }
+
+  .contact-card { background: var(--hero-bg); border-radius: 16px; padding: 36px 40px; margin-top: 52px; position: relative; overflow: hidden; }
+  .contact-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(232,82,10,0.2), transparent 70%); pointer-events: none; }
+  .contact-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: #fff; margin-bottom: 6px; }
+  .contact-card > p { color: rgba(255,255,255,0.55); font-size: 14px; margin-bottom: 24px; }
+  .contact-items { display: flex; flex-direction: column; gap: 12px; }
+  .contact-item { display: flex; align-items: center; gap: 12px; }
+  .contact-icon { width: 36px; height: 36px; flex-shrink: 0; background: rgba(232,82,10,0.15); border: 1px solid rgba(232,82,10,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent); }
+  .contact-item a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 14px; }
+  .contact-item a:hover { color: var(--accent); }
+  .contact-item span { color: rgba(255,255,255,0.55); font-size: 14px; }
+
+  footer { background: var(--hero-bg); border-top: 1px solid rgba(255,255,255,0.06); text-align: center; padding: 32px 2rem; color: rgba(255,255,255,0.3); font-size: 13px; }
+  footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 0 0 52px; }
+
+  @media (max-width: 600px) {
+    .hero { padding: 52px 1.25rem 60px; }
+    .page-wrap { padding: 48px 1.25rem 72px; }
+    .contact-card { padding: 28px 24px; }
+    .hero-meta { flex-direction: column; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="nav-logo">O</div>
+    <span class="nav-name">Okra Rides</span>
+  </a>
+  <span class="nav-badge">Account Deletion</span>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+      Legal Document
+    </div>
+    <h1>Account<br/><span>Deletion Policy</span></h1>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Effective: January 1, 2025
+      </div>
+      <div class="hero-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Okra Technologies, Lusaka, Zambia
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <div class="policy-section">
+    <p>Okra Technologies respects your right to control your personal data. This policy explains how you can request the deletion of your Okra Rides account, what happens to your data after a deletion request, and what information may be retained for legal or safety purposes.</p>
+  </div>
+
+  <hr/>
+
+  <div class="policy-section">
+    <div class="section-number">How to Request</div>
+    <h2>Ways to Delete Your Account</h2>
+    <p>We offer multiple ways to submit an account deletion request. Choose whichever is most convenient for you.</p>
+    <div class="method-grid">
+      <div class="method-card">
+        <div class="method-icon">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3>In-App Help Centre</h3>
+        <p>Open the Okra Rides app and navigate to <strong>/help</strong>. Contact our support team and request account deletion. This is the fastest method.</p>
+      </div>
+      <div class="method-card">
+        <div class="method-icon">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <h3>Email Request</h3>
+        <p>Send a deletion request to <a href="mailto:info@okrarides.com">info@okrarides.com</a> from the email address associated with your account.</p>
+      </div>
+      <div class="method-card">
+        <div class="method-icon">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .98h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        </div>
+        <h3>Phone</h3>
+        <p>Call us at <a href="tel:+260770031114">+260 770 031 114</a> during business hours (Mon–Fri, 08:00–17:00 CAT) to request deletion.</p>
+      </div>
+      <div class="method-card">
+        <div class="method-icon">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <h3>Visit Us In Person</h3>
+        <p>If you're nearby, you're welcome to visit our offices at Garden View Properties, Lagos Road, Lusaka, Zambia to request in person.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="policy-section">
+    <div class="section-number">The Process</div>
+    <h2>What Happens After You Request</h2>
+    <p>Once we receive your request, we follow a clear process to verify your identity and complete the deletion.</p>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Request received</strong>
+          <p>We acknowledge receipt of your deletion request within 2 business days via the channel you used to contact us.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Identity verification</strong>
+          <p>To protect your account, we verify your identity by confirming details tied to your registered account (e.g. phone number or email).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Outstanding balances resolved</strong>
+          <p>If you have an outstanding balance, active trip, or unresolved dispute, we will work with you to resolve these before proceeding.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"></div>
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Account deactivated</strong>
+          <p>Your account is deactivated immediately upon confirmation, preventing any further logins or activity.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>Data deleted within 30 days</strong>
+          <p>Personal data that is not subject to legal retention requirements is permanently deleted within 30 days of confirmed deactivation.</p>
+        </div>
+      </div>
+    </div>
+    <div class="green-box">
+      <strong>Confirmation:</strong> You will receive a confirmation message once your account and data have been deleted, or a clear explanation of any data retained and the reason for retention.
+    </div>
+  </div>
+
+  <div class="policy-section">
+    <div class="section-number">Data Retention</div>
+    <h2>What Data May Be Retained</h2>
+    <p>Certain data may be retained after account deletion where required by Zambian law or to protect our legitimate business interests.</p>
+    <table class="timeline-table">
+      <thead>
+        <tr>
+          <th>Data Type</th>
+          <th>Retention Period</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Transaction &amp; payment records</td>
+          <td>5 years</td>
+          <td>Financial regulations (Zambia Revenue Authority)</td>
+        </tr>
+        <tr>
+          <td>Trip history (anonymised)</td>
+          <td>3 years</td>
+          <td>Safety audit trail and dispute resolution</td>
+        </tr>
+        <tr>
+          <td>Safety incident reports</td>
+          <td>Duration of legal proceedings</td>
+          <td>Legal obligation, user safety</td>
+        </tr>
+        <tr>
+          <td>Fraud &amp; abuse records</td>
+          <td>Up to 7 years</td>
+          <td>Prevent re-registration by bad actors</td>
+        </tr>
+        <tr>
+          <td>All other personal data</td>
+          <td>Deleted within 30 days</td>
+          <td>User privacy rights</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="highlight-box">
+      Where data is retained, it is stored securely and used only for the stated purpose. It will not be used for marketing or shared with third parties for commercial purposes.
+    </div>
+  </div>
+
+  <div class="policy-section">
+    <div class="section-number">Consequences</div>
+    <h2>What Deletion Means for You</h2>
+    <p>Deleting your account is permanent and cannot be undone. Before requesting deletion, please be aware:</p>
+    <ul>
+      <li>You will lose access to your trip history and receipts</li>
+      <li>Any OkraPay wallet balance must be withdrawn before deletion; unclaimed balances may be forfeited</li>
+      <li>Active referral credits or loyalty points will be permanently forfeited</li>
+      <li>You will no longer receive any service notifications or promotions</li>
+      <li>If you wish to use Okra Rides in the future, you will need to create a new account</li>
+    </ul>
+    <p>If you are a Driver or Delivery Partner, additional offboarding steps may be required to settle outstanding earnings and vehicle documentation. Our support team will guide you through this process.</p>
+  </div>
+
+  <div class="policy-section">
+    <div class="section-number">Changed Your Mind?</div>
+    <h2>Cancelling a Deletion Request</h2>
+    <p>If you change your mind after submitting a deletion request, you may cancel it at any time before your account data has been permanently deleted (within the 30-day processing window).</p>
+    <p>To cancel your deletion request, contact us through any of the methods listed on this page. Once permanent deletion has been completed, it cannot be reversed.</p>
+  </div>
+
+  <div class="contact-card">
+    <h3>Submit Your Request</h3>
+    <p>Contact us through any of the channels below to begin the account deletion process.</p>
+    <div class="contact-items">
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <span>In-App: Open the app &rarr; go to <strong style="color:rgba(255,255,255,0.85)">/help</strong></span>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <a href="mailto:info@okrarides.com">info@okrarides.com</a>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .98h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        </div>
+        <a href="tel:+260770031114">+260 770 031 114</a>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <span>Garden View Properties, Lagos Road, Lusaka, Zambia</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>&copy; 2025 Okra Technologies. All rights reserved. &nbsp;&middot;&nbsp; <a href="privacy-policy.html">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="terms.html">Terms &amp; Conditions</a> &nbsp;&middot;&nbsp; <a href="data-deletion-policy.html">Data Deletion</a></p>
+</footer>
+
+</body>
+</html>

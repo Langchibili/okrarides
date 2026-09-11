@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "resendotps",
+  "info": {
+    "singularName": "resendotp",
+    "pluralName": "resendotps",
+    "displayName": "resendotp"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "identifier": {
+      "type": "string"
+    },
+    "identifierType": {
+      "type": "enumeration",
+      "enum": [
+        "phoneNumber",
+        "email"
+      ]
+    }
+  }
+}

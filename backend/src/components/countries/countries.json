@@ -1,0 +1,39 @@
+{
+  "collectionName": "components_countries_countries",
+  "info": {
+    "displayName": "countries",
+    "icon": "earth"
+  },
+  "options": {},
+  "attributes": {
+    "country": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::country.country"
+    },
+    "baseFare": {
+      "type": "decimal",
+      "required": true
+    },
+    "perKmRate": {
+      "type": "decimal",
+      "required": true
+    },
+    "perMinuteRate": {
+      "type": "decimal",
+      "required": true
+    },
+    "minimumFare": {
+      "type": "decimal",
+      "required": true
+    },
+    "commissionPercentage": {
+      "type": "decimal"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "config": {}
+}

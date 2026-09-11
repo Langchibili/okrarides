@@ -1,0 +1,95 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ledger_entries",
+  "info": {
+    "singularName": "ledger-entry",
+    "pluralName": "ledger-entries",
+    "displayName": "Ledger Entry",
+    "name": "ledgerEntry"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "entryId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "ledgerEntries"
+    },
+    "ride": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride.ride"
+    },
+    "type": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "fare",
+        "fare_cash",
+        "fare_subscription",
+        "commission",
+        "payout",
+        "float_topup",
+        "float_deduction",
+        "withdrawal",
+        "adjustment",
+        "refund",
+        "float_topup-partner",
+        "float_debit-partner"
+      ]
+    },
+    "amount": {
+      "type": "decimal",
+      "required": true
+    },
+    "source": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "cash",
+        "okrapay",
+        "mobile_money",
+        "bank_transfer",
+        "system",
+        "partner"
+      ]
+    },
+    "ledgerStatus": {
+      "type": "enumeration",
+      "default": "pending",
+      "enum": [
+        "pending",
+        "settled",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "balanceBefore": {
+      "type": "decimal"
+    },
+    "balanceAfter": {
+      "type": "decimal"
+    },
+    "description": {
+      "type": "text"
+    },
+    "metadata": {
+      "type": "json"
+    }
+  }
+}

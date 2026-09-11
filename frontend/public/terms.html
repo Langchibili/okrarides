@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Terms &amp; Conditions – Okra Rides</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #0a0f1e;
+    --paper: #f5f3ee;
+    --accent: #e8520a;
+    --accent2: #f0a500;
+    --muted: #6b7280;
+    --border: #ddd8ce;
+    --card: #ffffff;
+    --hero-bg: #0a0f1e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+  nav:not(.toc) {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--hero-bg);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo {
+    width: 34px; height: 34px; background: var(--accent);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 16px; color: #fff;
+  }
+  .nav-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; color: #fff; letter-spacing: -0.3px; }
+  .nav-badge {
+    background: rgba(240,165,0,0.12); border: 1px solid rgba(240,165,0,0.3);
+    color: var(--accent2); font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px;
+  }
+  .hero {
+    background: var(--hero-bg); padding: 72px 2rem 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 50% 70% at 75% 40%, rgba(240,165,0,0.1) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 50% at 15% 90%, rgba(232,82,10,0.07) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 760px; margin: 0 auto; position: relative; }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(240,165,0,0.12); border: 1px solid rgba(240,165,0,0.25);
+    color: var(--accent2); font-size: 12px; font-weight: 500; letter-spacing: 1px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 20px; margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(36px, 6vw, 58px); color: #fff;
+    line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 18px;
+  }
+  .hero h1 span { color: var(--accent2); }
+  .hero-meta { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 28px; }
+  .hero-meta-item { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.5); font-size: 13px; }
+  .page-wrap { max-width: 760px; margin: 0 auto; padding: 64px 2rem 96px; }
+  .toc { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 52px; }
+  .toc-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+  .toc ol { padding-left: 18px; }
+  .toc li { margin-bottom: 8px; }
+  .toc a { color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+  .toc a:hover { color: var(--accent); }
+  .policy-section { margin-bottom: 52px; }
+  .section-number { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
+  .policy-section h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; color: var(--ink); line-height: 1.2; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 2px solid var(--border); }
+  .policy-section p { color: #374151; margin-bottom: 14px; font-size: 15px; }
+  .policy-section p:last-child { margin-bottom: 0; }
+  .policy-section ul { padding-left: 0; list-style: none; margin-bottom: 14px; }
+  .policy-section ul li { padding: 6px 0 6px 24px; position: relative; font-size: 15px; color: #374151; }
+  .policy-section ul li::before { content: ''; position: absolute; left: 0; top: 14px; width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; }
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(240,165,0,0.06), rgba(232,82,10,0.04));
+    border: 1px solid rgba(240,165,0,0.2); border-left: 3px solid var(--accent2);
+    border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 20px 0;
+    font-size: 14px; color: #374151;
+  }
+  .warning-box {
+    background: rgba(232,82,10,0.05); border: 1px solid rgba(232,82,10,0.15);
+    border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 16px 20px; margin: 20px 0; font-size: 14px; color: #374151;
+  }
+  .contact-card {
+    background: var(--hero-bg); border-radius: 16px; padding: 36px 40px;
+    margin-top: 52px; position: relative; overflow: hidden;
+  }
+  .contact-card::before {
+    content: ''; position: absolute; top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(240,165,0,0.15), transparent 70%);
+    pointer-events: none;
+  }
+  .contact-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; color: #fff; margin-bottom: 6px; }
+  .contact-card p { color: rgba(255,255,255,0.55); font-size: 14px; margin-bottom: 24px; }
+  .contact-items { display: flex; flex-direction: column; gap: 12px; }
+  .contact-item { display: flex; align-items: center; gap: 12px; }
+  .contact-icon { width: 36px; height: 36px; flex-shrink: 0; background: rgba(240,165,0,0.12); border: 1px solid rgba(240,165,0,0.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--accent2); }
+  .contact-item a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 14px; }
+  .contact-item a:hover { color: var(--accent2); }
+  .contact-item span { color: rgba(255,255,255,0.55); font-size: 14px; }
+  footer { background: var(--hero-bg); border-top: 1px solid rgba(255,255,255,0.06); text-align: center; padding: 32px 2rem; color: rgba(255,255,255,0.3); font-size: 13px; }
+  footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 0 0 52px; }
+  @media (max-width: 600px) {
+    .hero { padding: 52px 1.25rem 60px; }
+    .page-wrap { padding: 48px 1.25rem 72px; }
+    .toc { padding: 20px; }
+    .contact-card { padding: 28px 24px; }
+    .hero-meta { flex-direction: column; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="nav-logo">O</div>
+    <span class="nav-name">Okra Rides</span>
+  </a>
+  <span class="nav-badge">Terms &amp; Conditions</span>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><circle cx="5" cy="5" r="5"/></svg>
+      Legal Document
+    </div>
+    <h1>Terms &amp;<br/><span>Conditions</span></h1>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Effective: January 1, 2025
+      </div>
+      <div class="hero-meta-item">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Okra Technologies, Lusaka, Zambia
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#s1">Acceptance of Terms</a></li>
+      <li><a href="#s2">Description of Services</a></li>
+      <li><a href="#s3">User Eligibility &amp; Registration</a></li>
+      <li><a href="#s4">Rider Obligations</a></li>
+      <li><a href="#s5">Driver &amp; Delivery Partner Obligations</a></li>
+      <li><a href="#s6">Fares, Payments &amp; Refunds</a></li>
+      <li><a href="#s7">Cancellations</a></li>
+      <li><a href="#s8">Prohibited Conduct</a></li>
+      <li><a href="#s9">Intellectual Property</a></li>
+      <li><a href="#s10">Limitation of Liability</a></li>
+      <li><a href="#s11">Termination</a></li>
+      <li><a href="#s12">Governing Law</a></li>
+      <li><a href="#s13">Contact</a></li>
+    </ol>
+  </nav>
+
+  <div class="policy-section">
+    <p>These Terms and Conditions ("Terms") govern your access to and use of the Okra Rides mobile application and services ("Service") provided by Okra Technologies ("Company", "we", "us", or "our"), a company registered in Zambia with offices at Garden View Properties, Lagos Road, Lusaka, Zambia.</p>
+    <p>Please read these Terms carefully before using the App. By creating an account or using any part of our Service, you acknowledge that you have read, understood, and agree to be bound by these Terms.</p>
+  </div>
+
+  <hr/>
+
+  <div id="s1" class="policy-section">
+    <div class="section-number">Section 01</div>
+    <h2>Acceptance of Terms</h2>
+    <p>By downloading, installing, or using the Okra Rides App, you confirm that you are at least 18 years of age, have the legal capacity to enter into a binding agreement, and agree to these Terms in full.</p>
+    <p>We reserve the right to amend these Terms at any time. Where changes are material, we will provide at least 7 days' notice via the App or email. Continued use of the Service following notice constitutes acceptance of the revised Terms.</p>
+  </div>
+
+  <div id="s2" class="policy-section">
+    <div class="section-number">Section 02</div>
+    <h2>Description of Services</h2>
+    <p>Okra Rides is a technology platform that connects passengers ("Riders") seeking transportation with independent drivers ("Drivers"), and individuals seeking delivery services ("Senders") with independent delivery partners. The Company acts solely as a technology intermediary and is not a transportation or logistics company.</p>
+    <div class="highlight-box">
+      Drivers and delivery partners are independent contractors, not employees of Okra Technologies. The Company is not liable for the acts or omissions of independent drivers or delivery partners.
+    </div>
+  </div>
+
+  <div id="s3" class="policy-section">
+    <div class="section-number">Section 03</div>
+    <h2>User Eligibility &amp; Registration</h2>
+    <p>To use Okra Rides you must:</p>
+    <ul>
+      <li>Be at least 18 years of age</li>
+      <li>Provide accurate, current, and complete registration information</li>
+      <li>Maintain the security of your account credentials</li>
+      <li>Promptly notify us of any unauthorised use of your account</li>
+    </ul>
+    <p>You may only create one personal account. Accounts are non-transferable. We reserve the right to refuse registration or terminate accounts at our discretion.</p>
+  </div>
+
+  <div id="s4" class="policy-section">
+    <div class="section-number">Section 04</div>
+    <h2>Rider Obligations</h2>
+    <p>As a Rider, you agree to:</p>
+    <ul>
+      <li>Behave respectfully toward drivers and other users at all times</li>
+      <li>Wear a seatbelt where provided and required by law</li>
+      <li>Not request rides for illegal purposes</li>
+      <li>Not bring dangerous, illegal, or prohibited items into a vehicle</li>
+      <li>Pay the fare as displayed at the time of booking, including any applicable surge pricing</li>
+      <li>Not physically or verbally abuse, threaten, or harass drivers</li>
+      <li>Comply with any reasonable instructions from the driver regarding vehicle use</li>
+    </ul>
+    <p>Riders who violate these obligations may be suspended or permanently banned from the platform.</p>
+  </div>
+
+  <div id="s5" class="policy-section">
+    <div class="section-number">Section 05</div>
+    <h2>Driver &amp; Delivery Partner Obligations</h2>
+    <p>As a Driver or Delivery Partner, you agree to:</p>
+    <ul>
+      <li>Hold a valid Zambian driver's licence and all required permits for the vehicle category</li>
+      <li>Maintain a roadworthy, insured vehicle in good working condition</li>
+      <li>Complete all required onboarding verification and background checks</li>
+      <li>Maintain professional conduct and courteous behaviour toward all riders and customers</li>
+      <li>Not engage in price gouging or demand additional payments beyond the fare displayed in the App</li>
+      <li>Accept and complete trips in good faith without unnecessary cancellations</li>
+      <li>Comply with all traffic laws and road regulations of Zambia</li>
+    </ul>
+    <p>Failure to meet these obligations may result in suspension, deactivation, or legal action.</p>
+  </div>
+
+  <div id="s6" class="policy-section">
+    <div class="section-number">Section 06</div>
+    <h2>Fares, Payments &amp; Refunds</h2>
+    <p>Fares are calculated based on distance, time, and current demand and are displayed in the App before you confirm a booking. By confirming a booking, you agree to pay the displayed fare.</p>
+    <p>Payments may be made through in-app payment methods or cash, as offered by the platform. For cashless payments, charges are applied at the end of each trip.</p>
+    <p>Refund requests must be submitted within 48 hours of the trip via the in-app Help Centre at <strong>/help</strong>. Refunds are granted at the Company's sole discretion and typically processed within 5–10 business days.</p>
+    <div class="warning-box">
+      <strong>Surge pricing:</strong> During periods of high demand, fares may be higher than standard rates. The multiplier will be clearly displayed before you confirm your booking.
+    </div>
+  </div>
+
+  <div id="s7" class="policy-section">
+    <div class="section-number">Section 07</div>
+    <h2>Cancellations</h2>
+    <p>Riders may cancel a trip without charge within 2 minutes of a driver accepting the request. Cancellations made after this window may attract a cancellation fee as displayed in the App at the time of cancellation.</p>
+    <p>Drivers who cancel accepted trips without a valid reason may have their accounts reviewed and may be penalised under the driver rating system.</p>
+  </div>
+
+  <div id="s8" class="policy-section">
+    <div class="section-number">Section 08</div>
+    <h2>Prohibited Conduct</h2>
+    <p>You agree not to engage in any of the following:</p>
+    <ul>
+      <li>Using the App for any unlawful purpose or to facilitate illegal activity</li>
+      <li>Impersonating any person or entity, or misrepresenting your identity</li>
+      <li>Posting false, misleading, or fraudulent ratings or reviews</li>
+      <li>Interfering with or disrupting the App or its servers</li>
+      <li>Attempting to reverse-engineer, decompile, or extract source code from the App</li>
+      <li>Using the App to collect information about other users without their consent</li>
+      <li>Engaging in any form of discrimination, harassment, or abuse</li>
+      <li>Creating accounts to circumvent suspensions or bans</li>
+    </ul>
+  </div>
+
+  <div id="s9" class="policy-section">
+    <div class="section-number">Section 09</div>
+    <h2>Intellectual Property</h2>
+    <p>The Okra Rides App, including its design, graphics, logos, trademarks, and software, is the exclusive property of Okra Technologies and is protected by applicable intellectual property laws. You are granted a limited, non-exclusive, non-transferable, revocable licence to use the App solely for its intended purpose.</p>
+    <p>You may not copy, modify, distribute, sell, or create derivative works from any part of the App without our prior written consent.</p>
+  </div>
+
+  <div id="s10" class="policy-section">
+    <div class="section-number">Section 10</div>
+    <h2>Limitation of Liability</h2>
+    <p>To the maximum extent permitted by Zambian law, Okra Technologies shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the App or the actions of any driver or delivery partner.</p>
+    <p>Our total aggregate liability to you for any claim arising from these Terms or your use of the App shall not exceed the total fees paid by you to Okra Technologies in the three months preceding the event giving rise to the claim.</p>
+    <div class="warning-box">
+      The App is provided "as is" and "as available" without warranties of any kind, express or implied, including fitness for a particular purpose or uninterrupted availability.
+    </div>
+  </div>
+
+  <div id="s11" class="policy-section">
+    <div class="section-number">Section 11</div>
+    <h2>Termination</h2>
+    <p>You may close your account at any time through the App or by contacting us. We may suspend or terminate your account with or without notice if we determine that you have violated these Terms, engaged in fraudulent activity, or pose a risk to the safety of other users.</p>
+    <p>Upon termination, your right to use the App ceases immediately. Provisions of these Terms that by their nature should survive termination will remain in effect.</p>
+  </div>
+
+  <div id="s12" class="policy-section">
+    <div class="section-number">Section 12</div>
+    <h2>Governing Law</h2>
+    <p>These Terms are governed by and construed in accordance with the laws of the Republic of Zambia. Any disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts of Zambia.</p>
+    <p>We encourage users to contact us first to resolve any disputes informally. We are committed to addressing complaints fairly and promptly.</p>
+  </div>
+
+  <div id="s13" class="policy-section">
+    <div class="section-number">Section 13</div>
+    <h2>Contact</h2>
+    <p>For any questions about these Terms and Conditions, please contact us through one of the following channels.</p>
+  </div>
+
+  <div class="contact-card">
+    <h3>Get in Touch</h3>
+    <p>Our team is available to answer any questions about these Terms.</p>
+    <div class="contact-items">
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <a href="/cdn-cgi/l/email-protection#2a43444c456a4541584b58434e4f5904494547"><span class="__cf_email__" data-cfemail="6c05020a032c03071e0d1e0508091f420f0301">[email&#160;protected]</span></a>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.68A2 2 0 012 .98h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        </div>
+        <a href="tel:+260770031114">+260 770 031 114</a>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <span>Garden View Properties, Lagos Road, Lusaka, Zambia</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>&copy; 2025 Okra Technologies. All rights reserved. &nbsp;·&nbsp; <a href="privacy-policy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="account-deletion-p

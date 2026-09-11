@@ -1,0 +1,80 @@
+{
+  "kind": "collectionType",
+  "collectionName": "affiliate_promotions",
+  "info": {
+    "singularName": "affiliate-promotion",
+    "pluralName": "affiliate-promotions",
+    "displayName": "AffiliatePromotion",
+    "description": "Promotions offered by an affiliate; applied to referred users at sign-up or during bookings"
+  },
+  "options": { "draftAndPublish": true },
+  "pluginOptions": {
+    "content-manager": { "visible": true },
+    "content-type-builder": { "visible": true }
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "description": "Admin-facing label, e.g. 'Free Float Top-Up' or 'Ride Discount 30%'"
+    },
+    "description": {
+      "type": "text",
+      "description": "User-facing description shown on dashboards"
+    },
+    "action": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "float-topup",
+        "ride-discount",
+        "delivery-discount",
+        "subscription-discount",
+        "wallet-credit"
+      ],
+      "description": "What the promotion does. float-topup/wallet-credit are applied once at sign-up. *-discount are applied per booking."
+    },
+    "for": {
+      "type": "enumeration",
+      "required": true,
+      "default": "all",
+      "enum": ["rider", "driver", "all"],
+      "description": "Which account type benefits"
+    },
+    "amount": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Flat credit amount for float-topup / wallet-credit actions"
+    },
+    "percentageAmount": {
+      "type": "decimal",
+      "default": 0,
+      "description": "Percentage off fare for ride-discount / delivery-discount actions"
+    },
+    "usageLimit": {
+      "type": "integer",
+      "required": true,
+      "default": 1,
+      "description": "Max times a single referred user can benefit from this promotion"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, auto-created for every new user's affiliate profile"
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "description": "Optional hard expiry. After this date the promotion is never applied."
+    },
+    "affiliateOwner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "description": "The affiliate user who owns / offers this promotion"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+    "kind":  "collectionType",
+    "collectionName":  "translations",
+    "info":  {
+                 "singularName":  "translation",
+                 "pluralName":  "translations",
+                 "displayName":  "Translation",
+                 "name":  "translation"
+             },
+    "options":  {
+                    "draftAndPublish":  false
+                },
+    "attributes":  {
+                       "key":  {
+                                   "type":  "string",
+                                   "required":  true,
+                                   "unique":  true
+                               },
+                       "translations":  {
+                                            "type":  "component",
+                                            "repeatable":  true,
+                                            "component":  "translations.translation-item"
+                                        },
+                       "category":  {
+                                        "type":  "enumeration",
+                                        "enum":  [
+                                                     "general",
+                                                     "rides",
+                                                     "payments",
+                                                     "notifications",
+                                                     "errors",
+                                                     "subscriptions"
+                                                 ]
+                                    }
+                   },
+    "pluginOptions":  {
+                          "content-manager":  {
+                                                  "visible":  true
+                                              },
+                          "content-type-builder":  {
+                                                       "visible":  true
+                                                   }
+                      }
+}

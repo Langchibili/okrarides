@@ -1,0 +1,111 @@
+{
+  "kind": "collectionType",
+  "collectionName": "withdrawals",
+  "info": {
+    "singularName": "withdrawal",
+    "pluralName": "withdrawals",
+    "displayName": "Withdrawal",
+    "name": "withdrawal",
+    "description": "Tracks driver and rider withdrawal requests"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "withdrawalId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "amount": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::currency.currency"
+    },
+    "method": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "mobile_money",
+        "bank_transfer"
+      ]
+    },
+    "provider": {
+      "type": "string",
+      "description": "Mobile money operator (mtn, airtel) or bank code"
+    },
+    "accountNumber": {
+      "type": "string",
+      "required": true
+    },
+    "accountName": {
+      "type": "string",
+      "required": true
+    },
+    "withdrawalStatus": {
+      "type": "enumeration",
+      "required": true,
+      "default": "pending",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "gatewayReference": {
+      "type": "string"
+    },
+    "gatewayResponse": {
+      "type": "json"
+    },
+    "okrapayTransaction": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::okrapay.okrapay"
+    },
+    "balanceBefore": {
+      "type": "decimal"
+    },
+    "balanceAfter": {
+      "type": "decimal"
+    },
+    "requestedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "processedAt": {
+      "type": "datetime"
+    },
+    "failureReason": {
+      "type": "text"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "processedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

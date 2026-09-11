@@ -1,0 +1,63 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cancellation_reasons",
+  "info": {
+    "singularName": "cancellation-reason",
+    "pluralName": "cancellation-reasons",
+    "displayName": "Cancellation Reason",
+    "name": "cancellationReason"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "reason": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "applicableFor": {
+      "type": "enumeration",
+      "enum": [
+        "rider",
+        "driver",
+        "both"
+      ],
+      "required": true
+    },
+    "requiresExplanation": {
+      "type": "boolean",
+      "default": false
+    },
+    "hasFee": {
+      "type": "boolean",
+      "default": false
+    },
+    "feeAmount": {
+      "type": "decimal"
+    },
+    "feePercentage": {
+      "type": "decimal"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "displayOrder": {
+      "type": "integer",
+      "default": 0
+    }
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  }
+}

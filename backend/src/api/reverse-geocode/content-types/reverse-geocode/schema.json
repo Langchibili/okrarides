@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reverse_geocodes",
+  "info": {
+    "singularName": "reverse-geocode",
+    "pluralName": "reverse-geocodes",
+    "displayName": "reverseGeocode"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "aboutRoute": {
+      "type": "blocks"
+    }
+  }
+}

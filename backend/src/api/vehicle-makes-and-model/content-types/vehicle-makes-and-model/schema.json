@@ -1,0 +1,24 @@
+{
+  "kind": "singleType",
+  "collectionName": "vehicle_makes_and_models",
+  "info": {
+    "singularName": "vehicle-makes-and-model",
+    "pluralName": "vehicle-makes-and-models",
+    "displayName": "vehicleMakesAndModels"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "cars": {
+      "type": "json"
+    },
+    "motorbikes": {
+      "type": "json"
+    },
+    "bikes": {
+      "type": "json"
+    }
+  }
+}

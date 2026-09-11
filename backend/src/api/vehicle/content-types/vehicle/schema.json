@@ -1,0 +1,144 @@
+{
+  "kind": "collectionType",
+  "collectionName": "vehicles",
+  "info": {
+    "singularName": "vehicle",
+    "pluralName": "vehicles",
+    "displayName": "Vehicle",
+    "name": "vehicle"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "vehicleType": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "taxi",
+        "bus",
+        "motorcycle",
+        "truck"
+      ]
+    },
+    "numberPlate": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "make": {
+      "type": "string",
+      "required": true
+    },
+    "model": {
+      "type": "string",
+      "required": true
+    },
+    "year": {
+      "type": "integer"
+    },
+    "color": {
+      "type": "string"
+    },
+    "seatingCapacity": {
+      "type": "integer"
+    },
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "assignedDriver": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "verificationStatus": {
+      "type": "enumeration",
+      "default": "not_started",
+      "enum": [
+        "not_started",
+        "pending",
+        "approved",
+        "rejected"
+      ]
+    },
+    "registrationDocument": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "insuranceCertificate": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "insuranceExpiryDate": {
+      "type": "date"
+    },
+    "roadTaxCertificate": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "roadTaxExpiryDate": {
+      "type": "date"
+    },
+    "fitnessDocument": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "fitnessExpiryDate": {
+      "type": "date"
+    },
+    "vehiclePhotos": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": false
+    },
+    "taxiType": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::taxi-type.taxi-type"
+    },
+    "rideClasses": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::ride-class.ride-class",
+      "mappedBy": "vehicles"
+    },
+    "deliveryClasses": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::delivery-class.delivery-class",
+      "mappedBy": "vehicles"
+    }
+  }
+}
