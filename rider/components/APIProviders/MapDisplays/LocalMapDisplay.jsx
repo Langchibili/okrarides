@@ -152,6 +152,13 @@ function LocalMapLibreDisplay({
           () => cb(null)
         );
       },
+      getCenter() {
+        try {
+          const c = map.getCenter();
+          if (!c) return null;
+          return { lat: c.lat, lng: c.lng };
+        } catch { return null; }
+      },
     };
   }
 

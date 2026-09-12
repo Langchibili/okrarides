@@ -457,9 +457,11 @@ import {
   Clear as ClearIcon,
   LocationOn as LocationIcon,
   MyLocation as MyLocationIcon,
+  Map as MapPinIcon,
 } from '@mui/icons-material';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LocationSelectMap } from './LocationSelectMap';
 
 let useMapsProviderHook = null;
 try {
@@ -523,7 +525,7 @@ export const LocationSearch = ({
   const searchTimeout   = useRef(null);
   const predictionCache = useRef({});
   const mapsProvider    = useSafeMapProvider();
-
+  const [mapPickerOpen, setMapPickerOpen] = useState(false);
   const providerReady = mapsProvider?.ready ?? true;
 
   useEffect(() => { setMounted(true); }, []);
@@ -855,7 +857,97 @@ export const LocationSearch = ({
     document.body,
   ) : null;
 
-  return (
+  // return (
+  //   <Box
+  //     ref={containerRef}
+  //     sx={{
+  //       position:   'relative',
+  //       width:      '100%',
+  //       minWidth:   0,
+  //       overflow:   'hidden',
+  //       boxSizing:  'border-box',
+  //     }}
+  //   >
+  //     <TextField
+  //       key={displayKey}
+  //       fullWidth
+  //       size="small"
+  //       value={query}
+  //       onChange={handleInputChange}
+  //       onFocus={() => { HandleOnfocus?.(); setFocused(true); measureDropdown(); externalOnFocus?.(); }}
+  //       onBlur={() => setTimeout(() => { HandleOnBlur?.(); setFocused(false); externalOnBlur?.(); }, 200)}
+  //       placeholder={placeholder}
+  //       autoFocus={autoFocus}
+  //       InputProps={{
+  //         startAdornment: (
+  //           <InputAdornment position="start">
+  //             {loading
+  //               ? <CircularProgress size={16} />
+  //               : <SearchIcon sx={{ fontSize: 18, color: 'text.disabled' }} />}
+  //           </InputAdornment>
+  //         ),
+  //         endAdornment: (
+  //           <InputAdornment position="end">
+  //             {/* {query ? (
+  //               <IconButton size="small" onClick={handleClear} sx={{ p: 0.25, mr: 0.25 }}>
+  //                 <ClearIcon sx={{ fontSize: 15 }} />
+  //               </IconButton>
+  //             ) : null}
+  //             <IconButton
+  //               size="small"
+  //               onClick={() => setMapPickerOpen(true)}
+  //               sx={{ p: 0.25 }}
+  //               title="Pick on map"
+  //             >
+  //               <MapPinIcon sx={{ fontSize: 17, color: 'text.secondary' }} />
+  //             </IconButton> */}
+  //             {query ? (
+  //             <IconButton
+  //               size="small"
+  //               onClick={handleClear}
+  //               className="ls-action-btn"
+  //               sx={{ p: 0.25, mr: 0.25 }}
+  //             >
+  //               <ClearIcon sx={{ fontSize: 15 }} />
+  //             </IconButton>
+  //           ) : null}
+  //           <IconButton
+  //             size="small"
+  //             onClick={() => setMapPickerOpen(true)}
+  //             className="ls-action-btn"
+  //             sx={{ p: 0.25 }}
+  //             title="Pick on map"
+  //           >
+  //             <MapPinIcon sx={{ fontSize: 17, color: 'text.secondary' }} />
+  //           </IconButton>
+  //           </InputAdornment>
+  //         )
+  //       }}
+  //       sx={{
+  //         '& .MuiOutlinedInput-root': {
+  //           bgcolor:    'background.paper',
+  //           borderRadius: 2,
+  //           boxSizing:  'border-box',
+  //         },
+  //       }}
+  //     />
+  //    {dropdown}
+  //     <LocationSelectMap
+  //       open={mapPickerOpen}
+  //       initialCenter={parseLocationBounds(locationBounds) || readSavedGeoLoc()}
+  //       countryCode={countryCode}
+  //       onClose={() => setMapPickerOpen(false)}
+  //       onSelectLocation={(loc) => {
+  //         onSelectLocation(loc);
+  //         const label = loc.address || loc.name || '';
+  //         setQuery(label);
+  //         onChange?.(label);
+  //         setMapPickerOpen(false);
+  //       }}
+  //     />
+  //   </Box>
+  // );
+    return (
     <Box
       ref={containerRef}
       sx={{
@@ -884,13 +976,37 @@ export const LocationSearch = ({
                 : <SearchIcon sx={{ fontSize: 18, color: 'text.disabled' }} />}
             </InputAdornment>
           ),
-          endAdornment: query ? (
+          endAdornment: (
             <InputAdornment position="end">
-              <IconButton size="small" onClick={handleClear} sx={{ p: 0.25 }}>
-                <ClearIcon sx={{ fontSize: 15 }} />
-              </IconButton>
+              {query ? (
+                <IconButton
+                  size="small"
+                  onClick={handleClear}
+                  className="ls-action-btn"
+                  sx={{ p: 0.25, mr: 0.5 }}
+                >
+                  <ClearIcon sx={{ fontSize: 15 }} />
+                </IconButton>
+              ) : null}
+              <Box
+                className="ls-action-btn"
+                onClick={() => setMapPickerOpen(true)}
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: 0.5,
+                  height: 24, borderRadius: 99, px: 1,
+                  bgcolor: 'primary.main', color: 'primary.contrastText',
+                  cursor: 'pointer', userSelect: 'none', flexShrink: 0,
+                  fontSize: '0.65rem', fontWeight: 700, letterSpacing: 0.2,
+                  transition: 'background-color 0.15s ease, transform 0.1s ease',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  '&:active': { transform: 'scale(0.96)' },
+                }}
+              >
+                <span>Pick on map</span>
+                <MapPinIcon sx={{ fontSize: 14 }} />
+              </Box>
             </InputAdornment>
-          ) : null,
+          ),
         }}
         sx={{
           '& .MuiOutlinedInput-root': {
@@ -901,6 +1017,19 @@ export const LocationSearch = ({
         }}
       />
       {dropdown}
+      <LocationSelectMap
+        open={mapPickerOpen}
+        initialCenter={parseLocationBounds(locationBounds) || readSavedGeoLoc()}
+        countryCode={countryCode}
+        onClose={() => setMapPickerOpen(false)}
+        onSelectLocation={(loc) => {
+          onSelectLocation(loc);
+          const label = loc.address || loc.name || '';
+          setQuery(label);
+          onChange?.(label);
+          setMapPickerOpen(false);
+        }}
+      />
     </Box>
   );
 };

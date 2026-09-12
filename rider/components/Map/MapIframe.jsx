@@ -571,6 +571,10 @@ function NativeMapWrapper({
           mapsProvider.getPlaceDetails(placeId).then(r => cb(r)).catch(() => cb(null));
         } else cb(null);
       },
+      getCenter: (cb) => {
+        const c = nativeControls?.getCenter?.();
+        cb?.(c ?? null);
+      },
     };
     onMapLoad?.(controls);
   }, [onMapLoad, mapsProvider]);
@@ -681,6 +685,17 @@ const IframeMap = memo(({
       };
       window.addEventListener('message', handler);
       sendToIframe('GET_PLACE_DETAILS', { placeId, messageId });
+    },
+    getCenter: (callback) => {
+      const messageId = Math.random().toString(36);
+      const handler = (event) => {
+        if (event.data.type === 'MAP_CENTER_RESPONSE' && event.data.messageId === messageId) {
+          callback(event.data.location);
+          window.removeEventListener('message', handler);
+        }
+      };
+      window.addEventListener('message', handler);
+      sendToIframe('GET_MAP_CENTER', { messageId });
     },
   }), [sendToIframe]);
 

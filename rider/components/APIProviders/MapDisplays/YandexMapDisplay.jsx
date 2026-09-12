@@ -226,6 +226,13 @@ export default function YandexMapDisplay({
           () => cb(null)
         );
       },
+      getCenter() {
+        try {
+          const c = map.location?.center; // [lng, lat]
+          if (!Array.isArray(c)) return null;
+          return { lat: c[1], lng: c[0] };
+        } catch { return null; }
+      },
     };
   }
 
