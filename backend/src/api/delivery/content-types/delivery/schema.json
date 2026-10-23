@@ -255,6 +255,24 @@
       "relation": "oneToMany",
       "target": "plugin::users-permissions.user"
     },
+    "appliedAffiliatePromoCode": {
+      "type": "string"
+    },
+    "appliedAffiliatePromotionId": {
+      "type": "integer"
+    },
+    "affiliatePromoDiscount": {
+      "type": "decimal",
+      "default": 0
+    },
+    "affiliateCoupon": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::affiliate-coupon.affiliate-coupon"
+    },
+    "appliedAffiliateCouponCode": {
+      "type": "string"
+    },
     "partner": {
       "type": "relation",
       "relation": "oneToOne",

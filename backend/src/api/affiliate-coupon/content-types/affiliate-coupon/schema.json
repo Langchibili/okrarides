@@ -1,0 +1,60 @@
+{
+  "kind": "collectionType",
+  "collectionName": "affiliate_coupons",
+  "info": {
+    "singularName": "affiliate-coupon",
+    "pluralName": "affiliate-coupons",
+    "displayName": "Affiliate Coupon"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "code": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "minLength": 3,
+      "maxLength": 32
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "affiliateOwner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "promotion": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::affiliate-promotion.affiliate-promotion",
+      "required": true
+    },
+    "usageLimit": {
+      "type": "integer",
+      "default": 1
+    },
+    "uses": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

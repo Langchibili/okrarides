@@ -253,10 +253,14 @@ io.on("connection", (socket) => {
 
     socket.join(`driver:${driverId}`);
 
-    // Store initial location if provided
-    if (location && location.lat && location.lng) {
+    // Normalize browser/native coordinate shapes before using them for matching.
+    const lat = Number(location?.lat ?? location?.latitude);
+    const lng = Number(location?.lng ?? location?.longitude);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
       driverLocations.set(driverId, {
         ...location,
+        lat,
+        lng,
         timestamp: Date.now(),
         isAvailable: metadata?.isAvailable || false
       });
@@ -331,13 +335,9 @@ io.on("connection", (socket) => {
   // ==================== DELIVERY REQUEST & MATCHING ====================
 
   socket.on('delivery:request:created', (data) => {
-    const { deliveryId, senderId, pickupLocation, dropoffLocation, estimatedFare } = data;
+    const { deliveryId, senderId } = data;
     activeRides.set(`del:${deliveryId}`, { senderId, status: 'pending', createdAt: Date.now() });
     emitToUser('rider', senderId, 'delivery:request:created', data);
-    const radius = data.searchRadius || 10;
-    broadcastToNearbyDrivers(pickupLocation, radius, 'delivery:request:new', {
-      deliveryId, senderId, pickupLocation, dropoffLocation, estimatedFare,
-    });
   });
 
   socket.on('delivery:request:sent', (data) => {
@@ -465,7 +465,7 @@ io.on("connection", (socket) => {
 
   // From Strapi: New ride request created
   socket.on('ride:request:created', (data) => {
-    const { rideId, riderId, pickupLocation, dropoffLocation, rideType, estimatedFare } = data;
+    const { rideId, riderId, rideType } = data;
 
     console.log(`New ride request: ${rideId}`, { riderId, rideType });
 
@@ -478,18 +478,6 @@ io.on("connection", (socket) => {
 
     // Notify rider
     emitToUser('rider', riderId, 'ride:request:created', data);
-
-    // Broadcast to nearby available drivers
-    const radius = data.searchRadius || 10; // km
-    broadcastToNearbyDrivers(pickupLocation, radius, 'ride:request:new', {
-      rideId,
-      riderId,
-      pickupLocation,
-      dropoffLocation,
-      rideType,
-      estimatedFare,
-      distance: null // Will be calculated per driver
-    });
   });
 
   // From Strapi: Ride request sent to specific drivers
@@ -741,13 +729,16 @@ io.on("connection", (socket) => {
   // Driver location update
   socket.on('driver:location:update', (data) => {
     const { driverId, location, heading, speed } = data;
+    const lat = Number(location?.lat ?? location?.latitude);
+    const lng = Number(location?.lng ?? location?.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
     // Update location cache
     const existingLoc = driverLocations.get(driverId) || {};
     driverLocations.set(driverId, {
       ...existingLoc,
-      lat: location.lat,
-      lng: location.lng,
+      lat,
+      lng,
       heading,
       speed,
       timestamp: Date.now()
@@ -1249,6 +1240,8 @@ io.on("connection", (socket) => {
 
 // ==================== HTTP HEALTH CHECK ====================
 httpServer.on('request', (req, res) => {
+  if (req.url?.startsWith('/socket.io/')) return;
+
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({

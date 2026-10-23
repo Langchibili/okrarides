@@ -156,7 +156,9 @@ export const authAPI = {
 
   // Get current user
   async me() {
-    const response = await apiClient.get('/users/me?populate=*');
+    const response = await apiClient.get(
+      '/users/me?populate[profilePicture]=true&populate[country][populate][currency]=true&populate[partner][populate][partnerProfile][populate][logo]=true&populate[driverProfile]=true&populate[deliveryProfile]=true&populate[riderProfile]=true&populate[affiliateProfile][populate][qrCode]=true'
+    );
     return response;
   },
 

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/client";
 import useAuth from "@/lib/hooks/useAuth";
 import { getImageUrl } from "@/Functions";
+import { useAdminSettings } from "@/lib/hooks/useAdminSettings";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const GREEN = '#10B981';
@@ -85,6 +86,66 @@ function SectionCard({ title, icon, children, accent }) {
                 </div>
             )}
             <div style={{ padding: '12px 16px' }}>{children}</div>
+        </div>
+    );
+}
+
+function PartnerSwitchRestrictionModal({ supportNumbers = [], onClose }) {
+    const numbers = (Array.isArray(supportNumbers) ? supportNumbers : [])
+        .map((item) => typeof item === 'object' ? item.number ?? item.value ?? '' : item)
+        .filter(Boolean);
+    const primaryNumber = numbers[0] || '';
+    const whatsappNumber = String(primaryNumber).replace(/\D/g, '');
+
+    return (
+        <div style={{
+            position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.72)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+        }} onClick={(event) => event.target === event.currentTarget && onClose()}>
+            <div style={{
+                width: '100%', maxWidth: 420, borderRadius: 18, padding: 22,
+                color: '#E2E8F0', background: '#0F172A', border: '1px solid rgba(255,255,255,0.1)',
+            }}>
+                <h2 style={{ margin: '0 0 12px', fontSize: 18 }}>Contact Okra support</h2>
+                <p style={{ margin: '0 0 16px', color: '#CBD5E1', lineHeight: 1.6 }}>
+                    To switch partner companies, contact us, we will get back to you within 48 hours.
+                </p>
+                {numbers.length ? (
+                    <div style={{ display: 'grid', gap: 8 }}>
+                        {numbers.map((number, index) => (
+                            <a key={`${number}-${index}`} href={`tel:${number}`} style={{
+                                color: '#E2E8F0', padding: '10px 12px', borderRadius: 10,
+                                border: '1px solid rgba(255,255,255,0.12)', textDecoration: 'none',
+                            }}>
+                                {number}
+                            </a>
+                        ))}
+                    </div>
+                ) : (
+                    <p style={{ margin: 0, color: '#94A3B8' }}>Please contact us through the Help page.</p>
+                )}
+                <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+                    {whatsappNumber && (
+                        <a
+                            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hello, I would like to switch partner companies.')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                flex: 1, textAlign: 'center', padding: '11px 12px', borderRadius: 10,
+                                background: '#16A34A', color: '#fff', fontWeight: 700, textDecoration: 'none',
+                            }}
+                        >
+                            WhatsApp
+                        </a>
+                    )}
+                    <button onClick={onClose} style={{
+                        flex: 1, padding: '11px 12px', borderRadius: 10, cursor: 'pointer',
+                        border: '1px solid rgba(255,255,255,0.18)', color: '#E2E8F0', background: 'transparent',
+                    }}>
+                        Close
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
@@ -373,7 +434,7 @@ function ConfirmSwitchModal({ partner, onConfirm, onClose, switching, error }) {
 // ─── SwitchPartnerModal ────────────────────────────────────────────────────────
 // The *logged-in driver* calls this to move themselves to a new partner.
 // (Kept for the existing flow where the driver picks from a list.)
-function SwitchPartnerModal({ currentPartnerId, onClose, onSuccess }) {
+function SwitchPartnerModal({ currentPartnerId, onClose, onSuccess, onRestricted }) {
     const [partners, setPartners] = useState([]);
     const [selected, setSelected] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -410,6 +471,10 @@ function SwitchPartnerModal({ currentPartnerId, onClose, onSuccess }) {
             });
             onSuccess(selected);
         } catch (err) {
+            if (String(err?.message || '').includes('To switch partner companies')) {
+                onRestricted?.();
+                return;
+            }
             setError(err?.message || "Failed to switch partner.");
         } finally {
             setSwitching(false);
@@ -543,12 +608,14 @@ export default function PartnerDetailPage() {
     const params = useParams();
     const partnerId = params?.id;
     const { user } = useAuth();
+    const { allowPartnerSwitching, adminSupportNumbers } = useAdminSettings();
     const [partner, setPartner] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showSwitchModal, setShowSwitchModal] = useState(false);
     // Confirmation modal for "Switch to this partner" (direct switch to current page's partner)
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showSwitchRestriction, setShowSwitchRestriction] = useState(false);
     const [confirmSwitching, setConfirmSwitching] = useState(false);
     const [confirmError, setConfirmError] = useState(null);
 
@@ -605,6 +672,11 @@ export default function PartnerDetailPage() {
                 visible: true,
             });
         } catch (err) {
+            if (String(err?.message || '').includes('To switch partner companies')) {
+                setShowConfirmModal(false);
+                setShowSwitchRestriction(true);
+                return;
+            }
             setConfirmError(err?.message || 'Failed to switch partner. Please try again.');
         } finally {
             setConfirmSwitching(false);
@@ -759,7 +831,14 @@ export default function PartnerDetailPage() {
 
                             {/* ── Switch to THIS partner CTA ── */}
                             <button
-                                onClick={() => { setConfirmError(null); setShowConfirmModal(true); }}
+                                onClick={() => {
+                                    if (!allowPartnerSwitching) {
+                                        setShowSwitchRestriction(true);
+                                        return;
+                                    }
+                                    setConfirmError(null);
+                                    setShowConfirmModal(true);
+                                }}
                                 style={{
                                     width: '100%', padding: '12px',
                                     borderRadius: 12, border: 'none',
@@ -781,7 +860,13 @@ export default function PartnerDetailPage() {
 
                             {/* Secondary: browse all partners instead */}
                             <button
-                                onClick={() => setShowSwitchModal(true)}
+                                onClick={() => {
+                                    if (!allowPartnerSwitching) {
+                                        setShowSwitchRestriction(true);
+                                        return;
+                                    }
+                                    setShowSwitchModal(true);
+                                }}
                                 style={{
                                     marginTop: 8, width: '100%', padding: '10px',
                                     borderRadius: 12, border: `1px solid rgba(16,185,129,0.25)`,
@@ -889,10 +974,21 @@ export default function PartnerDetailPage() {
                 <SwitchPartnerModal
                     currentPartnerId={partnerId}
                     onClose={() => setShowSwitchModal(false)}
+                    onRestricted={() => {
+                        setShowSwitchModal(false);
+                        setShowSwitchRestriction(true);
+                    }}
                     onSuccess={(newPartner) => {
                         setShowSwitchModal(false);
                         setSnackbar({ message: `You have been moved to ${newPartner.partnerProfile?.businessName}. Notifications sent.`, visible: true });
                     }}
+                />
+            )}
+
+            {showSwitchRestriction && (
+                <PartnerSwitchRestrictionModal
+                    supportNumbers={adminSupportNumbers}
+                    onClose={() => setShowSwitchRestriction(false)}
                 />
             )}
 

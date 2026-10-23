@@ -2,6 +2,7 @@
 // src/api/finance/controllers/finance.ts
 //============================================
 import { factories } from '@strapi/strapi';
+import { resolveSettingsForUser } from '../../../services/settingsResolver';
 
 export default factories.createCoreController('plugin::users-permissions.user', ({ strapi }) => ({
   
@@ -43,7 +44,11 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         return ctx.badRequest('Invalid amount');
       }
 
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+      const settings = await resolveSettingsForUser(strapi, Number(userId));
+
+      if (settings?.allowOrdersWithoutPartner !== true) {
+        return ctx.forbidden('To top up your float balance, contact your partner company.');
+      }
       
       if (amount < (settings?.minimumFloatTopup || 10)) {
         return ctx.badRequest(`Minimum topup is ${settings?.minimumFloatTopup || 10}`);
@@ -131,7 +136,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         return ctx.badRequest('Driver profile not found');
       }
 
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+      const settings = await resolveSettingsForUser(strapi, Number(userId));
       
       if (amount < (settings?.minimumWithdrawalAmount || 50)) {
         return ctx.badRequest(`Minimum withdrawal is ${settings?.minimumWithdrawalAmount || 50}`);

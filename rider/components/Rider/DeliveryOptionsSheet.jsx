@@ -140,6 +140,7 @@ export function DeliveryOptionsSheet({
   pickupLocation, dropoffLocation, routeInfo,
   onClose, onConfirmDelivery, loading = false,
   bottomPadding = 80, fetchEstimates,
+  affiliateCouponCode, onAffiliateCouponCodeChange,
 }) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -216,6 +217,7 @@ export function DeliveryOptionsSheet({
       bigItemFit, vehiclePreference,
       deliveryClass: selectedClass, paymentMethod,
       totalFare: selectedClass?.totalFare ?? 0,
+      affiliateCouponCode,
     });
   };
 
@@ -451,6 +453,15 @@ export function DeliveryOptionsSheet({
         {/* Payment */}
         {selectedClass && (
           <Box sx={{ mb: 2 }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Affiliate coupon (optional)"
+              placeholder="Enter an affiliate coupon"
+              value={affiliateCouponCode || ''}
+              onChange={(event) => onAffiliateCouponCodeChange(event.target.value.toUpperCase())}
+              sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            />
             <SectionLabel>Payment</SectionLabel>
             <Box sx={{ display: 'flex', gap: 1 }}>
               {[{ value: 'cash', label: 'Cash', Icon: CashIcon }, { value: 'okrapay', label: 'OkraPay', Icon: CardIcon }].map(({ value, label, Icon }) => (

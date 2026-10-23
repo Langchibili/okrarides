@@ -36,6 +36,24 @@ export default {
       handler: 'affiliate.getConversionRate',
       config:  { policies: [], middlewares: [] },
     },
+    {
+      method: 'GET',
+      path: '/affiliate/promotions',
+      handler: 'affiliate.getPromotions',
+      config: { policies: [], middlewares: [] },
+    },
+    {
+      method: 'GET',
+      path: '/affiliate/coupons',
+      handler: 'affiliate.getCoupons',
+      config: { policies: [], middlewares: [] },
+    },
+    {
+      method: 'POST',
+      path: '/affiliate/coupons',
+      handler: 'affiliate.createCoupon',
+      config: { policies: [], middlewares: [] },
+    },
 
     // ─── Actions ──────────────────────────────────────────────────────────
     {

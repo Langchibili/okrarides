@@ -4,6 +4,7 @@ import { factories } from '@strapi/strapi';
 import { getPaymentGateway } from '../../../paymentGatewayAdapters/';
 import socketService from '../../../services/socketService';
 import { SendEmailNotification } from '../../../services/messages';
+import { resolveSettingsForUser } from '../../../services/settingsResolver';
 
 // ─── Reference helpers ────────────────────────────────────────────────────────
 
@@ -31,8 +32,8 @@ function parseReference(reference: string): ParsedReference | null {
 
 // ─── Admin settings ───────────────────────────────────────────────────────────
 
-async function getAdminSettings(): Promise<Record<string, any>> {
-  return (await strapi.db.query('api::admn-setting.admn-setting').findOne({})) || {};
+async function getAdminSettings(userId?: number): Promise<Record<string, any>> {
+  return resolveSettingsForUser(strapi, userId);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -340,7 +341,7 @@ async function handleFloatTopupSuccess(
 
       // Admin email
       try {
-        const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+        const settings = await getAdminSettings(Number(partnerUserId));
         const adminEmails: string[] = Array.isArray(settings?.adminSupportEmails)
           ? settings.adminSupportEmails
           : [];
@@ -443,7 +444,7 @@ async function handleFloatTopupSuccess(
     );
 
     try {
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+      const settings = await getAdminSettings(Number(userId));
       const adminEmails: string[] = Array.isArray(settings?.adminSupportEmails)
         ? settings.adminSupportEmails
         : [];
@@ -939,7 +940,23 @@ export default factories.createCoreController('api::okrapay.okrapay', ({ strapi 
 
       const formattedPhone = phone ? normalisePhone(phone, phoneCode) : '';
 
-      const settings = await getAdminSettings();
+      const settings = await getAdminSettings(Number(userId));
+      if (purpose === 'floatadd') {
+        const topup = relatedEntityId
+          ? await strapi.db.query('api::float-topup.float-topup').findOne({
+              where: { id: Number(relatedEntityId) },
+              select: ['id', 'partner'],
+            })
+          : null;
+        const isPartnerTopup = Number(topup?.partner) === Number(userId);
+
+        if (topup?.partner && !isPartnerTopup) {
+          return ctx.forbidden("You cannot pay for another partner company's float top-up.");
+        }
+        if (settings?.allowOrdersWithoutPartner !== true && !isPartnerTopup) {
+          return ctx.forbidden('To top up your float balance, contact your partner company.');
+        }
+      }
       const gatewayName = String(settings.externalPaymentGateway || 'lencopay');
       const gateway = getPaymentGateway(gatewayName);
 
@@ -1061,7 +1078,7 @@ export default factories.createCoreController('api::okrapay.okrapay', ({ strapi 
 
       if (['pending', 'processing'].includes(record.paymentStatus)) {
         try {
-          const settings = await getAdminSettings();
+          const settings = await getAdminSettings(Number(userId));
           const gatewayName = String(settings.externalPaymentGateway || 'lencopay');
           const gateway = getPaymentGateway(gatewayName) as any;
 
@@ -1156,7 +1173,14 @@ export default factories.createCoreController('api::okrapay.okrapay', ({ strapi 
     ctx.body = { received: true };
 
     try {
-      const settings = await getAdminSettings();
+      const incomingReference = String(ctx.request.body?.data?.reference ?? ctx.request.body?.reference ?? '');
+      const paymentRecord = incomingReference
+        ? await strapi.db.query('api::okrapay.okrapay').findOne({
+            where: { reference: incomingReference },
+            select: ['id', 'user'],
+          })
+        : null;
+      const settings = await getAdminSettings(Number(paymentRecord?.user?.id ?? paymentRecord?.user));
       const gatewayName = String(settings.externalPaymentGateway || 'lencopay');
       const gateway = getPaymentGateway(gatewayName);
 
@@ -1246,7 +1270,14 @@ export default factories.createCoreController('api::okrapay.okrapay', ({ strapi 
     ctx.body = { received: true };
 
     try {
-      const settings = await getAdminSettings();
+      const incomingReference = String(ctx.request.body?.data?.reference ?? ctx.request.body?.reference ?? '');
+      const paymentRecord = incomingReference
+        ? await strapi.db.query('api::okrapay.okrapay').findOne({
+            where: { reference: incomingReference },
+            select: ['id', 'user'],
+          })
+        : null;
+      const settings = await getAdminSettings(Number(paymentRecord?.user?.id ?? paymentRecord?.user));
       const gatewayName = String(settings.externalPaymentGateway || 'lencopay');
       const gateway = getPaymentGateway(gatewayName);
 
@@ -1349,7 +1380,7 @@ export default factories.createCoreController('api::okrapay.okrapay', ({ strapi 
 
       const numAmount = parseFloat(amount);
 
-      const settings = await getAdminSettings();
+      const settings = await getAdminSettings(Number(userId));
       const withdrawableMode = (settings.withdrawableBalance || 'earnings') as 'float' | 'earnings';
       const minimumWithdraw = parseFloat(settings.minimumWithdrawAmount ?? 50);
       const gatewayName = String(settings.externalPaymentGateway || 'lencopay');

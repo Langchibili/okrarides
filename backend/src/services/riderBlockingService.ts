@@ -12,6 +12,8 @@ export interface RiderBlockingService {
   isDriverBlocked(riderId: number | string, driverId: number | string): Promise<boolean>;
 }
 
+import { resolveSettingsForUser } from './settingsResolver';
+
 export default {
   /**
    * Clean expired temporary blocks when rider opens app
@@ -27,7 +29,7 @@ export default {
         return { success: false, error: 'Rider profile not found' };
       }
 
-      const settings: any = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+      const settings: any = await resolveSettingsForUser(strapi, Number(riderId));
       const cooldownMinutes = settings?.driverCancellationCooldownMinutes || 15;
       
       const tempBlockedDrivers = user.riderProfile.tempBlockedDrivers || {};
@@ -211,7 +213,7 @@ export default {
       // Check temp blocks
       const tempBlocks = user.riderProfile.tempBlockedDrivers || {};
       if (tempBlocks[driverId as string]) {
-        const settings: any = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+        const settings: any = await resolveSettingsForUser(strapi, Number(riderId));
         const cooldownMinutes = settings?.driverCancellationCooldownMinutes || 15;
         
         const blockTime = new Date(tempBlocks[driverId as string]);

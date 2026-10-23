@@ -26,7 +26,10 @@ function PartnerLayoutInner({ children }) {
   const { dashboard, refreshDashboard } = usePartner();
   const [fleetDriverIds, setFleetDriverIds] = useState([]);
   const [userisNotProperlySetUp, setIsNotProperlySetUp] = useState(false)
-  const { settings } = useAdminSettings();
+  const { settings } = useAdminSettings({
+    countryId: Number(user?.country?.id ?? user?.country) || null,
+    userId: user?.id,
+  });
   const phones = settings?.adminSupportNumbers ?? [];
   const emails = settings?.adminSupportEmails ?? [];
   const [copiedEmail, setCopiedEmail] = useState(null);

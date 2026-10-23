@@ -8,6 +8,9 @@ const withPWA = require('next-pwa')({
 module.exports = withPWA({
   reactStrictMode: true,
   swcMinify: true,
+  env: {
+    NEXT_UPLOAD_PUBLIC_API_URL: process.env.NEXT_UPLOAD_PUBLIC_API_URL,
+  },
 
   // Disable font optimization to avoid timeout
   optimizeFonts: false,

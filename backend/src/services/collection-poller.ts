@@ -15,6 +15,7 @@
 import { getPaymentGateway } from '../paymentGatewayAdapters/';
 import { SendEmailNotification } from './messages';
 import socketService from './socketService';
+import { resolveSettingsForUser } from './settingsResolver';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,8 +37,8 @@ interface OkrapayRecord {
 
 // ─── Admin settings ───────────────────────────────────────────────────────────
 
-async function getAdminSettings(): Promise<Record<string, any>> {
-  return (await strapi.db.query('api::admn-setting.admn-setting').findOne({})) || {};
+async function getAdminSettings(userId?: number): Promise<Record<string, any>> {
+  return resolveSettingsForUser(strapi, userId);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -728,15 +729,6 @@ async function dispatchSuccess(
  */
 export async function pollPendingCollections(): Promise<void> {
   try {
-    const settings = await getAdminSettings();
-    const gatewayName = String(settings.externalPaymentGateway || 'lencopay');
-    const gateway = getPaymentGateway(gatewayName) as any;
-
-    if (typeof gateway.getCollectionStatus !== 'function') {
-      strapi.log.warn('[Poller] Gateway does not support getCollectionStatus — skipping poll');
-      return;
-    }
-
     const pendingRecords: OkrapayRecord[] = await strapi.db
       .query('api::okrapay.okrapay')
       .findMany({
@@ -758,15 +750,22 @@ export async function pollPendingCollections(): Promise<void> {
     strapi.log.debug(`[Poller] Checking ${pendingRecords.length} pending collection(s)`);
 
     await Promise.allSettled(
-      pendingRecords.map(record => pollSingleRecord(record, gateway)),
+      pendingRecords.map(record => pollSingleRecord(record)),
     );
   } catch (err) {
     strapi.log.error('[Poller:pollPendingCollections]', err);
   }
 }
 
-async function pollSingleRecord(record: OkrapayRecord, gateway: any): Promise<void> {
+async function pollSingleRecord(record: OkrapayRecord): Promise<void> {
   try {
+    const settings = await getAdminSettings(resolveUserId(record));
+    const gatewayName = String(settings.externalPaymentGateway || 'lencopay');
+    const gateway = getPaymentGateway(gatewayName) as any;
+    if (typeof gateway.getCollectionStatus !== 'function') {
+      strapi.log.warn(`[Poller] Gateway ${gatewayName} does not support status polling for ${record.reference}`);
+      return;
+    }
     const { status, data: lencoData } = await gateway.getCollectionStatus(record.reference);
 
     if (['pending', 'pay-offline', '3ds-auth-required'].includes(status)) return;

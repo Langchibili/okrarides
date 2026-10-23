@@ -52,9 +52,16 @@
  *   POST /affiliate/request-withdrawal → requestWithdrawal (new, auth required)
  */
 
-import { processAffiliatePoints, getConversionRateForUser, buildIpSignature } from '../../../services/affiliateService';
+import { factories } from '@strapi/strapi';
+import { getConversionRateForUser, buildIpSignature } from '../../../services/affiliateService';
 import { getPaymentGateway } from '../../../paymentGatewayAdapters/';
-import { applyCodeManually } from '../../../services/affiliatePromotionService';
+import {
+  applyCodeManually,
+  createAffiliateCoupon,
+  getMyCoupons,
+  getMyPromotions,
+} from '../../../services/affiliatePromotionService';
+import { resolveSettingsForCountry } from '../../../services/settingsResolver';
 
 function normalisePhone(phone: string, phoneCode: string): string {
   const code = String(phoneCode).replace(/\D/g, '');
@@ -68,7 +75,7 @@ function buildReference(contextId: string | number, purpose: string, phone: stri
   return `ref-id-${contextId}-purpose-${purpose}-${phone}-${Date.now()}`;
 }
 
-export default {
+export default factories.createCoreController('api::affiliate.affiliate', () => ({
 
   async getByCode(ctx) {
     const { code } = ctx.params;
@@ -113,27 +120,61 @@ export default {
     return ctx.send({ success: true, message: result.message, promotionsApplied: result.promotionsApplied });
   },
 
+  async getPromotions(ctx) {
+    const userId = ctx.state.user?.id;
+    if (!userId) return ctx.unauthorized('Authentication required');
+    try {
+      return ctx.send({ data: await getMyPromotions(userId) });
+    } catch (error) {
+      strapi.log.error('[Affiliate:getPromotions]', error);
+      return ctx.internalServerError('Failed to load available promotions');
+    }
+  },
+
+  async getCoupons(ctx) {
+    const userId = ctx.state.user?.id;
+    if (!userId) return ctx.unauthorized('Authentication required');
+    try {
+      return ctx.send({ data: await getMyCoupons(userId) });
+    } catch (error) {
+      strapi.log.error('[Affiliate:getCoupons]', error);
+      return ctx.internalServerError('Failed to load your coupons');
+    }
+  },
+
+  async createCoupon(ctx) {
+    const userId = ctx.state.user?.id;
+    if (!userId) return ctx.unauthorized('Authentication required');
+    try {
+      const { name, code, promotionId } = ctx.request.body ?? {};
+      if (!name || !Number(promotionId)) return ctx.badRequest('name and promotionId are required');
+      const coupon = await createAffiliateCoupon(userId, { name, code, promotionId: Number(promotionId) });
+      return ctx.created({ data: coupon });
+    } catch (error: any) {
+      strapi.log.error('[Affiliate:createCoupon]', error);
+      return ctx.badRequest(error?.message || 'Failed to create coupon');
+    }
+  },
+
   async trackImpression(ctx) {
     try {
-      const settings = await strapi.db
-        .query('api::admn-setting.admn-setting')
-        .findOne({});
-      if (!settings?.affiliateSystemEnabled) return ctx.send({ tracked: false });
-
       const { affiliateCode, userAgent = '' } = ctx.request.body ?? {};
       if (!affiliateCode) return ctx.badRequest('affiliateCode is required');
-
-      const ip = ctx.request.ip ?? '';
-      const hash = buildIpSignature({ ip });
 
       const affiliateUser = await strapi.db
         .query('plugin::users-permissions.user')
         .findOne({
           where: { affiliateProfile: { affiliateCode } },
           select: ['id'],
+          populate: { country: true },
         });
 
       if (!affiliateUser) return ctx.notFound('Affiliate code not found');
+      const settings = await resolveSettingsForCountry(strapi, affiliateUser.country?.id);
+      if (settings.affiliateSystemEnabled !== true) return ctx.send({ tracked: false });
+
+      const ip = ctx.request.ip ?? '';
+      const hash = buildIpSignature({ ip });
 
       const existing = await strapi.db
         .query('api::affiliate-impression.affiliate-impression')
@@ -164,14 +205,6 @@ export default {
 
   async checkImpression(ctx) {
    try {
-    const settings = await strapi.db
-      .query('api::admn-setting.admn-setting')
-      .findOne({});
-
-    if (!settings?.affiliateSystemEnabled) {
-      return ctx.send({ found: false });
-    }
-
     const ip = ctx.request.ip ?? '';
     const userAgent = ctx.request.headers['user-agent'] ?? '';
 
@@ -199,6 +232,7 @@ export default {
         populate: {
           affiliateOwner: {
             populate: {
+              country: true,
               affiliateProfile: {
                 select: ['affiliateCode'],
               },
@@ -210,6 +244,11 @@ export default {
     if (!impression?.affiliateOwner?.affiliateProfile?.affiliateCode) {
       return ctx.send({ found: false });
     }
+    const settings = await resolveSettingsForCountry(
+      strapi,
+      impression.affiliateOwner.country?.id,
+    );
+    if (settings.affiliateSystemEnabled !== true) return ctx.send({ found: false });
 
     return ctx.send({
       found: true,
@@ -226,10 +265,6 @@ export default {
     if (!userId) return ctx.unauthorized('Authentication required');
 
     try {
-      const settings = await strapi.db
-        .query('api::admn-setting.admn-setting')
-        .findOne({});
-
       const user = await strapi.db
         .query('plugin::users-permissions.user')
         .findOne({
@@ -244,20 +279,12 @@ export default {
       const ap = user?.affiliateProfile;
       if (!ap) return ctx.notFound('Affiliate profile not found');
 
+      const settings = await resolveSettingsForCountry(strapi, user.country?.id);
       const conversionRate = await getConversionRateForUser(userId);
 
       const totalReferred = await strapi.db
         .query('plugin::users-permissions.user')
         .count({ where: { referredBy: userId } });
-
-      const recentTransactions = await strapi.db
-        .query('api::affiliate-transaction.affiliate-transaction')
-        .findMany({
-          where: { affiliate: userId },
-          orderBy: { createdAt: 'desc' },
-          limit: 5,
-          populate: { referredUser: { select: ['id', 'firstName', 'lastName'] } },
-        });
 
       return ctx.send({
         data: {
@@ -270,7 +297,7 @@ export default {
             totalEarnings:       ap.totalEarnings       ?? 0,
             pendingEarnings:     ap.pendingEarnings      ?? 0,
             withdrawableBalance: ap.withdrawableBalance  ?? 0,
-            totalReferrals:      ap.totalReferrals       ?? totalReferred,
+            totalReferrals:      totalReferred,
             activeReferrals:     ap.activeReferrals      ?? 0,
             blocked:             ap.blocked              ?? false,
           },
@@ -368,18 +395,6 @@ export default {
       if (!amount) return ctx.badRequest('amount is required');
       const numAmount = parseFloat(amount);
 
-      const settings = await strapi.db
-        .query('api::admn-setting.admn-setting')
-        .findOne({});
-      if (!settings?.affiliateSystemEnabled) {
-        return ctx.forbidden('Affiliate system is not enabled');
-      }
-
-      const minWithdraw = parseFloat(settings.minimumWithdrawAmount ?? 10);
-      if (numAmount < minWithdraw) {
-        return ctx.badRequest(`Minimum withdrawal is ${minWithdraw}`);
-      }
-
       const user = await strapi.db
         .query('plugin::users-permissions.user')
         .findOne({
@@ -389,6 +404,16 @@ export default {
             country: { populate: { currency: true } },
           },
         });
+      if (!user) return ctx.notFound('User not found');
+      const settings = await resolveSettingsForCountry(strapi, user.country?.id);
+      if (!settings?.affiliateSystemEnabled) {
+        return ctx.forbidden('Affiliate system is not enabled');
+      }
+
+      const minWithdraw = parseFloat(settings.minimumWithdrawAmount ?? 10);
+      if (numAmount < minWithdraw) {
+        return ctx.badRequest(`Minimum withdrawal is ${minWithdraw}`);
+      }
 
       const ap = user?.affiliateProfile;
       if (!ap) return ctx.notFound('Affiliate profile not found');
@@ -423,7 +448,7 @@ export default {
       });
 
       const phoneCode      = String(user.country?.phoneCode ?? '260').replace(/\D/g, '');
-      const currencyCode   = user.country?.currency?.code ?? 'ZMW';
+      const currencyCode   = convRate.currencyCode;
       const countryCode    = (user.country?.code ?? 'zm').toLowerCase();
       const formattedPhone = phone ? normalisePhone(phone, phoneCode) : '';
 
@@ -546,4 +571,4 @@ export default {
       return ctx.internalServerError(err.message ?? 'Failed to initiate withdrawal');
     }
   },
-}
+}));

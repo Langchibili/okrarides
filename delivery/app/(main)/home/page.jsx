@@ -231,7 +231,7 @@ function PartnerBanner({ user, isDark }) {
                 fontSize: 13, fontWeight: 700, color: isDark ? '#E2E8F0' : '#1E293B',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3, mt: 0.25
               }}>
-                {partnerProfile.businessName || 'Partner'}
+                {partnerProfile.businessName || partner.businessName || partner.username || 'Partner'}
               </Typography>
             </Box>
 
@@ -332,7 +332,13 @@ export default function DriverHomePage() {
   const { isNative, getCurrentLocation, reconnectDeviceSocket } = useReactNative();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [landingPageUrl, setLandingPageUrl] = useState(null);
-
+  
+  useEffect(() => {
+    if(!isOnline){ // this is to make sure that as long as the driver hits the front page, the online status is toggled on, even if it was false but showed that it's online
+      toggleOnline(true)
+    }
+  }, [isOnline])
+  
   // Redirect logic for active deliveries
   useEffect(() => {
     if (currentDelivery) {

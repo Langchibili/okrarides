@@ -7,7 +7,7 @@ import {
   FormControl, InputLabel, Alert, CircularProgress, Tabs, Tab,
 } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getFleetRides, getPartnerFleetItems } from '@/lib/api/partner';
+import { getPartnerFleetItems } from '@/lib/api/partner';
 import { formatDateTime, formatCurrency } from '@/lib/utils/format';
 import { RIDE_STATUS_COLORS, RIDE_STATUS_LABELS } from '@/constants';
 import { usePartner } from '@/lib/hooks/usePartner';

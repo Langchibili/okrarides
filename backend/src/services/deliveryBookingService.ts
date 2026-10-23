@@ -43,6 +43,8 @@ function isSubscriptionCurrentlyActive(driverProfile: any): boolean {
   return true;
 }
 
+import { resolveSettingsForCountry, resolveSettingsForUser } from './settingsResolver';
+
 export default {
   /**
    * Find eligible delivery drivers near the pickup location.
@@ -62,7 +64,7 @@ export default {
         vehicleTypePreference,
       } = deliveryData;
 
-      const settings  = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+      const settings  = await resolveSettingsForUser(strapi, Number(senderId));
       const maxRadius  = settings?.rideBookingRadius || 10;
       const maxDrivers = settings?.maxSimultaneousDriverRequests || 5;
 
@@ -130,9 +132,16 @@ export default {
           driverProfile: { populate: { currentSubscription: true } },
           country: { populate: true } ,
           profileActivityStatus: true,
+          partner: { populate: { partnerProfile: true } },
         },
         limit: 1000,
       });
+
+      const driverCountryIds = [...new Set(drivers.map((driver) => driver.country?.id ?? null))];
+      const driverSettingsByCountry = new Map<number | null, any>();
+      await Promise.all(driverCountryIds.map(async (countryId) => {
+        driverSettingsByCountry.set(countryId, await resolveSettingsForCountry(strapi, countryId));
+      }));
 
       // Request fresh locations
       if (drivers.length > 0) {
@@ -148,6 +157,14 @@ export default {
 
       const eligibleDrivers = drivers
         .filter((driver) => {
+          const driverSettings = driverSettingsByCountry.get(driver.country?.id ?? null);
+          if (
+            driverSettings?.allowOrdersWithoutPartner !== true &&
+            driver.partner?.partnerProfile?.verificationStatus !== 'approved'
+          ) {
+            return false;
+          }
+
           if (driver.profileActivityStatus?.delivery !== true) return false;
           if (!driver.currentLocation?.latitude || !driver.currentLocation?.longitude) return false;
 
@@ -215,12 +232,15 @@ export default {
     try {
       const delivery: any = await strapi.db.query('api::delivery.delivery').findOne({
         where: { id: deliveryId },
-        populate: ['sender', 'package'],
+        populate: {
+          sender: { populate: { country: true } },
+          package: true,
+        },
       });
 
       if (!delivery) return { success: false, error: 'Delivery not found' };
 
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+      const settings = await resolveSettingsForUser(strapi, Number(delivery.sender?.id ?? delivery.sender));
 
       const requestedDrivers: any[] = [];
       const requestedDriverAccounts: any[] = [];
@@ -307,7 +327,11 @@ export default {
    * Timeout: if no driver accepts within the window, mark as no_drivers_available.
    */
   async scheduleDeliveryRequestTimeout(deliveryId: string | number) {
-    const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+    const delivery = await strapi.db.query('api::delivery.delivery').findOne({
+      where: { id: deliveryId },
+      populate: { sender: true },
+    });
+    const settings = await resolveSettingsForUser(strapi, Number(delivery?.sender?.id ?? delivery?.sender));
     const timeoutSeconds = settings?.deliveryRequestTimeoutSeconds || 60;
 
     setTimeout(async () => {
@@ -337,8 +361,10 @@ export default {
       const driver: any = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: driverId },
         populate: {
+          country: true,
           deliveryProfile: true,
           driverProfile: { populate: { currentSubscription: true } },
+          partner: { populate: { partnerProfile: true } },
         },
       });
 
@@ -346,7 +372,17 @@ export default {
       if (!driver.deliveryProfile.isOnline)   return { canAccept: false, reason: 'Delivery driver is offline' };
       if (!driver.deliveryProfile.isAvailable) return { canAccept: false, reason: 'Delivery driver is not available' };
 
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+      const settings = await resolveSettingsForUser(strapi, Number(driverId));
+      if (
+        settings?.allowOrdersWithoutPartner !== true &&
+        driver.partner?.partnerProfile?.verificationStatus !== 'approved'
+      ) {
+        return {
+          canAccept: false,
+          reason: 'You must join an approved partner company to receive orders.',
+          action: 'join_partner',
+        };
+      }
       const paymentSystemType = settings?.paymentSystemType || 'float_based';
 
       if (paymentSystemType !== 'float_based') {

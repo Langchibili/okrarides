@@ -15,7 +15,7 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BottomSheetDragPill } from '@/components/ui/SwipeableBottomSheet';
-import { savedCurrencySymbol } from '@/Functions';
+import { getImageUrl, savedCurrencySymbol } from '@/Functions';
 
 const HEADER_GRADIENT_SX = {
   background: 'linear-gradient(-60deg, #FFB300 0%, #FF8A00 25%, #FFC107 50%, #FF6D00 75%, #FFD54F 100%)',
@@ -43,6 +43,7 @@ export function RideOptionsSheet({
   pickupLocation, dropoffLocation, routeInfo,
   fareEstimates, loadingEstimates, selectedRideClass,
   onSelectRideClass, promoCode, onPromoCodeChange,
+  affiliateCouponCode, onAffiliateCouponCodeChange,
   promoDiscount, onValidatePromo, validatingPromo,
   onClose, onConfirmRide, loading,
   bottomPadding = 80,
@@ -77,7 +78,10 @@ export function RideOptionsSheet({
     setSpecialRequests((p) => p.includes(req) ? p.filter((r) => r !== req) : [...p, req]);
   const handleConfirm = () => {
     if (!hasLocations || !selectedRideClass) return;
-    onConfirmRide({ paymentMethod, passengerCount, specialRequests, notes, totalFare: calculateTotalFare() });
+    onConfirmRide({
+      paymentMethod, passengerCount, specialRequests, notes,
+      totalFare: calculateTotalFare(), affiliateCouponCode,
+    });
   };
 
   return (
@@ -161,7 +165,14 @@ export function RideOptionsSheet({
           <Box sx={{ mb: 2 }}>
             {fareEstimates.estimates.map((estimate, index) => {
               const isSelected = selectedRideClass?.rideClassId === estimate.rideClassId || selectedRideClass?.id === estimate.rideClassId;
-              const icon = ICON_TYPE_MAP[estimate.icon_type] || RIDE_CLASS_ICONS[estimate.rideClassName?.toLowerCase().replace(/ /g, '-')] || '🚗';
+              const iconType = String(estimate.icon_type || '').toLowerCase();
+              const rideClassKey = estimate.rideClassName?.toLowerCase().replace(/ /g, '-');
+              const icon = ICON_TYPE_MAP[iconType] || RIDE_CLASS_ICONS[rideClassKey] || '🚗';
+              const rideClassIconUrl = getImageUrl(
+                estimate.icon,
+                null,
+                process.env.NEXT_UPLOAD_PUBLIC_API_URL || '',
+              );
               return (
                 <motion.div key={estimate.rideClassId || index} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }}>
                   <Paper
@@ -179,7 +190,11 @@ export function RideOptionsSheet({
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%', minWidth: 0 }}>
-                      <Box sx={{ fontSize: '2rem', lineHeight: 1, flexShrink: 0 }}>{icon}</Box>
+                      <Box sx={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {rideClassIconUrl
+                          ? <Box component="img" src={rideClassIconUrl} alt={estimate.icon.alternativeText || estimate.rideClassName} sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+                          : <Box sx={{ fontSize: '2rem', lineHeight: 1 }}>{icon}</Box>}
+                      </Box>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.3, flexWrap: 'wrap' }}>
                           <Typography variant="subtitle2" fontWeight={700} noWrap>{estimate.rideClassName}</Typography>
@@ -251,6 +266,18 @@ export function RideOptionsSheet({
               </Paper>
             )}
           </Box>
+        )}
+
+        {selectedRideClass && (
+          <TextField
+            fullWidth
+            size="small"
+            label="Affiliate coupon (optional)"
+            placeholder="Enter an affiliate coupon"
+            value={affiliateCouponCode || ''}
+            onChange={(event) => onAffiliateCouponCodeChange(event.target.value.toUpperCase())}
+            sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+          />
         )}
 
         {/* Payment Method */}

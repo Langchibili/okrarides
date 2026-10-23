@@ -17,6 +17,7 @@ import { factories } from '@strapi/strapi';
 import { SendSmsNotification, SendEmailNotification } from '../../../services/messages';
 import socketService from '../../../services/socketService';
 import { handleUserCreation } from '../../../pluginExtensionsFiles/userLifecycleMethods';
+import { resolveSettingsForCountry } from '../../../services/settingsResolver';
 
 // ─── Auth guard ───────────────────────────────────────────────────────────────
 // Returns the full partner User or null. Sets ctx error on failure.
@@ -402,7 +403,7 @@ export default factories.createCoreController(
                     return ctx.internalServerError('Driver profile initialization failed');
                 }
 
-                const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+                const settings = await resolveSettingsForCountry(strapi, partnerUser.country?.id);
 
                 // ── Link driver to this partner ───────────────────────────────────
                 await strapi.db.query('plugin::users-permissions.user').update({
@@ -1086,7 +1087,7 @@ export default factories.createCoreController(
                     return ctx.badRequest('amount must be a positive number');
                 }
 
-                const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+                const settings = await resolveSettingsForCountry(strapi, partnerUser.country?.id);
                 const minTopup = parseFloat(settings?.minimumFloatTopup) || 10;
                 const maxTopup = parseFloat(settings?.maximumFloatTopup) || 10000;
 
@@ -1788,10 +1789,32 @@ export default factories.createCoreController(
                     pageSize = 20,
                     type,      // 'rides' | 'deliveries' | 'all'
                     status,
+                    driverId,
                 } = ctx.query as any;
 
-                const rideWhere: any = { partner: partnerUser.id };
-                const deliveryWhere: any = { partner: partnerUser.id };
+                const fleetDriverIds = await getPartnerDriverIds(partnerUser.id);
+                let targetDriverIds = fleetDriverIds;
+                if (driverId !== undefined && driverId !== '') {
+                    const requestedDriverId = Number(driverId);
+                    if (!Number.isSafeInteger(requestedDriverId) || requestedDriverId <= 0) {
+                        return ctx.badRequest('driverId must be a valid driver ID');
+                    }
+                    if (!fleetDriverIds.includes(requestedDriverId)) {
+                        return ctx.forbidden('Driver is not in your fleet');
+                    }
+                    targetDriverIds = [requestedDriverId];
+                }
+
+                const rideWhere: any = targetDriverIds.length && driverId
+                    ? { driver: { $in: targetDriverIds } }
+                    : targetDriverIds.length
+                        ? { $or: [{ partner: partnerUser.id }, { driver: { $in: targetDriverIds } }] }
+                        : { partner: partnerUser.id };
+                const deliveryWhere: any = targetDriverIds.length && driverId
+                    ? { deliverer: { $in: targetDriverIds } }
+                    : targetDriverIds.length
+                        ? { $or: [{ partner: partnerUser.id }, { deliverer: { $in: targetDriverIds } }] }
+                        : { partner: partnerUser.id };
                 if (status && status !== 'all' && status !== '') {
                     rideWhere.rideStatus = status;
                     deliveryWhere.rideStatus = status;
@@ -1874,7 +1897,7 @@ export default factories.createCoreController(
                 const driver = await getOwnedDriver(id, partnerUser.id);
                 if (!driver) return ctx.forbidden('Driver is not in your fleet');
 
-                const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+                const settings = await resolveSettingsForCountry(strapi, partnerUser.country?.id);
                 const adminEmails: string[] = Array.isArray(settings?.adminSupportEmails)
                     ? settings.adminSupportEmails
                     : [];
@@ -1932,6 +1955,10 @@ export default factories.createCoreController(
                     return ctx.badRequest('driverId (url param) and newPartnerId (body) are required');
                 }
 
+                if (!ctx.state.user?.id || Number(ctx.state.user.id) !== driverId) {
+                    return ctx.forbidden('You can only change your own partner company');
+                }
+
                 if (currentPartner && (newPartnerId === currentPartner.id)) {
                     return ctx.badRequest('Driver is already assigned to this partner');
                 }
@@ -1941,6 +1968,13 @@ export default factories.createCoreController(
                     where: { id: driverId },
                     populate: { driverProfile: true, country: true },
                 })
+
+                const settings = await resolveSettingsForCountry(strapi, driver?.country?.id);
+                if (settings?.allowPartnerSwitching !== true) {
+                    return ctx.forbidden(
+                        'To switch partner companies, contact us, we will get back to you within 48 hours.'
+                    );
+                }
 
                 // 3. Fetch new partner & ensure they are approved
                 const newPartnerUser = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -2055,7 +2089,7 @@ They will appear in your fleet dashboard shortly.
                     return ctx.badRequest('message must be at least 20 characters');
                 }
 
-                const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+                const settings = await resolveSettingsForCountry(strapi, partnerUser.country?.id);
                 const adminEmails: string[] = Array.isArray(settings?.adminSupportEmails)
                     ? settings.adminSupportEmails
                     : [];
@@ -2089,4 +2123,3 @@ They will appear in your fleet dashboard shortly.
         },
     })
 );
-

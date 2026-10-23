@@ -34,6 +34,10 @@
         "referral_signup",
         "referral_first_ride_as_rider",
         "referral_first_ride_as_driver",
+        "referral_ride_booking",
+        "referral_ride_completion",
+        "referral_delivery_booking",
+        "referral_delivery_completion",
         "points_redemption",
         "bonus",
         "adjustment"
@@ -61,6 +65,16 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::ride.ride"
+    },
+    "delivery": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::delivery.delivery"
+    },
+    "rule": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::affiliate-points-allocation-rule.affiliate-points-allocation-rule"
     },
     "description": {
       "type": "text"

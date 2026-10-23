@@ -2,12 +2,20 @@
 import { apiClient } from './client'
 
 /**
- * Fetch admin settings
- * Admin settings is a single-type, so no ID needed
+ * Fetch settings resolved for the selected country, with admin fallbacks.
  */
-export const getAdminSettings = async () => {
+export const getAdminSettings = async ({ countryId } = {}) => {
   try {
-    const response = await apiClient.get('/admn-setting', {
+    const params = new URLSearchParams()
+    if (countryId) {
+      params.set('countryId', countryId)
+    } else if (typeof window !== 'undefined') {
+      const countryName = localStorage.getItem('savedCountryName')
+      if (countryName) params.set('countryName', countryName)
+    }
+    const queryString = params.toString()
+    const query = queryString ? `?${queryString}` : ''
+    const response = await apiClient.get(`/admn-setting/resolved${query}`, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -22,6 +30,11 @@ export const getAdminSettings = async () => {
       error.response?.error?.message || error.message || 'Failed to fetch admin settings'
     )
   }
+}
+
+export const getAdminSettingsCacheKey = (countryId, userId) => {
+  const countryName = typeof window !== 'undefined' ? localStorage.getItem('savedCountryName') : null
+  return `adminSettings:${countryId || (userId ? `user-${userId}` : countryName) || 'default'}`
 }
 
 /**

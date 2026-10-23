@@ -50,8 +50,8 @@ export default function ContextProviders({ children }) {
   return (
     <ReactNativeWrapper>
       <ThemeProvider>
-        <AdminSettingsProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <AdminSettingsProvider>
             <ScreenshotProvider>
               <SocketProvider>
                 <MapsProvider>
@@ -64,8 +64,8 @@ export default function ContextProviders({ children }) {
                 <FloatingCaptureButton />
               </SocketProvider>
             </ScreenshotProvider>
-          </AuthProvider>
-        </AdminSettingsProvider>
+          </AdminSettingsProvider>
+        </AuthProvider>
       </ThemeProvider>
     </ReactNativeWrapper>
   )

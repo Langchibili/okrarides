@@ -75,6 +75,7 @@
 // src/api/driver-subscription/content-types/driver-subscription/lifecycles.ts
 
 import socketService from '../../../../services/socketService';
+import { resolveSettingsForUser } from '../../../../services/settingsResolver';
 
 /**
  * Sync the driver profile's denormalized subscriptionStatus field so that
@@ -149,7 +150,7 @@ const handleSubscriptionStatusChange = async (
 
       // Force driver offline if they are currently online and on subscription system
       try {
-        const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+        const settings = await resolveSettingsForUser(strapi, Number(driverId));
         if (
           settings?.paymentSystemType === 'subscription_based' ||
           settings?.paymentSystemType === 'hybrid'

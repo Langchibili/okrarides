@@ -10,6 +10,7 @@ export const useDriver = () => {
   const { user, isAuthenticated } = useAuth();
   const { isNative, sendToNative } = useReactNative();
   const {
+    settings: adminSettings,
     paymentSystemType,
     isSubscriptionSystemEnabled,
     isFloatSystemEnabled,
@@ -113,6 +114,7 @@ export const useDriver = () => {
     needsSubscription,
     needsFloat,
     paymentSystemType,
+    adminSettings,
     refreshProfile: loadDriverProfile,
   };
 };

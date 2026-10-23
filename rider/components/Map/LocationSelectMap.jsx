@@ -12,7 +12,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Box, IconButton, Button, Typography, CircularProgress, Chip,
+  Box, IconButton, Button, Typography, CircularProgress, Chip, Paper, TextField, InputAdornment,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -20,6 +20,7 @@ import {
   MyLocation as MyLocationIcon,
   LocationOn as LocationIcon,
   SwipeOutlined as SwipeIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapIframe } from './MapIframe';
@@ -55,6 +56,8 @@ export const LocationSelectMap = ({
   initialCenter = null,   // { lat, lng } — highest priority
   initialZoom = 16,
   countryCode = null,
+  initialSearchValue = '',
+  onSearchChange,
   onClose,
   onSelectLocation,       // (location) => void — location = { lat, lng, address, name, placeId }
 }) => {
@@ -69,28 +72,37 @@ export const LocationSelectMap = ({
   const [address, setAddress] = useState(null);
   const [showHint, setShowHint] = useState(true);
   const [locating, setLocating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(initialSearchValue);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const mapControlsRef = useRef(null);
   const lastCenterRef = useRef(null);
   const settleTimeoutRef = useRef(null);
   const resolveTokenRef = useRef(0);
   const pollIntervalRef = useRef(null);
+  const searchTokenRef = useRef(0);
 
   useEffect(() => { setMounted(true); }, []);
-
+  console.log('[LocationSelectMap] open:', open, 'initialCenter:', initialCenter);
   // ── Reset state each time the picker opens ────────────────────────────────
   useEffect(() => {
     if (!open) return;
     const startCenter = initialCenter || readSavedGeoLoc() || DEFAULT_CENTER;
+     console.log('[LocationSelectMap] reset effect fired, startCenter:', startCenter);
     setCenter(startCenter);
     lastCenterRef.current = startCenter;
     setAddress(null);
     setResolving(false);
     setIsMoving(false);
     setShowHint(true);
+    setSearchQuery(initialSearchValue || '');
+    setSearchResults([]);
+    setSearchError('');
     const hintTimer = setTimeout(() => setShowHint(false), 4000);
     return () => clearTimeout(hintTimer);
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, initialCenter?.lat, initialCenter?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Reverse-geocode the current center ────────────────────────────────────
   const resolveAddress = useCallback(async (loc) => {
@@ -193,6 +205,106 @@ export const LocationSelectMap = ({
     );
   }, [resolveAddress]);
 
+  const searchLocations = useCallback(async (query) => {
+    let providerResults = [];
+    if (mapsProvider?.searchPlaces) {
+      try {
+        providerResults = await mapsProvider.searchPlaces(query, countryCode) || [];
+        if (providerResults.some((result) =>
+          Number.isFinite(Number(result.lat)) && Number.isFinite(Number(result.lng))
+        )) return providerResults;
+      } catch (error) {
+        console.warn('[LocationSelectMap] provider search failed:', error);
+      }
+    }
+
+    const params = new URLSearchParams({
+      q: query,
+      format: 'json',
+      limit: '6',
+      addressdetails: '1',
+      ...(countryCode ? { countrycodes: countryCode } : {}),
+    });
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?${params}`,
+      { headers: { 'Accept-Language': 'en' } },
+    );
+    if (!response.ok) throw new Error(`Location search failed (${response.status})`);
+    const data = await response.json();
+    const nominatimResults = data.map((item) => ({
+      place_id: item.place_id?.toString(),
+      main_text: item.name || item.display_name?.split(',')[0],
+      secondary_text: item.display_name,
+      lat: Number(item.lat),
+      lng: Number(item.lon),
+      address: item.display_name,
+      name: item.name || item.display_name?.split(',')[0],
+    }));
+    return nominatimResults.length ? nominatimResults : providerResults;
+  }, [countryCode, mapsProvider]);
+
+  const centerOnSearchResult = useCallback((result) => {
+    const loc = { lat: Number(result.lat), lng: Number(result.lng) };
+    if (!Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) {
+      setSearchError('That result does not include map coordinates.');
+      return;
+    }
+    const resultAddress = result.address || result.secondary_text || result.main_text || result.name;
+    setCenter(loc);
+    lastCenterRef.current = loc;
+    setAddress({
+      ...result,
+      lat: loc.lat,
+      lng: loc.lng,
+      address: resultAddress,
+      name: result.name || result.main_text || resultAddress,
+      place_id: result.place_id || `search_${loc.lat}_${loc.lng}`,
+    });
+    mapControlsRef.current?.animateToLocation?.(loc, 16);
+    setIsMoving(false);
+    setShowHint(false);
+  }, []);
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!open || query.length < 3) {
+      setSearchResults([]);
+      setSearching(false);
+      setSearchError('');
+      return undefined;
+    }
+
+    const token = ++searchTokenRef.current;
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      setSearchError('');
+      try {
+        const results = await searchLocations(query);
+        if (token === searchTokenRef.current) {
+          setSearchResults(results);
+          setSearchError(results.length ? '' : 'No matching locations found.');
+          const firstResult = results.find((result) =>
+            Number.isFinite(Number(result.lat)) && Number.isFinite(Number(result.lng))
+          );
+          if (firstResult) centerOnSearchResult(firstResult);
+        }
+      } catch (error) {
+        if (token === searchTokenRef.current) {
+          console.warn('[LocationSelectMap] location search failed:', error);
+          setSearchResults([]);
+          setSearchError('Could not search for that location. Please try again.');
+        }
+      } finally {
+        if (token === searchTokenRef.current) setSearching(false);
+      }
+    }, 450);
+
+    return () => {
+      clearTimeout(timer);
+      searchTokenRef.current += 1;
+    };
+  }, [open, searchQuery, searchLocations, centerOnSearchResult]);
+
   const handleConfirm = useCallback(() => {
     if (!address) return;
     onSelectLocation?.({
@@ -231,6 +343,73 @@ export const LocationSelectMap = ({
             height="100%"
             width="100%"
           />
+        </Box> 
+
+        {/* ── Location search ── */}
+        <Box sx={{ position: 'absolute', top: 16, left: 16, right: 72, zIndex: 4 }}>
+          <TextField
+            fullWidth
+            size="small"
+            value={searchQuery}
+            onChange={(event) => {
+              setSearchQuery(event.target.value);
+              setAddress(null);
+              setSearchResults([]);
+              setSearchError('');
+              onSearchChange?.(event.target.value);
+            }}
+            placeholder="Search for a location"
+            inputProps={{ 'aria-label': 'Search for a location on the map' }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  {searching
+                    ? <CircularProgress size={16} />
+                    : <SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} />}
+                </InputAdornment>
+              ),
+            }}
+            sx={{ bgcolor: bg, borderRadius: 1, boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
+          />
+          {(searchResults.length > 0 || searchError) && (
+            <Paper
+              elevation={8}
+              sx={{ mt: 0.75, maxHeight: 240, overflowY: 'auto', borderRadius: 2 }}
+            >
+              {searchResults.map((result, index) => (
+                <Button
+                  key={result.place_id || `${result.lat}_${result.lng}_${index}`}
+                  fullWidth
+                  onClick={() => {
+                    centerOnSearchResult(result);
+                    setSearchResults([]);
+                  }}
+                  sx={{
+                    display: 'block',
+                    textAlign: 'left',
+                    textTransform: 'none',
+                    px: 1.5,
+                    py: 1,
+                    borderRadius: 0,
+                    borderBottom: index < searchResults.length - 1 ? '1px solid' : undefined,
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Typography variant="body2" fontWeight={600} noWrap>
+                    {result.main_text || result.name || result.address}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    {result.secondary_text || result.address}
+                  </Typography>
+                </Button>
+              ))}
+              {searchError && (
+                <Typography variant="body2" color="text.secondary" sx={{ p: 1.5 }}>
+                  {searchError}
+                </Typography>
+              )}
+            </Paper>
+          )}
         </Box>
 
         {/* ── Close button (top-right) ── */}
@@ -248,13 +427,13 @@ export const LocationSelectMap = ({
 
         {/* ── "Swipe to move map" hint ── */}
         <AnimatePresence>
-          {showHint && (
+          {showHint && !searchQuery && searchResults.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               style={{
-                position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+                position: 'absolute', top: 80, left: '50%', transform: 'translateX(-50%)',
                 zIndex: 3,
               }}
             >
@@ -372,7 +551,7 @@ export const LocationSelectMap = ({
               variant="contained"
               fullWidth
               onClick={handleConfirm}
-              disabled={!address || resolving}
+              disabled={!address || resolving || searching || isMoving}
               sx={{ fontWeight: 700 }}
             >
               Confirm location

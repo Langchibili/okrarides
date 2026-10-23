@@ -23,7 +23,6 @@ app.post('/send-sms', (req, res) => {
 
     // Initialize the SDK with the provided credentials, this authenticates our client with Africastaking
     const africasTalking = AfricasTalking(credentials);
-console.log(req.body)
     // Get the SMS service
     const sms = africasTalking.SMS;
     const smsBody = {

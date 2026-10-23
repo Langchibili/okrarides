@@ -3,6 +3,7 @@
 // Direct import — riderBlockingService is a plain exported object, not a registered
 // Strapi service. Do NOT use strapi.service('api::rider.riderBlockingService').
 import RiderBlockingService from './riderBlockingService';
+import { resolveSettingsForCountry } from './settingsResolver';
 
 export interface NearbyDriverService {
   findNearbyDrivers(
@@ -83,7 +84,12 @@ export default ({ strapi }: { strapi: any }) => ({
       const permanentBlocked = blockedResult.permanentlyBlocked || [];
       const allBlockedIds = [...new Set([...tempBlocked, ...permanentBlocked])];
 
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne();
+      const rider = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { id: riderId },
+        select: ['id'],
+        populate: { country: true },
+      });
+      const settings = await resolveSettingsForCountry(strapi, rider?.country?.id);
       const paymentSystemType = settings?.paymentSystemType || 'float_based';
       const allowNegativeFloat = settings?.allowNegativeFloat || false;
       const negativeFloatLimit = settings?.negativeFloatLimit || 0;
@@ -121,12 +127,28 @@ export default ({ strapi }: { strapi: any }) => ({
               },
             },
             profileActivityStatus: true,
+            country: true,
+            partner: { populate: { partnerProfile: true } },
           },
           limit: 1000,
         });
 
+      const driverCountryIds = [...new Set(drivers.map((driver) => driver.country?.id ?? null))];
+      const driverSettingsByCountry = new Map<number | null, any>();
+      await Promise.all(driverCountryIds.map(async (countryId) => {
+        driverSettingsByCountry.set(countryId, await resolveSettingsForCountry(strapi, countryId));
+      }));
+
       const driversWithDistance = drivers
         .filter((driver) => {
+          const driverSettings = driverSettingsByCountry.get(driver.country?.id ?? null);
+          if (
+            driverSettings?.allowOrdersWithoutPartner !== true &&
+            driver.partner?.partnerProfile?.verificationStatus !== 'approved'
+          ) {
+            return false;
+          }
+
           // Must be actively in driver mode
           if (driver.profileActivityStatus?.driver !== true) {
             return false;

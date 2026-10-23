@@ -416,6 +416,7 @@ export default function HomePage() {
   const [loadingEstimates, setLoadingEstimates] = useState(false);
   const [selectedRideClass, setSelectedRideClass] = useState(null);
   const [promoCode, setPromoCode] = useState('');
+  const [affiliateCouponCode, setAffiliateCouponCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(null);
   const [validatingPromo, setValidatingPromo] = useState(false);
   const [locationGeocoded, setLocationGeocoded] = useState(true)
@@ -485,7 +486,7 @@ export default function HomePage() {
       const res = await apiClient.post('/reverse-geocode', {
         location: { lat, lng },
       });
-      console.log('res',res)
+      // console.log('res',res)
 
       const loc = res?.data?.location ?? res?.location;
       if (loc?.latitude && loc?.longitude) {
@@ -567,20 +568,59 @@ export default function HomePage() {
     }
   },[user])
 
+//   const getUserLocationBounds = async (userId) => {
+//   try {
+//     const res = await apiClient.get(`/users/${userId}`);
+//     const cl = res?.currentLocation;
+//     console.log('location bounds',cl)
+//     // 2. Verifies coordinates exist before updating
+//     if (cl?.latitude && cl?.longitude) {
+//       // 3. Saves them into state strictly as a single string: 'lon,lat'
+//       setLocationBounds(`${cl.longitude},${cl.latitude}`);
+//     }
+//   } catch (error) {
+//     console.error("Failed to fetch user location:", error);
+//   }
+// };
   const getUserLocationBounds = async (userId) => {
-  try {
-    const res = await apiClient.get(`/users/${userId}`);
-    const cl = res?.currentLocation;
-    console.log('location bounds',cl)
-    // 2. Verifies coordinates exist before updating
-    if (cl?.latitude && cl?.longitude) {
-      // 3. Saves them into state strictly as a single string: 'lon,lat'
-      setLocationBounds(`${cl.longitude},${cl.latitude}`);
+    try {
+      const res = await apiClient.get(`/users/${userId}`);
+      const cl = res?.currentLocation;
+      console.log('location bounds', cl);
+      // 2. Verifies coordinates exist before updating
+      if (cl?.latitude && cl?.longitude) {
+        // 3. Saves them into state strictly as a single string: 'lon,lat'
+        setLocationBounds(`${cl.longitude},${cl.latitude}`);
+
+        // ── Make this the single source of truth for map centering ──────
+        // Everything downstream (LocationSearch's readSavedGeoLoc,
+        // YandexMapsProvider._readGeoLoc, the iframe's internal
+        // readSavedGeoLoc, LocationSelectMap's initialCenter fallback)
+        // reads geo_loc_data from localStorage, so overwriting it here
+        // with the backend-reported currentLocation makes every one of
+        // those consumers center on the same coordinate as this page.
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('geo_loc_data', JSON.stringify({
+              lat: cl.latitude,
+              lng: cl.longitude,
+              accuracy: cl.accuracy ?? 0,
+            }));
+            localStorage.setItem('geo_loc_status', 'success');
+            localStorage.setItem('geo_loc_timestamp', new Date().toISOString());
+          } catch (storageErr) {
+            console.warn('[HomePage] could not write geo_loc_data to localStorage:', storageErr);
+          }
+        }
+
+        // Drive the map's actual center immediately from this coordinate
+        // too, rather than waiting on the browser geolocation watch.
+        setMapCenter({ lat: cl.latitude, lng: cl.longitude });
+      }
+    } catch (error) {
+      console.error("Failed to fetch user location:", error);
     }
-  } catch (error) {
-    console.error("Failed to fetch user location:", error);
-  }
-};
+  };
   // FIX: reads stopGeoCodeRef and geoCodeCounterRef instead of stale state
   //      Also stamps _geocoded: true on the location it sets, so applyLocationFix
   //      won't overwrite it with raw coordinates.
@@ -842,6 +882,7 @@ export default function HomePage() {
         pickupLocation, dropoffLocation,
         paymentMethod: rideDetails.paymentMethod || 'cash',
         promoCode: promoCode || null,
+        affiliateCouponCode: affiliateCouponCode || null,
         estimatedFare: rideDetails.totalFare || selectedRideClass.subtotal,
         totalFare: rideDetails.totalFare || selectedRideClass.subtotal,
         passengerCount: rideDetails.passengerCount || 1,
@@ -855,6 +896,7 @@ export default function HomePage() {
         geoCodeCounterRef.current = 0;
         stopGeoCodeRef.current = false;
         setSnackbar({ open: true, message: 'Ride requested! Finding your driver…', severity: 'success' });
+        setAffiliateCouponCode('');
         setTimeout(() => router.push(`/finding-driver?rideId=${result.data.id}`), 500);
       } else {
         setSnackbar({ open: true, message: result.error || 'Failed to book ride.', severity: 'error' });
@@ -876,6 +918,7 @@ export default function HomePage() {
     if (mapControls) mapControls.animateToLocation(loc, 15);
     setTimeout(() => setFocusedInput(null), 150);
     setFareEstimates(null); setSelectedRideClass(null); setPromoDiscount(null);
+    setAffiliateCouponCode('');
   }, [mapControls, saveToRecent]);
 
   const handleDropoffSelect = useCallback((loc) => {
@@ -883,6 +926,7 @@ export default function HomePage() {
     if (mapControls) mapControls.animateToLocation(loc, 15);
     setTimeout(() => setFocusedInput(null), 150);
     setFareEstimates(null); setSelectedRideClass(null); setPromoDiscount(null);
+    setAffiliateCouponCode('');
   }, [mapControls, saveToRecent]);
 
   const handleSelectRecentLocation = useCallback((loc) => {
@@ -1166,6 +1210,7 @@ export default function HomePage() {
                                     ) : (
                                       <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                                         <LocationSearch
+                                          selectedCoords={pickupLocation?.lat != null ? { lat: pickupLocation.lat, lng: pickupLocation.lng } : null}
                                           locationBounds={locationBounds}
                                           displayKey="r1"
                                           HandleOnfocus={() => hideNav()}
@@ -1265,6 +1310,7 @@ export default function HomePage() {
                                   <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
                                     <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                                       <LocationSearch
+                                        selectedCoords={dropoffLocation?.lat != null ? { lat: dropoffLocation.lat, lng: dropoffLocation.lng } : null}
                                         locationBounds={locationBounds}
                                         displayKey="r2"
                                         HandleOnfocus={hideNav}
@@ -1430,7 +1476,7 @@ export default function HomePage() {
                   <FareEstimatesSkeleton onClose={handleCloseRideOptions} routeInfo={routeInfo} />
                 </Box>
               ) : (
-                <RideOptionsSheet pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} routeInfo={routeInfo} fareEstimates={fareEstimates} loadingEstimates={loadingEstimates} selectedRideClass={selectedRideClass} onSelectRideClass={setSelectedRideClass} promoCode={promoCode} onPromoCodeChange={setPromoCode} promoDiscount={promoDiscount} onValidatePromo={handleValidatePromoCode} validatingPromo={validatingPromo} onClose={handleCloseRideOptions} onConfirmRide={handleConfirmRide} loading={rideLoading} bottomPadding={80} />
+                <RideOptionsSheet pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} routeInfo={routeInfo} fareEstimates={fareEstimates} loadingEstimates={loadingEstimates} selectedRideClass={selectedRideClass} onSelectRideClass={setSelectedRideClass} promoCode={promoCode} onPromoCodeChange={setPromoCode} affiliateCouponCode={affiliateCouponCode} onAffiliateCouponCodeChange={setAffiliateCouponCode} promoDiscount={promoDiscount} onValidatePromo={handleValidatePromoCode} validatingPromo={validatingPromo} onClose={handleCloseRideOptions} onConfirmRide={handleConfirmRide} loading={rideLoading} bottomPadding={80} />
               )}
             </SwipeableBottomSheet>
           )}

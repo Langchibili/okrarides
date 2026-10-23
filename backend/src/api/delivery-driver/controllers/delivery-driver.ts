@@ -1204,6 +1204,7 @@ import { factories } from '@strapi/strapi';
 import socketService from '../../../services/socketService';
 import DeviceService from '../../../services/deviceServices';
 import { disconnect } from 'process';
+import { resolveSettingsForUser } from '../../../services/settingsResolver';
 
 export default factories.createCoreController('plugin::users-permissions.user', ({ strapi }) => ({
 
@@ -2123,7 +2124,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
         return ctx.badRequest('Please complete delivery vehicle setup before submitting');
       }
 
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+      const settings = await resolveSettingsForUser(strapi, Number(userId));
 
       const initialDelivererFloat = () => {
         if (user.initialFloatToppedUp) {

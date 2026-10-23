@@ -374,16 +374,15 @@ export function getImageUrl(image, format = null, baseUrl = '') {
   if (!image) return null;
 
   // If a format is requested, try to find it in the formats object first
-  if (format && image.formats?.[format]?.url) {
-    return `${baseUrl}${image.formats[format].url}`;
-  }
+  const imageUrl = format && image.formats?.[format]?.url
+    ? image.formats[format].url
+    : image.url;
+  if (!imageUrl) return null;
 
-  // Fall back to the root .url (original)
-  if (image.url) {
-    return `${baseUrl}${image.url}`;
-  }
+  if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
 
-  return null;
+  const normalizedBaseUrl = baseUrl.replace(/\/api\/?$/i, '').replace(/\/$/, '');
+  return `${normalizedBaseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
 }
 // ============= Export all =============
 export default {
@@ -409,4 +408,3 @@ export default {
   getRelativeTime,
   CRUD,
 };
-

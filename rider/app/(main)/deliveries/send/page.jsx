@@ -111,6 +111,7 @@ export default function SendPackagePage() {
   // ── Sheet visibility ───────────────────────────────────────────────────
   const [showLocationSheet, setShowLocationSheet] = useState(true);
   const [showDeliveryOptions, setShowDeliveryOptions] = useState(false);
+  const [affiliateCouponCode, setAffiliateCouponCode] = useState('');
 
   // ── Misc ───────────────────────────────────────────────────────────────
   const [locationGeocoded, setLocationGeocoded] = useState(true)
@@ -275,7 +276,20 @@ export default function SendPackagePage() {
     }
   },[user])
   
-  const getUserLocationBounds = async (userId) => {
+  // const getUserLocationBounds = async (userId) => {
+  //   try {
+  //     const res = await apiClient.get(`/users/${userId}`);
+  //     const cl = res?.currentLocation;
+  //     // 2. Verifies coordinates exist before updating
+  //     if (cl?.latitude && cl?.longitude) {
+  //       // 3. Saves them into state strictly as a single string: 'lon,lat'
+  //       setLocationBounds(`${cl.longitude},${cl.latitude}`);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch user location:", error);
+  //   }
+  // };
+    const getUserLocationBounds = async (userId) => {
     try {
       const res = await apiClient.get(`/users/${userId}`);
       const cl = res?.currentLocation;
@@ -283,6 +297,23 @@ export default function SendPackagePage() {
       if (cl?.latitude && cl?.longitude) {
         // 3. Saves them into state strictly as a single string: 'lon,lat'
         setLocationBounds(`${cl.longitude},${cl.latitude}`);
+
+        // ── Same single-source-of-truth fix as HomePage ──────────────────
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('geo_loc_data', JSON.stringify({
+              lat: cl.latitude,
+              lng: cl.longitude,
+              accuracy: cl.accuracy ?? 0,
+            }));
+            localStorage.setItem('geo_loc_status', 'success');
+            localStorage.setItem('geo_loc_timestamp', new Date().toISOString());
+          } catch (storageErr) {
+            console.warn('[SendPackagePage] could not write geo_loc_data to localStorage:', storageErr);
+          }
+        }
+
+        setMapCenter({ lat: cl.latitude, lng: cl.longitude });
       }
     } catch (error) {
       console.error("Failed to fetch user location:", error);
@@ -517,6 +548,7 @@ export default function SendPackagePage() {
   const handleCloseDeliveryOptions = () => {
     setShowDeliveryOptions(false); setShowLocationSheet(true);
     setDropoffLocation(null); setSheetExpanded(false);
+    setAffiliateCouponCode('');
     showNav();
   };
 
@@ -556,6 +588,7 @@ export default function SendPackagePage() {
         vehicleTypePreference: details.vehiclePreference,
         estimatedFare: details.totalFare,
         totalFare: details.totalFare,
+        affiliateCouponCode: details.affiliateCouponCode || null,
         estimatedDistance: parseFloat(routeInfo?.distance) || null,
         estimatedDuration: parseFloat(routeInfo?.duration) || null,
       });
@@ -565,7 +598,10 @@ export default function SendPackagePage() {
       geoCodeCounterRef.current = 0;    // replaces setGeoCodeCounter(0)
       stopGeoCodeRef.current = false; // replaces setStopGettingGeoCodedLoc(false)
 
-      if (data?.id) router.push(`/deliveries/finding-deliverer?id=${data.id}`);
+      if (data?.id) {
+        setAffiliateCouponCode('');
+        router.push(`/deliveries/finding-deliverer?id=${data.id}`);
+      }
     } catch (e) {
       setSnackbar({ open: true, message: e?.message ?? 'Failed to place delivery.', severity: 'error' });
     }
@@ -800,6 +836,7 @@ export default function SendPackagePage() {
                               ) : (
                                 <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                                   <LocationSearch
+                                    selectedCoords={pickupLocation?.lat != null ? { lat: pickupLocation.lat, lng: pickupLocation.lng } : null}
                                     locationBounds={locationBounds}
                                     displayKey="d1"
                                     HandleOnBlur={showNav}
@@ -905,6 +942,7 @@ export default function SendPackagePage() {
                             <Box sx={{ flex: 1, px: 1.5, py: 1, minWidth: 0 }}>
                               <Box sx={{ ...CLEAN_INPUT_SX, width: '98%' }}>
                                 <LocationSearch
+                                 selectedCoords={dropoffLocation?.lat != null ? { lat: dropoffLocation.lat, lng: dropoffLocation.lng } : null}
                                   locationBounds={locationBounds}
                                   displayKey="d2"
                                   HandleOnBlur={showNav}
@@ -1039,6 +1077,8 @@ export default function SendPackagePage() {
               routeInfo={routeInfo}
               onClose={handleCloseDeliveryOptions}
               onConfirmDelivery={handleConfirmDelivery}
+              affiliateCouponCode={affiliateCouponCode}
+              onAffiliateCouponCodeChange={setAffiliateCouponCode}
               loading={booking}
               bottomPadding={80}
               fetchEstimates={fetchDeliveryEstimates}

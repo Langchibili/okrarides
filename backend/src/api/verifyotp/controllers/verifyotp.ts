@@ -28,6 +28,7 @@
 import { factories } from '@strapi/strapi'
 import verifyOtp from "../../../services/verifyOtp"
 import { matchImpressionToUser } from '../../../services/affiliateService';
+import { resolveSettingsForCountry } from '../../../services/settingsResolver';
 const crypto = require('crypto');
 
 module.exports = factories.createCoreController(
@@ -37,25 +38,24 @@ module.exports = factories.createCoreController(
     async create(ctx) {
       const { data } = ctx.request.body
       const { identifier, identifierType, otp, purpose } = data
-//
-      const isValid = await verifyOtp(strapi, identifier, identifierType, otp)
-      if(!isValid) {
-        const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({}) || {};
-        if(otp !== settings?.overideOtpCode){ // the otp code for admin users to access locked accounts
-           return { message: "Invalid OTP", status: false }
-        }
-      }
-      // 1. Find user
       const user = await strapi
         .query('plugin::users-permissions.user')
         .findOne({
           where:
             identifierType === 'email'
               ? { email: identifier }
-              : { username: identifier }
+              : { username: identifier },
+          populate: { country: true },
         })
       if (!user) {
         return { message: "User not found", status: false }
+      }
+      const isValid = await verifyOtp(strapi, identifier, identifierType, otp)
+      if (!isValid) {
+        const settings = await resolveSettingsForCountry(strapi, user.country?.id)
+        if (otp !== settings.overideOtpCode) {
+          return { message: "Invalid OTP", status: false }
+        }
       }
 
       // 2. Issue JWT (same thing /auth/local does)

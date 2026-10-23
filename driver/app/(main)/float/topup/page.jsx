@@ -13,6 +13,7 @@ import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
 import OkraPayModal from '@/components/OkraPay/OkraPayModal';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { createFloatTopupIntent } from '@/lib/api/float';
+import PartnerFloatTopupDialog from '@/components/Float/PartnerFloatTopupDialog';
 /**
  * NOTE on `createFloatTopupIntent`:
  *   This is a thin wrapper that calls POST /float-topup with { amount }
@@ -31,8 +32,11 @@ import { createFloatTopupIntent } from '@/lib/api/float';
 export default function FloatTopupPage() {
   const router = useRouter();
   const {
+    loading: settingsLoading,
     isOkrapayEnabled,
     allowFloatTopUpWithOkraPay,
+    allowOrdersWithoutPartner,
+    adminSupportNumbers,
     minimumFloatTopup,
     maximumFloatTopup,
   } = useAdminSettings();
@@ -118,6 +122,12 @@ export default function FloatTopupPage() {
       </AppBar>
 
       <Box sx={{ p: 3 }}>
+        {allowOrdersWithoutPartner !== true ? (
+          <Alert severity="info">
+            To top up your float balance, contact your partner company.
+          </Alert>
+        ) : (
+          <>
         {/* ── Amount ──────────────────────────────────────────────────────── */}
         <Paper elevation={2} sx={{ p: 3, borderRadius: 3, mb: 3 }}>
           <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>Enter Amount</Typography>
@@ -181,7 +191,16 @@ export default function FloatTopupPage() {
         >
           {loading ? 'Preparing…' : `Top Up ${formatCurrency(numAmount || 0)}`}
         </Button>
+          </>
+        )}
       </Box>
+
+      <PartnerFloatTopupDialog
+        open={!allowOrdersWithoutPartner && !settingsLoading}
+        onClose={() => router.push('/float')}
+        user={user}
+        adminSupportNumbers={adminSupportNumbers}
+      />
 
       {/* ── OkraPayModal ────────────────────────────────────────────────────── */}
       <OkraPayModal

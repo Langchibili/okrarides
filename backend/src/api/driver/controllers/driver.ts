@@ -1293,6 +1293,7 @@ import { factories } from '@strapi/strapi';
 import { SendSmsNotification, SendEmailNotification } from "../../../services/messages"
 import socketService from '../../../services/socketService'
 import DeviceService from '../../../services/deviceServices'
+import { resolveSettingsForUser } from '../../../services/settingsResolver';
 
 export default factories.createCoreController('plugin::users-permissions.user', ({ strapi }) => ({
 
@@ -1530,7 +1531,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
 
       const user = await strapi.db.query('plugin::users-permissions.user').findOne({
         where: { id: userId },
-        populate: { driverProfile: true }
+        populate: { driverProfile: true, country: true }
       });
 
       if (!user?.driverProfile) {
@@ -2233,7 +2234,7 @@ export default factories.createCoreController('plugin::users-permissions.user', 
 
       const { adminNumbers } = await strapi.db.query("api::phone-numbers-list.phone-numbers-list").findOne({ where: { id: 1 } })
       const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({ where: { id: 1 } })
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
+      const settings = await resolveSettingsForUser(strapi, Number(userId));
       let adminEmailMessage = settings?.autoApproveDrivers ? 'A driver has been outo approved on OkraRides. Driver ID: ' + ctx.state.user.id : "A driver is looking for vehicle verification on okrarides, the driver's account id is: " + ctx.state.user.id
       if (driverId) {
         adminEmailMessage = 'A driver has been registered by a partner on OkraRides. Driver ID: ' + ctx.state.user.id

@@ -10,7 +10,7 @@ import { getDriverStats, StatPeriod } from '../../../services/driverStatsService
 import { processAffiliatePoints } from '../../../services/affiliateService';
 import {
   checkAndApplyRideDiscount,
-  recordPromotionUsage,
+  recordCouponUsage,
   applyCodeManually,
 } from '../../../services/affiliatePromotionService';
 import { SendEmailNotification } from '../../../services/messages';
@@ -19,6 +19,7 @@ import {
   resolveCountryPricing,
   isClassVisibleForCountry,
 } from '../../../utils/country-pricing';
+import { resolveSettingsForUser } from '../../../services/settingsResolver';
 
 const { emitRatingSubmitted } = require('../../../utils/socketUtils');
 
@@ -77,8 +78,6 @@ async function handleCompleteTrip(
 ): Promise<HandleCompleteTripResult> {
   const { rideId, driverId, actualDistance, actualDuration } = input;
 
-  const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
-
   // Re-fetch ride with latest data (paymentMethod may have been set by payCash just before this call)
   const ride = await strapi.db.query('api::ride.ride').findOne({
     where: { id: rideId },
@@ -86,6 +85,7 @@ async function handleCompleteTrip(
   });
 
   if (!ride) throw new Error(`Ride ${rideId} not found`);
+  const settings = await resolveSettingsForUser(strapi, Number(ride.rider?.id ?? ride.rider));
 
   // Populate driver with subscription info
   const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -248,17 +248,6 @@ async function handleCompleteTrip(
     triggeringUserId: Number(riderId),
     rideId: ride.id
   })
-  // ── Record affiliate promotion usage on completion ────────────────────
-  // appliedAffiliateCode and appliedPromotionId were set at ride creation and
-  // stored on the ride record (add them as optional string/integer fields on
-  // the ride schema if you want strict persistence; otherwise read from ride data).
-  const { appliedAffiliatePromoCode, appliedAffiliatePromotionId } = ride;
-  if (appliedAffiliatePromoCode && appliedAffiliatePromotionId) {
-    const riderId = ride.rider?.id ?? ride.rider;
-    recordPromotionUsage(riderId, appliedAffiliatePromoCode, appliedAffiliatePromotionId)
-      .catch((e: any) => strapi.log.warn('[ride:completeTrip] promo usage record failed:', e));
-  }
-  // ── End affiliate promotion usage recording ───────────────────────────
   const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({ where: { id: 1 } })
   const adminEmailMessage = "A ride with id #" + ride.id + " has been completed"
 
@@ -642,33 +631,27 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
 
       data.rider = riderId;
 
-      // ── Affiliate promotion discount ──────────────────────────────────────
-      // Check whether the rider has any active ride-discount promotions in their
-      // riderProfile.affiliateCodes. If so, apply the best available discount.
-      let affiliatePromoDiscount = 0;
-      let appliedAffiliateCode: string | null = null;
-      let appliedPromotionId: number | null = null;
-      let affiliatePromoDescription: string | null = null;
-
-
-      if (data.totalFare || data.estimatedFare) {
+      const affiliateCouponCode = String(data.affiliateCouponCode ?? data.couponCode ?? '').trim();
+      delete data.affiliateCouponCode;
+      delete data.couponCode;
+      if (affiliateCouponCode) {
+        if (!data.totalFare && !data.estimatedFare) {
+          return ctx.badRequest('A fare is required to apply an affiliate coupon');
+        }
         const baseFare = parseFloat(data.totalFare ?? data.estimatedFare ?? 0);
         if (baseFare > 0) {
-          const discountResult = await checkAndApplyRideDiscount(riderId, baseFare);
-          if (discountResult.discountAmount > 0) {
-            affiliatePromoDiscount = discountResult.discountAmount;
-            appliedAffiliateCode = discountResult.appliedCode;
-            appliedPromotionId = discountResult.promotionId;
-            affiliatePromoDescription = discountResult.promotionDescription;
-
-            // Reflect discount in the fare fields being saved
-            data.promoDiscount = (parseFloat(data.promoDiscount ?? 0)) + affiliatePromoDiscount;
-            data.totalFare = discountResult.discountedFare;
-            data.subtotal = discountResult.discountedFare;
-          }
+          const discountResult = await checkAndApplyRideDiscount(riderId, baseFare, affiliateCouponCode);
+          if (discountResult.error) return ctx.badRequest(discountResult.error);
+          data.promoDiscount = Number(data.promoDiscount ?? 0) + discountResult.discountAmount;
+          data.totalFare = discountResult.discountedFare;
+          data.subtotal = discountResult.discountedFare;
+          data.affiliatePromoDiscount = discountResult.discountAmount;
+          data.appliedAffiliatePromoCode = discountResult.appliedCode;
+          data.appliedAffiliatePromotionId = discountResult.promotionId;
+          data.affiliateCoupon = discountResult.couponId;
+          data.appliedAffiliateCouponCode = discountResult.couponCode;
         }
       }
-      // ── End affiliate promotion discount ──────────────────────────────────
       data.rideStatus = 'pending';
       data.requestedAt = new Date();
       data.requestedDrivers = [];
@@ -677,6 +660,18 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
         data,
         populate: true
       });
+      if (ride.appliedAffiliateCouponCode) {
+        try {
+          await recordCouponUsage(
+            riderId,
+            ride.appliedAffiliateCouponCode,
+            `ride-${ride.id}`,
+            Number(ride.id),
+          );
+        } catch (error) {
+          strapi.log.error('[ride:create] coupon usage record failed', error);
+        }
+      }
 
       socketService.emitRideRequestCreated(ride);
       strapi.log.info(`Ride ${ride.id} created by rider ${riderId}`);
@@ -934,6 +929,7 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
           },
           populate: {
             taxiType: true,
+            icon: true,
             countries: { populate: { country: true } },
           },
         });
@@ -983,6 +979,13 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
           rideClassId: rideClass.id,
           rideClassName: rideClass.name,
           rideClassDescription: rideClass.description,
+          icon_type: rideClass.icon_type || 'car',
+          icon: rideClass.icon
+            ? {
+                url: rideClass.icon.url,
+                alternativeText: rideClass.icon.alternativeText,
+              }
+            : null,
           taxiType: rideClass.taxiType?.name,
           baseFare: parseFloat(baseFare.toFixed(2)),
           distanceFare: parseFloat(distanceFare.toFixed(2)),
@@ -1317,11 +1320,11 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
       }
 
       // ── Admin settings (platform name, support contact) ──────────────────
-      const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({}) || {};
+      const settings = await resolveSettingsForUser(strapi, Number(ride.rider?.id ?? ride.rider));
       const platformName = settings.platformName || 'OkraRides';
       const supportEmail = settings.supportEmail || 'support@okrarides.com';
       const supportPhone = settings.supportPhone || '';
-      const currency = settings.defaultCurrency?.symbol || 'K';
+      const currency = settings._userCurrencySymbol || 'K';
 
       const fmt = (n: number) => `${currency}${(n || 0).toFixed(2)}`;
 
@@ -1936,7 +1939,7 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
           driver: driverId,
           vehicle: driver.driverProfile.assignedVehicle?.id || null,
           acceptedAt: new Date(),
-          partner: (driver?.partner?.id || driver.driverProfile.partnerId) || null
+          partner: driver?.partner?.id || null
         },
         populate: true
       });
@@ -1944,7 +1947,7 @@ export default factories.createCoreController('api::ride.ride', ({ strapi }) => 
       socketService.emit('ride:accepted', {
         rideId: updatedRide.id,
         driverId,
-        partnerId: (driver?.partner?.id || driver.driverProfile.partnerId) || null,
+        partnerId: driver?.partner?.id || null,
         driver: {
           id: driver.id,
           firstName: driver.firstName,
@@ -2668,12 +2671,6 @@ function estimateDuration(distanceKm: number): number {
   const minutes = Math.ceil(hours * 60);
   return minutes;
 }
-
-
-
-
-
-
 
 
 

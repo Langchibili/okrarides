@@ -14,13 +14,17 @@ import DeliveryBookingService from '../../../services/deliveryBookingService';
 import RiderBlockingService from '../../../services/riderBlockingService';
 import socketService from '../../../services/socketService';
 import { processAffiliatePoints } from '../../../services/affiliateService';
-import { checkAndApplyDeliveryDiscount } from '../../../services/affiliatePromotionService';
+import {
+  checkAndApplyDeliveryDiscount,
+  recordCouponUsage,
+} from '../../../services/affiliatePromotionService';
 import { SendEmailNotification } from '../../../services/messages';
 import {
   getUserCountryId,
   resolveCountryPricing,
   isClassVisibleForCountry,
 } from '../../../utils/country-pricing';
+import { resolveSettingsForUser } from '../../../services/settingsResolver';
 
 // ─── Complete delivery helper ─────────────────────────────────────────────
 interface HandleCompleteDeliveryInput {
@@ -33,14 +37,13 @@ interface HandleCompleteDeliveryInput {
 async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
   const { deliveryId, delivererId, actualDistance, actualDuration } = input;
 
-  const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
-
   const delivery = await strapi.db.query('api::delivery.delivery').findOne({
     where: { id: deliveryId },
     populate: ['deliverer', 'sender', 'package'],
   });
 
   if (!delivery) throw new Error(`Delivery ${deliveryId} not found`);
+  const settings = await resolveSettingsForUser(strapi, Number(delivery.sender?.id ?? delivery.sender));
 
   const driver = await strapi.db.query('plugin::users-permissions.user').findOne({
     where: { id: delivererId },
@@ -396,22 +399,27 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
 
       data.rideCode = data.rideCode || await generateUniqueRideCode({ prefix: 'DEL' });
       data.sender = senderId;
-      // ── Affiliate promotion discount (delivery) ───────────────────────────
-      let affiliateDeliveryDiscount = 0;
-      if (data.totalFare || data.estimatedFare) {
+      const affiliateCouponCode = String(data.affiliateCouponCode ?? data.couponCode ?? '').trim();
+      delete data.affiliateCouponCode;
+      delete data.couponCode;
+      if (affiliateCouponCode) {
+        if (!data.totalFare && !data.estimatedFare) {
+          return ctx.badRequest('A fare is required to apply an affiliate coupon');
+        }
         const baseFare = parseFloat(data.totalFare ?? data.estimatedFare ?? 0);
         if (baseFare > 0) {
-          const discountResult = await checkAndApplyDeliveryDiscount(senderId, baseFare);
-          if (discountResult.discountAmount > 0) {
-            data.promoDiscount = (parseFloat(data.promoDiscount ?? 0)) + discountResult.discountAmount;
-            data.totalFare = discountResult.discountedFare;
-            data.subtotal = discountResult.discountedFare;
-            data.appliedAffiliatePromoCode = discountResult.appliedCode;
-            data.appliedAffiliatePromotionId = discountResult.promotionId;
-          }
+          const discountResult = await checkAndApplyDeliveryDiscount(senderId, baseFare, affiliateCouponCode);
+          if (discountResult.error) return ctx.badRequest(discountResult.error);
+          data.promoDiscount = Number(data.promoDiscount ?? 0) + discountResult.discountAmount;
+          data.totalFare = discountResult.discountedFare;
+          data.subtotal = discountResult.discountedFare;
+          data.affiliatePromoDiscount = discountResult.discountAmount;
+          data.appliedAffiliatePromoCode = discountResult.appliedCode;
+          data.appliedAffiliatePromotionId = discountResult.promotionId;
+          data.affiliateCoupon = discountResult.couponId;
+          data.appliedAffiliateCouponCode = discountResult.couponCode;
         }
       }
-      // ── End affiliate promotion discount (delivery) ───────────────────────
       data.rideStatus = 'pending';
       data.requestedAt = new Date();
       data.isDelivery = true;
@@ -433,6 +441,19 @@ export default factories.createCoreController('api::delivery.delivery', ({ strap
         data,
         populate: true,
       });
+      if (delivery.appliedAffiliateCouponCode) {
+        try {
+          await recordCouponUsage(
+            senderId,
+            delivery.appliedAffiliateCouponCode,
+            `delivery-${delivery.id}`,
+            undefined,
+            Number(delivery.id),
+          );
+        } catch (error) {
+          strapi.log.error('[delivery:create] coupon usage record failed', error);
+        }
+      }
 
       socketService.emit('delivery:request:created', {
         deliveryId: delivery.id,

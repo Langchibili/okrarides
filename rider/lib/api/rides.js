@@ -173,6 +173,7 @@ class RideAPI {
           passengerCount: rideData.passengerCount || 1,
           paymentMethod: rideData.paymentMethod,
           promoCode: rideData.promoCode || null,
+          affiliateCouponCode: rideData.affiliateCouponCode || null,
           specialRequests: rideData.specialRequests || [],
           notes: rideData.notes || '',
           scheduledFor: rideData.scheduledFor || null,

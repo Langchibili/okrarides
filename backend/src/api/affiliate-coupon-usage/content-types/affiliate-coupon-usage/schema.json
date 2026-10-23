@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "affiliate_coupon_usages",
+  "info": {
+    "singularName": "affiliate-coupon-usage",
+    "pluralName": "affiliate-coupon-usages",
+    "displayName": "Affiliate Coupon Usage"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "reference": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "coupon": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::affiliate-coupon.affiliate-coupon",
+      "required": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "ride": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ride.ride"
+    },
+    "delivery": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::delivery.delivery"
+    }
+  }
+}

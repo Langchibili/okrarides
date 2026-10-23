@@ -21,6 +21,14 @@
         "hybrid"
       ]
     },
+    "allowOrdersWithoutPartner": {
+      "type": "boolean",
+      "default": false
+    },
+    "allowPartnerSwitching": {
+      "type": "boolean",
+      "default": false
+    },
     "freeTrialEnabled": {
       "type": "boolean",
       "default": false
@@ -129,6 +137,11 @@
     "minimumPointsForRedemption": {
       "type": "integer",
       "default": 100
+    },
+    "affiliateCouponExpiryDays": {
+      "type": "integer",
+      "default": 30,
+      "min": 1
     },
     "referralBonusEnabled": {
       "type": "boolean",

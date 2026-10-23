@@ -39,6 +39,11 @@
       "relation": "manyToOne",
       "target": "api::currency.currency"
     },
+    "settingsOverrides": {
+      "type": "json",
+      "private": true,
+      "default": []
+    },
     "isActive": {
       "type": "boolean",
       "default": true
@@ -52,6 +57,257 @@
     "phoneNumberDigitLenth": {
       "type": "integer",
       "default": 9
+    },
+    "referralPointsAllocationRules": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::affiliate-points-allocation-rule.affiliate-points-allocation-rule",
+      "inversedBy": "countries"
+    },
+    "affiliatePromotions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::affiliate-promotion.affiliate-promotion",
+      "inversedBy": "countries"
+    },
+    "affiliatePointsConversion": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::affiliate-points-conversion.affiliate-points-conversion",
+      "mappedBy": "country"
+    },
+    "paymentSystemType": {
+      "type": "enumeration",
+      "enum": [
+        "float_based",
+        "subscription_based",
+        "hybrid"
+      ]
+    },
+    "allowOrdersWithoutPartner": {
+      "type": "boolean"
+    },
+    "allowPartnerSwitching": {
+      "type": "boolean"
+    },
+    "freeTrialEnabled": {
+      "type": "boolean"
+    },
+    "defaultFreeTrialDays": {
+      "type": "integer"
+    },
+    "allowMultipleTrials": {
+      "type": "boolean"
+    },
+    "subscriptionGracePeriodDays": {
+      "type": "integer"
+    },
+    "autoRenewByDefault": {
+      "type": "boolean"
+    },
+    "maxSimultaneousDriverRequests": {
+      "type": "integer"
+    },
+    "rideRequestTimeoutSeconds": {
+      "type": "integer"
+    },
+    "deliveryRequestTimeoutSeconds": {
+      "type": "integer"
+    },
+    "driverCancellationCooldownMinutes": {
+      "type": "integer"
+    },
+    "minimumFloatTopup": {
+      "type": "decimal"
+    },
+    "maximumFloatTopup": {
+      "type": "decimal"
+    },
+    "allowNegativeFloat": {
+      "type": "boolean"
+    },
+    "negativeFloatLimit": {
+      "type": "decimal"
+    },
+    "blockCashRidesOnInsufficientFloat": {
+      "type": "boolean"
+    },
+    "commissionType": {
+      "type": "enumeration",
+      "enum": [
+        "percentage",
+        "flat_rate",
+        "tiered"
+      ]
+    },
+    "defaultCommissionPercentage": {
+      "type": "decimal"
+    },
+    "defaultFlatCommission": {
+      "type": "decimal"
+    },
+    "minimumCommission": {
+      "type": "decimal"
+    },
+    "maximumCommission": {
+      "type": "decimal"
+    },
+    "tieredCommissionEnabled": {
+      "type": "boolean"
+    },
+    "commissionTiers": {
+      "type": "json"
+    },
+    "affiliateSystemEnabled": {
+      "type": "boolean"
+    },
+    "pointsPerRiderReferral": {
+      "type": "integer"
+    },
+    "pointsPerDriverReferral": {
+      "type": "integer"
+    },
+    "pointsPerRiderFirstRide": {
+      "type": "integer"
+    },
+    "moneyPerPoint": {
+      "type": "decimal"
+    },
+    "minimumPointsForRedemption": {
+      "type": "integer"
+    },
+    "affiliateCouponExpiryDays": {
+      "type": "integer"
+    },
+    "referralBonusEnabled": {
+      "type": "boolean"
+    },
+    "driverOrderRequestRingtone": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "audios"
+      ]
+    },
+    "driverOrderRequestVibration": {
+      "type": "boolean"
+    },
+    "rideCompletionProximity": {
+      "type": "integer"
+    },
+    "allowManualCompletion": {
+      "type": "boolean"
+    },
+    "requireArrivalConfirmation": {
+      "type": "boolean"
+    },
+    "requireDriverLicense": {
+      "type": "boolean"
+    },
+    "requireNationalId": {
+      "type": "boolean"
+    },
+    "requireProofOfAddress": {
+      "type": "boolean"
+    },
+    "requireInsurance": {
+      "type": "boolean"
+    },
+    "requireRoadTax": {
+      "type": "boolean"
+    },
+    "requireFitnessDocument": {
+      "type": "boolean"
+    },
+    "targetRidesForUnlock": {
+      "type": "integer"
+    },
+    "smsEnabled": {
+      "type": "boolean"
+    },
+    "emailEnabled": {
+      "type": "boolean"
+    },
+    "pushNotificationsEnabled": {
+      "type": "boolean"
+    },
+    "whatsappEnabled": {
+      "type": "boolean"
+    },
+    "cashEnabled": {
+      "type": "boolean"
+    },
+    "okrapayEnabled": {
+      "type": "boolean"
+    },
+    "defaultCurrency": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::currency.currency"
+    },
+    "platformName": {
+      "type": "string"
+    },
+    "supportEmail": {
+      "type": "email"
+    },
+    "supportPhone": {
+      "type": "string"
+    },
+    "requireVehicleRegistration": {
+      "type": "boolean"
+    },
+    "rideBookingRadius": {
+      "type": "integer"
+    },
+    "getOnlineDriverCurrentLocationCronIntervalInSecs": {
+      "type": "integer"
+    },
+    "externalPaymentGateway": {
+      "type": "enumeration",
+      "enum": [
+        "lencopay"
+      ]
+    },
+    "allowFloatTopUpWithOkraPay": {
+      "type": "boolean"
+    },
+    "allowRidePaymentWithOkraPay": {
+      "type": "boolean"
+    },
+    "appsServerPollingIntervalInSeconds": {
+      "type": "integer"
+    },
+    "adminSupportNumbers": {
+      "type": "json"
+    },
+    "adminSupportEmails": {
+      "type": "json"
+    },
+    "withdrawableBalance": {
+      "type": "enumeration",
+      "enum": [
+        "float",
+        "earnings"
+      ]
+    },
+    "minimumWithdrawAmount": {
+      "type": "integer"
+    },
+    "autoApproveDrivers": {
+      "type": "boolean"
+    },
+    "autoApproveDeliverers": {
+      "type": "boolean"
+    },
+    "overideOtpCode": {
+      "type": "string"
+    },
+    "initialDriverFloat": {
+      "type": "decimal"
+    },
+    "initialDelivererFloat": {
+      "type": "decimal"
     }
   }
 }

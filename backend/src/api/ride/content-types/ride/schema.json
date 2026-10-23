@@ -269,6 +269,14 @@
     "appliedAffiliatePromotionId": {
       "type": "integer"
     },
+    "affiliateCoupon": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::affiliate-coupon.affiliate-coupon"
+    },
+    "appliedAffiliateCouponCode": {
+      "type": "string"
+    },
     "affiliatePromoDiscount": {
       "type": "decimal",
       "default": 0

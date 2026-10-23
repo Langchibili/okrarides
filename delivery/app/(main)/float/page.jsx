@@ -1,6 +1,7 @@
 'use client';
 // PATH: app/(main)/float/page.jsx — UI POLISH ONLY (logic identical to original)
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Box, AppBar, Toolbar, Typography, Paper, Button, IconButton, Alert, List, ListItem, ListItemText, Divider, Chip } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import {
@@ -13,6 +14,7 @@ import { formatCurrency } from '@/Functions';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
 import { FloatPageSkeleton } from '@/components/Skeletons/FloatPageSkeleton';
+import PartnerFloatTopupDialog from '@/components/Float/PartnerFloatTopupDialog';
 
 const hideScrollbar = { scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } };
 
@@ -21,7 +23,8 @@ export default function FloatPage() {
   const theme  = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { user, loading: userLoading } = useAuth();
-  const { loading: settingsLoading, paymentSystemType, isNegativeFloatAllowed, negativeFloatLimit, defaultCommissionPercentage, isWithdrawFromFloat, minimumWithdrawAmount } = useAdminSettings();
+  const { loading: settingsLoading, paymentSystemType, isNegativeFloatAllowed, negativeFloatLimit, defaultCommissionPercentage, isWithdrawFromFloat, minimumWithdrawAmount, allowOrdersWithoutPartner, adminSupportNumbers } = useAdminSettings();
+  const [topupContactOpen, setTopupContactOpen] = useState(false);
 
   const dp = user?.driverProfile ?? {};
   const floatBalance             = Number(dp.floatBalance) || 0;
@@ -49,6 +52,10 @@ export default function FloatPage() {
 
   const heroShadow = isBlocked ? alpha('#DC2626', 0.35) : isNegative ? alpha('#D97706', 0.3) : isSubscriptionBased ? alpha('#1D4ED8', 0.35) : alpha('#059669', 0.35);
   const isLoading = userLoading || settingsLoading;
+  const openTopup = () => {
+    if (allowOrdersWithoutPartner) router.push('/float/topup');
+    else setTopupContactOpen(true);
+  };
 
   const alertVars = {
     hidden: { opacity: 0, y: -8, height: 0 },
@@ -89,7 +96,7 @@ export default function FloatPage() {
               {isBlocked && isFloatBased && (
                 <motion.div key="blocked" variants={alertVars} initial="hidden" animate="show" exit="exit">
                   <Alert severity="error" icon={<WarningIcon />} sx={{ mb: 1.5, borderRadius: 2.5 }}
-                    action={<Button color="inherit" size="small" onClick={() => router.push('/float/topup')}>Top Up</Button>}>
+                    action={<Button color="inherit" size="small" onClick={openTopup}>Top Up</Button>}>
                     <Typography variant="subtitle2" fontWeight={600}>Cash Rides Blocked</Typography>
                     <Typography variant="body2">Float: {formatCurrency(floatBalance)}.{' '}{!isNegativeFloatAllowed ? 'Negative float not allowed.' : `Exceeded limit of ${formatCurrency(-negativeFloatLimit)}.`}</Typography>
                   </Alert>
@@ -142,7 +149,7 @@ export default function FloatPage() {
             <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
               {isFloatBased && (
                 <motion.div style={{ flex: 1 }} whileTap={{ scale: 0.97 }}>
-                  <Button fullWidth variant="contained" startIcon={<AddIcon />} onClick={() => router.push('/float/topup')}
+                  <Button fullWidth variant="contained" startIcon={<AddIcon />} onClick={openTopup}
                     sx={{ height: 52, borderRadius: 3, fontWeight: 700, textTransform: 'none',
                       background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
                       boxShadow: `0 4px 16px ${alpha('#10B981', 0.38)}`,
@@ -203,6 +210,12 @@ export default function FloatPage() {
           </>
         )}
       </Box>
+      <PartnerFloatTopupDialog
+        open={topupContactOpen}
+        onClose={() => setTopupContactOpen(false)}
+        user={user}
+        adminSupportNumbers={adminSupportNumbers}
+      />
     </Box>
   );
 }

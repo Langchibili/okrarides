@@ -1,0 +1,81 @@
+{
+  "kind": "collectionType",
+  "collectionName": "affiliate_points_allocation_rules",
+  "info": {
+    "singularName": "affiliate-points-allocation-rule",
+    "pluralName": "affiliate-points-allocation-rules",
+    "displayName": "Referral Points Allocation Rule",
+    "description": "Country-scoped rules for awarding referral points after rider, driver, or delivery actions"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": true
+    },
+    "content-type-builder": {
+      "visible": true
+    }
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "account-setup",
+        "ride-booking",
+        "ride-completion",
+        "delivery-booking",
+        "delivery-completion"
+      ]
+    },
+    "appliesTo": {
+      "type": "enumeration",
+      "required": true,
+      "default": "all",
+      "enum": ["rider", "driver", "all"]
+    },
+    "actionAmountsPerUser": {
+      "type": "integer",
+      "required": true,
+      "default": 1,
+      "min": 1
+    },
+    "pointsAllocatedFromAction": {
+      "type": "integer",
+      "required": true,
+      "default": 1,
+      "min": 1
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "isRuleVolumeType": {
+      "type": "boolean",
+      "default": false
+    },
+    "volume": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "countries": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::country.country",
+      "mappedBy": "referralPointsAllocationRules"
+    },
+    "affiliatePromotions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::affiliate-promotion.affiliate-promotion",
+      "mappedBy": "referralPointsAllocationRules"
+    }
+  }
+}

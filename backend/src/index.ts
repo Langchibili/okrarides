@@ -19,6 +19,7 @@ import { pollPendingCollections } from './services/collection-poller';
 import { recalculatePlatformStats } from './services/platform-stats';
 import { SendSmsNotification } from './services/messages';
 import { handleUserCreation, handleUserUpdate } from "./pluginExtensionsFiles/userLifecycleMethods"
+import { ensureDefaultAffiliateAllocationRules } from './services/affiliatePointsAllocationService';
 
 // =============================================================================
 // SHARED HELPERS
@@ -332,7 +333,12 @@ async function sendMessagesToUsersWithZeroFloat(strapi: any): Promise<void> {
 export default {
   register({ strapi }: { strapi: any }) { },
 
-  bootstrap({ strapi }: { strapi: any }) {
+  async bootstrap({ strapi }: { strapi: any }) {
+    try {
+      await ensureDefaultAffiliateAllocationRules(strapi);
+    } catch (error) {
+      strapi.log.error('[bootstrap] Failed to ensure default affiliate allocation rules', error);
+    }
     // Connect socket service
     socketService.connect();
     console.log('✅ Socket Service initialized');

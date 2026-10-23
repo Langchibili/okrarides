@@ -74,15 +74,16 @@ function normalisePhone(phone, phoneCode) {
 }
 
 function fmtCurrency(amount, symbolInput = 'K') {
-  let symbol = symbolInput
-  if (typeof window !== 'undefined') {
-    const savedCurrencySymbol = localStorage.getItem('savedCurrencySymbol')
-    if (savedCurrencySymbol) {
-      symbol = savedCurrencySymbol || 'K'
-    }
-  }
   const n = parseFloat(amount) || 0;
-  return `${symbol}${n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+  return `${symbolInput}${n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+}
+
+function promotionDescription(promotion, currencySymbol) {
+  if (!promotion) return 'Promotion details unavailable';
+  if (promotion.description) return promotion.description;
+  if (promotion.amountType === 'percentage') return `${promotion.amount}% off`;
+  if (promotion.amount != null) return `${fmtCurrency(promotion.amount, currencySymbol)} off`;
+  return 'Promotion details unavailable';
 }
 
 /**
@@ -488,7 +489,17 @@ export default function AffiliateDashboard() {
 
   const [data, setData] = useState(null);
   const [txs, setTxs] = useState([]);
+  const [promotions, setPromotions] = useState([]);
+  const [coupons, setCoupons] = useState([]);
+  const [couponName, setCouponName] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [selectedPromotion, setSelectedPromotion] = useState('');
+  const [couponError, setCouponError] = useState('');
+  const [promotionLoadError, setPromotionLoadError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
+  const [creatingCoupon, setCreatingCoupon] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [tab, setTab] = useState(0);
   const [copied, setCopied] = useState(false);
   const [withdrawAmt, setWithdrawAmt] = useState('');
@@ -506,12 +517,19 @@ export default function AffiliateDashboard() {
           apiClient.get('/affiliate/dashboard'),
           apiClient.get('/affiliate/transactions?pageSize=20'),
         ]);
-        const res = await apiClient.get('/affiliate/dashboard')
-        console.log('res', res)
         setData(dash?.data);
         setTxs(txRes?.data || []);
+        const [promotionResult, couponResult] = await Promise.allSettled([
+          apiClient.get('/affiliate/promotions'),
+          apiClient.get('/affiliate/coupons'),
+        ]);
+        if (promotionResult.status === 'fulfilled') setPromotions(promotionResult.value?.data || []);
+        else setPromotionLoadError(promotionResult.reason?.message || 'Could not load available promotions.');
+        if (couponResult.status === 'fulfilled') setCoupons(couponResult.value?.data || []);
+        else setCouponError((current) => current || couponResult.reason?.message || 'Could not load your coupons.');
       } catch (err) {
         console.error('[AffiliateDashboard]', err);
+        setLoadError(err?.message || 'Could not load affiliate data.');
       } finally {
         setLoading(false);
       }
@@ -544,6 +562,39 @@ export default function AffiliateDashboard() {
       navigator.clipboard?.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleCreateCoupon = async (event) => {
+    event.preventDefault();
+    setCouponError('');
+    setCouponSuccess('');
+    setCreatingCoupon(true);
+    try {
+      const result = await apiClient.post('/affiliate/coupons', {
+        name: couponName,
+        code: couponCode || undefined,
+        promotionId: Number(selectedPromotion),
+      });
+      const coupon = result?.data;
+      if (!coupon?.id) throw new Error('The coupon could not be created.');
+      setCoupons((current) => [coupon, ...current]);
+      setCouponName('');
+      setCouponCode('');
+      setCouponSuccess(`Coupon ${coupon.code} is ready to share.`);
+    } catch (error) {
+      setCouponError(error?.message || 'Could not create the coupon.');
+    } finally {
+      setCreatingCoupon(false);
+    }
+  };
+
+  const copyCouponCode = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCouponSuccess(`Coupon ${code} copied.`);
+    } catch {
+      setCouponError('Could not copy the coupon code.');
     }
   };
 
@@ -626,6 +677,11 @@ export default function AffiliateDashboard() {
         pb: 10,
         ...hideScrollbar,
       }}>
+        {loadError && (
+          <Alert severity="error" sx={{ m: 2 }}>
+            {loadError}
+          </Alert>
+        )}
         {/* Blocked banner */}
         <AnimatePresence>
           {profile.blocked && (
@@ -729,6 +785,7 @@ export default function AffiliateDashboard() {
         {/* Tabs */}
         <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth" sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tab label="QR Code" />
+          <Tab label="Coupons" />
           <Tab label="Withdraw" />
           <Tab label="History" />
         </Tabs>
@@ -740,8 +797,91 @@ export default function AffiliateDashboard() {
           </Box>
         )}
 
-        {/* ── Withdraw Tab ─────────────────────────────────────────────────── */}
+        {/* ── Coupons Tab ─────────────────────────────────────────────────── */}
         {tab === 1 && (
+          <Box sx={{ p: 2 }}>
+            <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+              Your affiliate code and QR link track referrals and points. Coupons are separate: create one from an active promotion and share it for customers to enter when booking.
+            </Alert>
+            {promotionLoadError && <Alert severity="error" sx={{ mb: 2 }}>{promotionLoadError}</Alert>}
+            {couponError && <Alert severity="error" sx={{ mb: 2 }}>{couponError}</Alert>}
+            {couponSuccess && <Alert severity="success" sx={{ mb: 2 }}>{couponSuccess}</Alert>}
+            <Paper component="form" onSubmit={handleCreateCoupon} elevation={1} sx={{ p: 2, borderRadius: 3, mb: 2 }}>
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5 }}>Create a coupon</Typography>
+              {promotions.length === 0 ? (
+                <Typography color="text.secondary">
+                  {promotionLoadError ? 'Promotions could not be loaded.' : 'No active promotions are available in your country right now.'}
+                </Typography>
+              ) : (
+                <>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Promotion"
+                    value={selectedPromotion}
+                    onChange={(event) => setSelectedPromotion(event.target.value)}
+                    required
+                    sx={{ mb: 1.5 }}
+                  >
+                    {promotions.map((promotion) => (
+                      <MenuItem key={promotion.id} value={promotion.id}>
+                        {promotion.name} — {promotionDescription(promotion, sym)}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                  <TextField
+                    fullWidth
+                    label="Coupon name"
+                    value={couponName}
+                    onChange={(event) => setCouponName(event.target.value)}
+                    required
+                    inputProps={{ maxLength: 80 }}
+                    sx={{ mb: 1.5 }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="Coupon code (optional)"
+                    value={couponCode}
+                    onChange={(event) => setCouponCode(event.target.value.toUpperCase())}
+                    helperText="Leave blank to generate a code from the coupon name."
+                    inputProps={{ maxLength: 32 }}
+                    sx={{ mb: 1.5 }}
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={creatingCoupon || !selectedPromotion}
+                    sx={{ fontWeight: 700 }}
+                  >
+                    {creatingCoupon ? 'Creating…' : 'Create coupon'}
+                  </Button>
+                </>
+              )}
+            </Paper>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>Your coupons</Typography>
+            {coupons.length === 0 ? (
+              <Typography color="text.secondary">You have not created any coupons yet.</Typography>
+            ) : (
+              <List disablePadding>
+                {coupons.map((coupon) => (
+                  <ListItem key={coupon.id} divider sx={{ px: 0, alignItems: 'flex-start' }}>
+                    <ListItemText
+                      primary={coupon.name}
+                      secondary={`${coupon.code} · ${coupon.promotion?.name || 'Promotion'} — ${promotionDescription(coupon.promotion, sym)} · Expires ${new Date(coupon.expiresAt).toLocaleDateString()}`}
+                      primaryTypographyProps={{ fontWeight: 700 }}
+                    />
+                    <Button size="small" startIcon={<CopyIcon />} onClick={() => copyCouponCode(coupon.code)}>
+                      Copy code
+                    </Button>
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </Box>
+        )}
+
+        {/* ── Withdraw Tab ─────────────────────────────────────────────────── */}
+        {tab === 2 && (
           <Box sx={{ p: 2 }}>
             {profile.blocked ? (
               <Alert severity="error" sx={{ borderRadius: 3 }}>
@@ -815,7 +955,7 @@ export default function AffiliateDashboard() {
         )}
 
         {/* ── History Tab ──────────────────────────────────────────────────── */}
-        {tab === 2 && (
+        {tab === 3 && (
           <Box sx={{ px: 2, pt: 1 }}>
             {txs.length === 0 ? (
               <Box sx={{ textAlign: 'center', pt: 6 }}>

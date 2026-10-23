@@ -2,8 +2,9 @@
 'use client'
 
 import { useState, useEffect, useCallback, createContext, useContext } from 'react'
-import { getAdminSettings } from '@/lib/api/adminSettings'
+import { getAdminSettings, getAdminSettingsCacheKey } from '@/lib/api/adminSettings'
 import * as AdminSettingsHelpers from '@/lib/api/adminSettings'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 // Create context for admin settings
 const AdminSettingsContext = createContext(null)
@@ -13,17 +14,31 @@ const AdminSettingsContext = createContext(null)
  * Usage: Wrap your app with this provider in layout.js
  */
 export function AdminSettingsProvider({ children }) {
+  const { user, loading: authLoading } = useAuth()
+  const countryId = Number(user?.country?.id ?? user?.country) || null
   const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [lastFetched, setLastFetched] = useState(null)
 
   const fetchSettings = useCallback(async (force = false) => {
+    const cacheKey = getAdminSettingsCacheKey(countryId, user?.id)
+    const timestampKey = `${cacheKey}:timestamp`
     // If we have settings and last fetched was less than 5 minutes ago, don't refetch
-    if (!force && settings && lastFetched) {
-      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
-      if (lastFetched > fiveMinutesAgo) {
-        return settings
+    if (!force && typeof window !== 'undefined') {
+      const cached = localStorage.getItem(cacheKey)
+      const timestamp = Number(localStorage.getItem(timestampKey))
+      if (cached && timestamp && Date.now() - timestamp < 5 * 60 * 1000) {
+        try {
+          const parsed = JSON.parse(cached)
+          setSettings(parsed)
+          window.__adminSettings = parsed
+          setLastFetched(timestamp)
+          setLoading(false)
+          return parsed
+        } catch (cacheError) {
+          console.error('Failed to parse cached settings:', cacheError)
+        }
       }
     }
 
@@ -31,14 +46,16 @@ export function AdminSettingsProvider({ children }) {
     setError(null)
 
     try {
-      const data = await getAdminSettings()
+      const data = await getAdminSettings({ countryId })
       setSettings(data)
-      setLastFetched(Date.now())
+      if (typeof window !== 'undefined') window.__adminSettings = data
+      const fetchedAt = Date.now()
+      setLastFetched(fetchedAt)
       
       // Store in localStorage for offline access
       if (typeof window !== 'undefined') {
-        localStorage.setItem('adminSettings', JSON.stringify(data))
-        localStorage.setItem('adminSettingsTimestamp', Date.now().toString())
+        localStorage.setItem(cacheKey, JSON.stringify(data))
+        localStorage.setItem(timestampKey, fetchedAt.toString())
       }
       
       return data
@@ -48,7 +65,7 @@ export function AdminSettingsProvider({ children }) {
       
       // Try to load from localStorage if available
       if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem('adminSettings')
+        const cached = localStorage.getItem(cacheKey)
         if (cached) {
           try {
             const parsedSettings = JSON.parse(cached)
@@ -64,12 +81,12 @@ export function AdminSettingsProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }, [settings, lastFetched])
+  }, [countryId, user?.id])
 
-  // Fetch on mount
+  // Wait for the authenticated country before resolving country-specific values.
   useEffect(() => {
-    fetchSettings()
-  }, []) // Only run once on mount
+    if (!authLoading) fetchSettings()
+  }, [authLoading, fetchSettings])
 
   const value = {
     settings,
@@ -193,7 +210,7 @@ export function useAdminSettings() {
  * Use this if you don't want to use the provider pattern
  * Note: This will fetch settings on every component mount
  */
-export function useAdminSettingsStandalone() {
+export function useAdminSettingsStandalone({ countryId = null } = {}) {
   const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -201,12 +218,14 @@ export function useAdminSettingsStandalone() {
   const fetchSettings = useCallback(async () => {
     setLoading(true)
     setError(null)
+    const cacheKey = getAdminSettingsCacheKey(countryId)
+    const timestampKey = `${cacheKey}:timestamp`
 
     try {
       // Check localStorage first
       if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem('adminSettings')
-        const timestamp = localStorage.getItem('adminSettingsTimestamp')
+        const cached = localStorage.getItem(cacheKey)
+        const timestamp = localStorage.getItem(timestampKey)
         
         if (cached && timestamp) {
           const age = Date.now() - parseInt(timestamp)
@@ -214,19 +233,21 @@ export function useAdminSettingsStandalone() {
           if (age < 5 * 60 * 1000) {
             const parsedSettings = JSON.parse(cached)
             setSettings(parsedSettings)
+            window.__adminSettings = parsedSettings
             setLoading(false)
             return
           }
         }
       }
 
-      const data = await getAdminSettings()
+      const data = await getAdminSettings({ countryId })
       setSettings(data)
+      if (typeof window !== 'undefined') window.__adminSettings = data
 
       // Cache in localStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem('adminSettings', JSON.stringify(data))
-        localStorage.setItem('adminSettingsTimestamp', Date.now().toString())
+        localStorage.setItem(cacheKey, JSON.stringify(data))
+        localStorage.setItem(timestampKey, Date.now().toString())
       }
     } catch (err) {
       console.error('Failed to fetch admin settings:', err)
@@ -234,7 +255,7 @@ export function useAdminSettingsStandalone() {
 
       // Try to use cached version even if expired
       if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem('adminSettings')
+        const cached = localStorage.getItem(cacheKey)
         if (cached) {
           try {
             setSettings(JSON.parse(cached))
@@ -246,7 +267,7 @@ export function useAdminSettingsStandalone() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [countryId])
 
   useEffect(() => {
     fetchSettings()

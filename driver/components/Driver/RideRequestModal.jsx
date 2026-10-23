@@ -72,7 +72,7 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          onDecline(); // Auto-decline when timer runs out
+          onDecline(rideRequest.rideId);
           return 0;
         }
         return prev - 1;
@@ -80,7 +80,7 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [open, onDecline]);
+  }, [open, onDecline, rideRequest?.rideId]);
 
   // Reset countdown when new request
   useEffect(() => {
@@ -93,12 +93,10 @@ export const RideRequestModal = ({ open, rideRequest, onAccept, onDecline }) => 
   if (!rideRequest) return null;
 
   const handleAccept = () => {
-    stop?.();
     onAccept(rideRequest.rideId);
   };
 
   const handleDecline = () => {
-    stop?.();
     onDecline(rideRequest.rideId);
   };
 

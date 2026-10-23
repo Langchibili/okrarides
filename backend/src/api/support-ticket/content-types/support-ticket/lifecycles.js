@@ -2,6 +2,7 @@
 'use strict';
 
 const { SendEmailNotification, SendSmsNotification } = require('../../../../services/messages');
+const { resolveSettingsForUser } = require('../../../../services/settingsResolver');
 
 module.exports = {
   async afterUpdate(event) {
@@ -22,14 +23,16 @@ module.exports = {
 };
 
 async function notifyAdmins(ticket) {
+  const full = await strapi.entityService.findOne(
+    'api::support-ticket.support-ticket',
+    ticket.id,
+    { populate: ['user', 'attachments'] }
+  );
+
   // ── Load admin settings ─────────────────────────────────────────────────
   let adminSettings = null;
   try {
-    const results = await strapi.entityService.findMany(
-      'api::admn-setting.admn-setting',
-      { pagination: { pageSize: 1 } }
-    );
-    adminSettings = Array.isArray(results) ? results[0] : results;
+    adminSettings = await resolveSettingsForUser(strapi, full.user?.id);
   } catch {
     strapi.log.warn('Could not load admin settings for support notification.');
     return;
@@ -37,13 +40,6 @@ async function notifyAdmins(ticket) {
 
   const supportEmails  = adminSettings?.adminSupportEmails  || [];
   const supportNumbers = adminSettings?.adminSupportNumbers || [];
-
-  // ── Fetch full ticket ───────────────────────────────────────────────────
-  const full = await strapi.entityService.findOne(
-    'api::support-ticket.support-ticket',
-    ticket.id,
-    { populate: ['user', 'attachments'] }
-  );
 
   // ── Resolve submitter identity ──────────────────────────────────────────
   const isGuest   = full.user?.id === 1;

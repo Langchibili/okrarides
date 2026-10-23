@@ -510,6 +510,7 @@ export const LocationSearch = ({
   HandleOnBlur,
   displayKey,
   locationBounds = null,
+  selectedCoords = null, // optional { lat, lng } of the currently selected value, from the parent
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -520,7 +521,7 @@ export const LocationSearch = ({
   const [focused,       setFocused]       = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState(null);
   const [mounted,       setMounted]       = useState(false);
-
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const containerRef    = useRef(null);
   const searchTimeout   = useRef(null);
   const predictionCache = useRef({});
@@ -718,6 +719,7 @@ export const LocationSearch = ({
 
       if (location) {
         onSelectLocation(location);
+        setSelectedLocation({ lat: location.lat, lng: location.lng });
         // Update input to the full resolved address (may differ from optimistic title)
         setQuery(location.address || location.name);
       } else {
@@ -739,6 +741,7 @@ export const LocationSearch = ({
       mapControls.getCurrentLocation((loc) => {
         if (loc) {
           onSelectLocation({ ...loc, address: 'Current Location', name: 'Current Location', placeId: 'current_location' });
+          setSelectedLocation({ lat: loc.lat, lng: loc.lng });
           setQuery('Current Location'); setPredictions([]); setFocused(false);
         }
       });
@@ -751,6 +754,7 @@ export const LocationSearch = ({
           address: 'Current Location', name: 'Current Location', placeId: 'current_location',
         };
         onSelectLocation(loc); setQuery('Current Location'); setPredictions([]); setFocused(false);
+        setSelectedLocation({ lat: loc.lat, lng: loc.lng });
       });
     }
   }, [mapControls, onSelectLocation]);
@@ -1017,9 +1021,20 @@ export const LocationSearch = ({
         }}
       />
       {dropdown}
+      {console.log('[LocationSearch] displayKey:', displayKey, 'selectedCoords:', selectedCoords, 'selectedLocation:', selectedLocation, 'locationBounds:', locationBounds)}
       <LocationSelectMap
         open={mapPickerOpen}
-        initialCenter={parseLocationBounds(locationBounds) || readSavedGeoLoc()}
+        initialSearchValue={query}
+        onSearchChange={(value) => {
+          setQuery(value);
+          onChange?.(value);
+        }}
+         initialCenter={
+          (selectedCoords?.lat != null && selectedCoords?.lng != null ? selectedCoords : null) ||
+          selectedLocation ||
+          parseLocationBounds(locationBounds) ||
+          readSavedGeoLoc()
+        }
         countryCode={countryCode}
         onClose={() => setMapPickerOpen(false)}
         onSelectLocation={(loc) => {
@@ -1028,6 +1043,7 @@ export const LocationSearch = ({
           setQuery(label);
           onChange?.(label);
           setMapPickerOpen(false);
+          setSelectedLocation({ lat: loc.lat, lng: loc.lng })
         }}
       />
     </Box>

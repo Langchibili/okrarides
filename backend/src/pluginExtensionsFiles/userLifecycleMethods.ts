@@ -5,10 +5,7 @@ import { Readable } from 'stream';
 import { uploadQRCodeWithClient } from "../services/uploadQrCode"
 import { SendSmsNotification } from '../services/messages'; // ← CHANGE 1: new import
 // ← ADDITION: affiliate promotion service imports
-import {
-  createDefaultPromotion,
-  applyImmediatePromotions,
-} from '../services/affiliatePromotionService';
+import { processAffiliatePoints } from '../services/affiliateService';
 
 // Interface definitions
 interface User {
@@ -293,15 +290,6 @@ async function initializeUserProfiles(
     }
     console.log(`✅ User ${user.id} profiles initialized successfully with QR code`);
 
-    // ← ADDITION: Create a default promotion for this user's affiliate profile
-    // so any user who registers via their link immediately gets a welcome benefit.
-    try {
-      await createDefaultPromotion(user.id);
-    } catch (promoCreateError) {
-      // Non-fatal — profile setup already succeeded
-      console.error('Error creating default promotion:', promoCreateError);
-    }
-
   } catch (error) {
     console.error('❌ Error initializing user profiles:', error);
     throw error;
@@ -311,93 +299,11 @@ async function handleReferralBonus(
   strapi: StrapiInstance, 
   user: User
 ): Promise<void> {
-  if (!user.referredBy) {
-    return;
-  }
-  try {
-    const referrer = await strapi.db.query('plugin::users-permissions.user').findOne({
-      where: { id: user.referredBy },
-      populate: ['affiliateProfile']
-    }) as unknown as ReferrerUser;
-    if (!referrer) {
-      console.error(`Referrer with ID ${user.referredBy} not found`);
-      return;
-    }
-    const adminSettings = await strapi.db.query('api::admin-setting.admin-setting').findOne({
-      where: { id: 1 }
-    }) as any;
-    const points = (adminSettings && adminSettings.pointsPerRiderReferral) ? 
-                   adminSettings.pointsPerRiderReferral : 10;
-    const currentAffiliateProfile = referrer.affiliateProfile || {};
-    
-    const affiliateProfileUpdate = {
-      affiliateCode: currentAffiliateProfile.affiliateCode || '',
-      qrCode: currentAffiliateProfile.qrCode || null,
-      totalReferrals: (currentAffiliateProfile.totalReferrals || 0) + 1,
-      activeReferrals: (currentAffiliateProfile.activeReferrals || 0) + 1,
-      totalPoints: (currentAffiliateProfile.totalPoints || 0) + points,
-      totalEarnings: currentAffiliateProfile.totalEarnings || 0,
-      pointsBalance: (currentAffiliateProfile.pointsBalance || 0) + points,
-      blocked: currentAffiliateProfile.blocked || false,
-      pendingEarnings: currentAffiliateProfile.pendingEarnings || 0,
-      withdrawableBalance: currentAffiliateProfile.withdrawableBalance || 0
-    }
-    if (referrer.documentId) {
-      await strapi.documents('plugin::users-permissions.user').update({
-        documentId: referrer.documentId,
-        data: {
-          affiliateProfile: affiliateProfileUpdate
-        }
-      })
-    } else {
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: user.referredBy },
-        data: {
-          affiliateProfile: affiliateProfileUpdate
-        }
-      })
-    }
-    try {
-      await strapi.documents('api::affiliate-transaction.affiliate-transaction').create({
-        data: {
-          transactionId: `AFF-${Date.now()}`,
-          affiliate: user.referredBy,
-          referredUser: user.id,
-          type: 'referral_signup',
-          points: points
-        }
-      });
-    } catch (docError) {
-      await strapi.db.query('api::affiliate-transaction.affiliate-transaction').create({
-        data: {
-          transactionId: `AFF-${Date.now()}`,
-          affiliate: user.referredBy,
-          referredUser: user.id,
-          type: 'referral_signup',
-          points: points
-        }
-      });
-    }
-    if (adminSettings?.smsEnabled && referrer.phoneNumber) {
-      strapi.log?.info(`SMS notification would be sent to ${referrer.phoneNumber} for referral`);
-    }
-
-    // ← ADDITION: Apply the referrer's active affiliate promotions to the new user.
-    // This handles float-topup, wallet-credit, and records discount promotions in
-    // riderProfile.affiliateCodes so they are used at ride/delivery booking time.
-    try {
-      const affCode = currentAffiliateProfile.affiliateCode || '';
-      if (affCode) {
-        await applyImmediatePromotions(user.id, affCode, referrer.id);
-      }
-    } catch (promoError) {
-      // Non-fatal — referral bonus already succeeded
-      console.error('Error applying affiliate promotions:', promoError);
-    }
-
-  } catch (error) {
-    console.error('Error processing referrer bonus:', error);
-  }
+  if (!user.referredBy) return;
+  await processAffiliatePoints({
+    eventType: 'onReferralSignup',
+    triggeringUserId: user.id,
+  });
 }
 async function createAuditLog(
   strapi: StrapiInstance, 
@@ -471,6 +377,13 @@ export async function handleUserUpdate(
   strapi.log?.info(`User ${user?.id} was updated`);
 
   try {
+    if (user?.id && params?.data?.referredBy) {
+      await processAffiliatePoints({
+        eventType: 'onReferralSignup',
+        triggeringUserId: user.id,
+      });
+    }
+
     // Only proceed when this update explicitly sets verificationStatus to "approved"
     const incomingStatus = params?.data?.driverProfile?.verificationStatus;
     if (incomingStatus !== 'approved') return;

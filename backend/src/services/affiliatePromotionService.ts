@@ -2,18 +2,13 @@
  * Affiliate Promotion Service
  * PATH: src/services/affiliatePromotionService.ts
  *
- * Responsibilities:
- *  1. createDefaultPromotion         — called once per new user at registration
- *  2. applyImmediatePromotions       — float-topup / wallet-credit at sign-up
- *  3. recordAffiliateCodeEntry       — writes into riderProfile.affiliateCodes JSON
- *  4. checkAndApplyRideDiscount      — called inside ride.create
- *  5. checkAndApplyDeliveryDiscount  — called inside delivery.create
- *  6. recordPromotionUsage           — increments timesUsed after redemption
- *  7. applyCodeManually              — POST /affiliate/apply-code endpoint handler
- *  8. getPromotionsForAffiliate      — returns active promotions for a given affiliate user
+ * Admins create promotions. Affiliates create coupons linked to those promotions.
+ * Referral attribution and points allocation are handled separately.
  */
 
 declare const strapi: any;
+import { processAffiliatePoints } from './affiliateService';
+import { resolveSettingsForCountry } from './settingsResolver';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -26,30 +21,11 @@ export interface AffiliatePromotion {
   action: 'float-topup' | 'ride-discount' | 'delivery-discount' | 'wallet-credit';
   for: 'rider' | 'driver' | 'all';
   amount: number;
-  percentageAmount: number;
+  amountType?: 'flatrate' | 'percentage';
   usageLimit: number;
   isActive: boolean;
   expiresAt?: string | null;
-  affiliateOwner: { id: number } | number;
-  isDefault?: boolean;
-}
-
-interface PromotionUsageEntry {
-  action: string;
-  limit: number;
-  timesUsed: number;
-  lastUsedAt: string | null;
-}
-
-interface AffiliateCodeEntry {
-  affiliateOwnerId: number;
-  addedAt: string;
-  source: 'registration' | 'manual';
-  promotionUsages: Record<string, PromotionUsageEntry>;
-}
-
-interface AffiliateCodesMap {
-  [affiliateCode: string]: AffiliateCodeEntry;
+  publishedAt?: string | null;
 }
 
 interface DiscountResult {
@@ -58,6 +34,9 @@ interface DiscountResult {
   appliedCode: string | null;
   promotionId: number | null;
   promotionDescription: string | null;
+  couponId: number | null;
+  couponCode: string | null;
+  error?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -73,238 +52,30 @@ function appliesToUserType(promo: AffiliatePromotion, userType: 'rider' | 'drive
   return promo.for === 'all' || promo.for === userType;
 }
 
-async function getRiderProfileId(userId: number): Promise<{ id: number; affiliateCodes: AffiliateCodesMap } | null> {
-  const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-    where: { id: userId },
-    populate: { riderProfile: { select: ['id', 'affiliateCodes'] } },
-  });
-  return user?.riderProfile ?? null;
-}
-
-async function getDriverProfileId(userId: number): Promise<{ id: number; floatBalance: number; withdrawableFloatBalance: number } | null> {
-  const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-    where: { id: userId },
-    populate: { driverProfile: { select: ['id', 'floatBalance', 'withdrawableFloatBalance'] } },
-  });
-  return user?.driverProfile ?? null;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. Create default promotion for every new affiliate
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Called inside initializeUserProfiles() after the user record is set up.
- * Creates one default "Welcome Float Bonus" promotion owned by the new user
- * so that anyone who registers via their affiliate link gets 100 free float.
- */
-export async function createDefaultPromotion(userId: number): Promise<void> {
-  try {
-    await strapi.db.query('api::affiliate-promotion.affiliate-promotion').create({
-      data: {
-        name: 'Welcome Float Bonus',
-        description: 'Get K100 free float when you register as a driver using this affiliate link',
-        action: 'float-topup',
-        for: 'driver',
-        amount: 100,
-        percentageAmount: 0,
-        usageLimit: 1,
-        isActive: true,
-        expiresAt: null,
-        affiliateOwner: userId,
-        isDefault: true,
-      },
-    });
-    strapi.log?.info(`[AffiliatePromo] Default promotion created for user ${userId}`);
-  } catch (err) {
-    strapi.log?.error?.(`[AffiliatePromo] createDefaultPromotion failed for ${userId}:`, err) ||
-      console.error('[AffiliatePromo] createDefaultPromotion failed:', err);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. Get active, non-expired promotions for an affiliate owner
-// ─────────────────────────────────────────────────────────────────────────────
-
 export async function getPromotionsForAffiliate(affiliateOwnerId: number): Promise<AffiliatePromotion[]> {
   const promos: AffiliatePromotion[] = await strapi.db
     .query('api::affiliate-promotion.affiliate-promotion')
     .findMany({
-      where: { affiliateOwner: affiliateOwnerId, isActive: true },
+      where: { isActive: true, publishedAt: { $notNull: true } },
+      populate: { countries: true },
     });
-  return promos.filter((p) => !isPromotionExpired(p));
+  const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+    where: { id: affiliateOwnerId },
+    populate: { country: true },
+  });
+  if (!user?.country?.isActive) return [];
+  return promos.filter((promo) => (
+    !isPromotionExpired(promo)
+    && (!Array.isArray((promo as any).countries) || !(promo as any).countries.length
+      || (promo as any).countries.some((country: any) => country.id === user.country.id && country.isActive))
+  ));
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. Record affiliate code entry in riderProfile.affiliateCodes
-// ─────────────────────────────────────────────────────────────────────────────
-
-export async function recordAffiliateCodeEntry(
-  userId: number,
-  affiliateCode: string,
-  affiliateOwnerId: number,
-  promotions: AffiliatePromotion[],
-  source: 'registration' | 'manual' = 'registration',
-): Promise<void> {
-  try {
-    const riderProfile = await getRiderProfileId(userId);
-    if (!riderProfile) return;
-
-    const existing: AffiliateCodesMap = riderProfile.affiliateCodes ?? {};
-
-    // Don't overwrite if already present
-    if (existing[affiliateCode]) return;
-
-    const usages: Record<string, PromotionUsageEntry> = {};
-    for (const p of promotions) {
-      usages[String(p.id)] = {
-        action: p.action,
-        limit: p.usageLimit,
-        timesUsed: 0,
-        lastUsedAt: null,
-      };
-    }
-
-    const updated: AffiliateCodesMap = {
-      ...existing,
-      [affiliateCode]: {
-        affiliateOwnerId,
-        addedAt: new Date().toISOString(),
-        source,
-        promotionUsages: usages,
-      },
-    };
-
-    await strapi.db.query('rider-profiles.rider-profile').update({
-      where: { id: riderProfile.id },
-      data: { affiliateCodes: updated },
-    });
-
-    strapi.log?.info(`[AffiliatePromo] Code ${affiliateCode} recorded for user ${userId}`);
-  } catch (err) {
-    console.error('[AffiliatePromo] recordAffiliateCodeEntry failed:', err);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 4. Increment timesUsed for a specific promotion inside affiliateCodes
-// ─────────────────────────────────────────────────────────────────────────────
-
-export async function recordPromotionUsage(
-  userId: number,
-  affiliateCode: string,
-  promotionId: number,
-): Promise<void> {
-  try {
-    const riderProfile = await getRiderProfileId(userId);
-    if (!riderProfile) return;
-
-    const codes: AffiliateCodesMap = riderProfile.affiliateCodes ?? {};
-    const entry = codes[affiliateCode];
-    if (!entry) return;
-
-    const key = String(promotionId);
-    const usage = entry.promotionUsages[key];
-    if (!usage) return;
-
-    usage.timesUsed += 1;
-    usage.lastUsedAt = new Date().toISOString();
-
-    await strapi.db.query('rider-profiles.rider-profile').update({
-      where: { id: riderProfile.id },
-      data: { affiliateCodes: codes },
-    });
-  } catch (err) {
-    console.error('[AffiliatePromo] recordPromotionUsage failed:', err);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 5. Apply immediate promotions at registration (float-topup, wallet-credit)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Called right after a new user registers via an affiliate link.
- * Applies one-time instant promotions (float-topup / wallet-credit).
- * Discount promotions (ride-discount / delivery-discount) are handled at
- * booking time — they are just recorded here, not applied yet.
- */
-export async function applyImmediatePromotions(
-  userId: number,
-  affiliateCode: string,
-  affiliateOwnerId: number,
-): Promise<void> {
-  try {
-    const promotions = await getPromotionsForAffiliate(affiliateOwnerId);
-    if (!promotions.length) return;
-
-    // ── Record all promotions in affiliateCodes first ─────────────────────
-    await recordAffiliateCodeEntry(userId, affiliateCode, affiliateOwnerId, promotions, 'registration');
-
-    for (const promo of promotions) {
-      // ── float-topup ─────────────────────────────────────────────────────
-      if (
-        promo.action === 'float-topup' &&
-        appliesToUserType(promo, 'driver') &&
-        promo.amount > 0
-      ) {
-        const dp = await getDriverProfileId(userId);
-        if (dp) {
-          const currentFloat      = parseFloat(String(dp.floatBalance ?? 0));
-          const currentWithdrawable = parseFloat(String(dp.withdrawableFloatBalance ?? 0));
-          await strapi.db.query('driver-profiles.driver-profile').update({
-            where: { id: dp.id },
-            data: {
-              floatBalance:             currentFloat + promo.amount,
-              withdrawableFloatBalance: currentWithdrawable + promo.amount,
-            },
-          });
-          await recordPromotionUsage(userId, affiliateCode, promo.id);
-          strapi.log?.info(
-            `[AffiliatePromo] float-topup +${promo.amount} applied to driver ${userId}`,
-          );
-        }
-      }
-
-      // ── wallet-credit ────────────────────────────────────────────────────
-      if (
-        promo.action === 'wallet-credit' &&
-        appliesToUserType(promo, 'rider') &&
-        promo.amount > 0
-      ) {
-        const user = await strapi.db.query('plugin::users-permissions.user').findOne({
-          where: { id: userId },
-          populate: { riderProfile: { select: ['id', 'walletBalance'] } },
-        });
-        const rp = user?.riderProfile;
-        if (rp) {
-          const currentWallet = parseFloat(String(rp.walletBalance ?? 0));
-          await strapi.db.query('rider-profiles.rider-profile').update({
-            where: { id: rp.id },
-            data: { walletBalance: currentWallet + promo.amount },
-          });
-          await recordPromotionUsage(userId, affiliateCode, promo.id);
-          strapi.log?.info(
-            `[AffiliatePromo] wallet-credit +${promo.amount} applied to rider ${userId}`,
-          );
-        }
-      }
-
-      // ride-discount / delivery-discount: recorded in affiliateCodes, used at booking
-    }
-  } catch (err) {
-    console.error('[AffiliatePromo] applyImmediatePromotions failed:', err);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 6. Check and apply booking discount (shared logic for ride + delivery)
-// ─────────────────────────────────────────────────────────────────────────────
 
 async function checkAndApplyBookingDiscount(
   userId: number,
   fare: number,
   actionType: 'ride-discount' | 'delivery-discount',
+  couponCode?: string,
 ): Promise<DiscountResult> {
   const noDiscount: DiscountResult = {
     discountedFare: fare,
@@ -312,68 +83,88 @@ async function checkAndApplyBookingDiscount(
     appliedCode: null,
     promotionId: null,
     promotionDescription: null,
+    couponId: null,
+    couponCode: null,
   };
 
+  if (!couponCode?.trim()) return noDiscount;
+
   try {
-    const riderProfile = await getRiderProfileId(userId);
-    if (!riderProfile) return noDiscount;
-
-    const codes: AffiliateCodesMap = riderProfile.affiliateCodes ?? {};
-    const codeKeys = Object.keys(codes);
-    if (!codeKeys.length) return noDiscount;
-
-    for (const code of codeKeys) {
-      const entry = codes[code];
-      const usages = entry.promotionUsages ?? {};
-
-      for (const [promoIdStr, usage] of Object.entries(usages)) {
-        if (usage.action !== actionType) continue;
-        if (usage.timesUsed >= usage.limit) continue; // exhausted
-
-        const promoId = parseInt(promoIdStr, 10);
-
-        // Re-verify the promotion is still active in DB
-        const promo: AffiliatePromotion | null = await strapi.db
-          .query('api::affiliate-promotion.affiliate-promotion')
-          .findOne({ where: { id: promoId, isActive: true } });
-
-        if (!promo || isPromotionExpired(promo)) continue;
-        if (!appliesToUserType(promo, 'rider')) continue;
-
-        const pct = parseFloat(String(promo.percentageAmount ?? 0));
-        if (pct <= 0) continue;
-
-        const discountAmount = parseFloat(((fare * pct) / 100).toFixed(2));
-        const discountedFare = Math.max(0, fare - discountAmount);
-
-        return {
-          discountedFare,
-          discountAmount,
-          appliedCode: code,
-          promotionId: promoId,
-          promotionDescription: promo.description ?? `${pct}% discount applied`,
-        };
-      }
+    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: userId },
+      populate: { country: true },
+    });
+    if (!user?.country?.isActive) {
+      return { ...noDiscount, error: 'Your country is not active for affiliate coupons.' };
     }
+    const settings = await resolveSettingsForCountry(strapi, user.country.id);
+    if (settings.affiliateSystemEnabled !== true) {
+      return { ...noDiscount, error: 'Affiliate coupons are not enabled in your country.' };
+    }
+
+    const coupon = await strapi.db.query('api::affiliate-coupon.affiliate-coupon').findOne({
+      where: { code: couponCode.trim().toUpperCase(), isActive: true },
+      populate: { promotion: { populate: { countries: true } }, affiliateOwner: true },
+    });
+    if (!coupon || new Date(coupon.expiresAt) <= new Date()) {
+      return { ...noDiscount, error: 'Coupon code is invalid or expired.' };
+    }
+    const promo = coupon.promotion as AffiliatePromotion & { countries?: any[] };
+    if (!promo?.isActive || !promo.publishedAt || isPromotionExpired(promo) || promo.action !== actionType) {
+      return { ...noDiscount, error: 'Coupon is not valid for this booking.' };
+    }
+    if (!appliesToUserType(promo, 'rider')) {
+      return { ...noDiscount, error: 'This promotion is not available to riders.' };
+    }
+    if (promo.countries?.length
+      && !promo.countries.some((country) => country.id === user.country.id && country.isActive)) {
+      return { ...noDiscount, error: 'Coupon is not available in your country.' };
+    }
+
+    const usedByUser = await strapi.db.query('api::affiliate-coupon-usage.affiliate-coupon-usage').count({
+      where: { coupon: coupon.id, user: userId },
+    });
+    const perUserLimit = Math.max(1, Number(coupon.usageLimit ?? promo.usageLimit) || 1);
+    if (usedByUser >= perUserLimit) {
+      return { ...noDiscount, error: 'You have already reached this coupon’s usage limit.' };
+    }
+
+    const value = Number(promo.amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      return { ...noDiscount, error: 'This promotion does not provide a valid discount.' };
+    }
+    const amount = promo.amountType === 'percentage' ? (fare * value) / 100 : value;
+    const discountAmount = Number(Math.min(fare, amount).toFixed(2));
+    return {
+      discountedFare: Math.max(0, fare - discountAmount),
+      discountAmount,
+      appliedCode: coupon.code,
+      promotionId: Number(promo.id),
+      promotionDescription: promo.description ?? `${promo.amountType === 'percentage' ? `${value}%` : value} discount applied`,
+      couponId: Number(coupon.id),
+      couponCode: coupon.code,
+    };
   } catch (err) {
     console.error('[AffiliatePromo] checkAndApplyBookingDiscount failed:', err);
+    return { ...noDiscount, error: 'Could not validate the coupon. Please try again.' };
   }
 
-  return noDiscount;
 }
 
 export async function checkAndApplyRideDiscount(
   userId: number,
   rideFare: number,
+  couponCode?: string,
 ): Promise<DiscountResult> {
-  return checkAndApplyBookingDiscount(userId, rideFare, 'ride-discount');
+  return checkAndApplyBookingDiscount(userId, rideFare, 'ride-discount', couponCode);
 }
 
 export async function checkAndApplyDeliveryDiscount(
   userId: number,
   deliveryFare: number,
+  couponCode?: string,
 ): Promise<DiscountResult> {
-  return checkAndApplyBookingDiscount(userId, deliveryFare, 'delivery-discount');
+  return checkAndApplyBookingDiscount(userId, deliveryFare, 'delivery-discount', couponCode);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -389,17 +180,23 @@ export async function applyCodeManually(
   affiliateCode: string,
 ): Promise<{ success: boolean; message: string; promotionsApplied: number }> {
   try {
-    // Check affiliate system is enabled
-    const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({});
-    if (!settings?.affiliateSystemEnabled) {
+    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+      where: { id: userId },
+      populate: { referredBy: true, country: true },
+    });
+    if (!user) return { success: false, message: 'User not found', promotionsApplied: 0 };
+    const settings = await resolveSettingsForCountry(strapi, user.country?.id);
+    if (settings.affiliateSystemEnabled !== true) {
       return { success: false, message: 'Affiliate system is not enabled', promotionsApplied: 0 };
     }
+    if (user.referredBy?.id) {
+      return { success: false, message: 'A referral code has already been applied', promotionsApplied: 0 };
+    }
 
-    // Resolve affiliate owner from the code
     const affiliateUser = await strapi.db
       .query('plugin::users-permissions.user')
       .findOne({
-        where: { affiliateProfile: { affiliateCode } },
+        where: { affiliateProfile: { affiliateCode: affiliateCode.trim().toUpperCase() } },
         select: ['id'],
       });
     if (!affiliateUser) {
@@ -409,38 +206,19 @@ export async function applyCodeManually(
       return { success: false, message: 'You cannot use your own affiliate code', promotionsApplied: 0 };
     }
 
-    // Check if code is already in the user's affiliateCodes
-    const riderProfile = await getRiderProfileId(userId);
-    const existingCodes: AffiliateCodesMap = riderProfile?.affiliateCodes ?? {};
-    if (existingCodes[affiliateCode]) {
-      return { success: false, message: 'You have already applied this code', promotionsApplied: 0 };
-    }
-
-    const promotions = await getPromotionsForAffiliate(affiliateUser.id);
-    if (!promotions.length) {
-      return { success: false, message: 'No active promotions on this code', promotionsApplied: 0 };
-    }
-
-    // Record and apply
-    await applyImmediatePromotions(userId, affiliateCode, affiliateUser.id);
-
-    // Also set referredBy if not already set
-    const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+    await strapi.db.query('plugin::users-permissions.user').update({
       where: { id: userId },
-      select: ['id'],
-      populate: { referredBy: true },
+      data: { referredBy: affiliateUser.id },
     });
-    if (!user?.referredBy?.id) {
-      await strapi.db.query('plugin::users-permissions.user').update({
-        where: { id: userId },
-        data: { referredBy: affiliateUser.id },
-      });
-    }
+    await processAffiliatePoints({
+      eventType: 'onReferralSignup',
+      triggeringUserId: userId,
+    });
 
     return {
       success: true,
-      message: 'Affiliate code applied successfully',
-      promotionsApplied: promotions.length,
+      message: 'Referral code applied successfully',
+      promotionsApplied: 0,
     };
   } catch (err: any) {
     console.error('[AffiliatePromo] applyCodeManually failed:', err);
@@ -453,8 +231,110 @@ export async function applyCodeManually(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getMyPromotions(userId: number): Promise<AffiliatePromotion[]> {
-  return strapi.db.query('api::affiliate-promotion.affiliate-promotion').findMany({
+  return getPromotionsForAffiliate(userId);
+}
+
+export async function getMyCoupons(userId: number): Promise<any[]> {
+  return strapi.db.query('api::affiliate-coupon.affiliate-coupon').findMany({
     where: { affiliateOwner: userId },
+    populate: { promotion: true },
     orderBy: { createdAt: 'desc' },
+  });
+}
+
+export async function createAffiliateCoupon(
+  userId: number,
+  input: { name: string; promotionId: number; code?: string },
+): Promise<any> {
+  const name = String(input.name ?? '').trim();
+  if (!name) throw new Error('Coupon name is required');
+  const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+    where: { id: userId },
+    populate: { country: true, affiliateProfile: true },
+  });
+  if (!user?.country?.isActive) throw new Error('Your country is not active');
+  if (!user.affiliateProfile) throw new Error('Affiliate profile not found');
+
+  const settings = await resolveSettingsForCountry(strapi, user.country.id);
+  if (settings.affiliateSystemEnabled !== true) throw new Error('Affiliate system is not enabled');
+
+  const promotion = await strapi.db.query('api::affiliate-promotion.affiliate-promotion').findOne({
+    where: { id: input.promotionId, isActive: true, publishedAt: { $notNull: true } },
+    populate: { countries: true },
+  });
+  if (!promotion || isPromotionExpired(promotion)) throw new Error('Promotion is not available');
+  if (promotion.countries?.length
+    && !promotion.countries.some((country: any) => country.id === user.country.id && country.isActive)) {
+    throw new Error('Promotion is not available in your country');
+  }
+
+  const codeBase = String(input.code || name)
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 32);
+  if (codeBase.length < 3) throw new Error('Coupon code must contain at least 3 letters or numbers');
+  let code = codeBase;
+  const existing = await strapi.db.query('api::affiliate-coupon.affiliate-coupon').findOne({
+    where: { code },
+    select: ['id'],
+  });
+  if (existing && input.code) throw new Error('That coupon code is already in use');
+  if (existing) {
+    code = `${codeBase.slice(0, 26)}-${userId}-${Date.now().toString(36).slice(-4)}`;
+  }
+
+  const expiryDays = Math.max(1, Number(settings.affiliateCouponExpiryDays) || 30);
+  const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+  return strapi.db.query('api::affiliate-coupon.affiliate-coupon').create({
+    data: {
+      name,
+      code,
+      isActive: true,
+      expiresAt,
+      usageLimit: Math.max(1, Number(promotion.usageLimit) || 1),
+      uses: 0,
+      affiliateOwner: userId,
+      promotion: promotion.id,
+    },
+    populate: { promotion: true },
+  });
+}
+
+export async function recordCouponUsage(
+  userId: number,
+  couponCode: string,
+  reference: string,
+  rideId?: number,
+  deliveryId?: number,
+): Promise<void> {
+  const code = String(couponCode ?? '').toUpperCase();
+  if (!code || !reference) return;
+  const coupon = await strapi.db.query('api::affiliate-coupon.affiliate-coupon').findOne({
+    where: { code },
+    select: ['id', 'uses'],
+  });
+  if (!coupon) throw new Error(`Coupon ${code} was not found while recording usage`);
+  const usageReference = `COUPON-${coupon.id}-${reference}`;
+  const existing = await strapi.db.query('api::affiliate-coupon-usage.affiliate-coupon-usage').findOne({
+    where: { reference: usageReference },
+    select: ['id'],
+  });
+  if (existing) return;
+
+  await strapi.db.query('api::affiliate-coupon-usage.affiliate-coupon-usage').create({
+    data: {
+      reference: usageReference,
+      coupon: coupon.id,
+      user: userId,
+      ride: rideId ?? null,
+      delivery: deliveryId ?? null,
+    },
+  });
+  await strapi.db.query('api::affiliate-coupon.affiliate-coupon').update({
+    where: { id: coupon.id },
+    data: { uses: Number(coupon.uses || 0) + 1 },
   });
 }
