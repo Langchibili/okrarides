@@ -7,6 +7,7 @@ import { useToast } from '@/lib/toast';
 import { formatDate, getFullName } from '@/lib/utils';
 import { DataTable, Pagination } from '@/components/DataTable';
 import { PageHeader, FilterBar, Modal, StatusPill, Avatar, FormField } from '@/components/UI';
+import CountryFilter from '@/components/CountryFilter';
 
 export default function SubscriptionsPage() {
   const { hasPermission, canWrite } = useAuth();
@@ -18,6 +19,7 @@ export default function SubscriptionsPage() {
   const [total, setTotal] = useState(0);
   const [pageCount, setPageCount] = useState(1);
   const [filterStatus, setFilterStatus] = useState('');
+  const [countryId, setCountryId] = useState('');
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
   const [planForm, setPlanForm] = useState({});
@@ -25,7 +27,7 @@ export default function SubscriptionsPage() {
   const [activeTab, setActiveTab] = useState('subscriptions');
   const pageSize = 20;
 
-  useEffect(() => { loadSubscriptions(page); loadPlans(); }, [page]);
+  useEffect(() => { loadSubscriptions(page); loadPlans(); }, [page, countryId]);
 
   const loadSubscriptions = async (pg = 1, st = filterStatus) => {
     setLoading(true);
@@ -38,6 +40,7 @@ export default function SubscriptionsPage() {
         'populate[subscriptionPlan][fields]': 'name,price,durationType',
       };
       if (st) params['filters[subscriptionStatus][$eq]'] = st;
+      if (countryId) params['filters[countryId][$eq]'] = countryId;
       const res = await adminAPI.get('/driver-subscriptions', params);
       const data = res?.data || res || [];
       const meta = res?.meta?.pagination;
@@ -52,7 +55,9 @@ export default function SubscriptionsPage() {
       const res = await adminAPI.get('/subscription-plans?sort=displayOrder:asc');
       const data = res?.data || res || [];
       setPlans(Array.isArray(data) ? data : []);
-    } catch {}
+    } catch (err) {
+      toast.error(err.message || 'Could not load subscription plans');
+    }
   };
 
   const handleSavePlan = async () => {
@@ -142,6 +147,7 @@ export default function SubscriptionsPage() {
               <option value="cancelled">Cancelled</option>
               <option value="suspended">Suspended</option>
             </select>
+            <CountryFilter value={countryId} onChange={value => { setCountryId(value); setPage(1); }} />
           </FilterBar>
           <DataTable columns={subsColumns} data={subs} loading={loading} />
           <Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} />

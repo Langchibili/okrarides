@@ -6,7 +6,8 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/lib/toast';
 import { formatDate, debounce } from '@/lib/utils';
 import { DataTable, Pagination } from '@/components/DataTable';
-import { PageHeader, SearchBar, FilterBar, Modal, StatusPill } from '@/components/UI';
+import { PageHeader, SearchBar, FilterBar, Modal, StatusPill, ConfirmDialog } from '@/components/UI';
+import CountryFilter from '@/components/CountryFilter';
 
 export default function VehiclesPage() {
   const { hasPermission, canWrite } = useAuth();
@@ -19,11 +20,17 @@ export default function VehiclesPage() {
   const [pageCount, setPageCount] = useState(1);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType] = useState('');
+  const [filterCountry, setFilterCountry] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [confirmation, setConfirmation] = useState(null);
+  const [confirmSaving, setConfirmSaving] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editSaving, setEditSaving] = useState(false);
   const pageSize = 20;
 
-  const loadVehicles = useCallback(async (pg = 1, q = search, st = filterStatus, tp = filterType) => {
+  const loadVehicles = useCallback(async (pg = 1, q = search, st = filterStatus, tp = filterType, countryId = filterCountry) => {
     setLoading(true);
     try {
       const params = {
@@ -40,6 +47,7 @@ export default function VehiclesPage() {
       }
       if (st) params['filters[verificationStatus][$eq]'] = st;
       if (tp) params['filters[vehicleType][$eq]'] = tp;
+      if (countryId) params['filters[countryId][$eq]'] = countryId;
       const res = await adminAPI.get('/vehicles', params);
       const data = res?.data || res || [];
       const meta = res?.meta?.pagination;
@@ -51,31 +59,69 @@ export default function VehiclesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, filterStatus, filterType]);
+  }, [search, filterStatus, filterType, filterCountry]);
 
   const debouncedSearch = useCallback(debounce((q) => {
     setPage(1);
-    loadVehicles(1, q, filterStatus, filterType);
-  }, 400), [filterStatus, filterType]);
+    loadVehicles(1, q, filterStatus, filterType, filterCountry);
+  }, 400), [filterStatus, filterType, filterCountry]);
 
   useEffect(() => { loadVehicles(page); }, [page]);
 
   const handleApproveVehicle = async (vehicle) => {
-    if (!canWrite('vehicles')) return toast.error('Insufficient permissions');
+    if (!canWrite('vehicles')) { toast.error('Insufficient permissions'); return false; }
     try {
       await adminAPI.put(`/vehicles/${vehicle.id}`, { data: { verificationStatus: 'approved', isActive: true } });
       toast.success('Vehicle approved');
       loadVehicles(page);
-    } catch (err) { toast.error(err.message); }
+      return true;
+    } catch (err) { toast.error(err.message); return false; }
   };
 
   const handleRejectVehicle = async (vehicle) => {
-    if (!canWrite('vehicles')) return toast.error('Insufficient permissions');
+    if (!canWrite('vehicles')) { toast.error('Insufficient permissions'); return false; }
     try {
       await adminAPI.put(`/vehicles/${vehicle.id}`, { data: { verificationStatus: 'rejected', isActive: false } });
       toast.success('Vehicle rejected');
       loadVehicles(page);
-    } catch (err) { toast.error(err.message); }
+      return true;
+    } catch (err) { toast.error(err.message); return false; }
+  };
+
+  const confirmVehicleStatus = async () => {
+    if (!confirmation) return;
+    setConfirmSaving(true);
+    try {
+      const succeeded = confirmation.status === 'approved'
+        ? await handleApproveVehicle(confirmation.vehicle)
+        : await handleRejectVehicle(confirmation.vehicle);
+      if (succeeded) setConfirmation(null);
+    } finally { setConfirmSaving(false); }
+  };
+
+  const openEdit = vehicle => {
+    setEditTarget(vehicle);
+    setEditForm({
+      numberPlate: vehicle.numberPlate || '',
+      make: vehicle.make || '',
+      model: vehicle.model || '',
+      year: vehicle.year || '',
+      color: vehicle.color || '',
+      verificationStatus: vehicle.verificationStatus || 'pending',
+      isActive: Boolean(vehicle.isActive),
+    });
+  };
+
+  const saveVehicle = async () => {
+    if (!editTarget || !canWrite('vehicles')) return;
+    setEditSaving(true);
+    try {
+      await adminAPI.put(`/vehicles/${editTarget.id}`, { data: { ...editForm, year: Number(editForm.year) || null } });
+      toast.success('Vehicle updated');
+      setEditTarget(null);
+      loadVehicles(page);
+    } catch (error) { toast.error(error.message || 'Could not update vehicle'); }
+    finally { setEditSaving(false); }
   };
 
   const columns = [
@@ -118,12 +164,11 @@ export default function VehiclesPage() {
       render: (_, row) => (
         <div style={{ display: 'flex', gap: 6 }}>
           <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedVehicle(row); setShowDetail(true); }}>View</button>
-          {canWrite('vehicles') && row.verificationStatus === 'pending' && (
-            <>
-              <button className="btn btn-sm" style={{ background: 'var(--success-dim)', color: 'var(--success)' }} onClick={() => handleApproveVehicle(row)}>Approve</button>
-              <button className="btn btn-danger btn-sm" onClick={() => handleRejectVehicle(row)}>Reject</button>
-            </>
-          )}
+          {canWrite('vehicles') && <button className="btn btn-secondary btn-sm" onClick={() => openEdit(row)} aria-label="Edit vehicle" title="Edit vehicle">✏</button>}
+          {canWrite('vehicles') && row.verificationStatus === 'pending' && <>
+            <button className="btn btn-sm" style={{ background: 'var(--success-dim)', color: 'var(--success)' }} onClick={() => setConfirmation({ vehicle: row, status: 'approved' })}>Approve</button>
+            <button className="btn btn-danger btn-sm" onClick={() => setConfirmation({ vehicle: row, status: 'rejected' })}>Reject</button>
+          </>}
         </div>
       ),
     },
@@ -139,7 +184,7 @@ export default function VehiclesPage() {
       <FilterBar>
         <SearchBar value={search} onChange={q => { setSearch(q); debouncedSearch(q); }} placeholder="Search by plate, make, model..." />
         <select className="input select" style={{ width: 160 }} value={filterStatus}
-          onChange={e => { setFilterStatus(e.target.value); setPage(1); loadVehicles(1, search, e.target.value, filterType); }}>
+          onChange={e => { setFilterStatus(e.target.value); setPage(1); loadVehicles(1, search, e.target.value, filterType, filterCountry); }}>
           <option value="">All Statuses</option>
           <option value="not_started">Not Started</option>
           <option value="pending">Pending</option>
@@ -147,13 +192,14 @@ export default function VehiclesPage() {
           <option value="rejected">Rejected</option>
         </select>
         <select className="input select" style={{ width: 140 }} value={filterType}
-          onChange={e => { setFilterType(e.target.value); setPage(1); loadVehicles(1, search, filterStatus, e.target.value); }}>
+          onChange={e => { setFilterType(e.target.value); setPage(1); loadVehicles(1, search, filterStatus, e.target.value, filterCountry); }}>
           <option value="">All Types</option>
           <option value="taxi">Taxi</option>
           <option value="bus">Bus</option>
           <option value="motorcycle">Motorcycle</option>
           <option value="truck">Truck</option>
         </select>
+        <CountryFilter value={filterCountry} onChange={value => { setFilterCountry(value); setPage(1); loadVehicles(1, search, filterStatus, filterType, value); }} />
       </FilterBar>
       <DataTable columns={columns} data={vehicles} loading={loading} />
       <Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} />
@@ -187,6 +233,38 @@ export default function VehiclesPage() {
           </div>
         )}
       </Modal>
+      <Modal open={Boolean(editTarget)} onClose={() => { if (!editSaving) setEditTarget(null); }} title="Edit vehicle" size="md">
+        {editTarget && <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              ['numberPlate', 'Number plate'], ['make', 'Make'], ['model', 'Model'],
+              ['year', 'Year'], ['color', 'Color'],
+            ].map(([key, label]) => <label className="form-field" key={key}><span>{label}</span>
+              <input className="input" type={key === 'year' ? 'number' : 'text'} value={editForm[key] || ''} onChange={event => setEditForm(current => ({ ...current, [key]: event.target.value }))} />
+            </label>)}
+            <label className="form-field"><span>Verification</span>
+              <select className="input select" value={editForm.verificationStatus} onChange={event => setEditForm(current => ({ ...current, verificationStatus: event.target.value }))}>
+                {['not_started', 'pending', 'approved', 'rejected'].map(status => <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>)}
+              </select>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}><input type="checkbox" checked={editForm.isActive} onChange={event => setEditForm(current => ({ ...current, isActive: event.target.checked }))} /> Active</label>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
+            <button className="btn btn-secondary" onClick={() => setEditTarget(null)} disabled={editSaving}>Cancel</button>
+            <button className="btn btn-primary" onClick={saveVehicle} disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</button>
+          </div>
+        </div>}
+      </Modal>
+      <ConfirmDialog
+        open={Boolean(confirmation)}
+        onClose={() => setConfirmation(null)}
+        onConfirm={confirmVehicleStatus}
+        title={`${confirmation?.status === 'approved' ? 'Approve' : 'Reject'} vehicle?`}
+        message={`Confirm ${confirmation?.status} for vehicle ${confirmation?.vehicle?.numberPlate || ''}?`}
+        confirmLabel={confirmation?.status === 'approved' ? 'Approve vehicle' : 'Reject vehicle'}
+        danger={confirmation?.status === 'rejected'}
+        busy={confirmSaving}
+      />
     </div>
   );
 }

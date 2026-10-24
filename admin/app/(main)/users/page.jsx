@@ -6,7 +6,8 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/lib/toast';
 import { formatDateTime, formatDate, getFullName, debounce } from '@/lib/utils';
 import { DataTable, Pagination } from '@/components/DataTable';
-import { PageHeader, SearchBar, FilterBar, Modal, StatusPill, Avatar, FormField } from '@/components/UI';
+import { PageHeader, SearchBar, FilterBar, Modal, StatusPill, Avatar, ConfirmDialog } from '@/components/UI';
+import CountryFilter from '@/components/CountryFilter';
 
 export default function UsersPage() {
   const { hasPermission, canWrite } = useAuth();
@@ -20,9 +21,12 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [filterBlocked, setFilterBlocked] = useState('');
+  const [filterCountry, setFilterCountry] = useState('');
+  const [blockTarget, setBlockTarget] = useState(null);
+  const [blockSaving, setBlockSaving] = useState(false);
   const pageSize = 20;
 
-  const loadUsers = useCallback(async (pg = 1, q = search, blocked = filterBlocked) => {
+  const loadUsers = useCallback(async (pg = 1, q = search, blocked = filterBlocked, countryId = filterCountry) => {
     setLoading(true);
     try {
       const params = {
@@ -41,6 +45,7 @@ export default function UsersPage() {
       }
       if (blocked === 'true') params['filters[blocked][$eq]'] = true;
       if (blocked === 'false') params['filters[blocked][$eq]'] = false;
+      if (countryId) params['filters[country][$eq]'] = countryId;
       const res = await adminAPI.get('/users', params);
       const data = Array.isArray(res) ? res : (res?.data || []);
       const meta = res?.meta?.pagination;
@@ -52,24 +57,29 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, filterBlocked]);
+  }, [search, filterBlocked, filterCountry]);
 
   const debouncedSearch = useCallback(debounce((q) => {
     setPage(1);
-    loadUsers(1, q, filterBlocked);
-  }, 400), [filterBlocked]);
+    loadUsers(1, q, filterBlocked, filterCountry);
+  }, 400), [filterBlocked, filterCountry]);
 
   useEffect(() => { loadUsers(page); }, [page]);
 
   const handleSearch = (q) => { setSearch(q); debouncedSearch(q); };
 
-  const handleBlock = async (user) => {
+  const confirmBlock = async () => {
+    const user = blockTarget;
+    if (!user) return;
     if (!canWrite('users')) return toast.error('Insufficient permissions');
+    setBlockSaving(true);
     try {
       await adminAPI.put(`/users/${user.id}`, { blocked: !user.blocked });
       toast.success(`User ${user.blocked ? 'unblocked' : 'blocked'} successfully`);
+      setBlockTarget(null);
       loadUsers(page);
     } catch (err) { toast.error(err.message); }
+    finally { setBlockSaving(false); }
   };
 
   const handleViewDetail = async (user) => {
@@ -120,7 +130,7 @@ export default function UsersPage() {
         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
           <button className="btn btn-secondary btn-sm" onClick={() => handleViewDetail(row)}>View</button>
           {canWrite('users') && (
-            <button className={`btn btn-sm ${row.blocked ? 'btn-secondary' : 'btn-danger'}`} onClick={() => handleBlock(row)}>
+            <button className={`btn btn-sm ${row.blocked ? 'btn-secondary' : 'btn-danger'}`} onClick={() => setBlockTarget(row)}>
               {row.blocked ? 'Unblock' : 'Block'}
             </button>
           )}
@@ -139,17 +149,28 @@ export default function UsersPage() {
       <FilterBar>
         <SearchBar value={search} onChange={handleSearch} placeholder="Search by name, phone, username..." />
         <select className="input select" style={{ width: 160 }} value={filterBlocked}
-          onChange={e => { setFilterBlocked(e.target.value); setPage(1); loadUsers(1, search, e.target.value); }}>
+          onChange={e => { setFilterBlocked(e.target.value); setPage(1); loadUsers(1, search, e.target.value, filterCountry); }}>
           <option value="">All Users</option>
           <option value="false">Active</option>
           <option value="true">Blocked</option>
         </select>
+        <CountryFilter value={filterCountry} onChange={value => { setFilterCountry(value); setPage(1); loadUsers(1, search, filterBlocked, value); }} />
       </FilterBar>
       <DataTable columns={columns} data={users} loading={loading} />
       <Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} />
       <Modal open={showDetail} onClose={() => { setShowDetail(false); setSelectedUser(null); }} title="User Details" maxWidth={640}>
-        {selectedUser && <UserDetail user={selectedUser} onBlock={handleBlock} canWrite={canWrite('users')} />}
+        {selectedUser && <UserDetail user={selectedUser} onBlock={setBlockTarget} canWrite={canWrite('users')} />}
       </Modal>
+      <ConfirmDialog
+        open={Boolean(blockTarget)}
+        onClose={() => setBlockTarget(null)}
+        onConfirm={confirmBlock}
+        title={`${blockTarget?.blocked ? 'Unblock' : 'Block'} user`}
+        message={`Are you sure you want to ${blockTarget?.blocked ? 'unblock' : 'block'} ${getFullName(blockTarget || {})}? ${blockTarget?.blocked ? 'They will regain access to their account.' : 'They will lose access to their account.'}`}
+        confirmLabel={blockTarget?.blocked ? 'Unblock user' : 'Block user'}
+        danger={!blockTarget?.blocked}
+        busy={blockSaving}
+      />
     </div>
   );
 }
@@ -227,9 +248,4 @@ function UserDetail({ user, onBlock, canWrite }) {
       )}
     </div>
   );
-}
-
-function formatDateTime(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleString('en-ZM', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }

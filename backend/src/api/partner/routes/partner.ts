@@ -95,6 +95,12 @@ export default {
 
         // ── Partner float wallet ─────────────────────────────────────────────────
         {
+            method: 'GET',
+            path: '/partner/commission-balance',
+            handler: 'partner.getCommissionBalance',
+            config: { policies: [], middlewares: [] },
+        },
+        {
             // Create a pending float-topup record; returns ID for OkraPay modal
             method: 'POST',
             path: '/partner/float/topup',

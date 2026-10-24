@@ -16,6 +16,7 @@ import { getPaymentGateway } from '../paymentGatewayAdapters/';
 import { SendEmailNotification } from './messages';
 import socketService from './socketService';
 import { resolveSettingsForUser } from './settingsResolver';
+import { recordPartnerCommissionPayment } from './partner-commission';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,6 +55,7 @@ function purposeToEntityType(purpose: string): string {
     ridepay: 'ride',
     withdraw: 'withdrawal',
     walletTopup: 'wallet_topup',
+    partnerCommission: 'partner_commission_payment',
   };
   return map[purpose] || '';
 }
@@ -713,6 +715,9 @@ async function dispatchSuccess(
       break;
     case 'affiliatePayout':
       await handleAffiliatePayoutSuccess(record, userId, lencoData);
+      break;
+    case 'partnerCommission':
+      await recordPartnerCommissionPayment(strapi, record, lencoData);
       break;
     default:
       strapi.log.warn(`[Poller] Unhandled purpose '${record.purpose}' ref ${record.reference}`);

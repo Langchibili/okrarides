@@ -31,7 +31,7 @@ export default function AuditLogsPage() {
       if (filterAction) filters.action = filterAction;
       if (filterActorType) filters.actorType = filterActorType;
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'action', filters, populate: ['actor'] });
-      const res = await adminClient.get(`/audit-logs${q}&sort=timestamp:desc`);
+      const res = await adminClient.get(`/audit-logs?${q}&sort=timestamp:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);

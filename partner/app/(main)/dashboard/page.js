@@ -442,6 +442,7 @@ export default function DashboardPage() {
   const [floatDriver, setFloatDriver] = useState(null);
   const [error, setError] = useState(null);
   const [registerTypeModal, setRegisterTypeModal] = useState(false);
+  const [floatExplanationOpen, setFloatExplanationOpen] = useState(false);
   const intervalRef = useRef(null);
 
   const loadFleetLocations = useCallback(async () => {
@@ -547,6 +548,13 @@ export default function DashboardPage() {
         <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', mt: 0.5 }}>
           Available to distribute to drivers
         </Typography>
+        <Button
+          variant="text"
+          onClick={() => setFloatExplanationOpen(true)}
+          sx={{ mt: 1, px: 0, color: '#d1fae5', fontSize: '0.75rem', fontWeight: 700, textTransform: 'none' }}
+        >
+          See how float flows and commission are calculated
+        </Button>
       </Paper>
 
       {/* Fleet status KPI row — 4-col on md+, 2-col on mobile */}
@@ -717,6 +725,46 @@ export default function DashboardPage() {
             </Button>
           </Box>
         </Box>
+      </Dialog>
+
+      <Dialog
+        open={floatExplanationOpen}
+        onClose={() => setFloatExplanationOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            bgcolor: '#0f172a',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.1)',
+            backgroundImage: 'none',
+            maxWidth: 620,
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>Your fleet float and commission</DialogTitle>
+        <DialogContent dividers sx={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+          <Box sx={{ display: 'grid', gap: 2, color: 'rgba(255,255,255,0.72)', fontSize: '0.85rem', lineHeight: 1.7 }}>
+            <Typography sx={{ color: 'inherit', fontSize: 'inherit' }}>
+              Okra sells float to your partner account, and you distribute that float to drivers in your fleet. A driver’s float is charged for the ride fare and the driver commission; float transfers themselves are not commission income.
+            </Typography>
+            <Typography sx={{ color: 'inherit', fontSize: 'inherit' }}>
+              For each completed ride or delivery by a driver under your partner account, the configured country commission rate is applied. Your partner commission share is calculated only from that fleet-generated commission. Commission from independent drivers does not count toward your earnings.
+            </Typography>
+            <Typography sx={{ color: 'inherit', fontSize: 'inherit' }}>
+              The remainder of your fleet’s commission is the amount owed to Okra. You can see the calculated commission earned, partner share, settlements, and current amount owed in the Float page. Subscriptions are tracked separately from ride commission.
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setFloatExplanationOpen(false)} sx={{ color: 'rgba(255,255,255,0.65)' }}>Close</Button>
+          <Button
+            variant="contained"
+            onClick={() => { setFloatExplanationOpen(false); router.push('float'); }}
+            sx={{ borderRadius: 2, fontWeight: 700 }}
+          >
+            View commission balance
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Register driver type modal */}

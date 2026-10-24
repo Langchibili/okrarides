@@ -98,6 +98,18 @@
       "type": "decimal",
       "default": 15
     },
+    "partnerCommisionPercentage": {
+      "type": "decimal",
+      "default": 10,
+      "min": 0,
+      "max": 100,
+      "description": "Partner share of commissions earned by their drivers; country settings can override this value."
+    },
+    "platformStatCalculationCycleInMins": {
+      "type": "integer",
+      "default": 20,
+      "min": 1
+    },
     "defaultFlatCommission": {
       "type": "decimal"
     },

@@ -5,6 +5,7 @@ import { adminClient, buildQuery } from '@/lib/api/adminClient';
 import DataTable from '@/components/admin/DataTable';
 import Modal from '@/components/admin/Modal';
 import { PageHeader, SearchBar, StatusBadge, Btn } from '@/components/admin/PageHeader';
+import CountryFilter from '@/components/CountryFilter';
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -19,6 +20,7 @@ export default function PackagesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [countryId, setCountryId] = useState('');
   const [detail, setDetail] = useState(null);
 
   const load = useCallback(async (page = 1) => {
@@ -26,13 +28,14 @@ export default function PackagesPage() {
     try {
       const filters = filterStatus ? { packageStatus: filterStatus } : {};
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'trackingCode', filters, populate: ['delivery', 'sender'] });
-      const res = await adminClient.get(`/packages${q}&sort=createdAt:desc`);
+      const countryFilter = countryId ? `&filters[countryId][$eq]=${encodeURIComponent(countryId)}` : '';
+      const res = await adminClient.get(`/packages?${q}${countryFilter}&sort=createdAt:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [search, filterStatus]);
+  }, [search, filterStatus, countryId]);
 
   useEffect(() => { load(1); }, [load]);
 
@@ -79,6 +82,7 @@ export default function PackagesPage() {
             <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
           ))}
         </select>
+        <CountryFilter value={countryId} onChange={setCountryId} />
         <Btn variant="secondary" onClick={() => { setSearch(''); setFilterStatus(''); }}>Clear</Btn>
       </div>
 

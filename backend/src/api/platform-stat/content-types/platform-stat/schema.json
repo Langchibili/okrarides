@@ -1,5 +1,5 @@
 {
-  "kind": "singleType",
+  "kind": "collectionType",
   "collectionName": "platform_stats",
   "info": {
     "singularName": "platform-stat",
@@ -11,159 +11,53 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "lastCalculatedAt": {
-      "type": "datetime"
+    "country": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::country.country"
     },
-
-    "totalDriverEarnings": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Sum of all driver earnings across all completed rides"
-    },
-    "totalPlatformCommission": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Total commission collected by the platform from float-based rides"
-    },
-    "totalSubscriptionRevenue": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Total revenue from driver subscription purchases"
-    },
-
-    "totalFloatSold": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Cumulative float purchased by all drivers (platform cash in)"
-    },
-    "totalActiveFloat": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Sum of all positive float balances currently held"
-    },
-    "totalNegativeFloat": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Absolute sum of all negative float balances (debt owed to platform)"
-    },
-    "driversWithNegativeFloat": {
-      "type": "integer",
-      "default": 0,
-      "description": "Number of drivers currently in negative float"
-    },
-
-    "totalWithdrawalsProcessed": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Total amount paid out via withdrawals"
-    },
-    "totalPendingWithdrawals": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Total amount currently awaiting withdrawal processing"
-    },
-
-    "totalRidesCompleted": {
-      "type": "integer",
-      "default": 0
-    },
-    "totalRidesCancelled": {
-      "type": "integer",
-      "default": 0
-    },
-    "totalSubscriptionRides": {
-      "type": "integer",
-      "default": 0,
-      "description": "Rides completed with zero commission (subscription riders)"
-    },
-    "totalFloatRides": {
-      "type": "integer",
-      "default": 0,
-      "description": "Rides completed with float commission deduction"
-    },
-    "totalCashRides": {
-      "type": "integer",
-      "default": 0
-    },
-    "totalDigitalRides": {
-      "type": "integer",
-      "default": 0
-    },
-
-    "activeDriverCount": {
-      "type": "integer",
-      "default": 0
-    },
-    "activeSubscriberCount": {
-      "type": "integer",
-      "default": 0
-    },
-    "trialSubscriberCount": {
-      "type": "integer",
-      "default": 0
-    },
-
-    "totalDeliveriesCompleted": {
-      "type": "integer",
-      "default": 0
-    },
-    "totalDeliveriesCancelled": {
-      "type": "integer",
-      "default": 0
-    },
-    "totalDeliveryDriverEarnings": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Sum of all delivery driver earnings across completed deliveries"
-    },
-    "totalDeliveryPlatformCommission": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Total commission collected by the platform from deliveries"
-    },
-    "totalCashDeliveries": {
-      "type": "integer",
-      "default": 0
-    },
-    "totalDigitalDeliveries": {
-      "type": "integer",
-      "default": 0,
-      "description": "Completed deliveries paid via OkraPay"
-    },
-    "activeDeliveryDriverCount": {
-      "type": "integer",
-      "default": 0,
-      "description": "Drivers with an active deliveryProfile"
-    },
-    "totalAffiliatePoints": {
-    "type": "integer",
-    "default": 0,
-    "description": "Total points ever awarded across all affiliates"
-    },
-    "totalAffiliatePayouts": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Total cash paid out to affiliates via withdrawals"
-    },
-    "totalPendingAffiliateBalance": {
-      "type": "decimal",
-      "default": 0,
-      "description": "Sum of all affiliate withdrawableBalance not yet withdrawn"
-    },
-    "activeAffiliateCount": {
-      "type": "integer",
-      "default": 0,
-      "description": "Affiliates with at least one confirmed referral"
-    },
-    "totalAffiliateReferrals": {
-      "type": "integer",
-      "default": 0,
-      "description": "Total users who registered via an affiliate link"
-    },
-    "totalAffiliateTransactions": {
-      "type": "integer",
-      "default": 0,
-      "description": "Count of all affiliate point-award events"
-    }
+    "lastCalculatedAt": { "type": "datetime" },
+    "platformStatCalculationCycleInMins": { "type": "integer", "default": 20 },
+    "partnerCommisionPercentage": { "type": "decimal", "default": 0 },
+    "partnerCommissionShare": { "type": "decimal", "default": 0 },
+    "estimatedProfit": { "type": "decimal", "default": 0 },
+    "totalDriverEarnings": { "type": "decimal", "default": 0 },
+    "totalPlatformCommission": { "type": "decimal", "default": 0 },
+    "totalSubscriptionRevenue": { "type": "decimal", "default": 0 },
+    "totalFloatSold": { "type": "decimal", "default": 0 },
+    "totalDriverFloatIssued": { "type": "decimal", "default": 0 },
+    "totalPartnerFloatPurchased": { "type": "decimal", "default": 0 },
+    "totalActiveFloat": { "type": "decimal", "default": 0 },
+    "totalNegativeFloat": { "type": "decimal", "default": 0 },
+    "driversWithNegativeFloat": { "type": "integer", "default": 0 },
+    "totalWithdrawalsProcessed": { "type": "decimal", "default": 0 },
+    "totalPendingWithdrawals": { "type": "decimal", "default": 0 },
+    "totalRidesCompleted": { "type": "integer", "default": 0 },
+    "totalRideCount": { "type": "integer", "default": 0 },
+    "totalRidesCancelled": { "type": "integer", "default": 0 },
+    "totalSubscriptionRides": { "type": "integer", "default": 0 },
+    "totalFloatRides": { "type": "integer", "default": 0 },
+    "totalCashRides": { "type": "integer", "default": 0 },
+    "totalDigitalRides": { "type": "integer", "default": 0 },
+    "activeDriverCount": { "type": "integer", "default": 0 },
+    "totalDriverCount": { "type": "integer", "default": 0 },
+    "totalDelivererCount": { "type": "integer", "default": 0 },
+    "totalRiderCount": { "type": "integer", "default": 0 },
+    "activeSubscriberCount": { "type": "integer", "default": 0 },
+    "trialSubscriberCount": { "type": "integer", "default": 0 },
+    "totalDeliveriesCompleted": { "type": "integer", "default": 0 },
+    "totalDeliveryCount": { "type": "integer", "default": 0 },
+    "totalDeliveriesCancelled": { "type": "integer", "default": 0 },
+    "totalDeliveryDriverEarnings": { "type": "decimal", "default": 0 },
+    "totalDeliveryPlatformCommission": { "type": "decimal", "default": 0 },
+    "totalCashDeliveries": { "type": "integer", "default": 0 },
+    "totalDigitalDeliveries": { "type": "integer", "default": 0 },
+    "activeDeliveryDriverCount": { "type": "integer", "default": 0 },
+    "totalAffiliatePoints": { "type": "integer", "default": 0 },
+    "totalAffiliatePayouts": { "type": "decimal", "default": 0 },
+    "totalPendingAffiliateBalance": { "type": "decimal", "default": 0 },
+    "activeAffiliateCount": { "type": "integer", "default": 0 },
+    "totalAffiliateReferrals": { "type": "integer", "default": 0 },
+    "totalAffiliateTransactions": { "type": "integer", "default": 0 }
   }
 }

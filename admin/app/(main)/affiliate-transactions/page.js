@@ -27,7 +27,7 @@ export default function AffiliateTransactionsPage() {
       if (filterType) filters.type = filterType;
       if (filterStatus) filters.affiliate_transaction_status = filterStatus;
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'transactionId', filters, populate: ['affiliate', 'referredUser', 'ride'] });
-      const res = await adminClient.get(`/affiliate-transactions${q}&sort=createdAt:desc`);
+      const res = await adminClient.get(`/affiliate-transactions?${q}&sort=createdAt:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);

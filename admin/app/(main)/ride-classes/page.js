@@ -6,12 +6,15 @@ import DataTable from '@/components/admin/DataTable';
 import Modal, { ConfirmModal } from '@/components/admin/Modal';
 import { PageHeader, StatusBadge, SearchBar, Btn } from '@/components/admin/PageHeader';
 import { FormField, Input, Select, Textarea, Toggle } from '@/components/admin/FormField';
+import CountryFilter from '@/components/CountryFilter';
 
-const EMPTY = { name: '', description: '', taxiType: '', baseFare: '', perKmRate: '', perMinuteRate: '', minimumFare: '', commissionPercentage: '', displayOrder: 0, isActive: true };
+const EMPTY = { name: '', description: '', taxiType: '', baseFare: '', perKmRate: '', perMinuteRate: '', minimumFare: '', commissionPercentage: '', displayOrder: 0, isActive: true, countries: [] };
 
 export default function RideClassesPage() {
   const [data, setData] = useState([]);
   const [taxiTypes, setTaxiTypes] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [countryId, setCountryId] = useState('');
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(null);
@@ -24,18 +27,22 @@ export default function RideClassesPage() {
     setLoading(true);
     try {
       const q = buildQuery({ populate: ['taxiType'], search, searchField: 'name', pageSize: 100 });
-      const res = await adminClient.get(`/ride-classes${q}&sort=displayOrder:asc`);
+      const countryFilter = countryId ? `&filters[countryId][$eq]=${encodeURIComponent(countryId)}` : '';
+      const res = await adminClient.get(`/ride-classes?${q}${countryFilter}&sort=displayOrder:asc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [search]);
+  }, [search, countryId]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     adminClient.get('/taxi-types?pagination[pageSize]=100').then(res => {
       const items = res?.data || res || [];
       setTaxiTypes(Array.isArray(items) ? items : (items.data || []));
+    }).catch(() => {});
+    adminClient.get('/country-options').then(res => {
+      setCountries(Array.isArray(res) ? res : res?.data || []);
     }).catch(() => {});
   }, []);
 
@@ -46,13 +53,36 @@ export default function RideClassesPage() {
       perKmRate: row.perKmRate, perMinuteRate: row.perMinuteRate,
       minimumFare: row.minimumFare, commissionPercentage: row.commissionPercentage || '',
       displayOrder: row.displayOrder, isActive: row.isActive,
+      countries: (row.countries || []).map(item => ({
+        country: item.country?.id || item.country || '',
+        baseFare: item.baseFare ?? '',
+        perKmRate: item.perKmRate ?? '',
+        perMinuteRate: item.perMinuteRate ?? '',
+        minimumFare: item.minimumFare ?? '',
+        commissionPercentage: item.commissionPercentage ?? '',
+        isActive: item.isActive ?? true,
+      })),
     });
     setError(''); setModal({ mode: 'edit', item: row });
   };
 
   const save = async () => {
-    if (!form.name || !form.baseFare || !form.perKmRate || !form.perMinuteRate || !form.minimumFare) {
+    if (!form.name.trim() || !form.baseFare || !form.perKmRate || !form.perMinuteRate || !form.minimumFare) {
       setError('Name and all fare fields are required.'); return;
+    }
+    const selectedCountries = form.countries.map(rule => String(rule.country));
+    if (form.countries.some(rule => (
+      !rule.country ||
+      ['baseFare', 'perKmRate', 'perMinuteRate', 'minimumFare'].some(field => (
+        rule[field] === '' || !Number.isFinite(Number(rule[field])) || Number(rule[field]) < 0
+      ))
+    ))) {
+      setError('Each country override needs a country and valid non-negative fare values.');
+      return;
+    }
+    if (new Set(selectedCountries).size !== selectedCountries.length) {
+      setError('A country can only have one pricing override per ride class.');
+      return;
     }
     setSaving(true); setError('');
     try {
@@ -65,6 +95,15 @@ export default function RideClassesPage() {
         minimumFare: parseFloat(form.minimumFare),
         commissionPercentage: form.commissionPercentage ? parseFloat(form.commissionPercentage) : null,
         displayOrder: +form.displayOrder || 0,
+        countries: form.countries.map(rule => ({
+          country: Number(rule.country),
+          baseFare: Number(rule.baseFare),
+          perKmRate: Number(rule.perKmRate),
+          perMinuteRate: Number(rule.perMinuteRate),
+          minimumFare: Number(rule.minimumFare),
+          commissionPercentage: rule.commissionPercentage === '' ? null : Number(rule.commissionPercentage),
+          isActive: Boolean(rule.isActive),
+        })),
       };
       if (modal.mode === 'create') {
         await adminClient.post('/ride-classes', { data: payload });
@@ -84,13 +123,13 @@ export default function RideClassesPage() {
     { key: 'perMinuteRate', label: 'Per Min', render: v => `K${Number(v).toFixed(2)}` },
     { key: 'minimumFare', label: 'Min Fare', render: v => `K${Number(v).toFixed(2)}` },
     { key: 'commissionPercentage', label: 'Comm %', render: v => v ? `${v}%` : '—' },
+    { key: 'countries', label: 'Country pricing', render: v => (v || []).map(item => item.country?.name || item.country?.code).filter(Boolean).join(', ') || 'Default only' },
     { key: 'isActive', label: 'Status', render: v => <StatusBadge status={v ? 'active' : 'inactive'} /> },
     {
       key: 'actions', label: '', width: 120,
       render: (_, row) => (
         <div className="flex gap-2">
           <Btn size="sm" variant="secondary" onClick={() => openEdit(row)}>Edit</Btn>
-          <Btn size="sm" variant="danger" onClick={() => setDeleteTarget(row)}>Del</Btn>
         </div>
       ),
     },
@@ -104,6 +143,7 @@ export default function RideClassesPage() {
         action={<Btn onClick={() => { setForm(EMPTY); setError(''); setModal({ mode: 'create' }); }}>+ Add Class</Btn>}
       />
       <div className="mb-4"><SearchBar value={search} onChange={setSearch} placeholder="Search classes…" /></div>
+      <div className="mb-4"><CountryFilter value={countryId} onChange={setCountryId} /></div>
       <DataTable columns={columns} data={data} loading={loading} />
 
       <Modal open={!!modal} onClose={() => setModal(null)} title={modal?.mode === 'create' ? 'Add Ride Class' : 'Edit Ride Class'} size="lg">
@@ -138,6 +178,80 @@ export default function RideClassesPage() {
           <FormField label="Display Order">
             <Input type="number" value={form.displayOrder} onChange={e => setForm(f => ({ ...f, displayOrder: e.target.value }))} />
           </FormField>
+          <div className="col-span-2 rounded-xl border border-gray-200 p-4">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-semibold text-gray-800">Country-specific pricing</h3>
+                <p className="text-xs text-gray-500">Leave countries without an override on the default fare values above.</p>
+              </div>
+              <Btn
+                type="button"
+                variant="secondary"
+                onClick={() => setForm(current => ({
+                  ...current,
+                  countries: [...current.countries, { country: '', baseFare: '', perKmRate: '', perMinuteRate: '', minimumFare: '', commissionPercentage: '', isActive: true }],
+                }))}
+              >
+                + Add country pricing
+              </Btn>
+            </div>
+            <div className="space-y-4">
+              {form.countries.map((rule, index) => (
+                <div key={`${rule.country || 'new'}-${index}`} className="grid grid-cols-1 gap-3 rounded-lg bg-gray-50 p-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <FormField label="Country" required>
+                    <Select value={rule.country} onChange={event => setForm(current => ({
+                      ...current,
+                      countries: current.countries.map((item, itemIndex) => itemIndex === index ? { ...item, country: event.target.value } : item),
+                    }))}>
+                      <option value="">Select country</option>
+                      {countries.map(country => <option key={country.id} value={country.id}>{country.name || country.code}</option>)}
+                    </Select>
+                  </FormField>
+                  {[
+                    ['baseFare', 'Base fare'],
+                    ['perKmRate', 'Per km rate'],
+                    ['perMinuteRate', 'Per minute rate'],
+                    ['minimumFare', 'Minimum fare'],
+                    ['commissionPercentage', 'Commission % (optional)'],
+                  ].map(([key, label]) => (
+                    <FormField
+                      key={key}
+                      label={`${label}${key === 'commissionPercentage' ? '' : ` (${countries.find(country => String(country.id) === String(rule.country))?.currency?.symbol || countries.find(country => String(country.id) === String(rule.country))?.currency?.code || 'country currency'})`}`}
+                      required={key !== 'commissionPercentage'}
+                    >
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={rule[key]}
+                        onChange={event => setForm(current => ({
+                          ...current,
+                          countries: current.countries.map((item, itemIndex) => itemIndex === index ? { ...item, [key]: event.target.value } : item),
+                        }))}
+                      />
+                    </FormField>
+                  ))}
+                  <div className="flex items-center justify-between gap-3">
+                    <Toggle
+                      checked={rule.isActive}
+                      onChange={value => setForm(current => ({
+                        ...current,
+                        countries: current.countries.map((item, itemIndex) => itemIndex === index ? { ...item, isActive: value } : item),
+                      }))}
+                      label="Active in country"
+                    />
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-red-600"
+                      onClick={() => setForm(current => ({ ...current, countries: current.countries.filter((_, itemIndex) => itemIndex !== index) }))}
+                    >
+                      Remove override
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
         <Toggle checked={form.isActive} onChange={v => setForm(f => ({ ...f, isActive: v }))} label="Active" />
         {error && <p className="text-red-500 text-sm mt-3">{error}</p>}

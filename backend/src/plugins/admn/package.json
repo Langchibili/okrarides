@@ -1,0 +1,10 @@
+{
+  "name": "admn",
+  "version": "0.1.0",
+  "private": true,
+  "strapi": {
+    "name": "admn",
+    "displayName": "Admin integration",
+    "kind": "plugin"
+  }
+}

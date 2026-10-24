@@ -1,12 +1,15 @@
 // PATH: src/app/(dashboard)/drivers/page.js
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import adminAPI from '@/lib/api';
+import { adminClient } from '@/lib/api/adminClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/lib/toast';
 import { formatDate, getFullName, debounce } from '@/lib/utils';
 import { DataTable, Pagination } from '@/components/DataTable';
-import { PageHeader, SearchBar, FilterBar, Modal, StatusPill, Avatar } from '@/components/UI';
+import { PageHeader, SearchBar, FilterBar, Modal, StatusPill, Avatar, ConfirmDialog, ActionIcon } from '@/components/UI';
+import CountryFilter from '@/components/CountryFilter';
 
 export default function DriversPage() {
   const { hasPermission, canWrite } = useAuth();
@@ -19,11 +22,22 @@ export default function DriversPage() {
   const [pageCount, setPageCount] = useState(1);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterSubStatus, setFilterSubStatus] = useState('');
+  const [filterCountry, setFilterCountry] = useState('');
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [confirmation, setConfirmation] = useState(null);
+  const [confirmSaving, setConfirmSaving] = useState(false);
+  const [floatTarget, setFloatTarget] = useState(null);
+  const [floatAmount, setFloatAmount] = useState('');
+  const [debitPartner, setDebitPartner] = useState(false);
+  const [floatSaving, setFloatSaving] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [partnerOptions, setPartnerOptions] = useState([]);
+  const [editSaving, setEditSaving] = useState(false);
   const pageSize = 20;
 
-  const loadDrivers = useCallback(async (pg = 1, q = search, vs = filterStatus, ss = filterSubStatus) => {
+  const loadDrivers = useCallback(async (pg = 1, q = search, vs = filterStatus, ss = filterSubStatus, countryId = filterCountry) => {
     setLoading(true);
     try {
       const params = {
@@ -31,6 +45,7 @@ export default function DriversPage() {
         'pagination[pageSize]': pageSize,
         'sort': 'createdAt:desc',
         'filters[driverProfile][id][$notNull]': true,
+        'filters[driverProfile][assignedVehicle][id][$notNull]': true,
         'populate[driverProfile][fields]': 'verificationStatus,floatBalance,withdrawableFloatBalance,completedRides,totalRides,averageRating,isOnline,isAvailable,subscriptionStatus,blocked,totalEarnings',
         'populate[driverProfile][populate][assignedVehicle][fields]': 'numberPlate,make,model,color',
         'populate[country][fields]': 'name,code',
@@ -43,6 +58,7 @@ export default function DriversPage() {
       }
       if (vs) params['filters[driverProfile][verificationStatus][$eq]'] = vs;
       if (ss) params['filters[driverProfile][subscriptionStatus][$eq]'] = ss;
+      if (countryId) params['filters[country][id][$eq]'] = countryId;
       const res = await adminAPI.get('/users', params);
       const data = Array.isArray(res) ? res : (res?.data || []);
       const meta = res?.meta?.pagination;
@@ -54,47 +70,51 @@ export default function DriversPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, filterStatus, filterSubStatus]);
+  }, [search, filterStatus, filterSubStatus, filterCountry]);
 
   const debouncedSearch = useCallback(debounce((q) => {
     setPage(1);
-    loadDrivers(1, q, filterStatus, filterSubStatus);
-  }, 400), [filterStatus, filterSubStatus]);
+    loadDrivers(1, q, filterStatus, filterSubStatus, filterCountry);
+  }, 400), [filterStatus, filterSubStatus, filterCountry]);
 
   useEffect(() => { loadDrivers(page); }, [page]);
 
   const handleSearch = (q) => { setSearch(q); debouncedSearch(q); };
 
   const handleApprove = async (driver) => {
-    if (!canWrite('drivers')) return toast.error('Insufficient permissions');
+    if (!canWrite('drivers')) { toast.error('Insufficient permissions'); return false; }
     try {
       const dp = driver.driverProfile;
-      if (!dp) return toast.error('No driver profile found');
+      if (!dp) { toast.error('No driver profile found'); return false; }
       await adminAPI.put(`/users/${driver.id}`, { driverProfile: { id: dp.id, verificationStatus: 'approved' } });
       toast.success('Driver approved');
       loadDrivers(page);
-    } catch (err) { toast.error(err.message); }
+      return true;
+    } catch (err) { toast.error(err.message); return false; }
   };
 
   const handleReject = async (driver) => {
-    if (!canWrite('drivers')) return toast.error('Insufficient permissions');
+    if (!canWrite('drivers')) { toast.error('Insufficient permissions'); return false; }
     try {
       const dp = driver.driverProfile;
+      if (!dp) { toast.error('No driver profile found'); return false; }
       await adminAPI.put(`/users/${driver.id}`, { driverProfile: { id: dp.id, verificationStatus: 'rejected' } });
       toast.success('Driver rejected');
       loadDrivers(page);
-    } catch (err) { toast.error(err.message); }
+      return true;
+    } catch (err) { toast.error(err.message); return false; }
   };
 
   const handleBlockDriver = async (driver) => {
-    if (!canWrite('drivers')) return toast.error('Insufficient permissions');
+    if (!canWrite('drivers')) { toast.error('Insufficient permissions'); return false; }
     try {
       const dp = driver.driverProfile;
       const isBlocked = dp?.blocked;
       await adminAPI.put(`/users/${driver.id}`, { driverProfile: { id: dp.id, blocked: !isBlocked, isOnline: false, isAvailable: false } });
       toast.success(`Driver ${isBlocked ? 'unblocked' : 'blocked'}`);
       loadDrivers(page);
-    } catch (err) { toast.error(err.message); }
+      return true;
+    } catch (err) { toast.error(err.message); return false; }
   };
 
   const handleViewDetail = async (driver) => {
@@ -103,7 +123,89 @@ export default function DriversPage() {
     try {
       const full = await adminAPI.get(`/users/${driver.id}?populate[driverProfile][populate]=assignedVehicle,currentSubscription.subscriptionPlan,subscriptionHistory&populate[country]=*`);
       setSelectedDriver(full);
-    } catch {}
+    } catch (error) {
+      toast.error(error.message || 'Could not load driver details');
+    }
+  };
+
+  const askForConfirmation = (action, driver) => setConfirmation({ action, driver });
+
+  const confirmDriverAction = async () => {
+    if (!confirmation) return;
+    setConfirmSaving(true);
+    try {
+      const succeeded = confirmation.action === 'approve'
+        ? await handleApprove(confirmation.driver)
+        : confirmation.action === 'reject'
+          ? await handleReject(confirmation.driver)
+          : await handleBlockDriver(confirmation.driver);
+      if (succeeded) setConfirmation(null);
+    } finally {
+      setConfirmSaving(false);
+    }
+  };
+
+  const handleAddFloat = async () => {
+    const amount = Number(floatAmount);
+    if (!floatTarget || !Number.isFinite(amount) || amount <= 0) {
+      toast.error('Enter a valid positive float amount');
+      return;
+    }
+    setFloatSaving(true);
+    try {
+      await adminAPI.post(`/drivers/${floatTarget.id}/float`, {
+        amount,
+        debitPartner: Boolean(floatTarget.partner && debitPartner),
+      });
+      toast.success(`K${amount.toFixed(2)} added to ${getFullName(floatTarget)}'s float`);
+      setFloatTarget(null);
+      setFloatAmount('');
+      setDebitPartner(false);
+      loadDrivers(page);
+    } catch (err) { toast.error(err.message || 'Could not add driver float'); }
+    finally { setFloatSaving(false); }
+  };
+
+  const openEdit = async driver => {
+    const vehicle = driver.driverProfile?.assignedVehicle || {};
+    setEditTarget(driver);
+    setEditForm({
+      firstName: driver.firstName || '',
+      lastName: driver.lastName || '',
+      address: driver.address || '',
+      partnerId: driver.partner?.id ? String(driver.partner.id) : '',
+      vehicle: {
+        numberPlate: vehicle.numberPlate || '',
+        make: vehicle.make || '',
+        model: vehicle.model || '',
+        year: vehicle.year || '',
+        color: vehicle.color || '',
+        insuranceExpiryDate: vehicle.insuranceExpiryDate || '',
+      },
+    });
+    try {
+      const response = await adminClient.get('/drivers/partners');
+      const list = response?.data ?? response;
+      setPartnerOptions(Array.isArray(list) ? list : []);
+    } catch (error) {
+      toast.error(error.message || 'Could not load partner accounts');
+    }
+  };
+
+  const saveDriver = async () => {
+    if (!editTarget || !canWrite('drivers')) return;
+    setEditSaving(true);
+    try {
+      await adminAPI.put(`/drivers/${editTarget.id}`, {
+        ...editForm,
+        partnerId: editForm.partnerId ? Number(editForm.partnerId) : null,
+        vehicle: { ...editForm.vehicle, year: Number(editForm.vehicle.year) },
+      });
+      toast.success('Driver details updated');
+      setEditTarget(null);
+      loadDrivers(page);
+    } catch (error) { toast.error(error.message || 'Could not update driver'); }
+    finally { setEditSaving(false); }
   };
 
   const columns = [
@@ -140,6 +242,12 @@ export default function DriversPage() {
       },
     },
     {
+      key: 'partner', label: 'Partner',
+      render: (partner) => partner
+        ? <span style={{ fontSize: 12 }}>{partner.partnerProfile?.businessName || getFullName(partner)}</span>
+        : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>No partner</span>,
+    },
+    {
       key: 'driverProfile.assignedVehicle', label: 'Vehicle',
       render: (_, row) => {
         const v = row.driverProfile?.assignedVehicle;
@@ -155,15 +263,21 @@ export default function DriversPage() {
         const isBlocked = row.driverProfile?.blocked;
         return (
           <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => handleViewDetail(row)}>View</button>
+            <button className="btn btn-secondary btn-sm" title="View driver" aria-label="View driver" onClick={() => handleViewDetail(row)}>View</button>
+            {canWrite('drivers') && <>
+              <button className="btn btn-secondary btn-sm" title="Edit driver" aria-label="Edit driver" onClick={() => openEdit(row)}><ActionIcon name="edit" /></button>
+              <button className="btn btn-secondary btn-sm" title="Add float" aria-label="Add float" onClick={() => { setFloatTarget(row); setFloatAmount(''); setDebitPartner(Boolean(row.partner)); }}>
+                <ActionIcon name="cash" />
+              </button>
+            </>}
             {canWrite('drivers') && vs === 'pending' && (
               <>
-                <button className="btn btn-sm" style={{ background: 'var(--success-dim)', color: 'var(--success)', border: '1px solid rgba(34,197,94,0.2)' }} onClick={() => handleApprove(row)}>Approve</button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleReject(row)}>Reject</button>
+                <button className="btn btn-sm" style={{ background: 'var(--success-dim)', color: 'var(--success)', border: '1px solid rgba(34,197,94,0.2)' }} onClick={() => askForConfirmation('approve', row)}>Approve</button>
+                <button className="btn btn-danger btn-sm" onClick={() => askForConfirmation('reject', row)}>Reject</button>
               </>
             )}
             {canWrite('drivers') && vs === 'approved' && (
-              <button className={`btn btn-sm ${isBlocked ? 'btn-secondary' : 'btn-danger'}`} onClick={() => handleBlockDriver(row)}>{isBlocked ? 'Unblock' : 'Block'}</button>
+              <button className={`btn btn-sm ${isBlocked ? 'btn-secondary' : 'btn-danger'}`} onClick={() => askForConfirmation('block', row)}>{isBlocked ? 'Unblock' : 'Block'}</button>
             )}
           </div>
         );
@@ -177,11 +291,12 @@ export default function DriversPage() {
 
   return (
     <div>
-      <PageHeader title="Drivers" subtitle={`${total.toLocaleString()} drivers`} />
+      <PageHeader title="Drivers" subtitle={`${total.toLocaleString()} drivers`}
+        actions={canWrite('drivers') ? <Link className="btn btn-primary btn-sm" href="/drivers/register">+ Add driver</Link> : undefined} />
       <FilterBar>
         <SearchBar value={search} onChange={handleSearch} placeholder="Search drivers..." />
         <select className="input select" style={{ width: 170 }} value={filterStatus}
-          onChange={e => { setFilterStatus(e.target.value); setPage(1); loadDrivers(1, search, e.target.value, filterSubStatus); }}>
+          onChange={e => { setFilterStatus(e.target.value); setPage(1); loadDrivers(1, search, e.target.value, filterSubStatus, filterCountry); }}>
           <option value="">All Verification</option>
           <option value="not_started">Not Started</option>
           <option value="pending">Pending</option>
@@ -190,7 +305,7 @@ export default function DriversPage() {
           <option value="suspended">Suspended</option>
         </select>
         <select className="input select" style={{ width: 160 }} value={filterSubStatus}
-          onChange={e => { setFilterSubStatus(e.target.value); setPage(1); loadDrivers(1, search, filterStatus, e.target.value); }}>
+          onChange={e => { setFilterSubStatus(e.target.value); setPage(1); loadDrivers(1, search, filterStatus, e.target.value, filterCountry); }}>
           <option value="">All Subscriptions</option>
           <option value="inactive">Inactive</option>
           <option value="trial">Trial</option>
@@ -198,11 +313,81 @@ export default function DriversPage() {
           <option value="expired">Expired</option>
           <option value="cancelled">Cancelled</option>
         </select>
+        <CountryFilter value={filterCountry} onChange={value => { setFilterCountry(value); setPage(1); loadDrivers(1, search, filterStatus, filterSubStatus, value); }} />
       </FilterBar>
       <DataTable columns={columns} data={drivers} loading={loading} />
       <Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} />
       <Modal open={showDetail} onClose={() => { setShowDetail(false); setSelectedDriver(null); }} title="Driver Details" maxWidth={680}>
-        {selectedDriver && <DriverDetail driver={selectedDriver} onApprove={handleApprove} onReject={handleReject} onBlock={handleBlockDriver} canWrite={canWrite('drivers')} />}
+        {selectedDriver && <DriverDetail driver={selectedDriver} onApprove={() => askForConfirmation('approve', selectedDriver)} onReject={() => askForConfirmation('reject', selectedDriver)} onBlock={() => askForConfirmation('block', selectedDriver)} canWrite={canWrite('drivers')} />}
+      </Modal>
+      <ConfirmDialog
+        open={Boolean(confirmation)}
+        onClose={() => setConfirmation(null)}
+        onConfirm={confirmDriverAction}
+        title={`${confirmation?.action === 'approve' ? 'Approve' : confirmation?.action === 'reject' ? 'Reject' : confirmation?.driver?.driverProfile?.blocked ? 'Unblock' : 'Block'} driver`}
+        message={`Confirm this action for ${getFullName(confirmation?.driver || {})}?`}
+        confirmLabel={confirmation?.action === 'approve' ? 'Approve driver' : confirmation?.action === 'reject' ? 'Reject driver' : confirmation?.driver?.driverProfile?.blocked ? 'Unblock driver' : 'Block driver'}
+        danger={confirmation?.action !== 'approve' && !confirmation?.driver?.driverProfile?.blocked}
+        busy={confirmSaving}
+      />
+      <Modal open={Boolean(floatTarget)} onClose={() => { if (!floatSaving) setFloatTarget(null); }} title="Add driver float" size="sm">
+        {floatTarget && (
+          <div>
+            <p style={{ color: 'var(--text-secondary)', marginTop: 0 }}>{getFullName(floatTarget)} · Current balance K{Number(floatTarget.driverProfile?.floatBalance || 0).toFixed(2)}</p>
+            <label className="form-field">
+              <span>Amount</span>
+              <input className="input" type="number" min="0.01" step="0.01" value={floatAmount} onChange={event => setFloatAmount(event.target.value)} />
+            </label>
+            {floatTarget.partner && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '12px 0', color: 'var(--text-secondary)' }}>
+                <input type="checkbox" checked={debitPartner} onChange={event => setDebitPartner(event.target.checked)} />
+                Debit {floatTarget.partner.partnerProfile?.businessName || getFullName(floatTarget.partner)} (default)
+              </label>
+            )}
+            <p style={{ color: 'var(--text-muted)', fontSize: 12 }}>This will add float to the driver and record the balance change.</p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button className="btn btn-secondary" onClick={() => setFloatTarget(null)} disabled={floatSaving}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleAddFloat} disabled={floatSaving}>{floatSaving ? 'Adding…' : 'Confirm add float'}</button>
+            </div>
+          </div>
+        )}
+      </Modal>
+      <Modal open={Boolean(editTarget)} onClose={() => { if (!editSaving) setEditTarget(null); }} title="Edit driver" maxWidth={640}>
+        {editTarget && (
+          <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              {[
+                ['firstName', 'First name'], ['lastName', 'Last name'], ['address', 'Address'],
+              ].map(([key, label]) => (
+                <label className="form-field" key={key}>
+                  <span>{label}</span>
+                  <input className="input" value={editForm[key] || ''} onChange={event => setEditForm(current => ({ ...current, [key]: event.target.value }))} />
+                </label>
+              ))}
+              <label className="form-field">
+                <span>Partner</span>
+                <select className="input select" value={editForm.partnerId} onChange={event => setEditForm(current => ({ ...current, partnerId: event.target.value }))}>
+                  <option value="">No partner (independent)</option>
+                  {partnerOptions.map(partner => <option key={partner.id} value={partner.id}>{partner.name}</option>)}
+                </select>
+              </label>
+              {[
+                ['numberPlate', 'Number plate'], ['make', 'Make'], ['model', 'Model'], ['year', 'Year'], ['color', 'Color'], ['insuranceExpiryDate', 'Insurance expiry'],
+              ].map(([key, label]) => (
+                <label className="form-field" key={key}>
+                  <span>{label}</span>
+                  <input className="input" type={key === 'year' ? 'number' : key === 'insuranceExpiryDate' ? 'date' : 'text'}
+                    value={editForm.vehicle?.[key] || ''}
+                    onChange={event => setEditForm(current => ({ ...current, vehicle: { ...current.vehicle, [key]: event.target.value } }))} />
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 18 }}>
+              <button className="btn btn-secondary" onClick={() => setEditTarget(null)} disabled={editSaving}>Cancel</button>
+              <button className="btn btn-primary" onClick={saveDriver} disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

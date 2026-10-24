@@ -5,8 +5,10 @@ import { adminClient, buildQuery } from '@/lib/api/adminClient';
 import DataTable from '@/components/admin/DataTable';
 import Modal, { ConfirmModal } from '@/components/admin/Modal';
 import { PageHeader, SearchBar, StatusBadge, Btn } from '@/components/admin/PageHeader';
+import { useToast } from '@/lib/toast';
 
 export default function WithdrawalsPage() {
+  const toast = useToast();
   const [data, setData] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20, pageCount: 1, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ export default function WithdrawalsPage() {
     try {
       const filters = filterStatus ? { withdrawalStatus: filterStatus } : {};
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'withdrawalId', filters, populate: ['user', 'processedBy', 'currency'] });
-      const res = await adminClient.get(`/withdrawals${q}&sort=requestedAt:desc`);
+      const res = await adminClient.get(`/withdrawals?${q}&sort=requestedAt:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
@@ -44,7 +46,7 @@ export default function WithdrawalsPage() {
       setApproveTarget(null); setRejectTarget(null);
       setActionNote('');
       load(pagination.page);
-    } catch (e) { alert(e.message); }
+    } catch (e) { toast.error(e.message || 'Unable to update withdrawal status'); }
   };
 
   const columns = [

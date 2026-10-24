@@ -57,7 +57,6 @@ export default function TaxiTypesPage() {
             setForm({ name: row.name, displayOrder: row.displayOrder, isActive: row.isActive });
             setError(''); setModal({ mode: 'edit', item: row });
           }}>Edit</Btn>
-          <Btn size="sm" variant="danger" onClick={() => setDeleteTarget(row)}>Del</Btn>
         </div>
       ),
     },

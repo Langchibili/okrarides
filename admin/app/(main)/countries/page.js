@@ -5,11 +5,15 @@ import { adminClient, buildQuery } from '@/lib/api/adminClient';
 import DataTable from '@/components/admin/DataTable';
 import Modal, { ConfirmModal } from '@/components/admin/Modal';
 import { PageHeader, StatusBadge, SearchBar, Btn } from '@/components/admin/PageHeader';
-import { FormField, Input, Select, Toggle } from '@/components/admin/FormField';
+import { FormField, Input, Select, Textarea, Toggle } from '@/components/admin/FormField';
+import { useAuth } from '@/lib/auth';
+import { useToast } from '@/lib/toast';
 
 const EMPTY = { name: '', code: '', phoneCode: '', currency: '', isActive: true, phoneNumberDigitLenth: 9, phoneNumberRegex: '' };
 
 export default function CountriesPage() {
+  const { canWrite } = useAuth();
+  const toast = useToast();
   const [data, setData] = useState([]);
   const [currencies, setCurrencies] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20, pageCount: 1, total: 0 });
@@ -20,18 +24,23 @@ export default function CountriesPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState('');
+  const [settingsCountry, setSettingsCountry] = useState(null);
+  const [settingsFields, setSettingsFields] = useState([]);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsError, setSettingsError] = useState('');
 
   const load = useCallback(async (page = 1) => {
     setLoading(true);
     try {
       const q = buildQuery({ page, pageSize: 20, populate: ['currency'], search, searchField: 'name' });
-      const res = await adminClient.get(`/countries${q}`);
+      const res = await adminClient.get(`/countries?${q}`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
-    } catch (e) { console.error(e); }
+    } catch (e) { toast.error(e.message || 'Could not load countries'); }
     finally { setLoading(false); }
-  }, [search]);
+  }, [search, toast]);
 
   useEffect(() => { load(1); }, [load]);
 
@@ -39,8 +48,8 @@ export default function CountriesPage() {
     adminClient.get('/currencies?pagination[pageSize]=100').then(res => {
       const items = res?.data || res || [];
       setCurrencies(Array.isArray(items) ? items : (items.data || []));
-    }).catch(() => {});
-  }, []);
+    }).catch(error => toast.error(error.message || 'Could not load currencies'));
+  }, [toast]);
 
   const openCreate = () => { setForm(EMPTY); setError(''); setModal({ mode: 'create' }); };
   const openEdit = item => {
@@ -54,6 +63,54 @@ export default function CountriesPage() {
     });
     setError('');
     setModal({ mode: 'edit', item });
+  };
+
+  const openCountrySettings = async item => {
+    setSettingsCountry(item);
+    setSettingsFields([]);
+    setSettingsError('');
+    setSettingsLoading(true);
+    try {
+      const response = await adminClient.get(`/countries/${item.id}/settings`);
+      const countrySettings = response?.data ?? response;
+      setSettingsFields(Array.isArray(countrySettings?.fields) ? countrySettings.fields : []);
+    } catch (requestError) {
+      setSettingsError(requestError.message || 'Could not load country settings');
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
+  const updateCountrySetting = (key, value) => {
+    setSettingsFields(fields => fields.map(field => field.key === key ? { ...field, value } : field));
+  };
+
+  const saveCountrySettings = async () => {
+    if (!settingsCountry || !canWrite('countries')) {
+      toast.error('Insufficient permissions to update country settings');
+      return;
+    }
+    setSettingsSaving(true);
+    setSettingsError('');
+    try {
+      const values = Object.fromEntries(settingsFields.map(field => {
+        if (field.type === 'json' && typeof field.value === 'string') {
+          try {
+            return [field.key, JSON.parse(field.value)];
+          } catch {
+            throw new Error(`${field.label || field.key} must contain valid JSON`);
+          }
+        }
+        return [field.key, field.value];
+      }));
+      await adminClient.put(`/countries/${settingsCountry.id}/settings`, { data: values });
+      toast.success(`${settingsCountry.name} settings saved`);
+      setSettingsCountry(null);
+    } catch (requestError) {
+      setSettingsError(requestError.message || 'Could not save country settings');
+    } finally {
+      setSettingsSaving(false);
+    }
   };
 
   const save = async () => {
@@ -84,7 +141,7 @@ export default function CountriesPage() {
       await adminClient.delete(`/countries/${deleteTarget.id}`);
       setDeleteTarget(null);
       load(pagination.page);
-    } catch (e) { alert(e.message); }
+    } catch (e) { toast.error(e.message || 'Could not delete country'); }
   };
 
   const columns = [
@@ -97,8 +154,10 @@ export default function CountriesPage() {
       key: 'actions', label: '', width: 100,
       render: (_, row) => (
         <div className="flex gap-2">
-          <Btn size="sm" variant="secondary" onClick={() => openEdit(row)}>Edit</Btn>
-          <Btn size="sm" variant="danger" onClick={() => setDeleteTarget(row)}>Del</Btn>
+          {canWrite('countries') && <>
+            <Btn size="sm" variant="secondary" onClick={() => openCountrySettings(row)}>Settings</Btn>
+            <Btn size="sm" variant="secondary" onClick={() => openEdit(row)}>Edit</Btn>
+          </>}
         </div>
       ),
     },
@@ -109,7 +168,7 @@ export default function CountriesPage() {
       <PageHeader
         title="Countries"
         description="Manage supported countries and their settings"
-        action={<Btn onClick={openCreate}>+ Add Country</Btn>}
+        action={canWrite('countries') ? <Btn onClick={openCreate}>+ Add Country</Btn> : undefined}
       />
       <div className="flex gap-3 mb-4">
         <SearchBar value={search} onChange={setSearch} placeholder="Search countries…" />
@@ -159,6 +218,46 @@ export default function CountriesPage() {
         title="Delete Country"
         message={`Are you sure you want to delete "${deleteTarget?.name}"? This may affect existing users.`}
       />
+
+      <Modal open={!!settingsCountry} onClose={() => setSettingsCountry(null)} title={`${settingsCountry?.name || 'Country'} settings`} size="xl">
+        <p className="form-intro">These values apply only to this country and are separate from global Admin Settings.</p>
+        {settingsLoading ? <p className="text-gray-400">Loading country configuration…</p> : (
+          <>
+            {settingsFields.map(field => (
+              <FormField key={field.key} label={field.label || field.key} hint={field.description}>
+                {field.type === 'boolean' ? (
+                  <Toggle checked={Boolean(field.value)} onChange={value => updateCountrySetting(field.key, value)} label={field.value ? 'Enabled' : 'Disabled'} />
+                ) : field.type === 'enumeration' || field.type === 'enum' ? (
+                  <Select value={field.value ?? ''} onChange={event => updateCountrySetting(field.key, event.target.value)}>
+                    {(field.options || []).map(option => <option key={option} value={option}>{String(option).replace(/_/g, ' ')}</option>)}
+                  </Select>
+                ) : field.type === 'json' ? (
+                  <Textarea rows={4} value={typeof field.value === 'string' ? field.value : JSON.stringify(field.value ?? null, null, 2)}
+                    onChange={event => updateCountrySetting(field.key, event.target.value)} />
+                ) : (
+                  <Input
+                    type={field.type === 'integer' || field.type === 'decimal' || field.type === 'number' ? 'number' : 'text'}
+                    step={field.type === 'decimal' ? 'any' : undefined}
+                    value={field.value ?? ''}
+                    onChange={event => updateCountrySetting(field.key,
+                      field.type === 'integer' ? (event.target.value === '' ? '' : Number.parseInt(event.target.value, 10))
+                        : field.type === 'decimal' || field.type === 'number' ? (event.target.value === '' ? '' : Number(event.target.value))
+                          : event.target.value)}
+                  />
+                )}
+              </FormField>
+            ))}
+            {!settingsFields.length && <p className="text-gray-400">No country-specific settings are available.</p>}
+          </>
+        )}
+        {settingsError && <p className="form-error" role="alert">{settingsError}</p>}
+        <div className="modal-actions">
+          <Btn variant="secondary" onClick={() => setSettingsCountry(null)}>Close</Btn>
+          <Btn onClick={saveCountrySettings} disabled={settingsLoading || settingsSaving || settingsFields.length === 0}>
+            {settingsSaving ? 'Saving…' : 'Save country settings'}
+          </Btn>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -18,6 +18,7 @@ import { SendSmsNotification, SendEmailNotification } from '../../../services/me
 import socketService from '../../../services/socketService';
 import { handleUserCreation } from '../../../pluginExtensionsFiles/userLifecycleMethods';
 import { resolveSettingsForCountry } from '../../../services/settingsResolver';
+import { getPartnerCommissionBalance } from '../../../services/partner-commission';
 
 // ─── Auth guard ───────────────────────────────────────────────────────────────
 // Returns the full partner User or null. Sets ctx error on failure.
@@ -52,6 +53,18 @@ async function requireApprovedPartner(ctx: any) {
     }
 
     return user;
+}
+
+async function requireNoOutstandingCommission(ctx: any, partnerUserId: number): Promise<boolean> {
+    const balance = await getPartnerCommissionBalance(strapi, partnerUserId);
+    if (balance.amountOwedToOkra > 0) {
+        ctx.forbidden(
+            `Pay the outstanding commission of ${balance.currency?.symbol || balance.currency?.code || ''}` +
+            `${balance.amountOwedToOkra.toFixed(2)} before requesting more float.`,
+        );
+        return false;
+    }
+    return true;
 }
 
 // ─── Ownership check ──────────────────────────────────────────────────────────
@@ -133,6 +146,7 @@ export default factories.createCoreController(
                                 ],
                                 populate: { currentRide: { select: ['id'] } },
                             },
+
                         },
                     })
                     : [];
@@ -225,6 +239,18 @@ export default factories.createCoreController(
             } catch (err) {
                 strapi.log.error('[Partner:getDashboard]', err);
                 return ctx.internalServerError('Failed to load partner dashboard');
+            }
+        },
+
+        async getCommissionBalance(ctx: any) {
+            try {
+                const partnerUser = await requireApprovedPartner(ctx);
+                if (!partnerUser) return;
+                const balance = await getPartnerCommissionBalance(strapi, partnerUser.id);
+                return ctx.send(balance);
+            } catch (err: any) {
+                strapi.log.error('[Partner:getCommissionBalance]', err);
+                return ctx.internalServerError(err.message || 'Failed to load commission balance');
             }
         },
 
@@ -1079,6 +1105,7 @@ export default factories.createCoreController(
             try {
                 const partnerUser = await requireApprovedPartner(ctx);
                 if (!partnerUser) return;
+                if (!(await requireNoOutstandingCommission(ctx, partnerUser.id))) return;
 
                 const { amount } = ctx.request.body;
                 const numAmount = parseFloat(amount);
@@ -1103,19 +1130,6 @@ export default factories.createCoreController(
                         requestedAt: new Date(),
                         partner: partnerUser.id,   // marks this as a partner top-up
                         driver: null,
-                    },
-                })
-
-                const partnerAccount = await strapi.db.query('plugin::users-permissions.user').findOne({
-                    where: { id: partnerUser.id },
-                    populate: { partnerProfile: true }
-                })
-
-                const newPartnerFloatBalance = parseFloat(partnerAccount?.partnerProfile?.floatBalance) - numAmount
-                await strapi.db.query('partner-profile.partner-profile').update({
-                    where: { id: Number(partnerAccount?.partnerUser?.id) },
-                    data: {
-                        floatBalance: newPartnerFloatBalance
                     },
                 })
 

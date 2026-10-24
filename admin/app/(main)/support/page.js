@@ -7,6 +7,7 @@ import { useToast } from '@/lib/toast';
 import { formatDateTime, getFullName } from '@/lib/utils';
 import { DataTable, Pagination } from '@/components/DataTable';
 import { PageHeader, FilterBar, Modal, StatusPill, Avatar } from '@/components/UI';
+import CountryFilter from '@/components/CountryFilter';
 
 export default function SupportPage() {
   const { hasPermission, canWrite } = useAuth();
@@ -19,13 +20,14 @@ export default function SupportPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
+  const [countryId, setCountryId] = useState('');
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const pageSize = 20;
 
-  useEffect(() => { loadTickets(); }, [page, filterStatus, filterCategory, filterPriority]);
+  useEffect(() => { loadTickets(); }, [page, filterStatus, filterCategory, filterPriority, countryId]);
 
   const loadTickets = async () => {
     setLoading(true);
@@ -39,6 +41,7 @@ export default function SupportPage() {
       if (filterStatus) params['filters[ticketStatus][$eq]'] = filterStatus;
       if (filterCategory) params['filters[category][$eq]'] = filterCategory;
       if (filterPriority) params['filters[priority][$eq]'] = filterPriority;
+      if (countryId) params['filters[countryId][$eq]'] = countryId;
       const res = await adminAPI.get('/support-tickets', params);
       const data = res?.data || res || [];
       const meta = res?.meta?.pagination;
@@ -53,7 +56,9 @@ export default function SupportPage() {
       const full = await adminAPI.get(`/support-tickets/${ticket.id}?populate=user,responses.respondedBy,attachments,ride`);
       const t = full?.data || full;
       setSelectedTicket(t);
-    } catch {}
+    } catch (err) {
+      toast.error(err.message || 'Could not load ticket details');
+    }
   };
 
   const handleUpdateStatus = async (ticket, status) => {
@@ -135,6 +140,7 @@ export default function SupportPage() {
           <option value="medium">Medium</option>
           <option value="low">Low</option>
         </select>
+        <CountryFilter value={countryId} onChange={value => { setCountryId(value); setPage(1); }} />
       </FilterBar>
       <DataTable columns={columns} data={tickets} loading={loading} />
       <Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} />

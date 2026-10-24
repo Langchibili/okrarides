@@ -24,7 +24,7 @@ export default function CurrenciesPage() {
     setLoading(true);
     try {
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'name' });
-      const res = await adminClient.get(`/currencies${q}`);
+      const res = await adminClient.get(`/currencies?${q}`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
@@ -61,7 +61,6 @@ export default function CurrenciesPage() {
       render: (_, row) => (
         <div className="flex gap-2">
           <Btn size="sm" variant="secondary" onClick={() => { setForm({ name: row.name, code: row.code, symbol: row.symbol, exchangeRate: row.exchangeRate, isActive: row.isActive }); setError(''); setModal({ mode: 'edit', item: row }); }}>Edit</Btn>
-          <Btn size="sm" variant="danger" onClick={() => setDeleteTarget(row)}>Del</Btn>
         </div>
       ),
     },

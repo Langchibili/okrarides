@@ -143,6 +143,12 @@
     "defaultCommissionPercentage": {
       "type": "decimal"
     },
+    "partnerCommisionPercentage": {
+      "type": "decimal",
+      "min": 0,
+      "max": 100,
+      "description": "Country-specific partner share of commissions; overrides the platform setting."
+    },
     "defaultFlatCommission": {
       "type": "decimal"
     },

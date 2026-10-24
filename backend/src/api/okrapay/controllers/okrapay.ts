@@ -5,6 +5,10 @@ import { getPaymentGateway } from '../../../paymentGatewayAdapters/';
 import socketService from '../../../services/socketService';
 import { SendEmailNotification } from '../../../services/messages';
 import { resolveSettingsForUser } from '../../../services/settingsResolver';
+import {
+  getPartnerCommissionBalance,
+  recordPartnerCommissionPayment,
+} from '../../../services/partner-commission';
 
 // ─── Reference helpers ────────────────────────────────────────────────────────
 
@@ -45,6 +49,7 @@ function purposeToEntityType(purpose: string): string {
     ridepay: 'ride',
     withdraw: 'withdrawal',
     walletTopup: 'wallet_topup',
+    partnerCommission: 'partner_commission_payment',
   };
   return map[purpose] || '';
 }
@@ -56,6 +61,7 @@ function purposeToNarration(purpose: string): string {
     ridepay: 'Ride payment — OkraRides',
     withdraw: 'Withdrawal — OkraRides',
     walletTopup: 'Wallet top-up — OkraRides',
+    partnerCommission: 'Partner commission settlement — OkraRides',
   };
   return map[purpose] || 'OkraRides payment';
 }
@@ -122,6 +128,9 @@ async function handleCollectionSuccess(
       break;
     case 'walletTopup':
       await handleWalletTopupSuccess(okrapayRecord, parsed.contextId, webhookData);
+      break;
+    case 'partnerCommission':
+      await recordPartnerCommissionPayment(strapi, okrapayRecord, webhookData);
       break;
     default:
       strapi.log.warn(`[OkraPay] Unhandled purpose '${parsed.purpose}' ref ${okrapayRecord.reference}`);
@@ -928,9 +937,15 @@ export default factories.createCoreController('api::okrapay.okrapay', ({ strapi 
         callbackUrl,
       } = ctx.request.body as Record<string, any>;
 
-      if (!purpose || !amount) return ctx.badRequest('purpose and amount are required');
-
-      const numAmount = parseFloat(amount);
+      const allowedPurposes = [
+        'floatadd', 'subpay', 'ridepay', 'withdraw', 'walletTopup',
+        'affiliatePayout', 'partnerCommission',
+      ];
+      if (!allowedPurposes.includes(purpose)) return ctx.badRequest('purpose is not supported');
+      const numAmount = Number(amount);
+      if (!Number.isFinite(numAmount) || numAmount <= 0) {
+        return ctx.badRequest('amount must be a positive number');
+      }
 
       const user = await getUserWithCountry(userId);
       const userCountry = user?.country;
@@ -941,6 +956,29 @@ export default factories.createCoreController('api::okrapay.okrapay', ({ strapi 
       const formattedPhone = phone ? normalisePhone(phone, phoneCode) : '';
 
       const settings = await getAdminSettings(Number(userId));
+      if (purpose === 'partnerCommission') {
+        if (Number(relatedEntityId) !== Number(userId)) {
+          return ctx.forbidden('You can only settle your own partner commission balance.');
+        }
+        const pendingPayment = await strapi.db.query('api::okrapay.okrapay').findOne({
+          where: {
+            user: { id: Number(userId) },
+            purpose: 'partnerCommission',
+            paymentStatus: { $in: ['pending', 'processing'] },
+          },
+          select: ['id'],
+        });
+        if (pendingPayment) {
+          return ctx.conflict('A partner commission payment is already processing.');
+        }
+        const commissionBalance = await getPartnerCommissionBalance(strapi, Number(userId));
+        if (commissionBalance.amountOwedToOkra <= 0) {
+          return ctx.badRequest('There is no outstanding commission balance to pay.');
+        }
+        if (Math.abs(numAmount - commissionBalance.amountOwedToOkra) > 0.01) {
+          return ctx.badRequest('The payment amount must equal your current outstanding commission balance.');
+        }
+      }
       if (purpose === 'floatadd') {
         const topup = relatedEntityId
           ? await strapi.db.query('api::float-topup.float-topup').findOne({
@@ -952,6 +990,14 @@ export default factories.createCoreController('api::okrapay.okrapay', ({ strapi 
 
         if (topup?.partner && !isPartnerTopup) {
           return ctx.forbidden("You cannot pay for another partner company's float top-up.");
+        }
+        if (isPartnerTopup) {
+          const commissionBalance = await getPartnerCommissionBalance(strapi, Number(userId));
+          if (commissionBalance.amountOwedToOkra > 0) {
+            return ctx.forbidden(
+              `Pay your outstanding commission of ${commissionBalance.amountOwedToOkra.toFixed(2)} before requesting more float.`,
+            );
+          }
         }
         if (settings?.allowOrdersWithoutPartner !== true && !isPartnerTopup) {
           return ctx.forbidden('To top up your float balance, contact your partner company.');

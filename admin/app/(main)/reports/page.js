@@ -5,16 +5,17 @@ import adminAPI from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/lib/toast';
 import { PageHeader, StatCard } from '@/components/UI';
+import CountryFilter from '@/components/CountryFilter';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, currency }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
       {label && <p style={{ color: 'var(--text-muted)', margin: '0 0 4px' }}>{label}</p>}
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color, margin: '2px 0', fontWeight: 600 }}>
-          {p.name}: {typeof p.value === 'number' ? (p.value > 1000 ? `K${(p.value / 1000).toFixed(1)}k` : p.value) : p.value}
+          {p.name}: {typeof p.value === 'number' ? (p.value > 1000 ? `${currency || ''}${(p.value / 1000).toFixed(1)}k` : `${currency || ''}${p.value}`) : p.value}
         </p>
       ))}
     </div>
@@ -27,14 +28,19 @@ export default function ReportsPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [countryId, setCountryId] = useState('');
 
-  useEffect(() => { loadStats(); }, []);
+  useEffect(() => { loadStats(); }, [countryId]);
 
   const loadStats = async () => {
     setLoading(true);
     try {
-      const res = await adminAPI.get('/platform-stats');
-      setStats(res?.data || res);
+      const endpoint = countryId
+        ? `/platform-stat?countryId=${encodeURIComponent(countryId)}`
+        : '/platform-stat';
+      const res = await adminAPI.get(endpoint);
+      const payload = res?.data ?? res;
+      setStats(Array.isArray(payload) ? null : payload);
     } catch (err) { toast.error(err.message || 'Failed to load stats'); } finally { setLoading(false); }
   };
 
@@ -46,6 +52,7 @@ export default function ReportsPage() {
     return (
       <div>
         <PageHeader title="Reports" />
+        <CountryFilter value={countryId} onChange={setCountryId} style={{ marginBottom: 16 }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="stat-card">
@@ -59,7 +66,12 @@ export default function ReportsPage() {
   }
 
   const s = stats;
-  if (!s) return <div style={{ color: 'var(--text-muted)', padding: 40, textAlign: 'center' }}>No statistics available.</div>;
+  if (!s) return (
+    <div>
+      <PageHeader title="Reports & Analytics" subtitle="Select a country to view its statistics in local currency." />
+      <CountryFilter value={countryId} onChange={setCountryId} />
+    </div>
+  );
 
   const rideStatusData = [
     { name: 'Completed', value: s.totalRidesCompleted || 0, color: '#22c55e' },
@@ -90,7 +102,8 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <PageHeader title="Reports & Analytics" subtitle={s.lastCalculatedAt ? `Last updated: ${new Date(s.lastCalculatedAt).toLocaleString()}` : 'Platform-wide statistics'} />
+      <PageHeader title="Reports & Analytics" subtitle={`${s.country?.name || 'Country'} · ${s.country?.currency?.code || ''} · Calculated every ${s.platformStatCalculationCycleInMins || 20} minutes`} />
+      <CountryFilter value={countryId} onChange={setCountryId} style={{ marginBottom: 16 }} />
 
       <div style={{ display: 'flex', gap: 0, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
         {[['overview', 'Overview'], ['rides', 'Rides & Deliveries'], ['finance', 'Finance'], ['affiliates', 'Affiliates']].map(([key, label]) => (
@@ -117,7 +130,7 @@ export default function ReportsPage() {
                     <Pie data={data} cx="50%" cy="50%" outerRadius={65} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
                       {data.map((e, i) => <Cell key={i} fill={e.color} />)}
                     </Pie>
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip content={<CustomTooltip currency={s.country?.currency?.symbol} />} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

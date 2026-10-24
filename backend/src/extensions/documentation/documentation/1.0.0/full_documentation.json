@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-10-23T15:51:08.820Z"
+    "x-generation-date": "2026-10-24T20:00:11.863Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -21896,6 +21896,77 @@
         }
       }
     },
+    "/partner/commission-balance": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Partner"
+        ],
+        "parameters": [],
+        "operationId": "get/partner/commission-balance"
+      }
+    },
     "/partner/float/topup": {
       "post": {
         "responses": {
@@ -23437,7 +23508,7 @@
         "operationId": "delete/phone-numbers-list"
       }
     },
-    "/platform-stat": {
+    "/platform-stats": {
       "get": {
         "responses": {
           "200": {
@@ -23445,7 +23516,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PlatformStatResponse"
+                  "$ref": "#/components/schemas/PlatformStatListResponse"
                 }
               }
             }
@@ -23608,7 +23679,168 @@
             }
           }
         ],
-        "operationId": "get/platform-stat"
+        "operationId": "get/platform-stats"
+      },
+      "post": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStatResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Platform-stat"
+        ],
+        "parameters": [],
+        "operationId": "post/platform-stats",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformStatRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/platform-stats/{id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStatResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Platform-stat"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "deprecated": false,
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "get/platform-stats/{id}"
       },
       "put": {
         "responses": {
@@ -23676,8 +23908,19 @@
         "tags": [
           "Platform-stat"
         ],
-        "parameters": [],
-        "operationId": "put/platform-stat",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "deprecated": false,
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "put/platform-stats/{id}",
         "requestBody": {
           "required": true,
           "content": {
@@ -23756,8 +23999,19 @@
         "tags": [
           "Platform-stat"
         ],
-        "parameters": [],
-        "operationId": "delete/platform-stat"
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "",
+            "deprecated": false,
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "delete/platform-stats/{id}"
       }
     },
     "/promo-codes": {
@@ -36629,6 +36883,13 @@
                 "type": "number",
                 "format": "float"
               },
+              "partnerCommisionPercentage": {
+                "type": "number",
+                "format": "float"
+              },
+              "platformStatCalculationCycleInMins": {
+                "type": "integer"
+              },
               "defaultFlatCommission": {
                 "type": "number",
                 "format": "float"
@@ -36948,6 +37209,13 @@
           "defaultCommissionPercentage": {
             "type": "number",
             "format": "float"
+          },
+          "partnerCommisionPercentage": {
+            "type": "number",
+            "format": "float"
+          },
+          "platformStatCalculationCycleInMins": {
+            "type": "integer"
           },
           "defaultFlatCommission": {
             "type": "number",
@@ -38463,6 +38731,13 @@
                 "defaultCommissionPercentage": {
                   "type": "number",
                   "format": "float"
+                },
+                "partnerCommisionPercentage": {
+                  "type": "number",
+                  "format": "float"
+                },
+                "platformStatCalculationCycleInMins": {
+                  "type": "integer"
                 },
                 "defaultFlatCommission": {
                   "type": "number",
@@ -47442,7 +47717,8 @@
                       "subscription_payment",
                       "commission",
                       "refund",
-                      "affiliate_payout"
+                      "affiliate_payout",
+                      "partner_commission_payment"
                     ]
                   },
                   "amount": {
@@ -52103,6 +52379,7 @@
                   }
                 }
               },
+              "settingsOverrides": {},
               "isActive": {
                 "type": "boolean"
               },
@@ -52672,6 +52949,10 @@
                 ]
               },
               "defaultCommissionPercentage": {
+                "type": "number",
+                "format": "float"
+              },
+              "partnerCommisionPercentage": {
                 "type": "number",
                 "format": "float"
               },
@@ -55529,6 +55810,7 @@
                           }
                         }
                       },
+                      "settingsOverrides": {},
                       "isActive": {
                         "type": "boolean"
                       },
@@ -55948,6 +56230,10 @@
                         ]
                       },
                       "defaultCommissionPercentage": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "partnerCommisionPercentage": {
                         "type": "number",
                         "format": "float"
                       },
@@ -68244,6 +68530,7 @@
                           }
                         }
                       },
+                      "settingsOverrides": {},
                       "isActive": {
                         "type": "boolean"
                       },
@@ -68813,6 +69100,10 @@
                         ]
                       },
                       "defaultCommissionPercentage": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "partnerCommisionPercentage": {
                         "type": "number",
                         "format": "float"
                       },
@@ -70910,6 +71201,7 @@
                       }
                     }
                   },
+                  "settingsOverrides": {},
                   "isActive": {
                     "type": "boolean"
                   },
@@ -71479,6 +71771,10 @@
                     ]
                   },
                   "defaultCommissionPercentage": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "partnerCommisionPercentage": {
                     "type": "number",
                     "format": "float"
                   },
@@ -77792,6 +78088,7 @@
                 ],
                 "example": "string or id"
               },
+              "settingsOverrides": {},
               "isActive": {
                 "type": "boolean"
               },
@@ -77909,6 +78206,10 @@
                 ]
               },
               "defaultCommissionPercentage": {
+                "type": "number",
+                "format": "float"
+              },
+              "partnerCommisionPercentage": {
                 "type": "number",
                 "format": "float"
               },
@@ -78928,6 +79229,7 @@
               }
             }
           },
+          "settingsOverrides": {},
           "isActive": {
             "type": "boolean"
           },
@@ -79037,6 +79339,7 @@
                           }
                         }
                       },
+                      "settingsOverrides": {},
                       "isActive": {
                         "type": "boolean"
                       },
@@ -79456,6 +79759,10 @@
                         ]
                       },
                       "defaultCommissionPercentage": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "partnerCommisionPercentage": {
                         "type": "number",
                         "format": "float"
                       },
@@ -80377,6 +80684,10 @@
             ]
           },
           "defaultCommissionPercentage": {
+            "type": "number",
+            "format": "float"
+          },
+          "partnerCommisionPercentage": {
             "type": "number",
             "format": "float"
           },
@@ -113254,6 +113565,7 @@
                   }
                 }
               },
+              "settingsOverrides": {},
               "isActive": {
                 "type": "boolean"
               },
@@ -113823,6 +114135,10 @@
                 ]
               },
               "defaultCommissionPercentage": {
+                "type": "number",
+                "format": "float"
+              },
+              "partnerCommisionPercentage": {
                 "type": "number",
                 "format": "float"
               },
@@ -121017,7 +121333,8 @@
                   "ridepay",
                   "withdraw",
                   "walletTopup",
-                  "affiliatePayout"
+                  "affiliatePayout",
+                  "partnerCommission"
                 ]
               },
               "direction": {
@@ -121075,7 +121392,8 @@
                   "driver_subscription",
                   "ride",
                   "withdrawal",
-                  "wallet_topup"
+                  "wallet_topup",
+                  "partner_commission_payment"
                 ]
               },
               "relatedEntityId": {
@@ -123392,7 +123710,8 @@
               "ridepay",
               "withdraw",
               "walletTopup",
-              "affiliatePayout"
+              "affiliatePayout",
+              "partnerCommission"
             ]
           },
           "direction": {
@@ -123457,7 +123776,8 @@
               "driver_subscription",
               "ride",
               "withdrawal",
-              "wallet_topup"
+              "wallet_topup",
+              "partner_commission_payment"
             ]
           },
           "relatedEntityId": {
@@ -123586,7 +123906,8 @@
                     "ridepay",
                     "withdraw",
                     "walletTopup",
-                    "affiliatePayout"
+                    "affiliatePayout",
+                    "partnerCommission"
                   ]
                 },
                 "direction": {
@@ -123651,7 +123972,8 @@
                     "driver_subscription",
                     "ride",
                     "withdrawal",
-                    "wallet_topup"
+                    "wallet_topup",
+                    "partner_commission_payment"
                   ]
                 },
                 "relatedEntityId": {
@@ -131895,9 +132217,35 @@
           "data": {
             "type": "object",
             "properties": {
+              "country": {
+                "oneOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "example": "string or id"
+              },
               "lastCalculatedAt": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "platformStatCalculationCycleInMins": {
+                "type": "integer"
+              },
+              "partnerCommisionPercentage": {
+                "type": "number",
+                "format": "float"
+              },
+              "partnerCommissionShare": {
+                "type": "number",
+                "format": "float"
+              },
+              "estimatedProfit": {
+                "type": "number",
+                "format": "float"
               },
               "totalDriverEarnings": {
                 "type": "number",
@@ -131912,6 +132260,14 @@
                 "format": "float"
               },
               "totalFloatSold": {
+                "type": "number",
+                "format": "float"
+              },
+              "totalDriverFloatIssued": {
+                "type": "number",
+                "format": "float"
+              },
+              "totalPartnerFloatPurchased": {
                 "type": "number",
                 "format": "float"
               },
@@ -132076,128 +132432,7 @@
           "documentId": {
             "type": "string"
           },
-          "lastCalculatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "totalDriverEarnings": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalPlatformCommission": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalSubscriptionRevenue": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalFloatSold": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalActiveFloat": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalNegativeFloat": {
-            "type": "number",
-            "format": "float"
-          },
-          "driversWithNegativeFloat": {
-            "type": "integer"
-          },
-          "totalWithdrawalsProcessed": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalPendingWithdrawals": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalRidesCompleted": {
-            "type": "integer"
-          },
-          "totalRidesCancelled": {
-            "type": "integer"
-          },
-          "totalSubscriptionRides": {
-            "type": "integer"
-          },
-          "totalFloatRides": {
-            "type": "integer"
-          },
-          "totalCashRides": {
-            "type": "integer"
-          },
-          "totalDigitalRides": {
-            "type": "integer"
-          },
-          "activeDriverCount": {
-            "type": "integer"
-          },
-          "activeSubscriberCount": {
-            "type": "integer"
-          },
-          "trialSubscriberCount": {
-            "type": "integer"
-          },
-          "totalDeliveriesCompleted": {
-            "type": "integer"
-          },
-          "totalDeliveriesCancelled": {
-            "type": "integer"
-          },
-          "totalDeliveryDriverEarnings": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalDeliveryPlatformCommission": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalCashDeliveries": {
-            "type": "integer"
-          },
-          "totalDigitalDeliveries": {
-            "type": "integer"
-          },
-          "activeDeliveryDriverCount": {
-            "type": "integer"
-          },
-          "totalAffiliatePoints": {
-            "type": "integer"
-          },
-          "totalAffiliatePayouts": {
-            "type": "number",
-            "format": "float"
-          },
-          "totalPendingAffiliateBalance": {
-            "type": "number",
-            "format": "float"
-          },
-          "activeAffiliateCount": {
-            "type": "integer"
-          },
-          "totalAffiliateReferrals": {
-            "type": "integer"
-          },
-          "totalAffiliateTransactions": {
-            "type": "integer"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "publishedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdBy": {
+          "country": {
             "type": "object",
             "properties": {
               "id": {
@@ -132213,29 +132448,780 @@
               "documentId": {
                 "type": "string"
               },
-              "firstname": {
+              "name": {
                 "type": "string"
               },
-              "lastname": {
+              "code": {
                 "type": "string"
               },
-              "username": {
+              "phoneCode": {
                 "type": "string"
               },
-              "email": {
-                "type": "string",
-                "format": "email"
+              "currency": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "symbol": {
+                    "type": "string"
+                  },
+                  "exchangeRate": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "publishedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "createdBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      },
+                      "firstname": {
+                        "type": "string"
+                      },
+                      "lastname": {
+                        "type": "string"
+                      },
+                      "username": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string",
+                        "format": "email"
+                      },
+                      "resetPasswordToken": {
+                        "type": "string"
+                      },
+                      "registrationToken": {
+                        "type": "string"
+                      },
+                      "isActive": {
+                        "type": "boolean"
+                      },
+                      "roles": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "documentId": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "code": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "users": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "documentId": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "permissions": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "documentId": {
+                                    "type": "string"
+                                  },
+                                  "action": {
+                                    "type": "string"
+                                  },
+                                  "actionParameters": {},
+                                  "subject": {
+                                    "type": "string"
+                                  },
+                                  "properties": {},
+                                  "conditions": {},
+                                  "role": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "number"
+                                          }
+                                        ]
+                                      },
+                                      "documentId": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "apiToken": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "number"
+                                          }
+                                        ]
+                                      },
+                                      "documentId": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "description": {
+                                        "type": "string"
+                                      },
+                                      "kind": {
+                                        "type": "string",
+                                        "enum": [
+                                          "content-api",
+                                          "admin"
+                                        ]
+                                      },
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "read-only",
+                                          "full-access",
+                                          "custom"
+                                        ]
+                                      },
+                                      "accessKey": {
+                                        "type": "string"
+                                      },
+                                      "encryptedKey": {
+                                        "type": "string"
+                                      },
+                                      "lastUsedAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "permissions": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "oneOf": [
+                                                {
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "number"
+                                                }
+                                              ]
+                                            },
+                                            "documentId": {
+                                              "type": "string"
+                                            },
+                                            "action": {
+                                              "type": "string"
+                                            },
+                                            "token": {
+                                              "type": "object",
+                                              "properties": {
+                                                "id": {
+                                                  "oneOf": [
+                                                    {
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "type": "number"
+                                                    }
+                                                  ]
+                                                },
+                                                "documentId": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            },
+                                            "createdAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "publishedAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "createdBy": {
+                                              "type": "object",
+                                              "properties": {
+                                                "id": {
+                                                  "oneOf": [
+                                                    {
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "type": "number"
+                                                    }
+                                                  ]
+                                                },
+                                                "documentId": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            },
+                                            "updatedBy": {
+                                              "type": "object",
+                                              "properties": {
+                                                "id": {
+                                                  "oneOf": [
+                                                    {
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "type": "number"
+                                                    }
+                                                  ]
+                                                },
+                                                "documentId": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            },
+                                            "locale": {
+                                              "type": "string"
+                                            },
+                                            "localizations": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "id": {
+                                                    "oneOf": [
+                                                      {
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "type": "number"
+                                                      }
+                                                    ]
+                                                  },
+                                                  "documentId": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "adminPermissions": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "oneOf": [
+                                                {
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "number"
+                                                }
+                                              ]
+                                            },
+                                            "documentId": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "adminUserOwner": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "oneOf": [
+                                              {
+                                                "type": "string"
+                                              },
+                                              {
+                                                "type": "number"
+                                              }
+                                            ]
+                                          },
+                                          "documentId": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      },
+                                      "expiresAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "lifespan": {
+                                        "type": "string",
+                                        "pattern": "^\\d*$",
+                                        "example": "123456789"
+                                      },
+                                      "createdAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "updatedAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "publishedAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "createdBy": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "oneOf": [
+                                              {
+                                                "type": "string"
+                                              },
+                                              {
+                                                "type": "number"
+                                              }
+                                            ]
+                                          },
+                                          "documentId": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      },
+                                      "updatedBy": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "oneOf": [
+                                              {
+                                                "type": "string"
+                                              },
+                                              {
+                                                "type": "number"
+                                              }
+                                            ]
+                                          },
+                                          "documentId": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      },
+                                      "locale": {
+                                        "type": "string"
+                                      },
+                                      "localizations": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "oneOf": [
+                                                {
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "number"
+                                                }
+                                              ]
+                                            },
+                                            "documentId": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "publishedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "createdBy": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "number"
+                                          }
+                                        ]
+                                      },
+                                      "documentId": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "updatedBy": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "oneOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "number"
+                                          }
+                                        ]
+                                      },
+                                      "documentId": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "locale": {
+                                    "type": "string"
+                                  },
+                                  "localizations": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "oneOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "number"
+                                            }
+                                          ]
+                                        },
+                                        "documentId": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "publishedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "createdBy": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                },
+                                "documentId": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "updatedBy": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                },
+                                "documentId": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "locale": {
+                              "type": "string"
+                            },
+                            "localizations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "documentId": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "apiTokens": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "documentId": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "blocked": {
+                        "type": "boolean"
+                      },
+                      "preferedLanguage": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "publishedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "createdBy": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "documentId": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "updatedBy": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "documentId": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "locale": {
+                        "type": "string"
+                      },
+                      "localizations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "documentId": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "updatedBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "locale": {
+                    "type": "string"
+                  },
+                  "localizations": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
               },
-              "resetPasswordToken": {
-                "type": "string"
-              },
-              "registrationToken": {
-                "type": "string"
-              },
+              "settingsOverrides": {},
               "isActive": {
                 "type": "boolean"
               },
-              "roles": {
+              "acceptedMobileMoneyPayments": {},
+              "phoneNumberRegex": {
+                "type": "string"
+              },
+              "phoneNumberDigitLenth": {
+                "type": "integer"
+              },
+              "referralPointsAllocationRules": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -132256,13 +133242,40 @@
                     "name": {
                       "type": "string"
                     },
-                    "code": {
-                      "type": "string"
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "account-setup",
+                        "ride-booking",
+                        "ride-completion",
+                        "delivery-booking",
+                        "delivery-completion"
+                      ]
                     },
-                    "description": {
-                      "type": "string"
+                    "appliesTo": {
+                      "type": "string",
+                      "enum": [
+                        "rider",
+                        "driver",
+                        "all"
+                      ]
                     },
-                    "users": {
+                    "actionAmountsPerUser": {
+                      "type": "integer"
+                    },
+                    "pointsAllocatedFromAction": {
+                      "type": "integer"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "isRuleVolumeType": {
+                      "type": "boolean"
+                    },
+                    "volume": {
+                      "type": "integer"
+                    },
+                    "countries": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -132283,7 +133296,7 @@
                         }
                       }
                     },
-                    "permissions": {
+                    "affiliatePromotions": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -132301,312 +133314,96 @@
                           "documentId": {
                             "type": "string"
                           },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
                           "action": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "float-topup",
+                              "ride-discount",
+                              "delivery-discount",
+                              "subscription-discount",
+                              "wallet-credit"
+                            ]
                           },
-                          "actionParameters": {},
-                          "subject": {
-                            "type": "string"
+                          "for": {
+                            "type": "string",
+                            "enum": [
+                              "rider",
+                              "driver",
+                              "all"
+                            ]
                           },
-                          "properties": {},
-                          "conditions": {},
-                          "role": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "oneOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
-                              },
-                              "documentId": {
-                                "type": "string"
+                          "amountType": {
+                            "type": "string",
+                            "enum": [
+                              "flatrate",
+                              "percentage"
+                            ]
+                          },
+                          "amount": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "percentageAmount": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "usageLimit": {
+                            "type": "integer"
+                          },
+                          "isActive": {
+                            "type": "boolean"
+                          },
+                          "isDefault": {
+                            "type": "boolean"
+                          },
+                          "expiresAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "referralPointsAllocationRules": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                },
+                                "documentId": {
+                                  "type": "string"
+                                }
                               }
                             }
                           },
-                          "apiToken": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "oneOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
-                              },
-                              "documentId": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string"
-                              },
-                              "description": {
-                                "type": "string"
-                              },
-                              "kind": {
-                                "type": "string",
-                                "enum": [
-                                  "content-api",
-                                  "admin"
-                                ]
-                              },
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "read-only",
-                                  "full-access",
-                                  "custom"
-                                ]
-                              },
-                              "accessKey": {
-                                "type": "string"
-                              },
-                              "encryptedKey": {
-                                "type": "string"
-                              },
-                              "lastUsedAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "permissions": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "oneOf": [
-                                        {
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
-                                    },
-                                    "documentId": {
+                          "countries": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "oneOf": [
+                                    {
                                       "type": "string"
                                     },
-                                    "action": {
-                                      "type": "string"
-                                    },
-                                    "token": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "oneOf": [
-                                            {
-                                              "type": "string"
-                                            },
-                                            {
-                                              "type": "number"
-                                            }
-                                          ]
-                                        },
-                                        "documentId": {
-                                          "type": "string"
-                                        }
-                                      }
-                                    },
-                                    "createdAt": {
-                                      "type": "string",
-                                      "format": "date-time"
-                                    },
-                                    "updatedAt": {
-                                      "type": "string",
-                                      "format": "date-time"
-                                    },
-                                    "publishedAt": {
-                                      "type": "string",
-                                      "format": "date-time"
-                                    },
-                                    "createdBy": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "oneOf": [
-                                            {
-                                              "type": "string"
-                                            },
-                                            {
-                                              "type": "number"
-                                            }
-                                          ]
-                                        },
-                                        "documentId": {
-                                          "type": "string"
-                                        }
-                                      }
-                                    },
-                                    "updatedBy": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "oneOf": [
-                                            {
-                                              "type": "string"
-                                            },
-                                            {
-                                              "type": "number"
-                                            }
-                                          ]
-                                        },
-                                        "documentId": {
-                                          "type": "string"
-                                        }
-                                      }
-                                    },
-                                    "locale": {
-                                      "type": "string"
-                                    },
-                                    "localizations": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "object",
-                                        "properties": {
-                                          "id": {
-                                            "oneOf": [
-                                              {
-                                                "type": "string"
-                                              },
-                                              {
-                                                "type": "number"
-                                              }
-                                            ]
-                                          },
-                                          "documentId": {
-                                            "type": "string"
-                                          }
-                                        }
-                                      }
+                                    {
+                                      "type": "number"
                                     }
-                                  }
-                                }
-                              },
-                              "adminPermissions": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "oneOf": [
-                                        {
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
-                                    },
-                                    "documentId": {
-                                      "type": "string"
-                                    }
-                                  }
-                                }
-                              },
-                              "adminUserOwner": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "oneOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
-                                  },
-                                  "documentId": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "expiresAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "lifespan": {
-                                "type": "string",
-                                "pattern": "^\\d*$",
-                                "example": "123456789"
-                              },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "updatedAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "publishedAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "createdBy": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "oneOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
-                                  },
-                                  "documentId": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "updatedBy": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "oneOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
-                                  },
-                                  "documentId": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "locale": {
-                                "type": "string"
-                              },
-                              "localizations": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "oneOf": [
-                                        {
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
-                                    },
-                                    "documentId": {
-                                      "type": "string"
-                                    }
-                                  }
+                                  ]
+                                },
+                                "documentId": {
+                                  "type": "string"
                                 }
                               }
                             }
@@ -132761,7 +133558,7 @@
                   }
                 }
               },
-              "apiTokens": {
+              "affiliatePromotions": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -132782,11 +133579,853 @@
                   }
                 }
               },
-              "blocked": {
+              "affiliatePointsConversion": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
+                  },
+                  "affiliatePoints": {
+                    "type": "integer"
+                  },
+                  "currencyAmount": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "currency": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "country": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "publishedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "createdBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "updatedBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "locale": {
+                    "type": "string"
+                  },
+                  "localizations": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "paymentSystemType": {
+                "type": "string",
+                "enum": [
+                  "float_based",
+                  "subscription_based",
+                  "hybrid"
+                ]
+              },
+              "allowOrdersWithoutPartner": {
                 "type": "boolean"
               },
-              "preferedLanguage": {
+              "allowPartnerSwitching": {
+                "type": "boolean"
+              },
+              "freeTrialEnabled": {
+                "type": "boolean"
+              },
+              "defaultFreeTrialDays": {
+                "type": "integer"
+              },
+              "allowMultipleTrials": {
+                "type": "boolean"
+              },
+              "subscriptionGracePeriodDays": {
+                "type": "integer"
+              },
+              "autoRenewByDefault": {
+                "type": "boolean"
+              },
+              "maxSimultaneousDriverRequests": {
+                "type": "integer"
+              },
+              "rideRequestTimeoutSeconds": {
+                "type": "integer"
+              },
+              "deliveryRequestTimeoutSeconds": {
+                "type": "integer"
+              },
+              "driverCancellationCooldownMinutes": {
+                "type": "integer"
+              },
+              "minimumFloatTopup": {
+                "type": "number",
+                "format": "float"
+              },
+              "maximumFloatTopup": {
+                "type": "number",
+                "format": "float"
+              },
+              "allowNegativeFloat": {
+                "type": "boolean"
+              },
+              "negativeFloatLimit": {
+                "type": "number",
+                "format": "float"
+              },
+              "blockCashRidesOnInsufficientFloat": {
+                "type": "boolean"
+              },
+              "commissionType": {
+                "type": "string",
+                "enum": [
+                  "percentage",
+                  "flat_rate",
+                  "tiered"
+                ]
+              },
+              "defaultCommissionPercentage": {
+                "type": "number",
+                "format": "float"
+              },
+              "partnerCommisionPercentage": {
+                "type": "number",
+                "format": "float"
+              },
+              "defaultFlatCommission": {
+                "type": "number",
+                "format": "float"
+              },
+              "minimumCommission": {
+                "type": "number",
+                "format": "float"
+              },
+              "maximumCommission": {
+                "type": "number",
+                "format": "float"
+              },
+              "tieredCommissionEnabled": {
+                "type": "boolean"
+              },
+              "commissionTiers": {},
+              "affiliateSystemEnabled": {
+                "type": "boolean"
+              },
+              "pointsPerRiderReferral": {
+                "type": "integer"
+              },
+              "pointsPerDriverReferral": {
+                "type": "integer"
+              },
+              "pointsPerRiderFirstRide": {
+                "type": "integer"
+              },
+              "moneyPerPoint": {
+                "type": "number",
+                "format": "float"
+              },
+              "minimumPointsForRedemption": {
+                "type": "integer"
+              },
+              "affiliateCouponExpiryDays": {
+                "type": "integer"
+              },
+              "referralBonusEnabled": {
+                "type": "boolean"
+              },
+              "driverOrderRequestRingtone": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "alternativeText": {
+                    "type": "string"
+                  },
+                  "caption": {
+                    "type": "string"
+                  },
+                  "focalPoint": {},
+                  "width": {
+                    "type": "integer"
+                  },
+                  "height": {
+                    "type": "integer"
+                  },
+                  "formats": {},
+                  "hash": {
+                    "type": "string"
+                  },
+                  "ext": {
+                    "type": "string"
+                  },
+                  "mime": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "previewUrl": {
+                    "type": "string"
+                  },
+                  "provider": {
+                    "type": "string"
+                  },
+                  "provider_metadata": {},
+                  "related": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "folder": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "pathId": {
+                        "type": "integer"
+                      },
+                      "parent": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "documentId": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "children": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "documentId": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "files": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "documentId": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "alternativeText": {
+                              "type": "string"
+                            },
+                            "caption": {
+                              "type": "string"
+                            },
+                            "focalPoint": {},
+                            "width": {
+                              "type": "integer"
+                            },
+                            "height": {
+                              "type": "integer"
+                            },
+                            "formats": {},
+                            "hash": {
+                              "type": "string"
+                            },
+                            "ext": {
+                              "type": "string"
+                            },
+                            "mime": {
+                              "type": "string"
+                            },
+                            "size": {
+                              "type": "number",
+                              "format": "float"
+                            },
+                            "url": {
+                              "type": "string"
+                            },
+                            "previewUrl": {
+                              "type": "string"
+                            },
+                            "provider": {
+                              "type": "string"
+                            },
+                            "provider_metadata": {},
+                            "related": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "documentId": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "folder": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                },
+                                "documentId": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "folderPath": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "publishedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "createdBy": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                },
+                                "documentId": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "updatedBy": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                },
+                                "documentId": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "locale": {
+                              "type": "string"
+                            },
+                            "localizations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "oneOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "documentId": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "path": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "publishedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "createdBy": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "documentId": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "updatedBy": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "documentId": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "locale": {
+                        "type": "string"
+                      },
+                      "localizations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "documentId": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "folderPath": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "updatedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "publishedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "createdBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "updatedBy": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "documentId": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "locale": {
+                    "type": "string"
+                  },
+                  "localizations": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "documentId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "driverOrderRequestVibration": {
+                "type": "boolean"
+              },
+              "rideCompletionProximity": {
+                "type": "integer"
+              },
+              "allowManualCompletion": {
+                "type": "boolean"
+              },
+              "requireArrivalConfirmation": {
+                "type": "boolean"
+              },
+              "requireDriverLicense": {
+                "type": "boolean"
+              },
+              "requireNationalId": {
+                "type": "boolean"
+              },
+              "requireProofOfAddress": {
+                "type": "boolean"
+              },
+              "requireInsurance": {
+                "type": "boolean"
+              },
+              "requireRoadTax": {
+                "type": "boolean"
+              },
+              "requireFitnessDocument": {
+                "type": "boolean"
+              },
+              "targetRidesForUnlock": {
+                "type": "integer"
+              },
+              "smsEnabled": {
+                "type": "boolean"
+              },
+              "emailEnabled": {
+                "type": "boolean"
+              },
+              "pushNotificationsEnabled": {
+                "type": "boolean"
+              },
+              "whatsappEnabled": {
+                "type": "boolean"
+              },
+              "cashEnabled": {
+                "type": "boolean"
+              },
+              "okrapayEnabled": {
+                "type": "boolean"
+              },
+              "defaultCurrency": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "documentId": {
+                    "type": "string"
+                  }
+                }
+              },
+              "platformName": {
                 "type": "string"
+              },
+              "supportEmail": {
+                "type": "string",
+                "format": "email"
+              },
+              "supportPhone": {
+                "type": "string"
+              },
+              "requireVehicleRegistration": {
+                "type": "boolean"
+              },
+              "rideBookingRadius": {
+                "type": "integer"
+              },
+              "getOnlineDriverCurrentLocationCronIntervalInSecs": {
+                "type": "integer"
+              },
+              "externalPaymentGateway": {
+                "type": "string",
+                "enum": [
+                  "lencopay"
+                ]
+              },
+              "allowFloatTopUpWithOkraPay": {
+                "type": "boolean"
+              },
+              "allowRidePaymentWithOkraPay": {
+                "type": "boolean"
+              },
+              "appsServerPollingIntervalInSeconds": {
+                "type": "integer"
+              },
+              "adminSupportNumbers": {},
+              "adminSupportEmails": {},
+              "withdrawableBalance": {
+                "type": "string",
+                "enum": [
+                  "float",
+                  "earnings"
+                ]
+              },
+              "minimumWithdrawAmount": {
+                "type": "integer"
+              },
+              "autoApproveDrivers": {
+                "type": "boolean"
+              },
+              "autoApproveDeliverers": {
+                "type": "boolean"
+              },
+              "overideOtpCode": {
+                "type": "string"
+              },
+              "initialDriverFloat": {
+                "type": "number",
+                "format": "float"
+              },
+              "initialDelivererFloat": {
+                "type": "number",
+                "format": "float"
               },
               "createdAt": {
                 "type": "string",
@@ -132862,6 +134501,168 @@
               }
             }
           },
+          "lastCalculatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "platformStatCalculationCycleInMins": {
+            "type": "integer"
+          },
+          "partnerCommisionPercentage": {
+            "type": "number",
+            "format": "float"
+          },
+          "partnerCommissionShare": {
+            "type": "number",
+            "format": "float"
+          },
+          "estimatedProfit": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalDriverEarnings": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalPlatformCommission": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalSubscriptionRevenue": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalFloatSold": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalDriverFloatIssued": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalPartnerFloatPurchased": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalActiveFloat": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalNegativeFloat": {
+            "type": "number",
+            "format": "float"
+          },
+          "driversWithNegativeFloat": {
+            "type": "integer"
+          },
+          "totalWithdrawalsProcessed": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalPendingWithdrawals": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalRidesCompleted": {
+            "type": "integer"
+          },
+          "totalRidesCancelled": {
+            "type": "integer"
+          },
+          "totalSubscriptionRides": {
+            "type": "integer"
+          },
+          "totalFloatRides": {
+            "type": "integer"
+          },
+          "totalCashRides": {
+            "type": "integer"
+          },
+          "totalDigitalRides": {
+            "type": "integer"
+          },
+          "activeDriverCount": {
+            "type": "integer"
+          },
+          "activeSubscriberCount": {
+            "type": "integer"
+          },
+          "trialSubscriberCount": {
+            "type": "integer"
+          },
+          "totalDeliveriesCompleted": {
+            "type": "integer"
+          },
+          "totalDeliveriesCancelled": {
+            "type": "integer"
+          },
+          "totalDeliveryDriverEarnings": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalDeliveryPlatformCommission": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalCashDeliveries": {
+            "type": "integer"
+          },
+          "totalDigitalDeliveries": {
+            "type": "integer"
+          },
+          "activeDeliveryDriverCount": {
+            "type": "integer"
+          },
+          "totalAffiliatePoints": {
+            "type": "integer"
+          },
+          "totalAffiliatePayouts": {
+            "type": "number",
+            "format": "float"
+          },
+          "totalPendingAffiliateBalance": {
+            "type": "number",
+            "format": "float"
+          },
+          "activeAffiliateCount": {
+            "type": "integer"
+          },
+          "totalAffiliateReferrals": {
+            "type": "integer"
+          },
+          "totalAffiliateTransactions": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "documentId": {
+                "type": "string"
+              }
+            }
+          },
           "updatedBy": {
             "type": "object",
             "properties": {
@@ -132901,9 +134702,42 @@
                 "documentId": {
                   "type": "string"
                 },
+                "country": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "documentId": {
+                      "type": "string"
+                    }
+                  }
+                },
                 "lastCalculatedAt": {
                   "type": "string",
                   "format": "date-time"
+                },
+                "platformStatCalculationCycleInMins": {
+                  "type": "integer"
+                },
+                "partnerCommisionPercentage": {
+                  "type": "number",
+                  "format": "float"
+                },
+                "partnerCommissionShare": {
+                  "type": "number",
+                  "format": "float"
+                },
+                "estimatedProfit": {
+                  "type": "number",
+                  "format": "float"
                 },
                 "totalDriverEarnings": {
                   "type": "number",
@@ -132918,6 +134752,14 @@
                   "format": "float"
                 },
                 "totalFloatSold": {
+                  "type": "number",
+                  "format": "float"
+                },
+                "totalDriverFloatIssued": {
+                  "type": "number",
+                  "format": "float"
+                },
+                "totalPartnerFloatPurchased": {
                   "type": "number",
                   "format": "float"
                 },
@@ -151398,6 +153240,7 @@
                               }
                             }
                           },
+                          "settingsOverrides": {},
                           "isActive": {
                             "type": "boolean"
                           },
@@ -151967,6 +153810,10 @@
                             ]
                           },
                           "defaultCommissionPercentage": {
+                            "type": "number",
+                            "format": "float"
+                          },
+                          "partnerCommisionPercentage": {
                             "type": "number",
                             "format": "float"
                           },
@@ -165790,6 +167637,7 @@
                       }
                     }
                   },
+                  "settingsOverrides": {},
                   "isActive": {
                     "type": "boolean"
                   },
@@ -166359,6 +168207,10 @@
                     ]
                   },
                   "defaultCommissionPercentage": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "partnerCommisionPercentage": {
                     "type": "number",
                     "format": "float"
                   },
@@ -170697,7 +172549,8 @@
                   "subscription_payment",
                   "commission",
                   "refund",
-                  "affiliate_payout"
+                  "affiliate_payout",
+                  "partner_commission_payment"
                 ]
               },
               "amount": {
@@ -173087,7 +174940,8 @@
               "subscription_payment",
               "commission",
               "refund",
-              "affiliate_payout"
+              "affiliate_payout",
+              "partner_commission_payment"
             ]
           },
           "amount": {
@@ -181527,7 +183381,8 @@
                   "ridepay",
                   "withdraw",
                   "walletTopup",
-                  "affiliatePayout"
+                  "affiliatePayout",
+                  "partnerCommission"
                 ]
               },
               "direction": {
@@ -181592,7 +183447,8 @@
                   "driver_subscription",
                   "ride",
                   "withdrawal",
-                  "wallet_topup"
+                  "wallet_topup",
+                  "partner_commission_payment"
                 ]
               },
               "relatedEntityId": {

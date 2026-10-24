@@ -144,6 +144,9 @@ export default function SettingsPage() {
                 <FormField label="Default Commission %" hint="Used when type is percentage">
                   <input className="input" type="number" step="0.01" value={s.defaultCommissionPercentage || 15} onChange={e => updateSetting('defaultCommissionPercentage', parseFloat(e.target.value))} disabled={!canWrite('settings')} />
                 </FormField>
+                <FormField label="Partner Commission Share %" hint="Country-specific values override this platform default">
+                  <input className="input" type="number" min="0" max="100" step="0.01" value={s.partnerCommisionPercentage ?? 10} onChange={e => updateSetting('partnerCommisionPercentage', parseFloat(e.target.value))} disabled={!canWrite('settings')} />
+                </FormField>
                 <FormField label="Flat Commission (ZMW)" hint="Used when type is flat_rate">
                   <input className="input" type="number" step="0.01" value={s.defaultFlatCommission || 0} onChange={e => updateSetting('defaultFlatCommission', parseFloat(e.target.value))} disabled={!canWrite('settings')} />
                 </FormField>
@@ -223,6 +226,9 @@ export default function SettingsPage() {
           {activeTab === 'platform' && (
             <SettingsSection title="Platform Information">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <FormField label="Platform stats calculation cycle (minutes)" hint="Dashboard snapshots recalculate at this interval">
+                  <input className="input" type="number" min="1" step="1" value={s.platformStatCalculationCycleInMins ?? 20} onChange={e => updateSetting('platformStatCalculationCycleInMins', Math.max(1, parseInt(e.target.value, 10) || 1))} disabled={!canWrite('settings')} />
+                </FormField>
                 <FormField label="Platform Name"><input className="input" value={s.platformName || ''} onChange={e => updateSetting('platformName', e.target.value)} disabled={!canWrite('settings')} placeholder="OkraRides" /></FormField>
                 <FormField label="Support Email"><input className="input" type="email" value={s.supportEmail || ''} onChange={e => updateSetting('supportEmail', e.target.value)} disabled={!canWrite('settings')} placeholder="support@okrarides.com" /></FormField>
                 <FormField label="Support Phone"><input className="input" value={s.supportPhone || ''} onChange={e => updateSetting('supportPhone', e.target.value)} disabled={!canWrite('settings')} placeholder="+260..." /></FormField>

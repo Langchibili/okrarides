@@ -6,7 +6,8 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/lib/toast';
 import { formatDate, getFullName } from '@/lib/utils';
 import { DataTable, Pagination } from '@/components/DataTable';
-import { PageHeader, Modal, StatusPill, Avatar, StatCard } from '@/components/UI';
+import { PageHeader, Modal, StatusPill, Avatar, StatCard, ConfirmDialog, FilterBar } from '@/components/UI';
+import CountryFilter from '@/components/CountryFilter';
 
 export default function AffiliatesPage() {
   const { hasPermission, canWrite } = useAuth();
@@ -15,6 +16,7 @@ export default function AffiliatesPage() {
   const [affiliates, setAffiliates] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [promotions, setPromotions] = useState([]);
+  const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -22,24 +24,33 @@ export default function AffiliatesPage() {
   const [selectedAffiliate, setSelectedAffiliate] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [platformStats, setPlatformStats] = useState(null);
+  const [countryId, setCountryId] = useState('');
+  const [blockTarget, setBlockTarget] = useState(null);
+  const [blockSaving, setBlockSaving] = useState(false);
   const pageSize = 20;
 
-  useEffect(() => { loadData(); loadPlatformStats(); }, [page, activeTab]);
+  useEffect(() => { loadData(); loadPlatformStats(); }, [page, activeTab, countryId]);
 
   const loadPlatformStats = async () => {
     try {
-      const res = await adminAPI.get('/platform-stats');
-      setPlatformStats(res?.data || res);
-    } catch {}
+      const endpoint = countryId
+        ? `/platform-stat?countryId=${encodeURIComponent(countryId)}`
+        : '/platform-stat';
+      const res = await adminAPI.get(endpoint);
+      const payload = res?.data ?? res;
+      setPlatformStats(Array.isArray(payload) ? null : payload);
+    } catch (error) { toast.error(error.message || 'Could not load affiliate dashboard statistics'); }
   };
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const params = { 'pagination[page]': page, 'pagination[pageSize]': pageSize, 'sort': 'createdAt:desc' };
+      const params = { 'pagination[page]': page, 'pagination[pageSize]': pageSize, 'sort': activeTab === 'affiliates' ? 'affiliateProfile.totalPoints:desc' : 'createdAt:desc' };
       if (activeTab === 'affiliates') {
         params['filters[affiliateProfile][affiliateCode][$notNull]'] = true;
-        params['populate[affiliateProfile][fields]'] = 'affiliateCode,totalReferrals,totalPoints,pointsBalance,totalEarnings,pendingEarnings,withdrawableBalance,blocked';
+        params['filters[country][id][$eq]'] = countryId;
+        params['populate[affiliateProfile][fields]'] = 'affiliateCode,totalReferrals,activeReferrals,totalPoints,pointsBalance,totalEarnings,pendingEarnings,withdrawableBalance,blocked';
+        params['populate[affiliateProfile][populate][qrCode]'] = '*';
         params['fields'] = 'id,firstName,lastName,phoneNumber,username,createdAt';
         const res = await adminAPI.get('/users', params);
         const data = Array.isArray(res) ? res : (res?.data || []);
@@ -47,6 +58,7 @@ export default function AffiliatesPage() {
         const meta = res?.meta?.pagination;
         setTotal(meta?.total || data.length); setPageCount(meta?.pageCount || 1);
       } else if (activeTab === 'transactions') {
+        if (countryId) params['filters[countryId][$eq]'] = countryId;
         params['populate[affiliate][fields]'] = 'firstName,lastName,phoneNumber';
         params['populate[referredUser][fields]'] = 'firstName,lastName,phoneNumber';
         const res = await adminAPI.get('/affiliate-transactions', params);
@@ -54,25 +66,41 @@ export default function AffiliatesPage() {
         setTransactions(Array.isArray(data) ? data : []);
         const meta = res?.meta?.pagination;
         setTotal(meta?.total || 0); setPageCount(meta?.pageCount || 1);
-      } else {
+      } else if (activeTab === 'promotions') {
+        if (countryId) params['filters[countryId][$eq]'] = countryId;
         const res = await adminAPI.get('/affiliate-promotions', { ...params, 'populate[affiliateOwner][fields]': 'firstName,lastName' });
         const data = res?.data || res || [];
         setPromotions(Array.isArray(data) ? data : []);
+        const meta = res?.meta?.pagination;
+        setTotal(meta?.total || 0); setPageCount(meta?.pageCount || 1);
+      } else {
+        params['populate[affiliateOwner][fields]'] = 'firstName,lastName';
+        params['populate[promotion][fields]'] = 'name';
+        if (countryId) params['filters[countryId][$eq]'] = countryId;
+        params.sort = 'uses:desc';
+        const res = await adminAPI.get('/affiliate-coupons', params);
+        const data = res?.data || res || [];
+        setCoupons(Array.isArray(data) ? data : []);
         const meta = res?.meta?.pagination;
         setTotal(meta?.total || 0); setPageCount(meta?.pageCount || 1);
       }
     } catch (err) { toast.error(err.message || 'Failed to load data'); } finally { setLoading(false); }
   };
 
-  const handleBlockAffiliate = async (user) => {
-    if (!canWrite('finance')) return toast.error('Insufficient permissions');
+  const confirmBlockAffiliate = async () => {
+    const user = blockTarget;
+    if (!user) return;
+    if (!canWrite('affiliates')) return toast.error('Insufficient permissions');
+    setBlockSaving(true);
     try {
       const ap = user.affiliateProfile;
       const isBlocked = ap?.blocked;
       await adminAPI.put(`/users/${user.id}`, { affiliateProfile: { id: ap?.id, blocked: !isBlocked } });
       toast.success(`Affiliate ${isBlocked ? 'unblocked' : 'blocked'}`);
+      setBlockTarget(null);
       loadData();
     } catch (err) { toast.error(err.message); }
+    finally { setBlockSaving(false); }
   };
 
   const s = platformStats;
@@ -100,8 +128,8 @@ export default function AffiliatesPage() {
       render: (_, row) => (
         <div style={{ display: 'flex', gap: 6 }}>
           <button className="btn btn-secondary btn-sm" onClick={() => { setSelectedAffiliate(row); setShowDetail(true); }}>View</button>
-          {canWrite('finance') && (
-            <button className={`btn btn-sm ${row.affiliateProfile?.blocked ? 'btn-secondary' : 'btn-danger'}`} onClick={() => handleBlockAffiliate(row)}>
+          {canWrite('affiliates') && (
+            <button className={`btn btn-sm ${row.affiliateProfile?.blocked ? 'btn-secondary' : 'btn-danger'}`} onClick={() => setBlockTarget(row)}>
               {row.affiliateProfile?.blocked ? 'Unblock' : 'Block'}
             </button>
           )}
@@ -132,7 +160,17 @@ export default function AffiliatesPage() {
     { key: 'affiliateOwner', label: 'Owner', render: (v) => v ? <span style={{ fontSize: 12 }}>{getFullName(v)}</span> : <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span> },
   ];
 
-  if (!hasPermission('finance')) {
+  const couponColumns = [
+    { key: 'code', label: 'Coupon', render: (value, row) => <div><strong>{value}</strong><div style={{ color: 'var(--text-muted)', fontSize: 11 }}>{row.name}</div></div> },
+    { key: 'affiliateOwner', label: 'Affiliate', render: value => value ? getFullName(value) : '—' },
+    { key: 'promotion', label: 'Promotion', render: value => value?.name || '—' },
+    { key: 'uses', label: 'Uses', render: value => <strong>{value || 0}</strong> },
+    { key: 'usageLimit', label: 'Usage limit', render: value => value ?? '—' },
+    { key: 'isActive', label: 'Status', render: value => <StatusPill status={value ? 'active' : 'inactive'} /> },
+    { key: 'expiresAt', label: 'Expires', render: value => formatDate(value) },
+  ];
+
+  if (!hasPermission('affiliates')) {
     return <div style={{ color: 'var(--text-muted)', padding: 40, textAlign: 'center' }}>Access denied.</div>;
   }
 
@@ -151,15 +189,19 @@ export default function AffiliatesPage() {
       )}
 
       <div style={{ display: 'flex', gap: 0, marginBottom: 20, borderBottom: '1px solid var(--border)' }}>
-        {[['affiliates', 'Affiliates'], ['transactions', 'Transactions'], ['promotions', 'Promotions']].map(([key, label]) => (
+        {[['affiliates', 'Affiliates'], ['transactions', 'Transactions'], ['promotions', 'Promotions'], ['coupons', 'Coupons']].map(([key, label]) => (
           <button key={key} onClick={() => { setActiveTab(key); setPage(1); }}
             style={{ padding: '8px 18px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: activeTab === key ? 'var(--accent)' : 'var(--text-muted)', borderBottom: activeTab === key ? '2px solid var(--accent)' : '2px solid transparent', marginBottom: -1 }}>{label}</button>
         ))}
       </div>
 
+      {(activeTab === 'affiliates' || activeTab === 'coupons' || activeTab === 'promotions' || activeTab === 'transactions') && (
+        <FilterBar><CountryFilter value={countryId} onChange={value => { setCountryId(value); setPage(1); }} /></FilterBar>
+      )}
       {activeTab === 'affiliates' && <><DataTable columns={affiliateColumns} data={affiliates} loading={loading} /><Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} /></>}
       {activeTab === 'transactions' && <><DataTable columns={txColumns} data={transactions} loading={loading} /><Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} /></>}
       {activeTab === 'promotions' && <><DataTable columns={promoColumns} data={promotions} loading={loading} /><Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} /></>}
+      {activeTab === 'coupons' && <><DataTable columns={couponColumns} data={coupons} loading={loading} emptyMessage="No affiliate coupons found" /><Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} /></>}
 
       <Modal open={showDetail} onClose={() => { setShowDetail(false); setSelectedAffiliate(null); }} title="Affiliate Details" maxWidth={580}>
         {selectedAffiliate && (
@@ -172,6 +214,15 @@ export default function AffiliatesPage() {
                 <div style={{ marginTop: 4 }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--accent)', fontWeight: 700 }}>{selectedAffiliate.affiliateProfile?.affiliateCode}</span>
                 </div>
+                {selectedAffiliate.affiliateProfile?.qrCode?.url && (
+                  <img
+                    src={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1343/api').replace(/\/api\/?$/, '')}${selectedAffiliate.affiliateProfile.qrCode.url}`}
+                    alt={`${getFullName(selectedAffiliate)} referral QR code`}
+                    width="120"
+                    height="120"
+                    style={{ display: 'block', marginTop: 12, borderRadius: 8, background: 'white', padding: 6 }}
+                  />
+                )}
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
@@ -192,6 +243,16 @@ export default function AffiliatesPage() {
           </div>
         )}
       </Modal>
+      <ConfirmDialog
+        open={Boolean(blockTarget)}
+        onClose={() => setBlockTarget(null)}
+        onConfirm={confirmBlockAffiliate}
+        title={`${blockTarget?.affiliateProfile?.blocked ? 'Unblock' : 'Block'} affiliate`}
+        message={`Are you sure you want to ${blockTarget?.affiliateProfile?.blocked ? 'unblock' : 'block'} ${getFullName(blockTarget || {})}?`}
+        confirmLabel={blockTarget?.affiliateProfile?.blocked ? 'Unblock affiliate' : 'Block affiliate'}
+        danger={!blockTarget?.affiliateProfile?.blocked}
+        busy={blockSaving}
+      />
     </div>
   );
 }

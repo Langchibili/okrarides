@@ -24,7 +24,7 @@ export default function BusStationsPage() {
     setLoading(true);
     try {
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'name' });
-      const res = await adminClient.get(`/bus-stations${q}&sort=name:asc`);
+      const res = await adminClient.get(`/bus-stations?${q}&sort=name:asc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
@@ -83,7 +83,6 @@ export default function BusStationsPage() {
       render: (_, row) => (
         <div className="flex gap-2">
           <Btn size="sm" variant="secondary" onClick={() => openEdit(row)}>Edit</Btn>
-          <Btn size="sm" variant="danger" onClick={() => setDeleteTarget(row)}>Del</Btn>
         </div>
       ),
     },

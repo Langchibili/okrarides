@@ -47,7 +47,8 @@
         "ridepay",
         "withdraw",
         "walletTopup",
-        "affiliatePayout"
+        "affiliatePayout",
+        "partnerCommission"
       ],
       "description": "What this transaction is for"
     },
@@ -110,7 +111,8 @@
         "driver_subscription",
         "ride",
         "withdrawal",
-        "wallet_topup"
+        "wallet_topup",
+        "partner_commission_payment"
       ],
       "description": "Which collection the relatedEntityId refers to"
     },

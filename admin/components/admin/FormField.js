@@ -1,9 +1,9 @@
 // components/admin/FormField.js
 'use client';
 
-export function FormField({ label, required, error, children, hint }) {
+export function FormField({ label, required, error, children, hint, className = '' }) {
   return (
-    <div className="mb-4">
+    <div className={`mb-4 ${className}`}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {label} {required && <span className="text-red-500">*</span>}
@@ -49,12 +49,15 @@ export function Textarea({ ...props }) {
 export function Toggle({ checked, onChange, label }) {
   return (
     <label className="flex items-center gap-3 cursor-pointer">
-      <div
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`relative w-10 h-5 rounded-full transition-colors ${checked ? 'bg-blue-500' : 'bg-gray-200'}`}
       >
-        <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
-      </div>
+        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
+      </button>
       {label && <span className="text-sm text-gray-700">{label}</span>}
     </label>
   );

@@ -5,8 +5,9 @@ import { adminClient, buildQuery } from '@/lib/api/adminClient';
 import DataTable from '@/components/admin/DataTable';
 import Modal from '@/components/admin/Modal';
 import { PageHeader, SearchBar, StatusBadge, Btn } from '@/components/admin/PageHeader';
+import CountryFilter from '@/components/CountryFilter';
 
-const TX_TYPES = ['ride_payment','float_topup','withdrawal','subscription_payment','commission','refund','affiliate_payout'];
+const TX_TYPES = ['ride_payment','float_topup','withdrawal','subscription_payment','commission','refund','affiliate_payout','partner_commission_payment'];
 
 export default function TransactionsPage() {
   const [data, setData] = useState([]);
@@ -15,6 +16,7 @@ export default function TransactionsPage() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [countryId, setCountryId] = useState('');
   const [detail, setDetail] = useState(null);
 
   const load = useCallback(async (page = 1) => {
@@ -24,13 +26,14 @@ export default function TransactionsPage() {
       if (filterType) filters.type = filterType;
       if (filterStatus) filters.transactionStatus = filterStatus;
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'transactionId', filters, populate: ['user', 'ride', 'subscription'] });
-      const res = await adminClient.get(`/transactions${q}&sort=createdAt:desc`);
+      const countryFilter = countryId ? `&filters[countryId][$eq]=${encodeURIComponent(countryId)}` : '';
+      const res = await adminClient.get(`/transactions?${q}${countryFilter}&sort=createdAt:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [search, filterType, filterStatus]);
+  }, [search, filterType, filterStatus, countryId]);
 
   useEffect(() => { load(1); }, [load]);
 
@@ -42,6 +45,7 @@ export default function TransactionsPage() {
     commission: 'bg-gray-100 text-gray-700',
     refund: 'bg-red-100 text-red-700',
     affiliate_payout: 'bg-teal-100 text-teal-700',
+    partner_commission_payment: 'bg-emerald-100 text-emerald-700',
   };
 
   const columns = [
@@ -49,7 +53,7 @@ export default function TransactionsPage() {
     { key: 'transactionId', label: 'TX ID', render: v => <span className="font-mono text-xs text-blue-600">{v}</span> },
     { key: 'user', label: 'User', render: v => v ? <div><div className="font-medium text-sm">{v.firstName} {v.lastName}</div><div className="text-xs text-gray-400">{v.phoneNumber}</div></div> : '—' },
     { key: 'type', label: 'Type', render: v => <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[v] || 'bg-gray-100 text-gray-600'}`}>{v?.replace(/_/g, ' ')}</span> },
-    { key: 'amount', label: 'Amount', render: v => <span className="font-semibold">K{Number(v).toFixed(2)}</span> },
+    { key: 'amount', label: 'Amount', render: (v, row) => <span className="font-semibold">{row.currency?.symbol || row.currency?.code || 'K'}{Number(v).toFixed(2)}</span> },
     { key: 'paymentMethod', label: 'Method', render: v => <span className="capitalize text-sm">{v?.replace(/_/g, ' ') || '—'}</span> },
     { key: 'transactionStatus', label: 'Status', render: v => <StatusBadge status={v || 'pending'} /> },
     { key: 'id', label: '', width: 70, render: (_, row) => <Btn size="sm" variant="ghost" onClick={() => setDetail(row)}>View</Btn> },
@@ -68,7 +72,8 @@ export default function TransactionsPage() {
           <option value="">All statuses</option>
           {['pending','completed','failed','cancelled','refunded'].map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <Btn variant="secondary" onClick={() => { setSearch(''); setFilterType(''); setFilterStatus(''); }}>Clear</Btn>
+        <CountryFilter value={countryId} onChange={setCountryId} />
+        <Btn variant="secondary" onClick={() => { setSearch(''); setFilterType(''); setFilterStatus(''); setCountryId(''); }}>Clear</Btn>
       </div>
       <DataTable columns={columns} data={data} loading={loading} pagination={pagination} onPageChange={load} emptyMessage="No transactions found" />
 
@@ -78,7 +83,7 @@ export default function TransactionsPage() {
             {[
               ['Transaction ID', detail.transactionId, true],
               ['Type', detail.type?.replace(/_/g, ' ')],
-              ['Amount', `K${Number(detail.amount).toFixed(2)}`],
+              ['Amount', `${detail.currency?.symbol || detail.currency?.code || 'K'}${Number(detail.amount).toFixed(2)}`],
               ['Status', detail.transactionStatus],
               ['Payment Method', detail.paymentMethod],
               ['Gateway Reference', detail.gatewayReference, true],

@@ -25,7 +25,7 @@ export default function BusRoutesPage() {
     setLoading(true);
     try {
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'name', populate: ['startStation', 'endStation'] });
-      const res = await adminClient.get(`/bus-routes${q}&sort=routeCode:asc`);
+      const res = await adminClient.get(`/bus-routes?${q}&sort=routeCode:asc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
@@ -88,7 +88,6 @@ export default function BusRoutesPage() {
       render: (_, row) => (
         <div className="flex gap-2">
           <Btn size="sm" variant="secondary" onClick={() => openEdit(row)}>Edit</Btn>
-          <Btn size="sm" variant="danger" onClick={() => setDeleteTarget(row)}>Del</Btn>
         </div>
       ),
     },

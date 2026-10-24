@@ -1,15 +1,15 @@
 // components/admin/PageHeader.js
 'use client';
 
-export function PageHeader({ title, description, action }) {
+export function PageHeader({ title, description, subtitle, action, actions }) {
   return (
-    <div className="flex items-start justify-between mb-6">
+    <header className="page-heading">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-        {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+        <h1>{title}</h1>
+        {(description || subtitle) && <p>{description || subtitle}</p>}
       </div>
-      {action && <div>{action}</div>}
-    </div>
+      {(action || actions) && <div className="page-actions">{action || actions}</div>}
+    </header>
   );
 }
 
@@ -57,23 +57,12 @@ export function SearchBar({ value, onChange, placeholder = 'Search…' }) {
 }
 
 export function StatCard({ label, value, icon, color = 'blue', sub }) {
-  const colors = {
-    blue:   'bg-blue-50 text-blue-600',
-    green:  'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
-    red:    'bg-red-50 text-red-600',
-    gray:   'bg-gray-50 text-gray-600',
-  };
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-gray-500">{label}</span>
-        {icon && <span className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${colors[color]}`}>{icon}</span>}
-      </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
-    </div>
+    <article className={`stat-card stat-${color}`}>
+      <div className="stat-card-top"><span>{label}</span>{icon && <span className="stat-icon">{icon}</span>}</div>
+      <strong>{value}</strong>
+      {sub && <small>{sub}</small>}
+    </article>
   );
 }
 

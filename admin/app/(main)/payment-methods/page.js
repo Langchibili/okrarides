@@ -19,7 +19,7 @@ export default function PaymentMethodsPage() {
     try {
       const filters = filterType ? { type: filterType } : {};
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'accountNumber', filters, populate: ['user'] });
-      const res = await adminClient.get(`/payment-methods${q}&sort=createdAt:desc`);
+      const res = await adminClient.get(`/payment-methods?${q}&sort=createdAt:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
@@ -45,7 +45,6 @@ export default function PaymentMethodsPage() {
     { key: 'isVerified', label: 'Verified', render: v => <StatusBadge status={v ? 'active' : 'inactive'} /> },
     {
       key: 'id', label: '', width: 70,
-      render: (_, row) => <Btn size="sm" variant="danger" onClick={() => setDeleteTarget(row)}>Del</Btn>
     },
   ];
 

@@ -24,7 +24,7 @@ export default function OkraPayPage() {
       if (filterPurpose) filters.purpose = filterPurpose;
       if (filterDirection) filters.direction = filterDirection;
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'paymentId', filters, populate: ['user', 'currency'] });
-      const res = await adminClient.get(`/okrapays${q}&sort=initiatedAt:desc`);
+      const res = await adminClient.get(`/okrapays?${q}&sort=initiatedAt:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);

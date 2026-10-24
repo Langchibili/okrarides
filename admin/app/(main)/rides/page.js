@@ -6,10 +6,11 @@ import { useAuth } from '@/lib/auth';
 import { useToast } from '@/lib/toast';
 import { formatDateTime, getFullName, debounce } from '@/lib/utils';
 import { DataTable, Pagination } from '@/components/DataTable';
-import { PageHeader, SearchBar, FilterBar, Modal, StatusPill, Avatar } from '@/components/UI';
+import { PageHeader, SearchBar, FilterBar, Modal, StatusPill, Avatar, ConfirmDialog } from '@/components/UI';
+import CountryFilter from '@/components/CountryFilter';
 
 export default function RidesPage() {
-  const { hasPermission } = useAuth();
+  const { hasPermission, canWrite } = useAuth();
   const toast = useToast();
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,11 +20,14 @@ export default function RidesPage() {
   const [pageCount, setPageCount] = useState(1);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterPayment, setFilterPayment] = useState('');
+  const [filterCountry, setFilterCountry] = useState('');
+  const [statusChange, setStatusChange] = useState(null);
+  const [statusSaving, setStatusSaving] = useState(false);
   const [selectedRide, setSelectedRide] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const pageSize = 20;
 
-  const loadRides = useCallback(async (pg = 1, q = search, st = filterStatus, pm = filterPayment) => {
+  const loadRides = useCallback(async (pg = 1, q = search, st = filterStatus, pm = filterPayment, countryId = filterCountry) => {
     setLoading(true);
     try {
       const params = {
@@ -38,6 +42,7 @@ export default function RidesPage() {
       if (q) params['filters[rideCode][$containsi]'] = q;
       if (st) params['filters[rideStatus][$eq]'] = st;
       if (pm) params['filters[paymentMethod][$eq]'] = pm;
+      if (countryId) params['filters[countryId][$eq]'] = countryId;
       const res = await adminAPI.get('/rides', params);
       const data = res?.data || res || [];
       const meta = res?.meta?.pagination;
@@ -49,12 +54,12 @@ export default function RidesPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, filterStatus, filterPayment]);
+  }, [search, filterStatus, filterPayment, filterCountry]);
 
   const debouncedSearch = useCallback(debounce((q) => {
     setPage(1);
-    loadRides(1, q, filterStatus, filterPayment);
-  }, 400), [filterStatus, filterPayment]);
+    loadRides(1, q, filterStatus, filterPayment, filterCountry);
+  }, 400), [filterStatus, filterPayment, filterCountry]);
 
   useEffect(() => { loadRides(page); }, [page]);
 
@@ -67,7 +72,19 @@ export default function RidesPage() {
       const full = await adminAPI.get(`/rides/${ride.id}?populate=rider,driver,vehicle,rideClass,taxiType,promoCode`);
       const r = full?.data || full;
       setSelectedRide(r);
-    } catch {}
+    } catch (error) { toast.error(error.message || 'Could not load ride details'); }
+  };
+
+  const saveRideStatus = async () => {
+    if (!statusChange || !canWrite('rides')) return;
+    setStatusSaving(true);
+    try {
+      await adminAPI.put(`/rides/${statusChange.ride.id}`, { data: { rideStatus: statusChange.status } });
+      toast.success(`Ride ${statusChange.ride.rideCode} status updated`);
+      setStatusChange(null);
+      loadRides(page);
+    } catch (error) { toast.error(error.message || 'Could not update ride status'); }
+    finally { setStatusSaving(false); }
   };
 
   const columns = [
@@ -84,7 +101,14 @@ export default function RidesPage() {
     { key: 'totalFare', label: 'Fare', render: (v) => <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600 }}>K{parseFloat(v || 0).toFixed(2)}</span> },
     { key: 'paymentMethod', label: 'Payment', render: (v) => <span className={`pill ${v === 'cash' ? 'pill-warning' : 'pill-info'}`}>{v || '—'}</span> },
     { key: 'createdAt', label: 'Date', render: (v) => <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDateTime(v)}</span> },
-    { key: 'actions', label: '', align: 'right', render: (_, row) => <button className="btn btn-secondary btn-sm" onClick={() => handleViewDetail(row)}>View</button> },
+    { key: 'actions', label: '', align: 'right', render: (_, row) => (
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        {canWrite('rides') && <select className="input select" aria-label={`Change status for ${row.rideCode}`} value={row.rideStatus || ''} onChange={event => event.target.value && setStatusChange({ ride: row, status: event.target.value })}>
+          {['pending', 'accepted', 'arrived', 'passenger_onboard', 'completed', 'cancelled', 'no_drivers_available'].map(status => <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>)}
+        </select>}
+        <button className="btn btn-secondary btn-sm" onClick={() => handleViewDetail(row)}>View</button>
+      </div>
+    ) },
   ];
 
   if (!hasPermission('rides')) {
@@ -97,7 +121,7 @@ export default function RidesPage() {
       <FilterBar>
         <SearchBar value={search} onChange={handleSearch} placeholder="Search by ride code..." />
         <select className="input select" style={{ width: 170 }} value={filterStatus}
-          onChange={e => { setFilterStatus(e.target.value); setPage(1); loadRides(1, search, e.target.value, filterPayment); }}>
+          onChange={e => { setFilterStatus(e.target.value); setPage(1); loadRides(1, search, e.target.value, filterPayment, filterCountry); }}>
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
           <option value="accepted">Accepted</option>
@@ -108,22 +132,32 @@ export default function RidesPage() {
           <option value="no_drivers_available">No Drivers</option>
         </select>
         <select className="input select" style={{ width: 140 }} value={filterPayment}
-          onChange={e => { setFilterPayment(e.target.value); setPage(1); loadRides(1, search, filterStatus, e.target.value); }}>
+          onChange={e => { setFilterPayment(e.target.value); setPage(1); loadRides(1, search, filterStatus, e.target.value, filterCountry); }}>
           <option value="">All Payments</option>
           <option value="cash">Cash</option>
           <option value="okrapay">OkraPay</option>
         </select>
+        <CountryFilter value={filterCountry} onChange={value => { setFilterCountry(value); setPage(1); loadRides(1, search, filterStatus, filterPayment, value); }} />
       </FilterBar>
       <DataTable columns={columns} data={rides} loading={loading} />
       <Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} />
       <Modal open={showDetail} onClose={() => { setShowDetail(false); setSelectedRide(null); }} title="Ride Details" maxWidth={680}>
-        {selectedRide && <RideDetail ride={selectedRide} />}
+        {selectedRide && <RideDetail ride={selectedRide} canWrite={canWrite('rides')} onStatusChange={status => setStatusChange({ ride: selectedRide, status })} />}
       </Modal>
+      <ConfirmDialog
+        open={Boolean(statusChange)}
+        onClose={() => setStatusChange(null)}
+        onConfirm={saveRideStatus}
+        title="Change ride status?"
+        message={`Change ${statusChange?.ride?.rideCode || 'this ride'} from ${statusChange?.ride?.rideStatus || 'unknown'} to ${statusChange?.status?.replace(/_/g, ' ')}?`}
+        confirmLabel="Confirm status change"
+        busy={statusSaving}
+      />
     </div>
   );
 }
 
-function RideDetail({ ride }) {
+function RideDetail({ ride, canWrite, onStatusChange }) {
   return (
     <div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -132,6 +166,14 @@ function RideDetail({ ride }) {
         <span className={`pill ${ride.paymentMethod === 'cash' ? 'pill-warning' : 'pill-info'}`}>{ride.paymentMethod}</span>
         {ride.wasSubscriptionRide && <span className="pill pill-purple">Subscription Ride</span>}
       </div>
+      {canWrite && (
+        <label className="form-field" style={{ marginBottom: 16 }}>
+          <span>Update status</span>
+          <select className="input select" value={ride.rideStatus || ''} onChange={event => onStatusChange(event.target.value)}>
+            {['pending', 'accepted', 'arrived', 'passenger_onboard', 'completed', 'cancelled', 'no_drivers_available'].map(status => <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>)}
+          </select>
+        </label>
+      )}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
         <div style={{ background: 'var(--bg-elevated)', borderRadius: 10, padding: '12px 14px' }}>
           <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: 8 }}>Rider</div>

@@ -5,8 +5,13 @@ import { adminClient, buildQuery } from '@/lib/api/adminClient';
 import DataTable from '@/components/admin/DataTable';
 import Modal from '@/components/admin/Modal';
 import { PageHeader, SearchBar, StatusBadge, Btn } from '@/components/admin/PageHeader';
+import CountryFilter from '@/components/CountryFilter';
 
-const ENTRY_TYPES = ['fare','fare_cash','fare_digital','fare_subscription','float_topup','float_deduction','commission','withdrawal','bonus','adjustment'];
+const ENTRY_TYPES = [
+  'fare', 'fare_cash', 'fare_subscription', 'commission', 'payout', 'float_topup',
+  'float_deduction', 'withdrawal', 'adjustment', 'refund', 'float_topup-partner',
+  'float_debit-partner',
+];
 
 export default function LedgerPage() {
   const [data, setData] = useState([]);
@@ -15,6 +20,7 @@ export default function LedgerPage() {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [countryId, setCountryId] = useState('');
   const [detail, setDetail] = useState(null);
 
   const load = useCallback(async (page = 1) => {
@@ -24,13 +30,14 @@ export default function LedgerPage() {
       if (filterType) filters.type = filterType;
       if (filterStatus) filters.ledgerStatus = filterStatus;
       const q = buildQuery({ page, pageSize: 20, search, searchField: 'entryId', filters, populate: ['driver', 'ride'] });
-      const res = await adminClient.get(`/ledger-entries${q}&sort=createdAt:desc`);
+      const countryFilter = countryId ? `&filters[countryId][$eq]=${encodeURIComponent(countryId)}` : '';
+      const res = await adminClient.get(`/ledger-entries?${q}${countryFilter}&sort=createdAt:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [search, filterType, filterStatus]);
+  }, [search, filterType, filterStatus, countryId]);
 
   useEffect(() => { load(1); }, [load]);
 
@@ -40,6 +47,8 @@ export default function LedgerPage() {
     fare_digital: 'bg-emerald-100 text-emerald-700',
     fare_subscription: 'bg-blue-100 text-blue-700',
     float_topup: 'bg-blue-100 text-blue-700',
+    'float_topup-partner': 'bg-blue-100 text-blue-700',
+    'float_debit-partner': 'bg-orange-100 text-orange-700',
     float_deduction: 'bg-orange-100 text-orange-700',
     commission: 'bg-purple-100 text-purple-700',
     withdrawal: 'bg-red-100 text-red-700',
@@ -86,9 +95,10 @@ export default function LedgerPage() {
         </select>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white">
           <option value="">All statuses</option>
-          {['pending','settled','failed','reversed'].map(s => <option key={s} value={s}>{s}</option>)}
+          {['pending','settled','failed','cancelled'].map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <Btn variant="secondary" onClick={() => { setSearch(''); setFilterType(''); setFilterStatus(''); }}>Clear</Btn>
+        <CountryFilter value={countryId} onChange={setCountryId} />
+        <Btn variant="secondary" onClick={() => { setSearch(''); setFilterType(''); setFilterStatus(''); setCountryId(''); }}>Clear</Btn>
       </div>
 
       <DataTable columns={columns} data={data} loading={loading} pagination={pagination} onPageChange={load} emptyMessage="No ledger entries found" />

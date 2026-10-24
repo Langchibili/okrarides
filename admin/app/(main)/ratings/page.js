@@ -29,7 +29,7 @@ export default function RatingsPage() {
     try {
       const filters = filterRating ? { rating: filterRating } : {};
       const q = buildQuery({ page, pageSize: 20, filters, populate: ['ratedBy', 'ratedUser', 'ride'] });
-      const res = await adminClient.get(`/ratings${q}&sort=createdAt:desc`);
+      const res = await adminClient.get(`/ratings?${q}&sort=createdAt:desc`);
       const items = res?.data || res || [];
       setData(Array.isArray(items) ? items : (items.data || []));
       if (res?.meta?.pagination) setPagination(res.meta.pagination);

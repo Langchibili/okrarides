@@ -368,72 +368,33 @@ export default {
       },
     });
 
-    // ── CRON TASKS — DISABLED ─────────────────────────────────────────────────
-    // All jobs are commented out while investigating the high-CPU issue.
-    // To re-enable, uncomment the jobsToRegister array, the registration loop,
-    // and the two startup calls at the bottom.
-    //
-    // const jobsToRegister = [
-    //   {
-    //     name: 'pollCollections',
-    //     rule: '*/20 * * * * *',
-    //     task: async () => { await pollPendingCollections(); }
-    //   },
-    //   {
-    //     name: 'platformStats',
-    //     rule: '*/10 * * * *',
-    //     task: async () => { await recalculatePlatformStats(); }
-    //   },
-    //   {
-    //     name: 'expiryChecker',
-    //     rule: '0 */6 * * *',
-    //     task: async () => { await runSubscriptionExpiryCheck(strapi); }
-    //   },
-    //   {
-    //     name: 'smsExpired',
-    //     rule: '0 7 * * *', // 09:00 AM CAT
-    //     task: async () => { await sendMessagesToUsersWithExpiredSubscriptions(strapi); }
-    //   },
-    //   {
-    //     name: 'smsZeroFloat',
-    //     rule: '30 7 * * *', // 09:30 AM CAT
-    //     task: async () => { await sendMessagesToUsersWithZeroFloat(strapi); }
-    //   },
-    //   {
-    //     name: 'restartFrontend',
-    //     rule: '0 * * * *', // every hour on the hour
-    //     task: async () => {
-    //       const { exec } = await import('child_process');
-    //       exec('pm2 restart frontendapp', (error, stdout, stderr) => {
-    //         if (error) {
-    //           strapi.log.error(`[restart-frontend] Failed: ${error.message}`);
-    //           return;
-    //         }
-    //         strapi.log.info(`[restart-frontend] ${stdout.trim()}`);
-    //         if (stderr) strapi.log.warn(`[restart-frontend] stderr: ${stderr.trim()}`);
-    //       });
-    //     }
-    //   },
-    // ];
-    //
-    // for (const job of jobsToRegister) {
-    //   strapi.cron.remove(job.name);
-    //   strapi.cron.add({
-    //     [job.name]: {
-    //       task: job.task,
-    //       options: { rule: job.rule, tz: 'UTC' }
-    //     }
-    //   });
-    // }
-    //
-    // runSubscriptionExpiryCheck(strapi).then(() => {
-    //   console.log('[bootstrap] Initial subscription expiry check complete');
-    // });
-    // sendMessagesToUsersWithZeroFloat(strapi).then(() => {
-    //   console.log('[bootstrap] Initial low float drivers check complete');
-    // });
-
-    console.log('[bootstrap] Cron tasks are currently DISABLED ⚠️');
+    strapi.cron.remove('platformStats');
+    strapi.cron.add({
+      platformStats: {
+        task: async () => {
+          const settings = await strapi.db.query('api::admn-setting.admn-setting').findOne({
+            select: ['platformStatCalculationCycleInMins'],
+          });
+          const cycleMins = Math.max(1, Number(settings?.platformStatCalculationCycleInMins) || 20);
+          const latest = await strapi.db.query('api::platform-stat.platform-stat').findMany({
+            select: ['lastCalculatedAt'],
+            orderBy: { lastCalculatedAt: 'desc' },
+            limit: 1,
+          });
+          const lastCalculatedAt = latest[0]?.lastCalculatedAt
+            ? new Date(latest[0].lastCalculatedAt).getTime()
+            : 0;
+          if (Date.now() - lastCalculatedAt >= cycleMins * 60 * 1000) {
+            await recalculatePlatformStats();
+          }
+        },
+        options: { rule: '* * * * *', tz: 'UTC' },
+      },
+    });
+    void recalculatePlatformStats().catch((error) => {
+      strapi.log.error('[bootstrap] Initial platform-stat calculation failed', error);
+    });
+    strapi.log.info('[bootstrap] Platform statistics cron enabled; all other cron tasks remain disabled');
     console.log('[bootstrap] Bootstrap complete ✅');
   },
 };

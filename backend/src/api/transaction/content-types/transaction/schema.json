@@ -39,7 +39,8 @@
         "subscription_payment",
         "commission",
         "refund",
-        "affiliate_payout"
+        "affiliate_payout",
+        "partner_commission_payment"
       ]
     },
     "amount": {

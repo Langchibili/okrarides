@@ -79,7 +79,6 @@ export default function AffiliatePointsTypesPage() {
       render: (_, row) => (
         <div className="flex gap-2">
           <Btn size="sm" variant="secondary" onClick={() => openEdit(row)}>Edit</Btn>
-          <Btn size="sm" variant="danger" onClick={() => setDeleteTarget(row)}>Del</Btn>
         </div>
       ),
     },

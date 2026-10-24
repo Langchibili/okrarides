@@ -5,6 +5,7 @@ import { adminClient, buildQuery } from '@/lib/api/adminClient';
 import DataTable from '@/components/admin/DataTable';
 import Modal from '@/components/admin/Modal';
 import { PageHeader, SearchBar, StatusBadge, StatCard, Btn } from '@/components/admin/PageHeader';
+import CountryFilter from '@/components/CountryFilter';
 
 export default function FloatTopupsPage() {
   const [data, setData] = useState([]);
@@ -12,6 +13,7 @@ export default function FloatTopupsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [countryId, setCountryId] = useState('');
   const [detail, setDetail] = useState(null);
   const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0, totalAmount: 0 });
 
@@ -20,7 +22,8 @@ export default function FloatTopupsPage() {
     try {
       const filters = filterStatus ? { floatStatus: filterStatus } : {};
       const q = buildQuery({ page, pageSize: 20, populate: ['driver'], search, searchField: 'topupId', filters });
-      const res = await adminClient.get(`/float-topups${q}&sort=createdAt:desc`);
+      const countryFilter = countryId ? `&filters[countryId][$eq]=${encodeURIComponent(countryId)}` : '';
+      const res = await adminClient.get(`/float-topups?${q}${countryFilter}&sort=createdAt:desc`);
       const items = res?.data || res || [];
       const arr = Array.isArray(items) ? items : (items.data || []);
       setData(arr);
@@ -30,7 +33,7 @@ export default function FloatTopupsPage() {
       setStats(s => ({ ...s, total: res?.meta?.pagination?.total || arr.length }));
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
-  }, [search, filterStatus]);
+  }, [search, filterStatus, countryId]);
 
   useEffect(() => { load(1); }, [load]);
 
@@ -69,6 +72,7 @@ export default function FloatTopupsPage() {
           <option value="">All statuses</option>
           {['pending','completed','failed','cancelled'].map(s => <option key={s} value={s} className="capitalize">{s}</option>)}
         </select>
+        <CountryFilter value={countryId} onChange={setCountryId} />
         <Btn variant="secondary" onClick={() => { setSearch(''); setFilterStatus(''); }}>Clear</Btn>
       </div>
 

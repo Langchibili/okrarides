@@ -1,5 +1,6 @@
 // app/layout.js
 import './globals.css';
+import AppProviders from '@/components/providers/AppProviders';
 
 export const metadata = {
   title: 'OkraRides Admin',
@@ -9,7 +10,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

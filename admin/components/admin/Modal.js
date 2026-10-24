@@ -2,7 +2,7 @@
 'use client';
 import { useEffect } from 'react';
 
-export default function Modal({ open, onClose, title, children, size = 'md' }) {
+export default function Modal({ open, onClose, title, children, size = 'md', footer, maxWidth }) {
   useEffect(() => {
     const handler = e => { if (e.key === 'Escape') onClose(); };
     if (open) document.addEventListener('keydown', handler);
@@ -11,22 +11,21 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
 
   if (!open) return null;
 
-  const widths = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${widths[size]} max-h-[90vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+    <div className="modal-backdrop" role="presentation" onMouseDown={e => e.target === e.currentTarget && onClose()}>
+      <div className={`modal-panel modal-${size}`} role="dialog" aria-modal="true" aria-label={title} style={{ maxWidth: typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth }}>
+        <header>
+          <h2>{title}</h2>
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="Close dialog"
           >
-            ✕
+            ×
           </button>
-        </div>
-        <div className="overflow-y-auto p-6 flex-1">{children}</div>
+        </header>
+        <div className="modal-content">{children}</div>
+        {footer && <footer>{footer}</footer>}
       </div>
     </div>
   );
@@ -38,12 +37,13 @@ export function ConfirmModal({ open, onClose, onConfirm, title, message, confirm
     <Modal open={open} onClose={onClose} title={title} size="sm">
       <p className="text-gray-600 mb-6">{message}</p>
       <div className="flex gap-3 justify-end">
-        <button onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
+        <button type="button" onClick={onClose} className="button button-secondary">
           Cancel
         </button>
         <button
+          type="button"
           onClick={onConfirm}
-          className={`px-4 py-2 rounded-lg text-white font-medium ${danger ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700'}`}
+          className={`button ${danger ? 'button-danger' : 'button-primary'}`}
         >
           {confirmLabel}
         </button>

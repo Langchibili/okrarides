@@ -38,6 +38,8 @@ export default function FloatPage() {
   const [floatQuickAmount, setFloatQuickAmount] = useState(null); // ← new
   const [toast, setToast] = useState(null);
   const [quickLoading, setQuickLoading] = useState({});
+  const [commissionBalance, setCommissionBalance] = useState(null);
+  const [commissionModalOpen, setCommissionModalOpen] = useState(false);
 
   const partnerProfile = dashboard?.partnerProfile;
   const displayBalance = socketBalance ?? partnerProfile?.floatBalance ?? 0;
@@ -59,6 +61,17 @@ export default function FloatPage() {
   }, []);
 
   useEffect(() => { loadDrivers(); }, [loadDrivers]);
+  useEffect(() => {
+    let active = true;
+    apiClient.get('/partner/commission-balance')
+      .then(result => {
+        if (active) setCommissionBalance(result?.data ?? result);
+      })
+      .catch(error => {
+        if (active) setToast({ msg: error.message || 'Could not load commission balance', severity: 'error' });
+      });
+    return () => { active = false; };
+  }, []);
 
   // ── Create float-topup record, then open OkraPayModal ─────────────────────
   const handleBuyFloat = async () => {
@@ -105,6 +118,14 @@ export default function FloatPage() {
   const handlePaymentError = (err) => {
     setModalOpen(false);
     setBuyError(err?.message || 'Payment failed — please try again.');
+  };
+
+  const handleCommissionPaymentSuccess = () => {
+    setCommissionModalOpen(false);
+    apiClient.get('/partner/commission-balance')
+      .then(result => setCommissionBalance(result?.data ?? result))
+      .catch(error => setToast({ msg: error.message || 'Payment completed, but balance refresh failed', severity: 'error' }));
+    setToast({ msg: 'Commission payment successful.', severity: 'success' });
   };
 
   const handleQuickCredit = async (driverId, amount) => {
@@ -156,6 +177,32 @@ export default function FloatPage() {
           Available to distribute to your fleet
         </Typography>
       </Paper>
+
+      {commissionBalance && (
+        <Paper sx={{ p: 3, borderRadius: 3, mb: 3, border: '1px solid rgba(245, 158, 11, 0.35)' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+            <Box>
+              <Typography sx={{ fontWeight: 800, color: '#fff', mb: 0.5 }}>Commission settlement</Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.8rem' }}>
+                Earned commission: {currency}{Number(commissionBalance.commissionEarned || 0).toFixed(2)}
+                {' · '}Your {Number(commissionBalance.partnerCommisionPercentage || 0)}% share: {currency}{Number(commissionBalance.partnerShareEarned || 0).toFixed(2)}
+              </Typography>
+              <Typography sx={{ color: '#fbbf24', fontWeight: 800, mt: 0.75 }}>
+                Amount owed to Okra: {currency}{Number(commissionBalance.amountOwedToOkra || 0).toFixed(2)}
+              </Typography>
+            </Box>
+            {Number(commissionBalance.amountOwedToOkra) > 0 && (
+              <Button
+                variant="contained"
+                onClick={() => setCommissionModalOpen(true)}
+                sx={{ borderRadius: 2, fontWeight: 800, minHeight: 46, flexShrink: 0 }}
+              >
+                Pay commission
+              </Button>
+            )}
+          </Box>
+        </Paper>
+      )}
 
       {/* Main two-column layout */}
       <Box sx={{
@@ -210,12 +257,14 @@ export default function FloatPage() {
               fullWidth
               variant="contained"
               onClick={handleBuyFloat}
-              disabled={numBuyAmount <= 0 || initiating || !user?.id}
+              disabled={numBuyAmount <= 0 || initiating || !user?.id || !commissionBalance || Number(commissionBalance.amountOwedToOkra) > 0}
               sx={{ height: 52, borderRadius: 2.5, fontWeight: 700, fontSize: '0.95rem' }}
             >
               {initiating
                 ? <CircularProgress size={20} sx={{ color: '#fff' }} />
-                : `Buy Float — ${currency}${numBuyAmount.toFixed(2)}`}
+                : Number(commissionBalance?.amountOwedToOkra) > 0
+                  ? 'Settle commission before buying float'
+                  : `Buy Float — ${currency}${numBuyAmount.toFixed(2)}`}
             </Button>
           </Paper>
 
@@ -346,6 +395,19 @@ export default function FloatPage() {
         phoneCode={phoneCode ?? savedPhoneCode()}
         acceptedMobileMoneyPayments={acceptedMM}
         onSuccess={handlePaymentSuccess}
+        onError={handlePaymentError}
+      />
+
+      <OkraPayModal
+        open={commissionModalOpen}
+        onClose={() => setCommissionModalOpen(false)}
+        amount={Number(commissionBalance?.amountOwedToOkra || 0)}
+        purpose="partnerCommission"
+        relatedEntityId={user?.id}
+        currency={currencyCode ?? savedCurrencyCode()}
+        phoneCode={phoneCode ?? savedPhoneCode()}
+        acceptedMobileMoneyPayments={acceptedMM}
+        onSuccess={handleCommissionPaymentSuccess}
         onError={handlePaymentError}
       />
 

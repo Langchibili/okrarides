@@ -1,208 +1,192 @@
-// PATH: src/app/(dashboard)/admin-users/page.js
 'use client';
-import { useState, useEffect } from 'react';
-import adminAPI from '@/lib/api';
+
+import { useCallback, useEffect, useState } from 'react';
+import { adminClient } from '@/lib/api/adminClient';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/lib/toast';
 import { formatDate, getFullName } from '@/lib/utils';
 import { DataTable, Pagination } from '@/components/DataTable';
-import { PageHeader, Modal, StatusPill, Avatar, FormField } from '@/components/UI';
+import { Avatar, FormField, Modal, PageHeader, StatusPill } from '@/components/UI';
+
+const PAGE_SIZE = 20;
+const emptyForm = { email: '', firstName: '', lastName: '', password: '', confirmPassword: '', roleIds: [], isActive: true };
+
+function records(payload) {
+  const data = payload?.data ?? payload;
+  return Array.isArray(data) ? data : [];
+}
 
 export default function AdminUsersPage() {
-  const { user: currentUser, hasPermission } = useAuth();
+  const { user: currentUser, isSuperAdmin } = useAuth();
   const toast = useToast();
-  const [adminUsers, setAdminUsers] = useState([]);
-  const [allPermissions, setAllPermissions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
-  const [showModal, setShowModal] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [form, setForm] = useState({});
+  const [pagination, setPagination] = useState({ page: 1, pageSize: PAGE_SIZE, pageCount: 1, total: 0 });
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const pageSize = 20;
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [error, setError] = useState('');
 
-  useEffect(() => { loadAdminUsers(); loadPermissions(); }, [page]);
-
-  const loadAdminUsers = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminAPI.get('/users', {
-        'pagination[page]': page, 'pagination[pageSize]': pageSize, 'sort': 'createdAt:desc',
-        'filters[adminType][$ne]': 'noRole',
-        'populate[adminPermissions][fields]': 'name,code,category',
-        'fields': 'id,firstName,lastName,username,phoneNumber,adminType,blocked,createdAt',
-      });
-      const data = Array.isArray(res) ? res : (res?.data || []);
-      const meta = res?.meta?.pagination;
-      setAdminUsers(data);
-      setTotal(meta?.total || data.length);
-      setPageCount(meta?.pageCount || 1);
-    } catch (err) { toast.error(err.message); } finally { setLoading(false); }
-  };
+      const [userResult, roleResult] = await Promise.all([
+        adminClient.get('/admin-users', {
+          'pagination[page]': page,
+          'pagination[pageSize]': PAGE_SIZE,
+          'sort': 'createdAt:desc',
+        }),
+        adminClient.get('/roles'),
+      ]);
+      setUsers(records(userResult));
+      if (userResult?.meta?.pagination) setPagination(userResult.meta.pagination);
+      setRoles(records(roleResult));
+    } catch (requestError) {
+      toast.error(requestError.message || 'Could not load admin accounts and roles');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, toast]);
 
-  const loadPermissions = async () => {
-    try {
-      const res = await adminAPI.get('/admn-user-permissions?pagination[limit]=100');
-      const data = res?.data || res || [];
-      setAllPermissions(Array.isArray(data) ? data : []);
-    } catch {}
-  };
+  useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => {
-    setEditingUser(null);
-    setForm({ adminType: 'support', selectedPermissions: [], blocked: false });
-    setShowModal(true);
-  };
-
-  const openEdit = (u) => {
-    setEditingUser(u);
-    setForm({ adminType: u.adminType, selectedPermissions: u.adminPermissions?.map(p => p.id) || [], blocked: u.blocked });
-    setShowModal(true);
-  };
-
-  const handleSave = async () => {
-    if (currentUser?.adminType !== 'super_admin') return toast.error('Only super admins can manage admin users');
+  async function createUser(event) {
+    event.preventDefault();
+    if (!isSuperAdmin) return toast.error('Only a Super Admin can create admin accounts');
+    if (!form.email.trim() || !form.password || form.roleIds.length === 0) {
+      setError('Email, password, and at least one Strapi Admin role are required.');
+      return;
+    }
+    if (form.password.length < 12) {
+      setError('Use a password with at least 12 characters.');
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      setError('The passwords do not match.');
+      return;
+    }
     setSaving(true);
+    setError('');
     try {
-      const updateData = { adminType: form.adminType, blocked: form.blocked };
-      if (form.selectedPermissions?.length > 0) {
-        updateData.adminPermissions = { connect: form.selectedPermissions };
-      } else {
-        updateData.adminPermissions = { set: [] };
-      }
-      if (!editingUser) {
-        if (!form.username || !form.password || !form.phoneNumber) {
-          toast.error('Username, phone, and password are required');
-          setSaving(false);
-          return;
-        }
-        await adminAPI.post('/users', {
-          ...updateData,
-          username: form.username, phoneNumber: form.phoneNumber,
-          email: `admin_${form.username}@okrarides.com`, password: form.password,
-          firstName: form.firstName, lastName: form.lastName,
-        });
-        toast.success('Admin user created');
-      } else {
-        await adminAPI.put(`/users/${editingUser.id}`, updateData);
-        toast.success('Admin user updated');
-      }
-      setShowModal(false); setEditingUser(null); setForm({});
-      loadAdminUsers();
-    } catch (err) { toast.error(err.message); } finally { setSaving(false); }
-  };
+      await adminClient.post('/admin-users', {
+        email: form.email.trim().toLowerCase(),
+        firstname: form.firstName.trim(),
+        lastname: form.lastName.trim(),
+        password: form.password,
+        roles: form.roleIds.map(Number),
+        isActive: form.isActive,
+      });
+      toast.success(form.isActive ? 'Active admin account created' : 'Inactive admin account created');
+      setShowCreate(false);
+      setForm(emptyForm);
+      await load();
+    } catch (requestError) {
+      setError(requestError.message || 'Could not create admin account');
+    } finally {
+      setSaving(false);
+    }
+  }
 
-  const togglePermission = (permId) => {
-    setForm(prev => {
-      const current = prev.selectedPermissions || [];
-      const has = current.includes(permId);
-      return { ...prev, selectedPermissions: has ? current.filter(id => id !== permId) : [...current, permId] };
-    });
-  };
-
-  const adminTypeColors = { super_admin: 'danger', manager: 'warning', fleet_owner: 'info', support: 'muted', finance: 'purple' };
+  async function setActive(user, isActive) {
+    try {
+      await adminClient.put(`/admin-users/${user.id}`, { isActive });
+      toast.success(`Admin account ${isActive ? 'activated' : 'deactivated'}`);
+      await load();
+    } catch (requestError) {
+      toast.error(requestError.message || 'Could not update admin account');
+    }
+  }
 
   const columns = [
     {
-      key: 'id', label: 'Admin',
+      key: 'email', label: 'Admin user',
       render: (_, row) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Avatar firstName={row.firstName} lastName={row.lastName} username={row.username} size={30} />
-          <div>
-            <div style={{ fontWeight: 600, fontSize: 13 }}>{getFullName(row)}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{row.phoneNumber}</div>
-          </div>
+        <div className="admin-user-cell">
+          <Avatar firstName={row.firstname || row.firstName} lastName={row.lastname || row.lastName} username={row.email} />
+          <span><strong>{getFullName({ ...row, firstName: row.firstname || row.firstName, lastName: row.lastname || row.lastName })}</strong><small>{row.email}</small></span>
         </div>
       ),
     },
-    { key: 'username', label: 'Username', render: (v) => <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>{v}</span> },
-    { key: 'adminType', label: 'Role', render: (v) => <span className={`pill pill-${adminTypeColors[v] || 'muted'}`}>{v?.replace(/_/g, ' ')}</span> },
     {
-      key: 'adminPermissions', label: 'Permissions',
-      render: (v) => {
-        if (!v?.length) return <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>None</span>;
-        const cats = [...new Set(v.map(p => p.category).filter(Boolean))];
-        return (
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            {cats.slice(0, 4).map(c => <span key={c} className="pill pill-muted" style={{ fontSize: 10 }}>{c}</span>)}
-            {cats.length > 4 && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>+{cats.length - 4} more</span>}
-          </div>
-        );
-      },
+      key: 'roles', label: 'Strapi Admin role',
+      render: rolesForUser => (
+        <div className="role-chips">
+          {(rolesForUser || []).map(role => <span className="role-chip" key={role.id || role.code}>{role.name || role.code}</span>)}
+          {!rolesForUser?.length && <span className="text-gray-400">No role</span>}
+        </div>
+      ),
     },
-    { key: 'blocked', label: 'Status', render: (v) => <StatusPill status={v ? 'blocked' : 'active'} /> },
-    { key: 'createdAt', label: 'Added', render: (v) => <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDate(v)}</span> },
+    { key: 'isActive', label: 'Status', render: isActive => <StatusPill status={isActive ? 'active' : 'inactive'} /> },
+    { key: 'createdAt', label: 'Created', render: value => formatDate(value) },
     {
       key: 'actions', label: '', align: 'right',
-      render: (_, row) => currentUser?.adminType === 'super_admin'
-        ? <button className="btn btn-secondary btn-sm" onClick={() => openEdit(row)}>Edit</button>
-        : null,
+      render: (_, row) => (
+        <div className="row-actions">
+          <button className={`button ${row.isActive ? 'button-danger' : 'button-primary'}`} type="button"
+            disabled={row.id === currentUser?.id && row.isActive}
+            onClick={() => setActive(row, !row.isActive)}>
+            {row.isActive ? 'Deactivate' : 'Activate'}
+          </button>
+        </div>
+      ),
     },
   ];
 
-  if (!hasPermission('settings')) {
-    return <div style={{ color: 'var(--text-muted)', padding: 40, textAlign: 'center' }}>Access denied.</div>;
+  if (!isSuperAdmin) {
+    return <section className="access-denied"><h1>Admin users</h1><p>Only Strapi Super Admins can manage administrator accounts and roles.</p></section>;
   }
 
   return (
     <div>
-      <PageHeader title="Admin Users" subtitle="Manage admin access and permissions"
-        actions={currentUser?.adminType === 'super_admin' ? <button className="btn btn-primary btn-sm" onClick={openCreate}>+ Add Admin</button> : undefined} />
-      <DataTable columns={columns} data={adminUsers} loading={loading} />
-      <Pagination page={page} pageCount={pageCount} total={total} pageSize={pageSize} onChange={setPage} />
-      <Modal open={showModal} onClose={() => { setShowModal(false); setEditingUser(null); setForm({}); }}
-        title={editingUser ? `Edit ${getFullName(editingUser)}` : 'Add Admin User'} maxWidth={600}
-        footer={<>
-          <button className="btn btn-secondary" onClick={() => { setShowModal(false); setForm({}); }}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-        </>}>
-        <div>
-          {!editingUser && (
-            <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                <FormField label="First Name"><input className="input" value={form.firstName || ''} onChange={e => setForm(p => ({ ...p, firstName: e.target.value }))} /></FormField>
-                <FormField label="Last Name"><input className="input" value={form.lastName || ''} onChange={e => setForm(p => ({ ...p, lastName: e.target.value }))} /></FormField>
-                <FormField label="Username" required><input className="input" value={form.username || ''} onChange={e => setForm(p => ({ ...p, username: e.target.value }))} /></FormField>
-                <FormField label="Phone Number" required><input className="input" value={form.phoneNumber || ''} onChange={e => setForm(p => ({ ...p, phoneNumber: e.target.value }))} placeholder="+260..." /></FormField>
-                <FormField label="Password" required><input className="input" type="password" value={form.password || ''} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} /></FormField>
-              </div>
-              <hr className="divider" />
-            </>
-          )}
-          <FormField label="Admin Role">
-            <select className="input select" value={form.adminType || 'support'} onChange={e => setForm(p => ({ ...p, adminType: e.target.value }))}>
-              <option value="super_admin">Super Admin</option>
-              <option value="manager">Manager</option>
-              <option value="fleet_owner">Fleet Owner</option>
-              <option value="support">Support</option>
-              <option value="finance">Finance</option>
-            </select>
-          </FormField>
-          <div style={{ marginBottom: 16 }}>
-            <label className="label">Permissions</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {allPermissions.map(p => (
-                <label key={p.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', padding: '6px 10px', borderRadius: 6, background: form.selectedPermissions?.includes(p.id) ? 'var(--accent-dim)' : 'transparent', transition: 'background 0.1s' }}>
-                  <input type="checkbox" checked={form.selectedPermissions?.includes(p.id) || false} onChange={() => togglePermission(p.id)} style={{ marginTop: 2 }} />
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: form.selectedPermissions?.includes(p.id) ? 'var(--accent)' : 'var(--text-primary)' }}>{p.name}</div>
-                    {p.description && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{p.description}</div>}
-                  </div>
-                  <span className="pill pill-muted" style={{ marginLeft: 'auto', fontSize: 10 }}>{p.category}</span>
-                </label>
-              ))}
-              {allPermissions.length === 0 && <p style={{ color: 'var(--text-muted)', fontSize: 12, padding: '8px 0' }}>No permissions found. Create them in the Admin User Permission collection first.</p>}
-            </div>
+      <PageHeader title="Admin users" subtitle="Manage native Strapi Admin accounts and assigned backend roles."
+        actions={<button className="button button-primary" type="button" onClick={() => { setError(''); setShowCreate(true); }}>+ Add admin</button>} />
+      <div className="notice-card">
+        <strong>Native Strapi Admin identities</strong>
+        <span>Role assignments come from Strapi. Accounts are created without email verification; set the initial password and activate the account as needed. Invitation and verification tokens are never displayed or stored here.</span>
+      </div>
+      <DataTable columns={columns} data={users} loading={loading} emptyMessage="No administrator accounts found." />
+      <Pagination page={page} pageCount={pagination.pageCount} total={pagination.total} pageSize={PAGE_SIZE} onChange={setPage} />
+
+      <Modal open={showCreate} onClose={() => { setShowCreate(false); setError(''); }} title="Create admin account">
+        <form onSubmit={createUser}>
+          <p className="form-intro">Create an active Strapi Admin account and assign one or more backend roles.</p>
+          <div className="form-grid">
+            <FormField label="First name"><input value={form.firstName} onChange={event => setForm(current => ({ ...current, firstName: event.target.value }))} autoComplete="given-name" /></FormField>
+            <FormField label="Last name"><input value={form.lastName} onChange={event => setForm(current => ({ ...current, lastName: event.target.value }))} autoComplete="family-name" /></FormField>
           </div>
-          {editingUser && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
-              <input type="checkbox" checked={!!form.blocked} onChange={e => setForm(p => ({ ...p, blocked: e.target.checked }))} />
-              Block this admin user
-            </label>
-          )}
-        </div>
+          <FormField label="Email address" required>
+            <input type="email" value={form.email} onChange={event => setForm(current => ({ ...current, email: event.target.value }))} autoComplete="email" required />
+          </FormField>
+          <div className="form-grid">
+            <FormField label="Initial password" required>
+              <input type="password" value={form.password} onChange={event => setForm(current => ({ ...current, password: event.target.value }))} autoComplete="new-password" minLength={12} required />
+            </FormField>
+            <FormField label="Confirm password" required>
+              <input type="password" value={form.confirmPassword} onChange={event => setForm(current => ({ ...current, confirmPassword: event.target.value }))} autoComplete="new-password" minLength={12} required />
+            </FormField>
+          </div>
+          <FormField label="Strapi Admin roles" required>
+            <select multiple value={form.roleIds} onChange={event => setForm(current => ({
+              ...current,
+              roleIds: Array.from(event.target.selectedOptions, option => option.value),
+            }))} required size={Math.min(Math.max(roles.length, 2), 6)}>
+              {roles.map(role => <option key={role.id} value={role.id}>{role.name}{role.code ? ` — ${role.code}` : ''}</option>)}
+            </select>
+            {!roles.length && <small>Role list unavailable. Creation is disabled until Strapi roles can be loaded.</small>}
+          </FormField>
+          <label className="check-row">
+            <input type="checkbox" checked={form.isActive}
+              onChange={event => setForm(current => ({ ...current, isActive: event.target.checked }))} />
+            <span>Activate account immediately (no verification email)</span>
+          </label>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="modal-actions">
+            <button className="button button-secondary" type="button" onClick={() => setShowCreate(false)}>Cancel</button>
+            <button className="button button-primary" type="submit" disabled={saving || roles.length === 0}>{saving ? 'Creating…' : 'Create account'}</button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
