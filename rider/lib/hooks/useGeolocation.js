@@ -14,7 +14,7 @@ export const useGeolocation = (options = {}) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [permissionStatus, setPermissionStatus] = useState('prompt');
-  const { isNative } = useReactNative();
+  const { isNative, getCurrentLocation } = useReactNative();
 
   const onSuccess = useCallback((position) => {
     setLocation({
@@ -42,6 +42,7 @@ export const useGeolocation = (options = {}) => {
   // Request permission first
   const requestPermission = useCallback(async () => {
     try {
+      if (isNative || (typeof window !== 'undefined' && !!window.ReactNativeWebView)) return true;
       if (!navigator.geolocation) {
         setError({
           code: 0,
@@ -52,10 +53,7 @@ export const useGeolocation = (options = {}) => {
       }
 
       // Check permission status
-      if (navigator.permissions && !isNative) {
-        if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
-          return // you are in a native environment
-        }
+      if (navigator.permissions) {
         const result = await navigator.permissions.query({ name: 'geolocation' });
         setPermissionStatus(result.state);
         
@@ -74,14 +72,32 @@ export const useGeolocation = (options = {}) => {
       console.warn('Permission check error:', err);
       return true; // Continue anyway
     }
-  }, []);
+  }, [isNative]);
 
   useEffect(() => {
     let watchId;
     
     const startTracking = async () => {
-      if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
-        return // you are in a native environment
+      const nativeWebView = typeof window !== 'undefined' && !!window.ReactNativeWebView;
+      if (nativeWebView) {
+        if (!isNative) return;
+        try {
+          const nativeLocation = await getCurrentLocation();
+          onSuccess({
+            coords: {
+              latitude: nativeLocation.lat,
+              longitude: nativeLocation.lng,
+              accuracy: nativeLocation.accuracy,
+              altitude: nativeLocation.altitude,
+              heading: nativeLocation.heading,
+              speed: nativeLocation.speed,
+            },
+            timestamp: nativeLocation.timestamp ?? Date.now(),
+          });
+        } catch (nativeError) {
+          onError(nativeError);
+        }
+        return;
       }
       const hasPermission = await requestPermission();
       if (!hasPermission) return;
@@ -110,14 +126,34 @@ export const useGeolocation = (options = {}) => {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [enableHighAccuracy, timeout, maximumAge, watch, onSuccess, onError, requestPermission]);
+  }, [enableHighAccuracy, timeout, maximumAge, watch, onSuccess, onError, requestPermission, isNative, getCurrentLocation]);
 
   const refresh = useCallback(async () => {
+    const nativeWebView = typeof window !== 'undefined' && !!window.ReactNativeWebView;
+    if (nativeWebView) {
+      if (!isNative) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const nativeLocation = await getCurrentLocation();
+        onSuccess({
+          coords: {
+            latitude: nativeLocation.lat,
+            longitude: nativeLocation.lng,
+            accuracy: nativeLocation.accuracy,
+            altitude: nativeLocation.altitude,
+            heading: nativeLocation.heading,
+            speed: nativeLocation.speed,
+          },
+          timestamp: nativeLocation.timestamp ?? Date.now(),
+        });
+      } catch (nativeError) {
+        onError(nativeError);
+      }
+      return;
+    }
     setLoading(true);
     setError(null);
-    if(typeof window !== 'undefined' && !!window.ReactNativeWebView){
-        return // you are in a native environment
-    }
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 
@@ -126,7 +162,7 @@ export const useGeolocation = (options = {}) => {
       timeout,
       maximumAge
     });
-  }, [enableHighAccuracy, timeout, maximumAge, onSuccess, onError, requestPermission]);
+  }, [enableHighAccuracy, timeout, maximumAge, onSuccess, onError, requestPermission, isNative, getCurrentLocation]);
 
   return {
     location,

@@ -43,6 +43,12 @@ export default {
       config: { policies: [], middlewares: [] },
     },
     {
+      method: 'POST',
+      path: '/affiliate/validate-coupon',
+      handler: 'affiliate.validateCoupon',
+      config: { policies: [], middlewares: [] },
+    },
+    {
       method: 'GET',
       path: '/affiliate/coupons',
       handler: 'affiliate.getCoupons',

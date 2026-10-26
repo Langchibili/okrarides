@@ -483,6 +483,11 @@ io.on("connection", (socket) => {
   // From Strapi: Ride request sent to specific drivers
   socket.on('ride:request:sent', (data) => {
     const { rideId, driverIds, requestData } = data;
+    const ride = activeRides.get(rideId);
+    if (ride && ride.status === 'pending') {
+      ride.requestedDriverIds = [...new Set((driverIds || []).map(String))];
+      activeRides.set(rideId, ride);
+    }
 
     driverIds.forEach(driverId => {
       emitToUser('driver', driverId, 'ride:request:received', {
@@ -496,10 +501,12 @@ io.on("connection", (socket) => {
 
   // Driver accepts ride
   socket.on('ride:accept', (data) => {
-    const { rideId, driverId } = data;
+    const { rideId } = data;
+    const connection = connections.sockets.get(socket.id);
+    const driverId = data.driverId || (connection?.type === 'driver' ? connection.id : null);
 
     const ride = activeRides.get(rideId);
-    if (!ride) {
+    if (!ride || ride.status !== 'pending' || !driverId) {
       socket.emit('error', { message: 'Ride not found' });
       return;
     }
@@ -524,12 +531,33 @@ io.on("connection", (socket) => {
         timestamp: Date.now(),
       });
     }
-    // Notify other drivers that ride was taken
-    emitToRoom(`ride:${rideId}:pending`, 'ride:taken', { rideId, driverId });
+    // Notify every driver that received this request, not just room members.
+    (ride.requestedDriverIds || [])
+      .filter(requestedDriverId => requestedDriverId !== String(driverId))
+      .forEach(requestedDriverId => {
+        emitToUser('driver', requestedDriverId, 'ride:taken', { rideId, driverId });
+      });
 
     console.log(`Ride ${rideId} accepted by driver ${driverId}`);
 
     socket.emit('ride:accept:success', { rideId, driverId });
+  });
+
+  // Strapi emits this after its authenticated accept-ride endpoint succeeds.
+  socket.on('ride:taken', (data) => {
+    const { rideId, driverId } = data || {};
+    if (!rideId || !Array.isArray(data?.driverIds)) return;
+    const ride = activeRides.get(rideId);
+    if (ride) {
+      ride.status = 'accepted';
+      ride.driverId = driverId;
+      activeRides.set(rideId, ride);
+    }
+    data.driverIds
+      .filter(driverIdToNotify => String(driverIdToNotify) !== String(driverId))
+      .forEach(driverIdToNotify => {
+        emitToUser('driver', driverIdToNotify, 'ride:taken', { rideId, driverId });
+      });
   });
 
   // Driver declines ride

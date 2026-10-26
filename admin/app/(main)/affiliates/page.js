@@ -68,9 +68,13 @@ export default function AffiliatesPage() {
         setTotal(meta?.total || 0); setPageCount(meta?.pageCount || 1);
       } else if (activeTab === 'promotions') {
         if (countryId) params['filters[countryId][$eq]'] = countryId;
+        params['filters[isDefault][$eq]'] = false;
         const res = await adminAPI.get('/affiliate-promotions', { ...params, 'populate[affiliateOwner][fields]': 'firstName,lastName' });
-        const data = res?.data || res || [];
-        setPromotions(Array.isArray(data) ? data : []);
+        const responseData = res?.data || res || [];
+        const data = Array.isArray(responseData)
+          ? responseData.filter(promotion => promotion.isDefault !== true && promotion.isDefault !== 'true')
+          : [];
+        setPromotions(data);
         const meta = res?.meta?.pagination;
         setTotal(meta?.total || 0); setPageCount(meta?.pageCount || 1);
       } else {

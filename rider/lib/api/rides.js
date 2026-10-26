@@ -107,6 +107,24 @@ class RideAPI {
     }
   }
 
+  async validateAffiliateCoupon(code, subtotal) {
+    try {
+      const response = await apiClient.post('/affiliate/validate-coupon', {
+        code,
+        subtotal,
+      });
+      return {
+        success: true,
+        data: response.data || response,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.error?.message || error.response?.message || error.message || 'Invalid or expired coupon',
+      };
+    }
+  }
+
   // Apply promo code to estimate
   async applyPromoCode(estimateId, code) {
     /*

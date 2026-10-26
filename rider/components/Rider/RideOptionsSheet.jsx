@@ -43,7 +43,6 @@ export function RideOptionsSheet({
   pickupLocation, dropoffLocation, routeInfo,
   fareEstimates, loadingEstimates, selectedRideClass,
   onSelectRideClass, promoCode, onPromoCodeChange,
-  affiliateCouponCode, onAffiliateCouponCodeChange,
   promoDiscount, onValidatePromo, validatingPromo,
   onClose, onConfirmRide, loading,
   bottomPadding = 80,
@@ -60,6 +59,23 @@ export function RideOptionsSheet({
   useEffect(() => { if (promoCode) setPromoInput(promoCode); }, [promoCode]);
   useEffect(() => { setPromoApplied(!!(promoDiscount?.valid)); }, [promoDiscount]);
 
+  const calculateDiscount = (fare) => {
+    const subtotal = Number(fare) || 0;
+    if (!promoApplied || !promoDiscount || subtotal <= 0) return 0;
+    const value = Number(promoDiscount.discountValue);
+    const discount = Number.isFinite(value) && value > 0
+      ? (promoDiscount.discountType === 'percentage' ? subtotal * value / 100 : value)
+      : Number(promoDiscount.discount) || 0;
+    return Math.min(subtotal, discount);
+  };
+
+  const handleSelectRideClass = (estimate) => {
+    onSelectRideClass(estimate);
+    if (promoApplied && promoInput.trim()) {
+      onValidatePromo(promoInput.trim(), estimate.subtotal);
+    }
+  };
+
   const handleApplyPromo = () => {
     if (promoInput?.trim()) {
       onPromoCodeChange(promoInput.trim());
@@ -67,12 +83,14 @@ export function RideOptionsSheet({
     }
   };
   const handleRemovePromo = () => {
-    setPromoInput(''); onPromoCodeChange(''); setPromoApplied(false);
+    setPromoInput('');
+    onPromoCodeChange('');
+    setPromoApplied(false);
   };
   const calculateTotalFare = () => {
     if (!selectedRideClass) return 0;
     const sub = selectedRideClass.subtotal || selectedRideClass.estimatedFare || 0;
-    return promoApplied && promoDiscount ? Math.max(0, sub - (promoDiscount.discount || 0)) : sub;
+    return Math.max(0, sub - calculateDiscount(sub));
   };
   const toggleSpecialRequest = (req) =>
     setSpecialRequests((p) => p.includes(req) ? p.filter((r) => r !== req) : [...p, req]);
@@ -80,7 +98,7 @@ export function RideOptionsSheet({
     if (!hasLocations || !selectedRideClass) return;
     onConfirmRide({
       paymentMethod, passengerCount, specialRequests, notes,
-      totalFare: calculateTotalFare(), affiliateCouponCode,
+      totalFare: calculateTotalFare(),
     });
   };
 
@@ -176,7 +194,7 @@ export function RideOptionsSheet({
               return (
                 <motion.div key={estimate.rideClassId || index} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }}>
                   <Paper
-                    onClick={() => onSelectRideClass(estimate)}
+                    onClick={() => handleSelectRideClass(estimate)}
                     elevation={0}
                     sx={{
                       p: 2, mb: 1.5, cursor: 'pointer', border: '2px solid',
@@ -212,8 +230,13 @@ export function RideOptionsSheet({
                         </Box>
                       </Box>
                       <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                        {calculateDiscount(estimate.subtotal) > 0 && (
+                          <Typography variant="caption" color="text.secondary" sx={{ textDecoration: 'line-through', display: 'block' }}>
+                            {savedCurrencySymbol()}{Number(estimate.subtotal || 0).toFixed(2)}
+                          </Typography>
+                        )}
                         <Typography variant="h6" fontWeight={700} color="primary.main" sx={{ fontSize: '1rem' }}>
-                          {savedCurrencySymbol()}{(estimate.subtotal || 0).toFixed(2)}
+                          {savedCurrencySymbol()}{Math.max(0, Number(estimate.subtotal || 0) - calculateDiscount(estimate.subtotal)).toFixed(2)}
                         </Typography>
                         {estimate.surgeFare > 0 && <Typography variant="caption" color="text.secondary">Surge</Typography>}
                       </Box>
@@ -266,18 +289,6 @@ export function RideOptionsSheet({
               </Paper>
             )}
           </Box>
-        )}
-
-        {selectedRideClass && (
-          <TextField
-            fullWidth
-            size="small"
-            label="Affiliate coupon (optional)"
-            placeholder="Enter an affiliate coupon"
-            value={affiliateCouponCode || ''}
-            onChange={(event) => onAffiliateCouponCodeChange(event.target.value.toUpperCase())}
-            sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-          />
         )}
 
         {/* Payment Method */}

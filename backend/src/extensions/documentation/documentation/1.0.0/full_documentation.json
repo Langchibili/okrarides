@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-10-24T20:00:11.863Z"
+    "x-generation-date": "2026-10-26T02:49:01.810Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -1382,6 +1382,87 @@
         ],
         "parameters": [],
         "operationId": "get/affiliate/promotions"
+      }
+    },
+    "/affiliate/validate-coupon": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AffiliateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Affiliate"
+        ],
+        "parameters": [],
+        "operationId": "post/affiliate/validate-coupon",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AffiliateRequest"
+              }
+            }
+          }
+        }
       }
     },
     "/affiliate/coupons": {
@@ -132293,6 +132374,9 @@
               "totalRidesCompleted": {
                 "type": "integer"
               },
+              "totalRideCount": {
+                "type": "integer"
+              },
               "totalRidesCancelled": {
                 "type": "integer"
               },
@@ -132311,6 +132395,15 @@
               "activeDriverCount": {
                 "type": "integer"
               },
+              "totalDriverCount": {
+                "type": "integer"
+              },
+              "totalDelivererCount": {
+                "type": "integer"
+              },
+              "totalRiderCount": {
+                "type": "integer"
+              },
               "activeSubscriberCount": {
                 "type": "integer"
               },
@@ -132318,6 +132411,9 @@
                 "type": "integer"
               },
               "totalDeliveriesCompleted": {
+                "type": "integer"
+              },
+              "totalDeliveryCount": {
                 "type": "integer"
               },
               "totalDeliveriesCancelled": {
@@ -134566,6 +134662,9 @@
           "totalRidesCompleted": {
             "type": "integer"
           },
+          "totalRideCount": {
+            "type": "integer"
+          },
           "totalRidesCancelled": {
             "type": "integer"
           },
@@ -134584,6 +134683,15 @@
           "activeDriverCount": {
             "type": "integer"
           },
+          "totalDriverCount": {
+            "type": "integer"
+          },
+          "totalDelivererCount": {
+            "type": "integer"
+          },
+          "totalRiderCount": {
+            "type": "integer"
+          },
           "activeSubscriberCount": {
             "type": "integer"
           },
@@ -134591,6 +134699,9 @@
             "type": "integer"
           },
           "totalDeliveriesCompleted": {
+            "type": "integer"
+          },
+          "totalDeliveryCount": {
             "type": "integer"
           },
           "totalDeliveriesCancelled": {
@@ -134785,6 +134896,9 @@
                 "totalRidesCompleted": {
                   "type": "integer"
                 },
+                "totalRideCount": {
+                  "type": "integer"
+                },
                 "totalRidesCancelled": {
                   "type": "integer"
                 },
@@ -134803,6 +134917,15 @@
                 "activeDriverCount": {
                   "type": "integer"
                 },
+                "totalDriverCount": {
+                  "type": "integer"
+                },
+                "totalDelivererCount": {
+                  "type": "integer"
+                },
+                "totalRiderCount": {
+                  "type": "integer"
+                },
                 "activeSubscriberCount": {
                   "type": "integer"
                 },
@@ -134810,6 +134933,9 @@
                   "type": "integer"
                 },
                 "totalDeliveriesCompleted": {
+                  "type": "integer"
+                },
+                "totalDeliveryCount": {
                   "type": "integer"
                 },
                 "totalDeliveriesCancelled": {

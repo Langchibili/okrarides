@@ -22,6 +22,7 @@ export interface AffiliatePromotion {
   for: 'rider' | 'driver' | 'all';
   amount: number;
   amountType?: 'flatrate' | 'percentage';
+  isDefault?: boolean;
   usageLimit: number;
   isActive: boolean;
   expiresAt?: string | null;
@@ -31,6 +32,8 @@ export interface AffiliatePromotion {
 interface DiscountResult {
   discountedFare: number;
   discountAmount: number;
+  discountType?: 'flatrate' | 'percentage';
+  discountValue?: number;
   appliedCode: string | null;
   promotionId: number | null;
   promotionDescription: string | null;
@@ -56,7 +59,7 @@ export async function getPromotionsForAffiliate(affiliateOwnerId: number): Promi
   const promos: AffiliatePromotion[] = await strapi.db
     .query('api::affiliate-promotion.affiliate-promotion')
     .findMany({
-      where: { isActive: true, publishedAt: { $notNull: true } },
+      where: { isActive: true, isDefault: false, publishedAt: { $notNull: true } },
       populate: { countries: true },
     });
   const user = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -102,15 +105,17 @@ async function checkAndApplyBookingDiscount(
       return { ...noDiscount, error: 'Affiliate coupons are not enabled in your country.' };
     }
 
+    const normalizedCode = couponCode.trim().toUpperCase();
     const coupon = await strapi.db.query('api::affiliate-coupon.affiliate-coupon').findOne({
-      where: { code: couponCode.trim().toUpperCase(), isActive: true },
+      where: { code: { $eqi: normalizedCode }, isActive: true },
       populate: { promotion: { populate: { countries: true } }, affiliateOwner: true },
     });
-    if (!coupon || new Date(coupon.expiresAt) <= new Date()) {
+    const couponExpiry = coupon?.expiresAt ? new Date(coupon.expiresAt).getTime() : Number.NaN;
+    if (!coupon || !Number.isFinite(couponExpiry) || couponExpiry <= Date.now()) {
       return { ...noDiscount, error: 'Coupon code is invalid or expired.' };
     }
     const promo = coupon.promotion as AffiliatePromotion & { countries?: any[] };
-    if (!promo?.isActive || !promo.publishedAt || isPromotionExpired(promo) || promo.action !== actionType) {
+    if (!promo?.isActive || promo.isDefault || !promo.publishedAt || isPromotionExpired(promo) || promo.action !== actionType) {
       return { ...noDiscount, error: 'Coupon is not valid for this booking.' };
     }
     if (!appliesToUserType(promo, 'rider')) {
@@ -129,18 +134,26 @@ async function checkAndApplyBookingDiscount(
       return { ...noDiscount, error: 'You have already reached this coupon’s usage limit.' };
     }
 
-    const value = Number(promo.amount);
+    const legacyPercentage = Number((promo as any).percentageAmount);
+    const configuredAmount = Number(promo.amount);
+    const useLegacyPercentage = configuredAmount <= 0
+      && Number.isFinite(legacyPercentage)
+      && legacyPercentage > 0;
+    const discountType = useLegacyPercentage ? 'percentage' : (promo.amountType ?? 'flatrate');
+    const value = useLegacyPercentage ? legacyPercentage : configuredAmount;
     if (!Number.isFinite(value) || value <= 0) {
       return { ...noDiscount, error: 'This promotion does not provide a valid discount.' };
     }
-    const amount = promo.amountType === 'percentage' ? (fare * value) / 100 : value;
+    const amount = discountType === 'percentage' ? (fare * value) / 100 : value;
     const discountAmount = Number(Math.min(fare, amount).toFixed(2));
     return {
       discountedFare: Math.max(0, fare - discountAmount),
       discountAmount,
+      discountType,
+      discountValue: value,
       appliedCode: coupon.code,
       promotionId: Number(promo.id),
-      promotionDescription: promo.description ?? `${promo.amountType === 'percentage' ? `${value}%` : value} discount applied`,
+      promotionDescription: promo.description ?? `${discountType === 'percentage' ? `${value}%` : value} discount applied`,
       couponId: Number(coupon.id),
       couponCode: coupon.code,
     };
@@ -259,7 +272,7 @@ export async function createAffiliateCoupon(
   if (settings.affiliateSystemEnabled !== true) throw new Error('Affiliate system is not enabled');
 
   const promotion = await strapi.db.query('api::affiliate-promotion.affiliate-promotion').findOne({
-    where: { id: input.promotionId, isActive: true, publishedAt: { $notNull: true } },
+    where: { id: input.promotionId, isActive: true, isDefault: false, publishedAt: { $notNull: true } },
     populate: { countries: true },
   });
   if (!promotion || isPromotionExpired(promotion)) throw new Error('Promotion is not available');
@@ -278,7 +291,7 @@ export async function createAffiliateCoupon(
   if (codeBase.length < 3) throw new Error('Coupon code must contain at least 3 letters or numbers');
   let code = codeBase;
   const existing = await strapi.db.query('api::affiliate-coupon.affiliate-coupon').findOne({
-    where: { code },
+    where: { code: { $eqi: code } },
     select: ['id'],
   });
   if (existing && input.code) throw new Error('That coupon code is already in use');

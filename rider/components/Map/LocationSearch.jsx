@@ -462,6 +462,7 @@ import {
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LocationSelectMap } from './LocationSelectMap';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 
 let useMapsProviderHook = null;
 try {
@@ -511,9 +512,13 @@ export const LocationSearch = ({
   displayKey,
   locationBounds = null,
   selectedCoords = null, // optional { lat, lng } of the currently selected value, from the parent
+  mapPickerEnabled = true,
+  dropdownZIndex = 9999,
+  onSearchResults,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const { isNative, getCurrentLocation } = useReactNative();
 
   const [query,         setQuery]         = useState(value || '');
   const [predictions,   setPredictions]   = useState([]);
@@ -524,6 +529,7 @@ export const LocationSearch = ({
   const [selectedLocation, setSelectedLocation] = useState(null);
   const containerRef    = useRef(null);
   const searchTimeout   = useRef(null);
+  const searchRequestRef = useRef(0);
   const predictionCache = useRef({});
   const mapsProvider    = useSafeMapProvider();
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
@@ -545,9 +551,9 @@ export const LocationSearch = ({
       right:    margin,
       width:    `calc(100vw - ${margin * 2}px)`,
       height:   `calc(100vh - ${rect.bottom + gap + margin}px)`,
-      zIndex:   9999,
+      zIndex:   dropdownZIndex,
     });
-  }, []);
+  }, [dropdownZIndex]);
 
   // ── Nominatim search — geo-biased, limit 10 ───────────────────────────────
   const nominatimSearch = useCallback(async (q) => {
@@ -606,6 +612,7 @@ export const LocationSearch = ({
   // ── Search ────────────────────────────────────────────────────────────────
   const doSearch = useCallback(async (q) => {
     if (!q || q.length < 2) { setPredictions([]); setLoading(false); return; }
+    const requestId = ++searchRequestRef.current;
     setLoading(true);
 
     try {
@@ -629,21 +636,32 @@ export const LocationSearch = ({
         results = await nominatimSearch(q);
       }
 
-      setPredictions(results);
+      if (requestId === searchRequestRef.current) {
+        setPredictions(results);
+        onSearchResults?.(results, q);
+      }
     } catch (err) {
       console.warn('[LocationSearch] search error:', err);
       const fallback = await nominatimSearch(q);
-      setPredictions(fallback);
+      if (requestId === searchRequestRef.current) {
+        setPredictions(fallback);
+        onSearchResults?.(fallback, q);
+      }
     } finally {
-      setLoading(false);
+      if (requestId === searchRequestRef.current) setLoading(false);
     }
-  }, [mapsProvider, mapControls, countryCode, providerReady, nominatimSearch, locationBounds]);
+  }, [mapsProvider, mapControls, countryCode, providerReady, nominatimSearch, locationBounds, onSearchResults]);
 
   const handleInputChange = (e) => {
     const v = e.target.value;
     setQuery(v); onChange?.(v);
+    searchRequestRef.current += 1;
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    if (!v || v.length < 2) { setPredictions([]); return; }
+    if (!v || v.length < 2) {
+      setPredictions([]);
+      onSearchResults?.([], v);
+      return;
+    }
     searchTimeout.current = setTimeout(() => doSearch(v), 300);
   };
 
@@ -737,6 +755,26 @@ export const LocationSearch = ({
 
   // ── Current location ──────────────────────────────────────────────────────
   const handleUseCurrentLocation = useCallback(async () => {
+    if (isNative) {
+      try {
+        const nativeLocation = await getCurrentLocation();
+        const loc = {
+          lat: nativeLocation.lat,
+          lng: nativeLocation.lng,
+          address: 'Current Location',
+          name: 'Current Location',
+          placeId: 'current_location',
+        };
+        onSelectLocation(loc);
+        setSelectedLocation({ lat: loc.lat, lng: loc.lng });
+        setQuery('Current Location');
+        setPredictions([]);
+        setFocused(false);
+      } catch (error) {
+        console.error('[LocationSearch] native location lookup failed:', error);
+      }
+      return;
+    }
     if (mapControls?.getCurrentLocation) {
       mapControls.getCurrentLocation((loc) => {
         if (loc) {
@@ -757,9 +795,15 @@ export const LocationSearch = ({
         setSelectedLocation({ lat: loc.lat, lng: loc.lng });
       });
     }
-  }, [mapControls, onSelectLocation]);
+  }, [getCurrentLocation, isNative, mapControls, onSelectLocation]);
 
-  const handleClear = () => { setQuery(''); onChange?.(''); setPredictions([]); };
+  const handleClear = () => {
+    searchRequestRef.current += 1;
+    setQuery('');
+    onChange?.('');
+    setPredictions([]);
+    onSearchResults?.([], '');
+  };
 
   // ── Lock body scroll when dropdown open ───────────────────────────────────
   useEffect(() => {
@@ -992,23 +1036,25 @@ export const LocationSearch = ({
                   <ClearIcon sx={{ fontSize: 15 }} />
                 </IconButton>
               ) : null}
-              <Box
-                className="ls-action-btn"
-                onClick={() => setMapPickerOpen(true)}
-                sx={{
-                  display: 'flex', alignItems: 'center', gap: 0.5,
-                  height: 24, borderRadius: 99, px: 1,
-                  bgcolor: 'primary.main', color: 'primary.contrastText',
-                  cursor: 'pointer', userSelect: 'none', flexShrink: 0,
-                  fontSize: '0.65rem', fontWeight: 700, letterSpacing: 0.2,
-                  transition: 'background-color 0.15s ease, transform 0.1s ease',
-                  '&:hover': { bgcolor: 'primary.dark' },
-                  '&:active': { transform: 'scale(0.96)' },
-                }}
-              >
-                <span>Pick on map</span>
-                <MapPinIcon sx={{ fontSize: 14 }} />
-              </Box>
+              {mapPickerEnabled && (
+                <Box
+                  className="ls-action-btn"
+                  onClick={() => setMapPickerOpen(true)}
+                  sx={{
+                    display: 'flex', alignItems: 'center', gap: 0.5,
+                    height: 24, borderRadius: 99, px: 1,
+                    bgcolor: 'primary.main', color: 'primary.contrastText',
+                    cursor: 'pointer', userSelect: 'none', flexShrink: 0,
+                    fontSize: '0.65rem', fontWeight: 700, letterSpacing: 0.2,
+                    transition: 'background-color 0.15s ease, transform 0.1s ease',
+                    '&:hover': { bgcolor: 'primary.dark' },
+                    '&:active': { transform: 'scale(0.96)' },
+                  }}
+                >
+                  <span>Pick on map</span>
+                  <MapPinIcon sx={{ fontSize: 14 }} />
+                </Box>
+              )}
             </InputAdornment>
           ),
         }}
@@ -1022,30 +1068,33 @@ export const LocationSearch = ({
       />
       {dropdown}
       {console.log('[LocationSearch] displayKey:', displayKey, 'selectedCoords:', selectedCoords, 'selectedLocation:', selectedLocation, 'locationBounds:', locationBounds)}
-      <LocationSelectMap
-        open={mapPickerOpen}
-        initialSearchValue={query}
-        onSearchChange={(value) => {
-          setQuery(value);
-          onChange?.(value);
-        }}
-         initialCenter={
-          (selectedCoords?.lat != null && selectedCoords?.lng != null ? selectedCoords : null) ||
-          selectedLocation ||
-          parseLocationBounds(locationBounds) ||
-          readSavedGeoLoc()
-        }
-        countryCode={countryCode}
-        onClose={() => setMapPickerOpen(false)}
-        onSelectLocation={(loc) => {
-          onSelectLocation(loc);
-          const label = loc.address || loc.name || '';
-          setQuery(label);
-          onChange?.(label);
-          setMapPickerOpen(false);
-          setSelectedLocation({ lat: loc.lat, lng: loc.lng })
-        }}
-      />
+      {mapPickerEnabled && (
+        <LocationSelectMap
+          open={mapPickerOpen}
+          initialSearchValue={query}
+          searchPlaceholder={placeholder}
+          onSearchChange={(value) => {
+            setQuery(value);
+            onChange?.(value);
+          }}
+          initialCenter={
+            (selectedCoords?.lat != null && selectedCoords?.lng != null ? selectedCoords : null) ||
+            selectedLocation ||
+            parseLocationBounds(locationBounds) ||
+            readSavedGeoLoc()
+          }
+          countryCode={countryCode}
+          onClose={() => setMapPickerOpen(false)}
+          onSelectLocation={(loc) => {
+            onSelectLocation(loc);
+            const label = loc.address || loc.name || '';
+            setQuery(label);
+            onChange?.(label);
+            setMapPickerOpen(false);
+            setSelectedLocation({ lat: loc.lat, lng: loc.lng });
+          }}
+        />
+      )}
     </Box>
   );
 };

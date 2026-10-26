@@ -57,6 +57,7 @@ import { getConversionRateForUser, buildIpSignature } from '../../../services/af
 import { getPaymentGateway } from '../../../paymentGatewayAdapters/';
 import {
   applyCodeManually,
+  checkAndApplyRideDiscount,
   createAffiliateCoupon,
   getMyCoupons,
   getMyPromotions,
@@ -128,6 +129,35 @@ export default factories.createCoreController('api::affiliate.affiliate', () => 
     } catch (error) {
       strapi.log.error('[Affiliate:getPromotions]', error);
       return ctx.internalServerError('Failed to load available promotions');
+    }
+  },
+
+  async validateCoupon(ctx) {
+    const userId = ctx.state.user?.id;
+    if (!userId) return ctx.unauthorized('Authentication required');
+
+    const code = String(ctx.request.body?.code ?? '').trim();
+    const subtotal = Number(ctx.request.body?.subtotal);
+    if (!code || !Number.isFinite(subtotal) || subtotal <= 0) {
+      return ctx.badRequest('A coupon code and a valid fare subtotal are required');
+    }
+
+    try {
+      const result = await checkAndApplyRideDiscount(userId, subtotal, code);
+      if (result.error) return ctx.badRequest(result.error);
+      return ctx.send({
+        valid: true,
+        source: 'affiliate',
+        affiliateCouponCode: result.appliedCode,
+        discount: result.discountAmount,
+        discountType: result.discountType,
+        discountValue: result.discountValue,
+        discountedFare: result.discountedFare,
+        message: result.promotionDescription,
+      });
+    } catch (error) {
+      strapi.log.error('[Affiliate:validateCoupon]', error);
+      return ctx.internalServerError('Failed to validate affiliate coupon');
     }
   },
 

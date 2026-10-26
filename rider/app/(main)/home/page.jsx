@@ -379,6 +379,7 @@ export default function HomePage() {
     error: rideError,
     getFareEstimate,
     validatePromoCode,
+    validateAffiliateCoupon,
     requestRide,
     getTaxiTypes,
     getRideClasses,
@@ -419,6 +420,7 @@ export default function HomePage() {
   const [affiliateCouponCode, setAffiliateCouponCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(null);
   const [validatingPromo, setValidatingPromo] = useState(false);
+  const promoValidationRef = useRef(0);
   const [locationGeocoded, setLocationGeocoded] = useState(true)
   // ── FIX: replaced useState with refs so closures always see current values ──
   const geoCodeCounterRef = useRef(0);   // was: const [geoCodeCounter, setGeoCodeCounter] = useState(0)
@@ -849,23 +851,39 @@ export default function HomePage() {
     }
   };
 
-  const handleValidatePromoCode = async (code) => {
-    if (!code || !selectedRideClass) return;
+  const handleValidatePromoCode = async (code, subtotal = selectedRideClass?.subtotal) => {
+    const validationId = ++promoValidationRef.current;
+    const fareSubtotal = Number(subtotal);
+    if (!code || !Number.isFinite(fareSubtotal) || fareSubtotal <= 0) return;
     setValidatingPromo(true);
     try {
-      const result = await validatePromoCode(code, selectedRideClass.subtotal);
+      const result = await validatePromoCode(code, fareSubtotal);
+      if (validationId !== promoValidationRef.current) return;
       if (result?.valid) {
-        setPromoDiscount(result);
+        setAffiliateCouponCode('');
+        setPromoCode(code);
+        setPromoDiscount({ ...result, source: 'promo' });
         setSnackbar({ open: true, message: result.message || 'Promo code applied!', severity: 'success' });
       } else {
-        setPromoDiscount(null);
-        setSnackbar({ open: true, message: 'Invalid or expired promo code', severity: 'error' });
+        const affiliateResult = await validateAffiliateCoupon(code, fareSubtotal);
+        if (validationId !== promoValidationRef.current) return;
+        if (affiliateResult?.valid) {
+          setPromoCode('');
+          setAffiliateCouponCode(affiliateResult.affiliateCouponCode || code);
+          setPromoDiscount({ ...affiliateResult, source: 'affiliate' });
+          setSnackbar({ open: true, message: affiliateResult.message || 'Affiliate coupon applied!', severity: 'success' });
+        } else {
+          setAffiliateCouponCode('');
+          setPromoDiscount(null);
+          setSnackbar({ open: true, message: affiliateResult?.error || result?.error || 'Invalid or expired promo code', severity: 'error' });
+        }
       }
     } catch {
+      if (validationId !== promoValidationRef.current) return;
       setPromoDiscount(null);
       setSnackbar({ open: true, message: 'Error validating promo code', severity: 'error' });
     } finally {
-      setValidatingPromo(false);
+      if (validationId === promoValidationRef.current) setValidatingPromo(false);
     }
   };
 
@@ -881,10 +899,10 @@ export default function HomePage() {
         rideClassId: selectedRideClass.rideClassId || selectedRideClass.id,
         pickupLocation, dropoffLocation,
         paymentMethod: rideDetails.paymentMethod || 'cash',
-        promoCode: promoCode || null,
+        promoCode: promoDiscount?.source === 'affiliate' ? null : promoCode || null,
         affiliateCouponCode: affiliateCouponCode || null,
-        estimatedFare: rideDetails.totalFare || selectedRideClass.subtotal,
-        totalFare: rideDetails.totalFare || selectedRideClass.subtotal,
+        estimatedFare: affiliateCouponCode ? selectedRideClass.subtotal : rideDetails.totalFare || selectedRideClass.subtotal,
+        totalFare: affiliateCouponCode ? selectedRideClass.subtotal : rideDetails.totalFare || selectedRideClass.subtotal,
         passengerCount: rideDetails.passengerCount || 1,
         specialRequests: rideDetails.specialRequests || [],
         notes: rideDetails.notes || '',
@@ -1476,7 +1494,7 @@ export default function HomePage() {
                   <FareEstimatesSkeleton onClose={handleCloseRideOptions} routeInfo={routeInfo} />
                 </Box>
               ) : (
-                <RideOptionsSheet pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} routeInfo={routeInfo} fareEstimates={fareEstimates} loadingEstimates={loadingEstimates} selectedRideClass={selectedRideClass} onSelectRideClass={setSelectedRideClass} promoCode={promoCode} onPromoCodeChange={setPromoCode} affiliateCouponCode={affiliateCouponCode} onAffiliateCouponCodeChange={setAffiliateCouponCode} promoDiscount={promoDiscount} onValidatePromo={handleValidatePromoCode} validatingPromo={validatingPromo} onClose={handleCloseRideOptions} onConfirmRide={handleConfirmRide} loading={rideLoading} bottomPadding={80} />
+                <RideOptionsSheet pickupLocation={pickupLocation} dropoffLocation={dropoffLocation} routeInfo={routeInfo} fareEstimates={fareEstimates} loadingEstimates={loadingEstimates} selectedRideClass={selectedRideClass} onSelectRideClass={setSelectedRideClass} promoCode={promoCode} onPromoCodeChange={(code) => { setPromoCode(code); setAffiliateCouponCode(''); }} promoDiscount={promoDiscount} onValidatePromo={handleValidatePromoCode} validatingPromo={validatingPromo} onClose={handleCloseRideOptions} onConfirmRide={handleConfirmRide} loading={rideLoading} bottomPadding={80} />
               )}
             </SwipeableBottomSheet>
           )}

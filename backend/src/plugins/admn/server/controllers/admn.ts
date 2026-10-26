@@ -1151,6 +1151,7 @@ const controller = ({ strapi }: { strapi: any }) => ({
     const filters = sanitizeFilterNode(rawFilters, definition.filters.length ? definition.filters : getSelectableFields(definition, strapi));
     const where = filters ?? {};
     delete where.countryId;
+    if (name === 'affiliate-promotions') where.isDefault = false;
     if (countryFilter && name === 'rides') {
       where.$or = [
         { rider: { country: { id: countryFilter } } },

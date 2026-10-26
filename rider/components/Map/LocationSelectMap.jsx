@@ -12,7 +12,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Box, IconButton, Button, Typography, CircularProgress, Chip, Paper, TextField, InputAdornment,
+  Box, IconButton, Button, Typography, CircularProgress, Chip, Paper,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import {
@@ -20,14 +20,15 @@ import {
   MyLocation as MyLocationIcon,
   LocationOn as LocationIcon,
   SwipeOutlined as SwipeIcon,
-  Search as SearchIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapIframe } from './MapIframe';
+import { LocationSearch } from './LocationSearch';
+import { useReactNative } from '@/lib/contexts/ReactNativeWrapper';
 
 let useMapsProviderHook = null;
 try {
-  const mod = require('./APIProviders/MapsProvider');
+  const mod = require('../APIProviders/MapsProvider');
   useMapsProviderHook = mod.useMapProvider;
 } catch { /* MapsProvider not in tree */ }
 
@@ -57,6 +58,7 @@ export const LocationSelectMap = ({
   initialZoom = 16,
   countryCode = null,
   initialSearchValue = '',
+  searchPlaceholder = 'Search for a location',
   onSearchChange,
   onClose,
   onSelectLocation,       // (location) => void — location = { lat, lng, address, name, placeId }
@@ -64,6 +66,7 @@ export const LocationSelectMap = ({
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const mapsProvider = useSafeMapProvider();
+  const { isNative, getCurrentLocation } = useReactNative();
 
   const [mounted, setMounted] = useState(false);
   const [center, setCenter] = useState(initialCenter || readSavedGeoLoc() || DEFAULT_CENTER);
@@ -73,24 +76,20 @@ export const LocationSelectMap = ({
   const [showHint, setShowHint] = useState(true);
   const [locating, setLocating] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialSearchValue);
-  const [searchResults, setSearchResults] = useState([]);
-  const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const searchQueryRef = useRef(searchQuery);
 
   const mapControlsRef = useRef(null);
   const lastCenterRef = useRef(null);
   const settleTimeoutRef = useRef(null);
   const resolveTokenRef = useRef(0);
   const pollIntervalRef = useRef(null);
-  const searchTokenRef = useRef(0);
 
   useEffect(() => { setMounted(true); }, []);
-  console.log('[LocationSelectMap] open:', open, 'initialCenter:', initialCenter);
   // ── Reset state each time the picker opens ────────────────────────────────
   useEffect(() => {
     if (!open) return;
     const startCenter = initialCenter || readSavedGeoLoc() || DEFAULT_CENTER;
-     console.log('[LocationSelectMap] reset effect fired, startCenter:', startCenter);
     setCenter(startCenter);
     lastCenterRef.current = startCenter;
     setAddress(null);
@@ -98,7 +97,7 @@ export const LocationSelectMap = ({
     setIsMoving(false);
     setShowHint(true);
     setSearchQuery(initialSearchValue || '');
-    setSearchResults([]);
+    searchQueryRef.current = initialSearchValue || '';
     setSearchError('');
     const hintTimer = setTimeout(() => setShowHint(false), 4000);
     return () => clearTimeout(hintTimer);
@@ -189,7 +188,23 @@ export const LocationSelectMap = ({
     resolveAddress(lastCenterRef.current || center);
   }, [resolveAddress, center]);
 
-  const handleUseCurrentLocation = useCallback(() => {
+  const handleUseCurrentLocation = useCallback(async () => {
+    if (isNative) {
+      setLocating(true);
+      try {
+        const nativeLocation = await getCurrentLocation();
+        const loc = { lat: nativeLocation.lat, lng: nativeLocation.lng };
+        setLocating(false);
+        mapControlsRef.current?.animateToLocation?.(loc, 17);
+        lastCenterRef.current = loc;
+        setCenter(loc);
+        resolveAddress(loc);
+      } catch (error) {
+        console.error('[LocationSelectMap] native location lookup failed:', error);
+        setLocating(false);
+      }
+      return;
+    }
     if (!navigator.geolocation) return;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -203,47 +218,13 @@ export const LocationSelectMap = ({
       },
       () => setLocating(false),
     );
-  }, [resolveAddress]);
-
-  const searchLocations = useCallback(async (query) => {
-    let providerResults = [];
-    if (mapsProvider?.searchPlaces) {
-      try {
-        providerResults = await mapsProvider.searchPlaces(query, countryCode) || [];
-        if (providerResults.some((result) =>
-          Number.isFinite(Number(result.lat)) && Number.isFinite(Number(result.lng))
-        )) return providerResults;
-      } catch (error) {
-        console.warn('[LocationSelectMap] provider search failed:', error);
-      }
-    }
-
-    const params = new URLSearchParams({
-      q: query,
-      format: 'json',
-      limit: '6',
-      addressdetails: '1',
-      ...(countryCode ? { countrycodes: countryCode } : {}),
-    });
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?${params}`,
-      { headers: { 'Accept-Language': 'en' } },
-    );
-    if (!response.ok) throw new Error(`Location search failed (${response.status})`);
-    const data = await response.json();
-    const nominatimResults = data.map((item) => ({
-      place_id: item.place_id?.toString(),
-      main_text: item.name || item.display_name?.split(',')[0],
-      secondary_text: item.display_name,
-      lat: Number(item.lat),
-      lng: Number(item.lon),
-      address: item.display_name,
-      name: item.name || item.display_name?.split(',')[0],
-    }));
-    return nominatimResults.length ? nominatimResults : providerResults;
-  }, [countryCode, mapsProvider]);
+  }, [getCurrentLocation, isNative, resolveAddress]);
 
   const centerOnSearchResult = useCallback((result) => {
+    if (result?.lat == null || result?.lng == null) {
+      setSearchError('That result does not include map coordinates.');
+      return;
+    }
     const loc = { lat: Number(result.lat), lng: Number(result.lng) };
     if (!Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) {
       setSearchError('That result does not include map coordinates.');
@@ -265,45 +246,36 @@ export const LocationSelectMap = ({
     setShowHint(false);
   }, []);
 
-  useEffect(() => {
-    const query = searchQuery.trim();
-    if (!open || query.length < 3) {
-      setSearchResults([]);
-      setSearching(false);
+  const handleSearchResults = useCallback(async (results, query) => {
+    if (query !== searchQueryRef.current) return;
+    const firstResult = results.find((result) =>
+      result.lat != null && result.lng != null
+        && Number.isFinite(Number(result.lat)) && Number.isFinite(Number(result.lng))
+    );
+    if (firstResult) {
       setSearchError('');
-      return undefined;
+      centerOnSearchResult(firstResult);
+      return;
     }
 
-    const token = ++searchTokenRef.current;
-    const timer = setTimeout(async () => {
-      setSearching(true);
-      setSearchError('');
+    const firstSuggestion = results[0];
+    if (firstSuggestion && mapsProvider?.getPlaceDetails) {
       try {
-        const results = await searchLocations(query);
-        if (token === searchTokenRef.current) {
-          setSearchResults(results);
-          setSearchError(results.length ? '' : 'No matching locations found.');
-          const firstResult = results.find((result) =>
-            Number.isFinite(Number(result.lat)) && Number.isFinite(Number(result.lng))
-          );
-          if (firstResult) centerOnSearchResult(firstResult);
+        const details = await mapsProvider.getPlaceDetails(firstSuggestion.place_id, firstSuggestion);
+        if (query === searchQueryRef.current && details?.lat != null && details?.lng != null) {
+          setSearchError('');
+          centerOnSearchResult({ ...firstSuggestion, ...details });
+          return;
         }
       } catch (error) {
-        if (token === searchTokenRef.current) {
-          console.warn('[LocationSelectMap] location search failed:', error);
-          setSearchResults([]);
-          setSearchError('Could not search for that location. Please try again.');
-        }
-      } finally {
-        if (token === searchTokenRef.current) setSearching(false);
+        console.warn('[LocationSelectMap] location details lookup failed:', error);
       }
-    }, 450);
+    }
 
-    return () => {
-      clearTimeout(timer);
-      searchTokenRef.current += 1;
-    };
-  }, [open, searchQuery, searchLocations, centerOnSearchResult]);
+    if (query.trim().length >= 3) {
+      setSearchError(results.length ? '' : 'No matching locations found.');
+    }
+  }, [centerOnSearchResult, mapsProvider]);
 
   const handleConfirm = useCallback(() => {
     if (!address) return;
@@ -347,67 +319,28 @@ export const LocationSelectMap = ({
 
         {/* ── Location search ── */}
         <Box sx={{ position: 'absolute', top: 16, left: 16, right: 72, zIndex: 4 }}>
-          <TextField
-            fullWidth
-            size="small"
+          <LocationSearch
             value={searchQuery}
-            onChange={(event) => {
-              setSearchQuery(event.target.value);
+            onChange={(value) => {
+              searchQueryRef.current = value;
+              setSearchQuery(value);
               setAddress(null);
-              setSearchResults([]);
               setSearchError('');
-              onSearchChange?.(event.target.value);
+              onSearchChange?.(value);
             }}
-            placeholder="Search for a location"
-            inputProps={{ 'aria-label': 'Search for a location on the map' }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  {searching
-                    ? <CircularProgress size={16} />
-                    : <SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} />}
-                </InputAdornment>
-              ),
-            }}
-            sx={{ bgcolor: bg, borderRadius: 1, boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
+            onSelectLocation={centerOnSearchResult}
+            onSearchResults={handleSearchResults}
+            mapControls={mapControlsRef.current}
+            countryCode={countryCode}
+            placeholder={searchPlaceholder}
+            mapPickerEnabled={false}
+            dropdownZIndex={14010}
           />
-          {(searchResults.length > 0 || searchError) && (
-            <Paper
-              elevation={8}
-              sx={{ mt: 0.75, maxHeight: 240, overflowY: 'auto', borderRadius: 2 }}
-            >
-              {searchResults.map((result, index) => (
-                <Button
-                  key={result.place_id || `${result.lat}_${result.lng}_${index}`}
-                  fullWidth
-                  onClick={() => {
-                    centerOnSearchResult(result);
-                    setSearchResults([]);
-                  }}
-                  sx={{
-                    display: 'block',
-                    textAlign: 'left',
-                    textTransform: 'none',
-                    px: 1.5,
-                    py: 1,
-                    borderRadius: 0,
-                    borderBottom: index < searchResults.length - 1 ? '1px solid' : undefined,
-                    borderColor: 'divider',
-                  }}
-                >
-                  <Typography variant="body2" fontWeight={600} noWrap>
-                    {result.main_text || result.name || result.address}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    {result.secondary_text || result.address}
-                  </Typography>
-                </Button>
-              ))}
-              {searchError && (
-                <Typography variant="body2" color="text.secondary" sx={{ p: 1.5 }}>
-                  {searchError}
-                </Typography>
-              )}
+          {searchError && (
+            <Paper elevation={8} sx={{ mt: 0.75, borderRadius: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ p: 1.5 }}>
+                {searchError}
+              </Typography>
             </Paper>
           )}
         </Box>
@@ -427,7 +360,7 @@ export const LocationSelectMap = ({
 
         {/* ── "Swipe to move map" hint ── */}
         <AnimatePresence>
-          {showHint && !searchQuery && searchResults.length === 0 && (
+          {showHint && !searchQuery && (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -551,7 +484,7 @@ export const LocationSelectMap = ({
               variant="contained"
               fullWidth
               onClick={handleConfirm}
-              disabled={!address || resolving || searching || isMoving}
+              disabled={!address || resolving || isMoving}
               sx={{ fontWeight: 700 }}
             >
               Confirm location

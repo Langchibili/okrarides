@@ -898,6 +898,14 @@ export function useRide(initialRideId = null) {
     } catch (err) { setError(err.message || 'Failed to validate promo code'); return null; }
   }, []);
 
+  const validateAffiliateCoupon = useCallback(async (code, subtotal) => {
+    try {
+      const result = await ridesAPI.validateAffiliateCoupon(code, subtotal);
+      if (!result.success) { setError(result.error); return null; }
+      return result.data;
+    } catch (err) { setError(err.message || 'Failed to validate affiliate coupon'); return null; }
+  }, []);
+
   // ============================================
   // STEP 3: Create Ride Request
   // ============================================
@@ -1196,6 +1204,7 @@ export function useRide(initialRideId = null) {
     getFareEstimate,
     getEstimate,
     validatePromoCode,
+    validateAffiliateCoupon,
     requestRide,
     createRide,
     cancelRide,

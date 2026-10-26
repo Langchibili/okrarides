@@ -120,8 +120,10 @@ export const useRide = () => {
 
     // Ride cancelled
     const handleRideCancelled = (data) => {
-      if (incomingRide?.rideId === data.rideId) setIncomingRide(null);
-      if (currentRideRef.current?.id === data.rideId) {
+      if (data?.rideId != null && incomingRide?.rideId != null
+        && String(incomingRide.rideId) === String(data.rideId)) setIncomingRide(null);
+      if (data?.rideId != null && currentRideRef.current?.id != null
+        && String(currentRideRef.current.id) === String(data.rideId)) {
         setCurrentRide(null);
         stopStatusPoll();
       }
@@ -129,7 +131,8 @@ export const useRide = () => {
 
     // Ride taken by another driver
     const handleRideTaken = (data) => {
-      if (incomingRide?.rideId === data.rideId) setIncomingRide(null);
+      if (data?.rideId != null && incomingRide?.rideId != null
+        && String(incomingRide.rideId) === String(data.rideId)) setIncomingRide(null);
     };
 
     // ── PAYMENT_RECEIVED — rider paid ─────────────────────────────────────
@@ -192,13 +195,12 @@ export const useRide = () => {
         if (typeof window !== 'undefined') {
           localStorage.setItem('hasActiveRide', "yes")
         }
-        emit(SOCKET_EVENTS.RIDE.ACCEPT, { rideId });
         return response;
       }
       throw new Error(response?.error || 'Failed to accept ride');
     } catch (err) { setError(err.message); throw err; }
     finally { setLoading(false); }
-  }, [emit]);
+  }, []);
 
   const declineRide = useCallback(async (rideId, reason) => {
     try {
