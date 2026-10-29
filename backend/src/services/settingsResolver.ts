@@ -3,6 +3,14 @@ import legacyCountrySettingDefaults from './countrySettingDefaults.json';
 const ADMIN_SETTINGS_UID = 'api::admn-setting.admn-setting';
 const COUNTRY_UID = 'api::country.country';
 
+export function calculateFloatDeduction(
+  settings: Record<string, any>,
+  fare: number,
+  commission: number,
+): number {
+  return settings.floatDeductionType === 'commision' ? commission : fare + commission;
+}
+
 function matchesSettingDefault(value: any, defaultValue: any): boolean {
   if (
     (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) &&
@@ -56,7 +64,9 @@ export async function resolveSettingsForCountry(
     const overrideValue = countryIsActive && hasCountryOverride ? countryValue : null;
     resolved[field] = overrideValue !== null && overrideValue !== undefined
       ? overrideValue
-      : adminSettings?.[field] ?? null;
+      : adminSettings?.[field] ?? (
+          field === 'floatDeductionType' ? attributes[field]?.default ?? null : null
+        );
   }
 
   const conversion = countryIsActive ? country?.affiliatePointsConversion : null;

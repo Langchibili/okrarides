@@ -24,7 +24,7 @@ import {
   resolveCountryPricing,
   isClassVisibleForCountry,
 } from '../../../utils/country-pricing';
-import { resolveSettingsForUser } from '../../../services/settingsResolver';
+import { calculateFloatDeduction, resolveSettingsForUser } from '../../../services/settingsResolver';
 
 // ─── Complete delivery helper ─────────────────────────────────────────────
 interface HandleCompleteDeliveryInput {
@@ -84,7 +84,7 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
     } else if (settings?.commissionType === 'flat_rate') {
       commission = settings.defaultFlatCommission || 0;
     }
-    floatDeduction = delivery.totalFare + commission;
+    floatDeduction = calculateFloatDeduction(settings, Number(delivery.totalFare) || 0, commission);
     driverEarnings = delivery.totalFare;
   }
 

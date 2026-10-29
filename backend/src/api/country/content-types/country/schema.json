@@ -140,6 +140,14 @@
         "tiered"
       ]
     },
+    "floatDeductionType": {
+      "type": "enumeration",
+      "default": "rideFairPlusCommision",
+      "enum": [
+        "rideFairPlusCommision",
+        "commision"
+      ]
+    },
     "defaultCommissionPercentage": {
       "type": "decimal"
     },

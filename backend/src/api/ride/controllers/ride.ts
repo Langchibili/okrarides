@@ -19,7 +19,7 @@ import {
   resolveCountryPricing,
   isClassVisibleForCountry,
 } from '../../../utils/country-pricing';
-import { resolveSettingsForUser } from '../../../services/settingsResolver';
+import { calculateFloatDeduction, resolveSettingsForUser } from '../../../services/settingsResolver';
 
 const { emitRatingSubmitted } = require('../../../utils/socketUtils');
 
@@ -81,7 +81,12 @@ async function handleCompleteTrip(
   // Re-fetch ride with latest data (paymentMethod may have been set by payCash just before this call)
   const ride = await strapi.db.query('api::ride.ride').findOne({
     where: { id: rideId },
-    populate: ['driver', 'rideClass', 'rider'],
+    populate: {
+      driver: true,
+      rideClass: true,
+      rider: true,
+      affiliateCoupon: { populate: { affiliateOwner: true } },
+    },
   });
 
   if (!ride) throw new Error(`Ride ${rideId} not found`);
@@ -128,7 +133,7 @@ async function handleCompleteTrip(
 
     // both payment methods, cash or digital ones, like okrapay incur the same deduction from the driver, because once a driver buys float, we get our money already as a platform, 
     // so if a driver does trips, when they complete rides, we deduct our commission, in that, the driver will need more float to have more ride bookings
-    floatDeduction = ride.totalFare + commission;
+    floatDeduction = calculateFloatDeduction(settings, Number(ride.totalFare) || 0, commission);
     driverEarnings = ride.totalFare // so driver earns all the money the rider pays, but due to float deductions, driver makes total float - total rides
   }
 
@@ -248,6 +253,16 @@ async function handleCompleteTrip(
     triggeringUserId: Number(riderId),
     rideId: ride.id
   })
+  const couponAffiliateOwnerId = Number(ride.affiliateCoupon?.affiliateOwner?.id);
+  if (couponAffiliateOwnerId > 0) {
+    processAffiliatePoints({
+      eventType: 'onRideBooking',
+      triggeringUserId: Number(riderId),
+      rideId: Number(ride.id),
+      affiliateOwnerId: couponAffiliateOwnerId,
+      affiliatePromotionId: Number(ride.appliedAffiliatePromotionId),
+    });
+  }
   const { adminEmailAddresses } = await strapi.db.query("api::email-addresses-list.email-addresses-list").findOne({ where: { id: 1 } })
   const adminEmailMessage = "A ride with id #" + ride.id + " has been completed"
 
@@ -2671,8 +2686,6 @@ function estimateDuration(distanceKm: number): number {
   const minutes = Math.ceil(hours * 60);
   return minutes;
 }
-
-
 
 
 

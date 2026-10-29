@@ -8,6 +8,8 @@
  * Called by the custom /rides/driver-stats endpoint.
  */
 
+import { calculateFloatDeduction, resolveSettingsForCountry } from './settingsResolver';
+
 export type StatPeriod = 'today' | 'week' | 'month' | 'year' | 'all';
 
 function getPeriodBounds(period: StatPeriod): { from: Date | null; to: Date } {
@@ -119,6 +121,7 @@ export async function getDriverStats(strapi: any, driverId: number, period: Stat
     where:    { id: driverId },
     select:   ['id'],
     populate: {
+      country: true,
       driverProfile: {
         select: [
           'totalRides', 'completedRides', 'cancelledRides',
@@ -142,6 +145,7 @@ export async function getDriverStats(strapi: any, driverId: number, period: Stat
   });
 
   const profile = user?.driverProfile ?? {};
+  const settings = await resolveSettingsForCountry(strapi, user?.country?.id);
 
   // ── 5. Aggregate period numbers from rides ──────────────────────────────
   let periodEarnings    = 0;
@@ -183,12 +187,14 @@ export async function getDriverStats(strapi: any, driverId: number, period: Stat
     : 100;
 
   // ── 6. Float deduction summary for the period ───────────────────────────
-  // For float-based rides: floatDeduction per ride = totalFare + commission
-  // So total float spent doing these rides =
   const periodFloatDeducted = floatRides > 0
     ? completedRides
         .filter(r => !r.wasSubscriptionRide)
-        .reduce((sum, r) => sum + (parseFloat(r.totalFare) || 0) + (parseFloat(r.commission) || 0), 0)
+        .reduce((sum, r) => sum + calculateFloatDeduction(
+          settings,
+          parseFloat(r.totalFare) || 0,
+          parseFloat(r.commission) || 0,
+        ), 0)
     : 0;
 
   return {

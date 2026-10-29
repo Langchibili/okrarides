@@ -45,6 +45,8 @@ interface AffiliatePointsParams {
   fare?: number;
   rideId?: number;
   deliveryId?: number;
+  affiliateOwnerId?: number;
+  affiliatePromotionId?: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

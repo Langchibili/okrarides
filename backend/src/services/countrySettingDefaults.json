@@ -17,6 +17,7 @@
   "negativeFloatLimit": 0,
   "blockCashRidesOnInsufficientFloat": true,
   "commissionType": "percentage",
+  "floatDeductionType": "rideFairPlusCommision",
   "defaultCommissionPercentage": 15,
   "tieredCommissionEnabled": false,
   "affiliateSystemEnabled": true,

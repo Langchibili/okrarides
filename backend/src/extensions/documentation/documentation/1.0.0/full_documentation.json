@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2026-10-26T02:49:01.810Z"
+    "x-generation-date": "2026-10-29T01:58:38.376Z"
   },
   "x-strapi-config": {
     "plugins": [
@@ -36960,6 +36960,13 @@
                   "tiered"
                 ]
               },
+              "floatDeductionType": {
+                "type": "string",
+                "enum": [
+                  "rideFairPlusCommision",
+                  "commision"
+                ]
+              },
               "defaultCommissionPercentage": {
                 "type": "number",
                 "format": "float"
@@ -37285,6 +37292,13 @@
               "percentage",
               "flat_rate",
               "tiered"
+            ]
+          },
+          "floatDeductionType": {
+            "type": "string",
+            "enum": [
+              "rideFairPlusCommision",
+              "commision"
             ]
           },
           "defaultCommissionPercentage": {
@@ -38807,6 +38821,13 @@
                     "percentage",
                     "flat_rate",
                     "tiered"
+                  ]
+                },
+                "floatDeductionType": {
+                  "type": "string",
+                  "enum": [
+                    "rideFairPlusCommision",
+                    "commision"
                   ]
                 },
                 "defaultCommissionPercentage": {
@@ -53029,6 +53050,13 @@
                   "tiered"
                 ]
               },
+              "floatDeductionType": {
+                "type": "string",
+                "enum": [
+                  "rideFairPlusCommision",
+                  "commision"
+                ]
+              },
               "defaultCommissionPercentage": {
                 "type": "number",
                 "format": "float"
@@ -56308,6 +56336,13 @@
                           "percentage",
                           "flat_rate",
                           "tiered"
+                        ]
+                      },
+                      "floatDeductionType": {
+                        "type": "string",
+                        "enum": [
+                          "rideFairPlusCommision",
+                          "commision"
                         ]
                       },
                       "defaultCommissionPercentage": {
@@ -69180,6 +69215,13 @@
                           "tiered"
                         ]
                       },
+                      "floatDeductionType": {
+                        "type": "string",
+                        "enum": [
+                          "rideFairPlusCommision",
+                          "commision"
+                        ]
+                      },
                       "defaultCommissionPercentage": {
                         "type": "number",
                         "format": "float"
@@ -71849,6 +71891,13 @@
                       "percentage",
                       "flat_rate",
                       "tiered"
+                    ]
+                  },
+                  "floatDeductionType": {
+                    "type": "string",
+                    "enum": [
+                      "rideFairPlusCommision",
+                      "commision"
                     ]
                   },
                   "defaultCommissionPercentage": {
@@ -78286,6 +78335,13 @@
                   "tiered"
                 ]
               },
+              "floatDeductionType": {
+                "type": "string",
+                "enum": [
+                  "rideFairPlusCommision",
+                  "commision"
+                ]
+              },
               "defaultCommissionPercentage": {
                 "type": "number",
                 "format": "float"
@@ -79839,6 +79895,13 @@
                           "tiered"
                         ]
                       },
+                      "floatDeductionType": {
+                        "type": "string",
+                        "enum": [
+                          "rideFairPlusCommision",
+                          "commision"
+                        ]
+                      },
                       "defaultCommissionPercentage": {
                         "type": "number",
                         "format": "float"
@@ -80762,6 +80825,13 @@
               "percentage",
               "flat_rate",
               "tiered"
+            ]
+          },
+          "floatDeductionType": {
+            "type": "string",
+            "enum": [
+              "rideFairPlusCommision",
+              "commision"
             ]
           },
           "defaultCommissionPercentage": {
@@ -114215,6 +114285,13 @@
                   "tiered"
                 ]
               },
+              "floatDeductionType": {
+                "type": "string",
+                "enum": [
+                  "rideFairPlusCommision",
+                  "commision"
+                ]
+              },
               "defaultCommissionPercentage": {
                 "type": "number",
                 "format": "float"
@@ -133873,6 +133950,13 @@
                   "percentage",
                   "flat_rate",
                   "tiered"
+                ]
+              },
+              "floatDeductionType": {
+                "type": "string",
+                "enum": [
+                  "rideFairPlusCommision",
+                  "commision"
                 ]
               },
               "defaultCommissionPercentage": {
@@ -153935,6 +154019,13 @@
                               "tiered"
                             ]
                           },
+                          "floatDeductionType": {
+                            "type": "string",
+                            "enum": [
+                              "rideFairPlusCommision",
+                              "commision"
+                            ]
+                          },
                           "defaultCommissionPercentage": {
                             "type": "number",
                             "format": "float"
@@ -168330,6 +168421,13 @@
                       "percentage",
                       "flat_rate",
                       "tiered"
+                    ]
+                  },
+                  "floatDeductionType": {
+                    "type": "string",
+                    "enum": [
+                      "rideFairPlusCommision",
+                      "commision"
                     ]
                   },
                   "defaultCommissionPercentage": {

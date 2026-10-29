@@ -59,9 +59,18 @@ export async function processAffiliatePointsAllocation(params: {
   fare?: number;
   rideId?: number;
   deliveryId?: number;
+  affiliateOwnerId?: number;
+  affiliatePromotionId?: number;
 }): Promise<void> {
   const action = ACTIONS[params.eventType];
   if (!action) return;
+  if (
+    params.affiliateOwnerId
+    && (!Number.isInteger(params.affiliatePromotionId) || Number(params.affiliatePromotionId) <= 0)
+  ) {
+    strapi.log.error('[AffiliatePointsAllocation] Coupon owner allocation requires a valid promotion ID');
+    return;
+  }
 
   try {
     const triggeringUser = await strapi.db
@@ -73,7 +82,15 @@ export async function processAffiliatePointsAllocation(params: {
           referredBy: { populate: { affiliateProfile: true, country: true } },
         },
       });
-    const referrer = triggeringUser?.referredBy;
+    const referredBy = triggeringUser?.referredBy;
+    const referrer = params.affiliateOwnerId
+      ? Number(params.affiliateOwnerId) === Number(referredBy?.id)
+        ? referredBy
+        : await strapi.db.query('plugin::users-permissions.user').findOne({
+            where: { id: params.affiliateOwnerId },
+            populate: { affiliateProfile: true, country: true },
+          })
+      : referredBy;
     if (!referrer?.id || referrer.id === triggeringUser.id) return;
 
     const triggeringSettings = await resolveSettingsForCountry(strapi, triggeringUser.country?.id);
@@ -84,13 +101,20 @@ export async function processAffiliatePointsAllocation(params: {
       .query('api::affiliate-points-allocation-rule.affiliate-points-allocation-rule')
       .findMany({
         where: { type: action, active: true },
-        populate: { countries: true },
+        populate: {
+          countries: true,
+          ...(params.affiliatePromotionId
+            ? { affiliatePromotions: { fields: ['id'] } }
+            : {}),
+        },
       });
     const countryId = triggeringUser.country?.id;
     const rules = matchingRules.filter((rule: any) => (
       countryId
       && rule.countries?.some((country: any) => country.id === countryId && country.isActive === true)
       && (rule.appliesTo === 'all' || rule.appliesTo === SUBJECT_TYPE[action])
+      && (!params.affiliatePromotionId
+        || rule.affiliatePromotions?.some((promotion: any) => promotion.id === params.affiliatePromotionId))
     ));
 
     if (referrer.affiliateProfile?.blocked) return;
