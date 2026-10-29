@@ -32,7 +32,8 @@ if (environment === 'local' || environment === 'development') {
   if (environment === 'production') {
     clientUrls = [
       'https://okratech.online',
-      'https://book.okratech.online',
+      'https://rider.okratech.online',
+      'https://partner.okratech.online',
       'https://driver.okratech.online',
       'https://conductor.okratech.online',
       'https://delivery.okratech.online',
@@ -41,7 +42,8 @@ if (environment === 'local' || environment === 'development') {
   } else if (environment === 'development' || environment === 'staging' || environment === 'test') {
     clientUrls = [
       'https://test.okratech.online',
-      'https://book.test.okratech.online',
+      'https://rider.test.okratech.online',
+      'https://partner.test.okratech.online',
       'https://driver.test.okratech.online',
       'https://conductor.test.okratech.online',
       'https://delivery.test.okratech.online',

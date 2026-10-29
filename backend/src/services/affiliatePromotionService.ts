@@ -16,6 +16,7 @@ import { resolveSettingsForCountry } from './settingsResolver';
 
 export interface AffiliatePromotion {
   id: number;
+  documentId?: string;
   name: string;
   description?: string;
   action: 'float-topup' | 'ride-discount' | 'delivery-discount' | 'wallet-credit';
@@ -27,6 +28,7 @@ export interface AffiliatePromotion {
   isActive: boolean;
   expiresAt?: string | null;
   publishedAt?: string | null;
+  countries?: Array<{ id: number; isActive: boolean }>;
 }
 
 interface DiscountResult {
@@ -53,6 +55,25 @@ function isPromotionExpired(promo: AffiliatePromotion): boolean {
 
 function appliesToUserType(promo: AffiliatePromotion, userType: 'rider' | 'driver'): boolean {
   return promo.for === 'all' || promo.for === userType;
+}
+
+async function getPublishedPromotion(
+  promotion: AffiliatePromotion | null | undefined,
+): Promise<AffiliatePromotion | null> {
+  if (!promotion) return null;
+
+  if (promotion.documentId) {
+    return strapi.documents('api::affiliate-promotion.affiliate-promotion').findOne({
+      documentId: promotion.documentId,
+      status: 'published',
+      populate: { countries: true },
+    });
+  }
+
+  return strapi.db.query('api::affiliate-promotion.affiliate-promotion').findOne({
+    where: { id: promotion.id, publishedAt: { $notNull: true } },
+    populate: { countries: true },
+  });
 }
 
 export async function getPromotionsForAffiliate(affiliateOwnerId: number): Promise<AffiliatePromotion[]> {
@@ -114,7 +135,8 @@ async function checkAndApplyBookingDiscount(
     if (!coupon || !Number.isFinite(couponExpiry) || couponExpiry <= Date.now()) {
       return { ...noDiscount, error: 'Coupon code is invalid or expired.' };
     }
-    const promo = coupon.promotion as AffiliatePromotion & { countries?: any[] };
+    const linkedPromotion = coupon.promotion as AffiliatePromotion & { documentId?: string } | null;
+    const promo = await getPublishedPromotion(linkedPromotion);
     if (!promo?.isActive || promo.isDefault || !promo.publishedAt || isPromotionExpired(promo) || promo.action !== actionType) {
       return { ...noDiscount, error: 'Coupon is not valid for this booking.' };
     }
