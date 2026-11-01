@@ -1,5 +1,8 @@
 {
   "paymentSystemType": "float_based",
+  "showNearByDriverEtaOnRideOptions": false,
+  "showNearByDriversOnRideOptions": false,
+  "showOkraPayOnRideOptions": false,
   "allowOrdersWithoutPartner": false,
   "allowPartnerSwitching": false,
   "freeTrialEnabled": false,

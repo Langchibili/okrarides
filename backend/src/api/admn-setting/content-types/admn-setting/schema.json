@@ -21,6 +21,18 @@
         "hybrid"
       ]
     },
+    "showNearByDriverEtaOnRideOptions": {
+      "type": "boolean",
+      "default": false
+    },
+    "showNearByDriversOnRideOptions": {
+      "type": "boolean",
+      "default": false
+    },
+    "showOkraPayOnRideOptions": {
+      "type": "boolean",
+      "default": false
+    },
     "allowOrdersWithoutPartner": {
       "type": "boolean",
       "default": false

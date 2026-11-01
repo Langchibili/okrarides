@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { BottomSheetDragPill } from '@/components/ui/SwipeableBottomSheet';
 import { getImageUrl, savedCurrencySymbol } from '@/Functions';
+import { useAdminSettings } from '@/lib/hooks/useAdminSettings';
 
 const HEADER_GRADIENT_SX = {
   background: 'linear-gradient(-60deg, #FFB300 0%, #FF8A00 25%, #FFC107 50%, #FF6D00 75%, #FFD54F 100%)',
@@ -53,11 +54,22 @@ export function RideOptionsSheet({
   const [notes, setNotes] = useState('');
   const [promoInput, setPromoInput] = useState(promoCode || '');
   const [promoApplied, setPromoApplied] = useState(false);
+  const [showPromoInput, setShowPromoInput] = useState(false);
+  const { settings } = useAdminSettings();
 
   const hasLocations = !!(pickupLocation && dropoffLocation);
+  const showRideEta = settings?.showNearByDriverEtaOnRideOptions === true;
+  const showNearbyDriverCount = settings?.showNearByDriversOnRideOptions === true;
+  const showOkraPay = settings?.showOkraPayOnRideOptions === true;
 
   useEffect(() => { if (promoCode) setPromoInput(promoCode); }, [promoCode]);
   useEffect(() => { setPromoApplied(!!(promoDiscount?.valid)); }, [promoDiscount]);
+  useEffect(() => {
+    if (!showOkraPay && paymentMethod === 'okrapay') setPaymentMethod('cash');
+  }, [showOkraPay, paymentMethod]);
+  useEffect(() => {
+    if (promoCode || promoApplied) setShowPromoInput(true);
+  }, [promoCode, promoApplied]);
 
   const calculateDiscount = (fare) => {
     const subtotal = Number(fare) || 0;
@@ -216,17 +228,21 @@ export function RideOptionsSheet({
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.3, flexWrap: 'wrap' }}>
                           <Typography variant="subtitle2" fontWeight={700} noWrap>{estimate.rideClassName}</Typography>
+                          {showRideEta && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <TimeIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
+                              <Typography variant="caption" color="text.secondary">{estimate.estimatedDuration} min</Typography>
+                            </Box>
+                          )}
                           {estimate.surgeFare > 0 && <Chip label={`${((estimate.surgeFare / estimate.baseFare) * 100).toFixed(0)}x`} size="small" color="error" icon={<SurgeIcon />} />}
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <TimeIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
-                            <Typography variant="caption" color="text.secondary">{estimate.estimatedDuration} min</Typography>
-                          </Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <PersonIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
-                            <Typography variant="caption" color="text.secondary">{estimate.availableDrivers || 0} nearby</Typography>
-                          </Box>
+                          {showNearbyDriverCount && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <PersonIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
+                              <Typography variant="caption" color="text.secondary">{estimate.availableDrivers || 0} nearby</Typography>
+                            </Box>
+                          )}
                         </Box>
                       </Box>
                       <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
@@ -253,50 +269,15 @@ export function RideOptionsSheet({
           <Alert severity="info" sx={{ mb: 2 }}>No ride options available for this route.</Alert>
         )}
 
-        {/* Promo Code */}
-        {selectedRideClass && (
-          <Box sx={{ mb: 2.5 }}>
-            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>Promo Code</Typography>
-            {!promoApplied ? (
-              <Box sx={{ display: 'flex', gap: 1, width: '100%', minWidth: 0 }}>
-                <TextField
-                  fullWidth size="small" placeholder="Enter promo code"
-                  value={promoInput}
-                  onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><PromoIcon color="action" fontSize="small" /></InputAdornment> }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 }, '& .MuiInputBase-root:focus': { outline: 'none' }, flexShrink: 1, minWidth: 0 }}
-                />
-                <Button
-                  variant="contained" onClick={handleApplyPromo}
-                  disabled={!promoInput || validatingPromo}
-                  sx={{ minWidth: 80, flexShrink: 0, borderRadius: 2, textTransform: 'none', fontWeight: 700, '&:focus': { outline: 'none' } }}
-                >
-                  {validatingPromo ? <CircularProgress size={18} color="inherit" /> : 'Apply'}
-                </Button>
-              </Box>
-            ) : (
-              <Paper elevation={0} sx={{ p: 1.5, border: '1px solid', borderColor: 'success.main', borderRadius: 2, width: '100%', boxSizing: 'border-box' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                    <CheckIcon color="success" fontSize="small" />
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography variant="body2" fontWeight={600} noWrap>{promoInput}</Typography>
-                      <Typography variant="caption" color="text.secondary">{promoDiscount?.message || `Save ${savedCurrencySymbol()}${promoDiscount?.discount?.toFixed(2)}`}</Typography>
-                    </Box>
-                  </Box>
-                  <IconButton size="small" onClick={handleRemovePromo} sx={{ flexShrink: 0, '&:focus': { outline: 'none' } }}><CloseIcon fontSize="small" /></IconButton>
-                </Box>
-              </Paper>
-            )}
-          </Box>
-        )}
-
         {/* Payment Method */}
         {selectedRideClass && (
           <Box sx={{ mb: 2.5 }}>
             <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>Payment Method</Typography>
             <RadioGroup value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-              {[{ value: 'cash', label: 'Cash', Icon: WalletIcon }, { value: 'okrapay', label: 'OkraPay', Icon: CardIcon }].map(({ value, label, Icon }) => (
+              {[
+                { value: 'cash', label: 'Cash', Icon: WalletIcon },
+                ...(showOkraPay ? [{ value: 'okrapay', label: 'OkraPay', Icon: CardIcon }] : []),
+              ].map(({ value, label, Icon }) => (
                 <Paper
                   key={value} elevation={0} onClick={() => setPaymentMethod(value)}
                   sx={{
@@ -387,6 +368,58 @@ export function RideOptionsSheet({
                   <Typography variant="h6" fontWeight={800}>Total</Typography>
                   <Typography variant="h6" fontWeight={800} color="primary.main">{savedCurrencySymbol()}{calculateTotalFare().toFixed(2)}</Typography>
                 </Box>
+              </Box>
+
+              <Box sx={{ mb: 1.25 }}>
+                {!showPromoInput ? (
+                  <Button
+                    onClick={() => setShowPromoInput(true)}
+                    color="inherit"
+                    sx={{
+                      minHeight: 36,
+                      px: 1,
+                      color: 'text.secondary',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: 'action.hover' },
+                    }}
+                  >
+                    Use coupon code
+                  </Button>
+                ) : promoApplied ? (
+                  <Paper elevation={0} sx={{ p: 1.25, border: '1px solid', borderColor: 'success.main', borderRadius: 2, width: '100%', boxSizing: 'border-box' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                        <CheckIcon color="success" fontSize="small" />
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" fontWeight={600} noWrap>{promoInput}</Typography>
+                          <Typography variant="caption" color="text.secondary">{promoDiscount?.message || `Save ${savedCurrencySymbol()}${promoDiscount?.discount?.toFixed(2)}`}</Typography>
+                        </Box>
+                      </Box>
+                      <IconButton size="small" onClick={handleRemovePromo} sx={{ flexShrink: 0, '&:focus': { outline: 'none' } }}><CloseIcon fontSize="small" /></IconButton>
+                    </Box>
+                  </Paper>
+                ) : (
+                  <Box sx={{ display: 'flex', gap: 1, width: '100%', minWidth: 0 }}>
+                    <TextField
+                      fullWidth placeholder="Enter coupon code"
+                      value={promoInput}
+                      onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start"><PromoIcon color="action" fontSize="small" /></InputAdornment>,
+                        sx: { height: 48, borderRadius: 2 },
+                      }}
+                      sx={{ flex: 1, minWidth: 0, '& .MuiInputBase-root': { height: 48 } }}
+                    />
+                    <Button
+                      variant="contained" onClick={handleApplyPromo}
+                      disabled={!promoInput || validatingPromo}
+                      sx={{ height: 48, minWidth: 80, flexShrink: 0, borderRadius: 2, textTransform: 'none', fontWeight: 700, '&:focus': { outline: 'none' } }}
+                    >
+                      {validatingPromo ? <CircularProgress size={18} color="inherit" /> : 'Apply'}
+                    </Button>
+                  </Box>
+                )}
               </Box>
 
               <Button
