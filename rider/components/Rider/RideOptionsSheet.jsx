@@ -12,6 +12,7 @@ import {
   CheckCircle as CheckIcon, AccessTime as TimeIcon,
   TrendingUp as SurgeIcon, Person as PersonIcon,
   CreditCard as CardIcon, AccountBalanceWallet as WalletIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BottomSheetDragPill } from '@/components/ui/SwipeableBottomSheet';
@@ -373,15 +374,24 @@ export function RideOptionsSheet({
               <Box sx={{ mb: 1.25 }}>
                 {!showPromoInput ? (
                   <Button
+                    fullWidth
                     onClick={() => setShowPromoInput(true)}
-                    color="inherit"
+                    variant="outlined"
+                    endIcon={<ExpandMoreIcon />}
                     sx={{
-                      minHeight: 36,
-                      px: 1,
+                      minHeight: 44,
+                      px: 1.5,
                       color: 'text.secondary',
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      justifyContent: 'space-between',
                       fontWeight: 600,
                       textTransform: 'none',
-                      '&:hover': { bgcolor: 'action.hover' },
+                      bgcolor: 'transparent',
+                      '&:hover': {
+                        borderColor: 'text.secondary',
+                        bgcolor: 'transparent',
+                      },
                     }}
                   >
                     Use coupon code
