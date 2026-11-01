@@ -175,6 +175,7 @@ async function handleCompleteTrip(
     where: { id: driver.driverProfile.id },
     data: {
       isAvailable: true,
+      isOnline: true,
       isEnroute: false,
       currentRide: null,
       completedRides: (driver.driverProfile.completedRides || 0) + 1,
@@ -183,6 +184,12 @@ async function handleCompleteTrip(
       floatBalance: newFloatBalance,
       withdrawableFloatBalance: withdrawableFloatBalance > 0 ? withdrawableFloatBalance : 0, // withdrawableFloatBalance cannot be negative
       currentBalance: newCurrentBalance,
+    },
+  });
+  await strapi.db.query('plugin::users-permissions.user').update({
+    where: { id: driverId },
+    data: {
+      isOnline: true
     },
   });
 

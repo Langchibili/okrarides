@@ -136,6 +136,7 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
       where: { id: driver.deliveryProfile.id },
       data: {
         isAvailable: true,
+        isOnline: true,
         isEnroute: false,
         currentDelivery: null,
         completedDeliveries: (driver.deliveryProfile.completedDeliveries || 0) + 1,
@@ -145,7 +146,12 @@ async function handleCompleteDelivery(input: HandleCompleteDeliveryInput) {
       },
     });
   }
-
+ await strapi.db.query('plugin::users-permissions.user').update({
+    where: { id: delivererId },
+    data: {
+      isOnline: true
+    },
+  });
   // Update package status to delivered
   if (delivery.package?.id) {
     await strapi.db.query('api::package.package').update({

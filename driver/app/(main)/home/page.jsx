@@ -318,11 +318,11 @@ export default function DriverHomePage() {
   const isFloatLow = !isFloatNegative && floatBalance < minimumFloatTopup * 2 && floatBalance > 0;
   const subscriptionExpiresAt = driverProfile?.currentSubscription?.expiresAt;
 
-  useEffect(() => {
-    if(!isOnline){ // this is to make sure that as long as the driver hits the front page, the online status is toggled on, even if it was false but showed that it's online
-      toggleOnline(true)
-    }
-  }, [isOnline]);
+  // useEffect(() => {
+  //   if(!isOnline){ // this is to make sure that as long as the driver hits the front page, the online status is toggled on, even if it was false but showed that it's online
+  //     toggleOnline(true)
+  //   }
+  // }, [isOnline]);
   
   useEffect(() => {
     if (currentRide) {
